@@ -10,6 +10,8 @@
 #include <App/DMA.h>
 
 #include <CubeRover/Camera/CameraTask.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 #include "S25fl512l.hpp"
 #include "gio.h"
@@ -51,13 +53,14 @@ namespace Camera
     // Suspends this Task until the downlink is flagged as complete:
     void ProtectedDownlinkRequest::awaitCompletion()
     {
-        while (!(this->getData().done))
-        {
+        DownlinkRequest req;
+        do {
             // Bytes still need to be downlinked
             // (i.e. they haven't been downlinked yet)
             // Check back on this task in a bit:
             vTaskDelay(CAMERA_TASK_DOWNLINK_POLLING_TIME_MS / portTICK_PERIOD_MS);
-        }
+            req = this->getData();
+        } while (!req.done);
     }
 
     ProtectedCameraState::ProtectedCameraState() : state(CameraState::IDLE)
@@ -193,6 +196,7 @@ namespace Camera
         static ImageRequest workingImageRequest;
         static DownlinkRequest workingDownlinkRequest;
 
+        watchDogInterface.debugPrintfToWatchdog("CAM-SM: Running . . .");
         while (task->m_keepRunning)
         {
             // !!! STATE MACHINE RUNNER IN HERE !!!
@@ -208,6 +212,7 @@ namespace Camera
                 break;
 
             case CameraState::SETUP:
+                watchDogInterface.debugPrintfToWatchdog("CAM-SM: In SETUP");
                 // Do some setup.
                 // Data specifying the image request can be fetched like this:
                 workingImageRequest = pImageRequest->getData();
@@ -217,6 +222,7 @@ namespace Camera
                 break;
 
             case CameraState::DOWNLINK_LINE:
+//                watchDogInterface.debugPrintfToWatchdog("CAM-SM: In DL Line");
                 // Read the data for the line into `pDownlinkBuffer->pData`
                 // Do any downsampling, etc.
                 //
@@ -224,6 +230,7 @@ namespace Camera
                 workingDownlinkRequest.callbackId = workingImageRequest.callbackId;
                 workingDownlinkRequest.captureTimeMs = xTaskGetTickCount();
 
+//                watchDogInterface.debugPrintfToWatchdog("CAM-SM: DL CAM: %d", workingImageRequest.cam);
                 if(workingImageRequest.cam == Camera::CameraSelection::DUMMY){
                     // Point to the buffer we're downlinking:
                     pDownlinkBuffer->pData = imageLineDownsampleBuffer;
@@ -240,9 +247,12 @@ namespace Camera
                     workingDownlinkRequest.numBytesToDownlink = dl_img_width;
 
                     for (int y = 0; y < IMAGE_HEIGHT; y++) {
+                        // Lock ONCE per row:
+//                        watchDogInterface.debugPrintfToWatchdog("CAM-SM: DL R%d", y);
+                        pDownlinkBuffer->mutex.lock();
+                        // Build row:
                         for (int x = 0; x < IMAGE_WIDTH; x++) {
                             // Grab the mutex and build the buffer:
-                            pDownlinkBuffer->mutex.lock();
                             // if camera == 0 then all black, else black and white grid, in theory...
                             imageLineDownsampleBuffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
                             // Make it a gradient in both x and y for debugging:
@@ -260,12 +270,13 @@ namespace Camera
                         // Unlock the mutex, request a downlink, and wait for it to be done:
                         pDownlinkBuffer->mutex.unLock();
                         workingDownlinkRequest.done = false;
+//                        watchDogInterface.debugPrintfToWatchdog("CAM-SM: DL %d", y);
                         pDownlinkRequest->setData(workingDownlinkRequest);
                         pDownlinkRequest->awaitCompletion();
                     }
-                    // Done. Move back to the `IDLE` state:
-                    pCameraState->setState(CameraState::IDLE);
                 }
+                // Done. Move back to the `IDLE` state:
+                pCameraState->setState(CameraState::IDLE);
 
                 // Do whatever. Stay in this state, go to idle if done, etc.
                 break;

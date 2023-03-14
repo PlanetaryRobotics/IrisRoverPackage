@@ -174,73 +174,31 @@ namespace CubeRover
         uint32_t txStart = static_cast<uint32_t>(_txStart.get_time_ms());
         uint16_t hashedId = hashTime(txStart);
         uint8_t *downlinkBuffer = m_fileDownlinkBuffer[portNum];
-        if (singleFileObjectSize <= m_downlink_objects_size)
+
+        // TESTING don't intersperse telemetry or logs with file!!! flushTlmDownlinkBuffer();  // Flush first to get new seq
+        int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
+        if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
+            numBlocks++;
+        downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(captureTime));
+        flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
+        int readStride = static_cast<int>(dataSize) / numBlocks;
+        struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(downlinkBuffer);
+        for (int blockNum = 1; blockNum <= numBlocks; ++blockNum)
         {
-            struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(downlinkBuffer);
-            obj->header.magic = FSW_FILE_MAGIC;
-            obj->header.hashedId = hashedId;
-            obj->header.totalBlocks = 1;
-            obj->header.blockNumber = 1;
-            obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
-            memcpy(&obj->file.byte0, data, dataSize);
-            downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(captureTime));
-            downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
-            m_appBytesDownlinked += singleFileObjectSize;
-            // ! TODO: FIXME
-            // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
-            // ! (do this to avoid maxing out the radio Tx queue):
-            flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
-            int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-            while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
-                vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
-            }
-        }
-        else
-        { // Send file fragments
-            // TESTING don't intersperse telemetry or logs with file!!! flushTlmDownlinkBuffer();  // Flush first to get new seq
-            int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
-            if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
-                numBlocks++;
-            downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(captureTime));
-            flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
-            int readStride = static_cast<int>(dataSize) / numBlocks;
-            struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(downlinkBuffer);
-            for (int blockNum = 1; blockNum <= numBlocks; ++blockNum)
-            {
-                packet->payload0.file.header.magic = FSW_FILE_MAGIC;
-                packet->payload0.file.header.hashedId = hashedId;
-                packet->payload0.file.header.totalBlocks = numBlocks;
-                packet->payload0.file.header.blockNumber = blockNum;
-                FswPacket::FileLength_t blockLength;
-                if (blockNum < numBlocks)
-                { // Send full datagram fragment
-                    blockLength = readStride;
-                    dataSize -= blockLength;
-                    packet->payload0.file.header.length = blockLength;
-                    memcpy(&packet->payload0.file.file.byte0, data, blockLength);
-                    FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
-                    log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
-                    downlink(downlinkBuffer, datagramLength);
-                    data += blockLength;
-                    // ! TODO: FIXME
-                    // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
-                    // ! (do this to avoid maxing out the radio Tx queue):
-                    int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-                    while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
-                        vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
-                    }
-                }
-                else
-                { // Final Fragment is written to the member buffer to downlink with other objects
-                    FW_ASSERT(dataSize > 0);
-                    blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
-                    packet->payload0.file.header.length = blockLength;
-                    memcpy(&packet->payload0.file.file.byte0, data, blockLength);
-                    downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
-                    flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
-                }
-                m_appBytesDownlinked += blockLength;
-            }
+            packet->payload0.file.header.magic = FSW_FILE_MAGIC;
+            packet->payload0.file.header.hashedId = hashedId;
+            packet->payload0.file.header.totalBlocks = numBlocks;
+            packet->payload0.file.header.blockNumber = blockNum;
+            FswPacket::FileLength_t blockLength;
+            blockLength = readStride;
+            dataSize -= blockLength;
+            packet->payload0.file.header.length = blockLength;
+            memcpy(&packet->payload0.file.file.byte0, data, blockLength);
+            FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
+            log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
+            downlink(downlinkBuffer, datagramLength);
+            data += blockLength;
+            m_appBytesDownlinked += blockLength;
         }
         updateTelemetry();
     }

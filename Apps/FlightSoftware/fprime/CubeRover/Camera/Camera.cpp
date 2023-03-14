@@ -16,6 +16,8 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/FswPacket"    // PrimaryFlightController/FlightMCU
 #include <cstring>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 #include "gio.h"
 #include "spi.h"
@@ -84,6 +86,7 @@ namespace CubeRover {
       Camera::DownlinkRequest req = this->protectedDownlinkRequest.getData();
       bool need_to_downlink = !req.done;
       if(can_downlink && need_to_downlink){
+          watchDogInterface.debugPrintfToWatchdog("CAM: Downlinking . . .");
           // Take the mutex:
           this->protectedDownlinkBuffer.mutex.lock();
           // Downlink:
@@ -154,6 +157,7 @@ namespace CubeRover {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
     // Build image request object:
+
     Camera::ImageRequest imgReq ={
           .cam=static_cast<Camera::CameraSelection>(camera_num),
           .callbackId=callback_id,

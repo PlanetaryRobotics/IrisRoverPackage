@@ -14,30 +14,24 @@
 #define Camera_HPP
 
 #include "CubeRover/Camera/CameraComponentAc.hpp"
+#include <CubeRover/Camera/CameraTask.hpp>
 
-#include "S25fl512l.hpp"
-
-// --- DUMMY IMAGE PARAMS ---
-
-#define DUMMY_IMG_GRID     2    // Dummy image is grid of NxN squares
-#define DUMMY_VIA_FPGA     0    // Read & Write dummy image w/ FPGA Flash
-
-#define IMAGE_WIDTH     500
-#define IMAGE_HEIGHT    500
-
-// --- SYSTEM IMAGE PARAMS ---
-//#define IMAGE_WIDTH        2592
-//#define IMAGE_HEIGHT       1944
-
-// RAD TODO - isn't downsampling a user-defined parameter?
-#define DOWNSAMPLING        1
-#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
-#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
+#include "FreeRTOS.h"
+#include "os_portmacro.h"
+#include "os_semphr.h"
+#include "os_task.h"
+#include <Os/Mutex.hpp>
 
 namespace CubeRover {
 
+    // These three parameters control the setup of the task that handles sending UDP data to the WF121 Radio:
+    static const NATIVE_INT_TYPE CAMERA_TASK_PRIORITY = 9; // Less than all comm layers
+    // NOTE: Stack size is in words. Make sure there's enough room for the overhead (min task size) plus some overhead. Use `uxTaskGetStackHighWaterMark(NULL)` to tune.
+    static const NATIVE_INT_TYPE CAMERA_TASK_STACK_SIZE = configMINIMAL_STACK_SIZE + 256; // **Shouldn't** be handling anything big dynamicly, so can be kind of shallow
+    static const NATIVE_INT_TYPE CAMERA_TASK_CPU_AFFINITY = -1;
+
   class CameraComponentImpl :
-    public CameraComponentBase
+    public CameraComponentBase, public Camera::CameraDownlinkManager
   {
 
     public:
@@ -198,7 +192,9 @@ namespace CubeRover {
       void triggerImageCapture(uint8_t camera, uint16_t callbackId);
       void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
 
-      uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+      // FreeRTOS Task responsible for handling camera I/O:
+      Camera::CameraTask m_cameraTask;
+
       U32 m_numComponentImgsReq;
       U32 m_numGroundImgsReq;
       U32 m_imagesSent;

@@ -35,6 +35,8 @@ namespace CubeRover {
 #else
     CameraComponentImpl(void)
 #endif
+    ,
+    Camera::CameraDownlinkManager(), m_cameraTask(this)
   {
       
   }
@@ -45,11 +47,18 @@ namespace CubeRover {
     )
   {
     CameraComponentBase::init(instance);
-//    m_fpgaFlash.setupDevice();
     m_numComponentImgsReq = 0;
     m_numGroundImgsReq = 0;
     m_imagesSent = 0;
     m_bytesSent = 0;
+
+    // Initialize the Camera Task:
+    ::Os::Task::TaskStatus cameraTaskStat = m_cameraTask.startTask(CAMERA_TASK_PRIORITY,
+                                                                   CAMERA_TASK_STACK_SIZE,
+                                                                   CAMERA_TASK_CPU_AFFINITY);
+    // Assert that this will always be started successfully. If it isn't, we're screwed.
+    configASSERT(cameraTaskStat == Os::Task::TASK_OK);
+
   }
 
   CameraComponentImpl ::

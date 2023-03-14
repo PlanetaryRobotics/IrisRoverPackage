@@ -2,9 +2,14 @@
     <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
 
     <comment>Manages the CubeRover cameras</comment>
     <ports>
+        <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>Clock from RateGroupMedFreq.
+            </comment>
+        </port>
         <port name="takePicture" data_type="CubeRover::CameraTakePicture" kind="sync_input" max_number="2">
             <comment>
                 This port is for other components to request an picture to be taken (Navigation).
@@ -67,13 +72,25 @@
             <args>
                 <arg name="camera_num" type="U8">
                     <comment>
-                        0: Camera 0     1: Camera 1
+                        0: Camera 0     1: Camera 1, etc.
                     </comment>
                 </arg>
                 <arg name="callback_id" type="U16">
                     <comment>
                         Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     </comment>
+                </arg>
+                <arg name="skipXPairs" type="U16">
+                </arg>
+                <arg name="skipYPairs" type="U16">
+                </arg>
+                <arg name="startXPairs" type="U16">
+                </arg>
+                <arg name="startYPairs" type="U16">
+                </arg>
+                <arg name="endXPairs" type="U16">
+                </arg>
+                <arg name="endYPairs" type="U16">
                 </arg>
              </args>
         </command>

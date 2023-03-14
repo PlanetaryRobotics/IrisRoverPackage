@@ -132,6 +132,11 @@
     <target component="networkManager" port="schedIn" type="sched" num="0"/>
   </connection>
   
+  <connection name="rgMedFreq_to_networkManager">
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <target component="camera" port="schedIn" type="sched" num="0"/>
+  </connection>
+  
   <connection name = "rgMedFreq_to_navigation_clk">
     <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "1" />
     <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>

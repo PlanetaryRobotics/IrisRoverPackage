@@ -9,11 +9,17 @@
 |Get_Status|0 (0x0)|Get camera status| | |
 |Take_Image|1 (0x1)|Take an Image| | |
 | | | |camera_num|U8|
-                        0: Camera 0     1: Camera 1
+                        0: Camera 0     1: Camera 1, etc.
                     |
 | | | |callback_id|U16|
                         Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     |
+| | | |skipXPairs|U16||
+| | | |skipYPairs|U16||
+| | | |startXPairs|U16||
+| | | |startYPairs|U16||
+| | | |endXPairs|U16||
+| | | |endYPairs|U16||
 |Error|2 (0x2)|Get camera status| | |
 | | | |action|U8|
                         0x00: Clear Error     0xff: Read Error  !! Not sure how this is being used

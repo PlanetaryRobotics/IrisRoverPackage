@@ -143,7 +143,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         ),
         DataPathway.WIRED
     ),
-    
+
     'monitor-herc-on': (  # Tell the Watchdog to switch into service mode
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
@@ -704,7 +704,13 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'Camera_TakeImage',
         # Change this to whatever you want to reset.
-        OrderedDict(camera_num=0, callback_id=0),
+        OrderedDict(camera_num=0, callback_id=0,
+        skipXPairs=0, 
+        skipYPairs=0, 
+        startXPairs=0, 
+        startYPairs=0, 
+        endXPairs=2592/2, 
+        endYPairs=1944/2 ),
         DataPathway.WIRED
     ),
     'take-image-1': (
@@ -712,7 +718,13 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'Camera_TakeImage',
         # Change this to whatever you want to reset.
-        OrderedDict(camera_num=1, callback_id=0),
+        OrderedDict(camera_num=1, callback_id=0,
+        skipXPairs=0, 
+        skipYPairs=0, 
+        startXPairs=0, 
+        startYPairs=0, 
+        endXPairs=2592/2, 
+        endYPairs=1944/2 ),
         DataPathway.WIRED
     ),
     'wd-echo-hi-watchdog': (

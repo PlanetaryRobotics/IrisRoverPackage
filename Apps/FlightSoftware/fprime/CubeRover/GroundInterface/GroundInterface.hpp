@@ -88,7 +88,9 @@ extern int8_t m_persistent_state;
       void appDownlink_handler(
           const NATIVE_INT_TYPE portNum, /*!< The port number*/
           U16 callbackId, /*!< Metadata Field: Unique Id to map this file to the command that generated it*/
-          U32 createTime, /*!< Metadata Field: Time the file was created in ms epoch*/
+          U32 captureTime, /*!< Metadata Field: Time the file was created in ms epoch*/
+          U16 downlinkLineNumber, /*!< Index of this line in all lines being downlinked.*/
+          U16 totalDownlinkLineCount, /*!< Total number of lines being downlinked.*/
           Fw::Buffer &fwBuffer /*!< Buffer containing the data*/
       );
 

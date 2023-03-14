@@ -156,10 +156,13 @@ namespace CubeRover
 
     void GroundInterfaceComponentImpl ::
         appDownlink_handler(
-            const NATIVE_INT_TYPE portNum,
-            U16 callbackId,
-            U32 createTime,
-            Fw::Buffer &fwBuffer)
+                const NATIVE_INT_TYPE portNum, /*!< The port number*/
+                U16 callbackId, /*!< Metadata Field: Unique Id to map this file to the command that generated it*/
+                U32 captureTime, /*!< Metadata Field: Time the file was created in ms epoch*/
+                U16 downlinkLineNumber, /*!< Index of this line in all lines being downlinked.*/
+                U16 totalDownlinkLineCount, /*!< Total number of lines being downlinked.*/
+                Fw::Buffer &fwBuffer /*!< Buffer containing the data*/
+        )
     {
         uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
         U32 dataSize = fwBuffer.getsize();
@@ -180,7 +183,7 @@ namespace CubeRover
             obj->header.blockNumber = 1;
             obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
             memcpy(&obj->file.byte0, data, dataSize);
-            downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
+            downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(captureTime));
             downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
             m_appBytesDownlinked += singleFileObjectSize;
             // ! TODO: FIXME
@@ -198,7 +201,7 @@ namespace CubeRover
             int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
             if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
                 numBlocks++;
-            downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
+            downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(captureTime));
             flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
             int readStride = static_cast<int>(dataSize) / numBlocks;
             struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(downlinkBuffer);
@@ -381,8 +384,13 @@ namespace CubeRover
     void GroundInterfaceComponentImpl::flushTlmDownlinkBuffer()
     {
         // TODO: Check on mode manager wired MTU is 255B
-        FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_tlmDownlinkBufferPos - m_tlmDownlinkBuffer);
-        downlink(m_tlmDownlinkBuffer, length);
+        // Only actually downlink telem/logs if there's at least 2 slots free in the queue:
+        if(networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() >= 2){
+            FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_tlmDownlinkBufferPos - m_tlmDownlinkBuffer);
+            downlink(m_tlmDownlinkBuffer, length);
+        }
+        // Still reset the buffer though (worst case we're just throwing this out and replacing with newer telem - which
+        // we'll accept since files take higher priority:
         m_tlmDownlinkBufferPos = m_tlmDownlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
     }

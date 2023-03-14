@@ -14,6 +14,7 @@
 #define Camera_HPP
 
 #include "CubeRover/Camera/CameraComponentAc.hpp"
+#include "CubeRover/NetworkManager/NetworkManager.hpp" // ! TODO: FIXME Hacky patch connection to steal NM data
 #include <CubeRover/Camera/CameraTask.hpp>
 
 #include "FreeRTOS.h"
@@ -75,6 +76,12 @@ namespace CubeRover {
       );
 
     PRIVATE:
+        //! Handler implementation for schedIn
+        //!
+        void schedIn_handler(
+            const NATIVE_INT_TYPE portNum, /*!< The port number*/
+            NATIVE_UINT_TYPE context       /*!< The call order*/
+        );
 
       // ----------------------------------------------------------------------
       // Command handler implementations
@@ -90,15 +97,21 @@ namespace CubeRover {
       //! Implementation for Take_Image command handler
       //! Take an Image
       void Take_Image_cmdHandler(
-          const FwOpcodeType opCode, /*!< The opcode*/
-          const U32 cmdSeq, /*!< The command sequence number*/
-          U8 camera_num, /*!< 
-                        0: Camera 0     1: Camera 1
-                    */
-          U16 callback_id /*!< 
-                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
-                    */
-      );
+              const FwOpcodeType opCode, /*!< The opcode*/
+              const U32 cmdSeq, /*!< The command sequence number*/
+              U8 camera_num, /*!<
+                              0: Camera 0     1: Camera 1, etc.
+                          */
+              U16 callback_id, /*!<
+                              Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                          */
+              U16 skipXPairs,
+              U16 skipYPairs,
+              U16 startXPairs,
+              U16 startYPairs,
+              U16 endXPairs,
+              U16 endYPairs
+          );
 
       //! Implementation for Error command handler
       //! Get camera status
@@ -190,7 +203,7 @@ namespace CubeRover {
       // ----------------------------------------------------------------------
 
       void triggerImageCapture(uint8_t camera, uint16_t callbackId);
-      void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
+      void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t captureTime, uint16_t downlinkLineNumber, uint16_t totalDownlinkLineCount);
 
       // FreeRTOS Task responsible for handling camera I/O:
       Camera::CameraTask m_cameraTask;

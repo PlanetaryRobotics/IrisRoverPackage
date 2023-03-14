@@ -12,6 +12,7 @@
 
 
 #include <CubeRover/Camera/Camera.hpp>
+#include <CubeRover/NetworkManager/NetworkManager.hpp> // ! TODO: FIXME Hacky patch connection to steal NM data
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/FswPacket"    // PrimaryFlightController/FlightMCU
 #include <cstring>
@@ -19,6 +20,8 @@
 #include "gio.h"
 #include "spi.h"
 #include "lin.h"
+
+extern CubeRover::NetworkManagerComponentImpl networkManager; // ! TODO: FIXME Hacky patch connection to steal NM data
 
 namespace CubeRover {
 
@@ -72,6 +75,21 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
 
   void CameraComponentImpl ::
+      schedIn_handler(
+          const NATIVE_INT_TYPE portNum,
+          NATIVE_UINT_TYPE context)
+  {
+      // Check if we need to downlink an image row and can downlink an image row:
+      bool can_downlink = networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() > 0;
+      Camera::DownlinkRequest req = protectedDownlinkRequest.getData();
+      bool need_to_downlink = !req.done;
+      if(can_downlink & need_to_downlink){
+          // TODO
+      }
+  }
+
+
+  void CameraComponentImpl ::
     takePicture_handler(
         const NATIVE_INT_TYPE portNum,
         U8 CameraNum,
@@ -98,12 +116,22 @@ namespace CubeRover {
   }
 
   void CameraComponentImpl ::
-    Take_Image_cmdHandler(
-        const FwOpcodeType opCode,
-        const U32 cmdSeq,
-        U8 camera_num,
-        U16 callback_id
-    )
+  Take_Image_cmdHandler(
+          const FwOpcodeType opCode, /*!< The opcode*/
+          const U32 cmdSeq, /*!< The command sequence number*/
+          U8 camera_num, /*!<
+                          0: Camera 0     1: Camera 1, etc.
+                      */
+          U16 callback_id, /*!<
+                          Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                      */
+          U16 skipXPairs,
+          U16 skipYPairs,
+          U16 startXPairs,
+          U16 startYPairs,
+          U16 endXPairs,
+          U16 endYPairs
+      )
   {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
@@ -244,10 +272,10 @@ namespace CubeRover {
 
   }
 
-  void CameraComponentImpl::downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime)
+  void CameraComponentImpl::downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t captureTime, uint16_t downlinkLineNumber, uint16_t totalDownlinkLineCount)
   {
       Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
-      downlinkImage_out(0, callbackId, createTime, fwBuffer);
+      downlinkImage_out(0, callbackId, captureTime, downlinkLineNumber, totalDownlinkLineCount, fwBuffer);
       m_bytesSent += static_cast<U32>(size);
       tlmWrite_Cam_BytesSent(m_bytesSent);
   }

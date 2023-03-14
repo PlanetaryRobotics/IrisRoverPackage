@@ -52,22 +52,52 @@ html {
 				<td></td>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="3">Take_Image</td>
-			<td rowspan="3">4353 (0x1101)</td>
-			<td rowspan="3">Take an Image</td>
+			<td rowspan="9">Take_Image</td>
+			<td rowspan="9">4353 (0x1101)</td>
+			<td rowspan="9">Take an Image</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>camera_num</td>
 						<td>U8</td>
 						<td>
-                        0: Camera 0     1: Camera 1
+                        0: Camera 0     1: Camera 1, etc.
                     </td>
 					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+					<tr style = "border-right: 2px solid black;">
 						<td>callback_id</td>
 						<td>U16</td>
 						<td>
                         Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>skipXPairs</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>skipYPairs</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>startXPairs</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>startYPairs</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>endXPairs</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>endYPairs</td>
+						<td>U16</td>
+						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">

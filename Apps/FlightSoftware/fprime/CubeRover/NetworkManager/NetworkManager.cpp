@@ -179,8 +179,8 @@ namespace CubeRover
             const NATIVE_INT_TYPE portNum,
             Fw::Buffer &fwBuffer)
     {
-        if(portNum == 1 && m_pRadioDriver->m_networkInterface.udpTxQueueRoom() <= 2){
-            // Don't let WDI send anything if we're currently swamped
+        if(portNum == 1 && m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 4){
+            // Don't let WDI send anything if we're currently swamped (need at least 4 open slots - only the last two can be filled with WDI
             return;
         }
 

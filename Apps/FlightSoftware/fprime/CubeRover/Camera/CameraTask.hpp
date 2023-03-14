@@ -132,7 +132,6 @@ namespace Camera
         // POINTER to the data we're protecting:
         uint8_t *pData;
         ::Os::Mutex mutex;
-        ProtectedBuffer();
     };
 
     struct ProtectedDownlinkRequest

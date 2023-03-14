@@ -108,7 +108,8 @@
 // new task (384B) and then given some extra room.
 // NOTE: Prior to the crash, FreeRTOS Heap Health had no issues, even during
 // multi-day runs.
-#define configTOTAL_HEAP_SIZE ((size_t)64000)
+// Needed to bump up again to support addition of CameraTask:
+#define configTOTAL_HEAP_SIZE ((size_t)66424)
 #define configMAX_TASK_NAME_LEN (16)
 #define configIDLE_SHOULD_YIELD 1
 #define configGENERATE_RUN_TIME_STATS 0

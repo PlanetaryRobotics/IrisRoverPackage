@@ -705,12 +705,12 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'Camera_TakeImage',
         # Change this to whatever you want to reset.
         OrderedDict(camera_num=0, callback_id=0,
-        skipXPairs=0, 
-        skipYPairs=0, 
-        startXPairs=0, 
-        startYPairs=0, 
-        endXPairs=2592/2, 
-        endYPairs=1944/2 ),
+        skip_x_pairs=0, 
+        skip_y_pairs=0, 
+        start_x_pairs=0, 
+        start_y_pairs=0, 
+        end_x_pairs=int(2592/2), 
+        end_y_pairs=int(1944/2) ),
         DataPathway.WIRED
     ),
     'take-image-1': (
@@ -719,12 +719,12 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'Camera_TakeImage',
         # Change this to whatever you want to reset.
         OrderedDict(camera_num=1, callback_id=0,
-        skipXPairs=0, 
-        skipYPairs=0, 
-        startXPairs=0, 
-        startYPairs=0, 
-        endXPairs=2592/2, 
-        endYPairs=1944/2 ),
+        skip_x_pairs=0, 
+        skip_y_pairs=0, 
+        start_x_pairs=0, 
+        start_y_pairs=0, 
+        end_x_pairs=int(2592/2), 
+        end_y_pairs=int(1944/2) ),
         DataPathway.WIRED
     ),
     'take-image-dummy': (
@@ -733,12 +733,12 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'Camera_TakeImage',
         # Change this to whatever you want to reset.
         OrderedDict(camera_num=0xFF, callback_id=0,
-        skipXPairs=0, 
-        skipYPairs=0, 
-        startXPairs=0, 
-        startYPairs=0, 
-        endXPairs=2592/2, 
-        endYPairs=1944/2 ),
+        skip_x_pairs=0, 
+        skip_y_pairs=0, 
+        start_x_pairs=0, 
+        start_y_pairs=0, 
+        end_x_pairs=int(2592/2), 
+        end_y_pairs=int(1944/2) ),
         DataPathway.WIRED
     ),
     'wd-echo-hi-watchdog': (

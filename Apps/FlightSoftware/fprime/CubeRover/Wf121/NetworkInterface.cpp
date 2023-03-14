@@ -741,7 +741,7 @@ namespace Wf121
         return NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(
                 yieldData,
                 UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK,
-                UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE
+                UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE_RESET
                 //---
         );
     }
@@ -835,7 +835,7 @@ namespace Wf121
         );
     }
 
-    // Reset the transmit size:
+    // Reset the transmit size so we can flush it:
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(bool *yieldData)
     {
         return NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE_Core(
@@ -1020,12 +1020,8 @@ namespace Wf121
     // prevent buffer shifting in the radio, which we can no longer edit):
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_FLUSH_UDP(bool *yieldData)
     {
-        uint8_t flushMessage[] = "DL-FLXX";
-        static const uint8_t flushMessageLen = 7;
-        // Replace the last two bytes in the message with the number of total
-        // bytes downlinked (little endian):
-        flushMessage[5] = m_totalUdpMessageBytesDownlinked & 0xFF;
-        flushMessage[6] = (m_totalUdpMessageBytesDownlinked & 0xFF00) >> 8;
+        uint8_t flushMessage[] = "DL-FL";
+        static const uint8_t flushMessageLen = 5;
 
         // Pack the data for the UDP chunk:
         SendEndpoint(&m_bgApiCommandBuffer,
@@ -1084,8 +1080,7 @@ namespace Wf121
             else
             {
                 // We've sent the whole UDP payload:
-                // Flush the UDP port as a safety now
-                nextState = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE_RESET;
+                nextState = UdpTxUpdateState::DONE_DOWNLINKING;
             }
 
             // Reset fail counter:
@@ -1151,9 +1146,8 @@ namespace Wf121
         case BgApi::ErrorCode::NO_ERROR:
             // Cool, we can move on.
 
-            // We've sent the whole UDP payload and flushed.
-            // We're finally done.
-            nextState = UdpTxUpdateState::DONE_DOWNLINKING;
+            // We've flushed the UDP interface. Ready to proceed:
+            nextState = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
 
             // Reset fail counter:
             m_bgApiCommandFailCount = 0;
@@ -1193,8 +1187,7 @@ namespace Wf121
             }
             else
             {
-                // Send the same chunk again (don't increment anything,
-                // just try the send chunk step again):
+                // Try flushing again:
                 nextState = UdpTxUpdateState::FLUSH_UDP;
             }
             break;
@@ -1320,7 +1313,7 @@ namespace Wf121
 //            watchDogInterface.debugPrintfToWatchdog("RDL-RADIO: UDPTX at 0x%02x", inner_state_at_loop_start);
             // Having this ^ log here significantly helped with stability... don't know why.
             // Likely task priority mismatch. Just adding a 1 cycle relief for now:
-            vTaskDelay(2);
+            vTaskDelay(WF121_TX_ITERATION_RELIEF_TICKS);
 
             // If we're in the middle of sending chunks for a message and are no
             // longer connected, reset the state to the beginning of trying to send
@@ -1366,6 +1359,22 @@ namespace Wf121
                 inner_state = handleTxState_WAIT_FOR_UDP_INTERLOCK(&yieldData);
                 break;
 
+            case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE_RESET:
+                inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(&yieldData);
+                break;
+
+            case UdpTxUpdateState::/******/ WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK:
+                inner_state = handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK(&yieldData);
+                break;
+
+            case UdpTxUpdateState::/******/ FLUSH_UDP:
+                inner_state = handleTxState_FLUSH_UDP(&yieldData);
+                break;
+
+            case UdpTxUpdateState::/******/ WAIT_FOR_FLUSH_UDP_ACK:
+                inner_state = handleTxState_WAIT_FOR_FLUSH_UDP_ACK(&yieldData);
+                break;
+
             case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE:
                 inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE(&yieldData);
                 break;
@@ -1390,22 +1399,6 @@ namespace Wf121
                 inner_state = handleTxState_WAIT_FOR_UDP_CHUNK_ACK(&yieldData);
                 break;
 
-            case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE_RESET:
-                inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(&yieldData);
-                break;
-
-            case UdpTxUpdateState::/******/ WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK:
-                inner_state = handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK(&yieldData);
-                break;
-
-            case UdpTxUpdateState::/******/ FLUSH_UDP:
-                inner_state = handleTxState_FLUSH_UDP(&yieldData);
-                break;
-
-            case UdpTxUpdateState::/******/ WAIT_FOR_FLUSH_UDP_ACK:
-                inner_state = handleTxState_WAIT_FOR_FLUSH_UDP_ACK(&yieldData);
-                break;
-
             case UdpTxUpdateState::/******/ DONE_DOWNLINKING:
                 inner_state = handleTxState_DONE_DOWNLINKING(&yieldData);
                 break;
@@ -1416,9 +1409,8 @@ namespace Wf121
             default:
                 // There must have been a bit-flip or something because we've
                 // enumerated all the states above.
-                // Attempt to recover by cleaning up then going back to the
-                // start:
-                inner_state = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE_RESET;
+                // Attempt to recover by starting over
+                inner_state = UdpTxUpdateState::START_SENDING_MESSAGE;
             }
 
             // If we're in the middle of sending a message (between downlink
@@ -1466,25 +1458,17 @@ namespace Wf121
                     // We have to start sending whatever we were doing over again,
                     // which will start by us asking for the interlock again:
                     switch(inner_state_at_loop_start){
-                        // If the reset started before we've sent anything, just ask for the ILOCK again:
-                        case UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK:
-                            inner_state = UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
-                            break;
-                        case UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_ACK:
-                            inner_state = UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
-                            break;
-                        // If it happened after we sent everything, just repeat the step:
-                        case UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK:
-                            inner_state = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE_RESET;
-                            break;
-                        case UdpTxUpdateState::WAIT_FOR_FLUSH_UDP_ACK:
-                            inner_state = UdpTxUpdateState::FLUSH_UDP; // just try to flush the UDP again, we don't NEED ILOCK for this
-                            break;
+//                        // If the reset started before we've sent anything, just ask for the ILOCK again:
+//                        case UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK:
+//                            inner_state = UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
+//                            break;
                         default:
-                            // if it was lost somewhere else somehow, just start sending over again (which will also ask for ilock):
+                            // Otherwise, just start over fresh (which will also ask for ilock):
                             inner_state = UdpTxUpdateState::START_SENDING_MESSAGE;
                     }
                 }
+                // Cool off no matter what before proceeding if we lost ILOCK (and needed it):
+                vTaskDelay(WF121_ILOCK_LOSS_COOLOFF);
             }
 
             if (inner_state == UdpTxUpdateState::BGAPI_CMD_FAIL)

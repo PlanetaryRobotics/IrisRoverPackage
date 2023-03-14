@@ -37,7 +37,7 @@ namespace Wf121
     // Same data but for `m_xUdpTxPayloadQueue`:
     static const size_t UDP_TX_PAYLOAD_QUEUE_ITEM_SIZE = sizeof(UdpTxPayload);
     // Number of UDP Payloads to keep in the `m_xUdpTxPayloadQueue` (note: each payload is 2+WF121_UDP_MAX_PAYLOAD bytes long).
-    static const uint8_t UDP_TX_PAYLOAD_QUEUE_DEPTH = 5;
+    static const uint8_t UDP_TX_PAYLOAD_QUEUE_DEPTH = 6;
     // Static queue storage area:
     static uint8_t ucUdpTxPayloadQueueStorageArea[UDP_TX_PAYLOAD_QUEUE_DEPTH * UDP_TX_PAYLOAD_QUEUE_ITEM_SIZE];
     /* The variable used to hold the queue's data structure. */

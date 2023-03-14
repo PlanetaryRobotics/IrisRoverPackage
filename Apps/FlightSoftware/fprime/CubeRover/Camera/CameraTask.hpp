@@ -20,8 +20,10 @@
 #include "S25fl512l.hpp"
 
 // --- SYSTEM IMAGE PARAMS ---
-#define IMAGE_WIDTH        2592
-#define IMAGE_HEIGHT       1944
+//#define IMAGE_WIDTH        2592
+//#define IMAGE_HEIGHT       1944
+#define IMAGE_WIDTH        500
+#define IMAGE_HEIGHT       500
 //
 //// RAD TODO - isn't downsampling a user-defined parameter?
 //#define DOWNSAMPLING        1

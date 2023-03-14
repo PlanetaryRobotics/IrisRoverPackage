@@ -264,11 +264,10 @@ namespace Camera
                                 imageLineDownsampleBuffer[x] -= 255 * y / IMAGE_HEIGHT / 3;
                             }
                         }
-                        // Add the rest of the data to the request:
-                        workingDownlinkRequest.downlinkLineNumber = y;
-
                         // Unlock the mutex, request a downlink, and wait for it to be done:
                         pDownlinkBuffer->mutex.unLock();
+                        // Add the rest of the data to the request:
+                        workingDownlinkRequest.downlinkLineNumber = y;
                         workingDownlinkRequest.done = false;
 //                        watchDogInterface.debugPrintfToWatchdog("CAM-SM: DL %d", y);
                         pDownlinkRequest->setData(workingDownlinkRequest);

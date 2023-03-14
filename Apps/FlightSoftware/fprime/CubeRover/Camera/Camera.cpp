@@ -82,11 +82,11 @@ namespace CubeRover {
           NATIVE_UINT_TYPE context)
   {
       // Check if we need to downlink an image row and can downlink an image row:
-      bool can_downlink = networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() > 0;
+      bool can_downlink = networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() >=3 ; // needs at least 3 slots
       Camera::DownlinkRequest req = this->protectedDownlinkRequest.getData();
       bool need_to_downlink = !req.done;
       if(can_downlink && need_to_downlink){
-          watchDogInterface.debugPrintfToWatchdog("CAM: Downlinking . . .");
+//          watchDogInterface.debugPrintfToWatchdog("CAM: Downlinking . . .");
           // Take the mutex:
           this->protectedDownlinkBuffer.mutex.lock();
           // Downlink:

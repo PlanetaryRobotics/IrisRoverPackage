@@ -166,6 +166,11 @@ namespace CubeRover
     {
         uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
         U32 dataSize = fwBuffer.getsize();
+        // CAP DATASIZE AT LIMIT:
+        if(dataSize > 1900){
+            dataSize = 1900;
+        }
+
         U32 singleFileObjectSize = dataSize + sizeof(struct FswPacket::FswFileHeader);
         m_appBytesReceived += dataSize;
 
@@ -190,16 +195,24 @@ namespace CubeRover
             packet->payload0.file.header.totalBlocks = numBlocks;
             packet->payload0.file.header.blockNumber = blockNum;
             FswPacket::FileLength_t blockLength;
-            blockLength = readStride;
+            if(dataSize > readStride){
+                blockLength = readStride;
+            } else {
+                blockLength = dataSize;
+            }
             dataSize -= blockLength;
-            packet->payload0.file.header.length = blockLength;
-            memcpy(&packet->payload0.file.file.byte0, data, blockLength);
-            FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
-            log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
-            downlink(downlinkBuffer, datagramLength);
-            data += blockLength;
-            m_appBytesDownlinked += blockLength;
+            if(dataSize > 0){ // safety
+                packet->payload0.file.header.length = blockLength;
+                memcpy(&packet->payload0.file.file.byte0, data, blockLength);
+                FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
+                log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
+                downlink(downlinkBuffer, datagramLength);
+                data += blockLength;
+                m_appBytesDownlinked += blockLength;
+            }
         }
+//        // Again once at the end too:  <-- not necessary
+//        downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(captureTime));
         updateTelemetry();
     }
 
@@ -342,8 +355,8 @@ namespace CubeRover
     void GroundInterfaceComponentImpl::flushTlmDownlinkBuffer()
     {
         // TODO: Check on mode manager wired MTU is 255B
-        // Only actually downlink telem/logs if there's at least 2 slots free in the queue:
-        if(networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() >= 2){
+        // Only actually downlink telem/logs if there's at least 4 slots free in the queue:
+        if(networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() >= 4){
             FswPacket::Length_t length = static_cast<FswPacket::Length_t>(m_tlmDownlinkBufferPos - m_tlmDownlinkBuffer);
             downlink(m_tlmDownlinkBuffer, length);
         }
@@ -442,15 +455,18 @@ namespace CubeRover
      */
     void GroundInterfaceComponentImpl::downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms)
     {
-        struct FswPacket::FswFile metadata = {0};
-        metadata.header.magic = FSW_FILE_MAGIC;
-        metadata.header.hashedId = hashedId;
-        metadata.header.totalBlocks = totalBlocks;
-        metadata.header.blockNumber = 0;
-        metadata.header.length = sizeof(struct FswPacket::FswFileMetadata);
-        metadata.file.metadata.callbackId = callbackId;
-        metadata.file.metadata.timestamp = timestamp_ms;
-        downlinkBufferWrite(&metadata, static_cast<FswPacket::Length_t>(sizeof(metadata)), DownlinkFile);
+        struct FswPacket::FswPacket packet = {0};
+        packet.payload0.file.header.magic = FSW_FILE_MAGIC;
+        packet.payload0.file.header.hashedId = hashedId;
+        packet.payload0.file.header.totalBlocks = totalBlocks;
+        packet.payload0.file.header.blockNumber = 0;
+        packet.payload0.file.header.length = sizeof(struct FswPacket::FswFileMetadata);
+        packet.payload0.file.file.metadata.callbackId = callbackId;
+        packet.payload0.file.file.metadata.timestamp = timestamp_ms;
+
+        FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + sizeof(struct FswPacket::FswFileMetadata);
+        downlink(reinterpret_cast<uint8_t*>(&packet), datagramLength);
+        m_appBytesDownlinked += datagramLength;
     }
 
 } // end namespace CubeRover

@@ -194,10 +194,7 @@ namespace Camera
                                          NATIVE_INT_TYPE stackSize,
                                          NATIVE_INT_TYPE cpuAffinity = -1); //!< start the task
 
-    private:
-        // Functor to handle the actual write operations in each loop of the Task:
-        CameraDownlinkManager *m_pDownlinkManager;
-
+    public:
         // Data about the image(s) requested:
         ProtectedImageRequest m_imageRequest;
 
@@ -205,11 +202,9 @@ namespace Camera
         // EXTERNAL TASK WILL SET THIS TO `SETUP` after updating
         // `m_imageRequest` when it wants a new image.
         ProtectedCameraState m_cameraState;
-
-        // Buffer for image data:
-        uint8_t m_imageLineBuffer[IMAGE_WIDTH];
-        // A second working buffer for image data:
-        uint8_t m_imageLineDownsampleBuffer[IMAGE_WIDTH];
+    private:
+        // Functor to handle the actual write operations in each loop of the Task:
+        CameraDownlinkManager *m_pDownlinkManager;
 
         // Whether or not the task should keep running. The main loop in the
         // task thread is controlled by this.

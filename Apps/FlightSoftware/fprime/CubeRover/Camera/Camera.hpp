@@ -202,7 +202,7 @@ namespace CubeRover {
       // User Methods
       // ----------------------------------------------------------------------
 
-      void triggerImageCapture(uint8_t camera, uint16_t callbackId);
+      void triggerImageCapture(Camera::ImageRequest imgReq);
       void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t captureTime, uint16_t downlinkLineNumber, uint16_t totalDownlinkLineCount);
 
       // FreeRTOS Task responsible for handling camera I/O:

@@ -21,6 +21,12 @@ static TaskHandle_t xActiveTask = nullptr; // not init'd yet
 
 namespace Camera
 {
+    // Declare static buffers:
+    // Buffer for image data:
+    static uint8_t imageLineBuffer[IMAGE_WIDTH];
+    // A second working buffer for image data:
+    static uint8_t imageLineDownsampleBuffer[IMAGE_WIDTH];
+
     // Simple container for a pointer to a buffer and the mutex that protects it.
 
     ProtectedDownlinkRequest::ProtectedDownlinkRequest() : downlinkRequest(DownlinkRequest())
@@ -184,6 +190,9 @@ namespace Camera
 
         //    m_fpgaFlash.setupDevice();  // need this? (pulled it out of Camera.hpp when converting it to task manager)
 
+        static ImageRequest workingImageRequest;
+        static DownlinkRequest workingDownlinkRequest;
+
         while (task->m_keepRunning)
         {
             // !!! STATE MACHINE RUNNER IN HERE !!!
@@ -201,7 +210,7 @@ namespace Camera
             case CameraState::SETUP:
                 // Do some setup.
                 // Data specifying the image request can be fetched like this:
-                ImageRequest imgReq = pImageRequest->getData();
+                workingImageRequest = pImageRequest->getData();
 
                 // Move on to the `DOWNLINK_LINE` state:
                 pCameraState->setState(CameraState::DOWNLINK_LINE);
@@ -211,21 +220,52 @@ namespace Camera
                 // Read the data for the line into `pDownlinkBuffer->pData`
                 // Do any downsampling, etc.
                 //
-                // Trigger a new downlink of a line by setting the value of
-                // `pDownlinkRequest` to something with a non-zero `done`
-                // field:
-                pDownlinkRequest->setData({
-                    .done = false,
-                    .callbackId = 0,             // fill with correct value
-                    .captureTimeMs = 0x1234,     // fill with correct value
-                    .downlinkLineNumber = 0,     // fill with correct value
-                    .totalDownlinkLineCount = 1, // fill with correct value
-                    .numBytesToDownlink = 1,     // fill with correct value
-                });
+                // Start building the downlink request:
+                workingDownlinkRequest.callbackId = workingImageRequest.callbackId;
+                workingDownlinkRequest.captureTimeMs = xTaskGetTickCount();
 
-                // Then wait like this to find out when the downlinking is done:
-                // (suspends the task until the value is set to zero):
-                pDownlinkRequest->awaitCompletion();
+                if(workingImageRequest.cam == Camera::CameraSelection::DUMMY){
+                    // Point to the buffer we're downlinking:
+                    pDownlinkBuffer->pData = imageLineDownsampleBuffer;
+                    // Not the appropriate use of these variables, just putting them somewhere:
+                    int dl_img_width = IMAGE_WIDTH / workingImageRequest.skipXPairs;
+                    int dl_img_height = IMAGE_HEIGHT / workingImageRequest.skipXPairs;
+
+                    int grid_x_spacing = dl_img_width / 2;
+                    int grid_y_spacing = dl_img_height / 2;
+
+                    // Num rows being downlinked is height:
+                    workingDownlinkRequest.totalDownlinkLineCount = dl_img_height;
+                    // Num bytes to downlink per row is width:
+                    workingDownlinkRequest.numBytesToDownlink = dl_img_width;
+
+                    for (int y = 0; y < IMAGE_HEIGHT; y++) {
+                        for (int x = 0; x < IMAGE_WIDTH; x++) {
+                            // Grab the mutex and build the buffer:
+                            pDownlinkBuffer->mutex.lock();
+                            // if camera == 0 then all black, else black and white grid, in theory...
+                            imageLineDownsampleBuffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
+                            // Make it a gradient in both x and y for debugging:
+                            if(imageLineDownsampleBuffer[x] == 0x00){
+                                imageLineDownsampleBuffer[x] += 255 * x / IMAGE_WIDTH / 3;
+                                imageLineDownsampleBuffer[x] += 255 * y / IMAGE_HEIGHT / 3;
+                            } else {
+                                imageLineDownsampleBuffer[x] -= 255 * x / IMAGE_WIDTH / 3;
+                                imageLineDownsampleBuffer[x] -= 255 * y / IMAGE_HEIGHT / 3;
+                            }
+                        }
+                        // Add the rest of the data to the request:
+                        workingDownlinkRequest.downlinkLineNumber = y;
+
+                        // Unlock the mutex, request a downlink, and wait for it to be done:
+                        pDownlinkBuffer->mutex.unLock();
+                        workingDownlinkRequest.done = false;
+                        pDownlinkRequest->setData(workingDownlinkRequest);
+                        pDownlinkRequest->awaitCompletion();
+                    }
+                    // Done. Move back to the `IDLE` state:
+                    pCameraState->setState(CameraState::IDLE);
+                }
 
                 // Do whatever. Stay in this state, go to idle if done, etc.
                 break;

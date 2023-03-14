@@ -727,6 +727,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         endYPairs=1944/2 ),
         DataPathway.WIRED
     ),
+    'take-image-dummy': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        # Change this to whatever you want to reset.
+        OrderedDict(camera_num=0xFF, callback_id=0,
+        skipXPairs=0, 
+        skipYPairs=0, 
+        startXPairs=0, 
+        startYPairs=0, 
+        endXPairs=2592/2, 
+        endYPairs=1944/2 ),
+        DataPathway.WIRED
+    ),
     'wd-echo-hi-watchdog': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,

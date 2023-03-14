@@ -81,10 +81,18 @@ namespace CubeRover {
   {
       // Check if we need to downlink an image row and can downlink an image row:
       bool can_downlink = networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() > 0;
-      Camera::DownlinkRequest req = protectedDownlinkRequest.getData();
+      Camera::DownlinkRequest req = this->protectedDownlinkRequest.getData();
       bool need_to_downlink = !req.done;
-      if(can_downlink & need_to_downlink){
-          // TODO
+      if(can_downlink && need_to_downlink){
+          // Take the mutex:
+          this->protectedDownlinkBuffer.mutex.lock();
+          // Downlink:
+          downlinkImage(this->protectedDownlinkBuffer.pData, req.numBytesToDownlink, req.callbackId, req.captureTimeMs, req.downlinkLineNumber, req.totalDownlinkLineCount);
+          // Give the mutex back:
+          this->protectedDownlinkBuffer.mutex.unLock();
+          // Flag that we're done:
+          req.done = true;
+          this->protectedDownlinkRequest.setData(req);
       }
   }
 
@@ -97,8 +105,18 @@ namespace CubeRover {
     )
   {
     m_numComponentImgsReq++;
-    tlmWrite_Cam_ComponentImagesRequested(m_numComponentImgsReq);
-    triggerImageCapture(CameraNum, CallbackId);
+    // Build image request object with default values
+    Camera::ImageRequest imgReq ={
+          .cam=static_cast<Camera::CameraSelection>(CameraNum),
+          .callbackId=CallbackId,
+          .skipXPairs=0,
+          .skipYPairs=0,
+          .startXPairs=0,
+          .startYPairs=0,
+          .stopXPairs=IMAGE_WIDTH/2, // name mismatch one side uses stop, the other end. no time to fix now. not actually an issue
+          .stopYPairs=IMAGE_HEIGHT/2
+    };
+    triggerImageCapture(imgReq);
   }
 
   // ----------------------------------------------------------------------
@@ -135,7 +153,19 @@ namespace CubeRover {
   {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
-    triggerImageCapture(camera_num, callback_id);
+    // Build image request object:
+    Camera::ImageRequest imgReq ={
+          .cam=static_cast<Camera::CameraSelection>(camera_num),
+          .callbackId=callback_id,
+          .skipXPairs=skipXPairs,
+          .skipYPairs=skipYPairs,
+          .startXPairs=startXPairs,
+          .startYPairs=startYPairs,
+          .stopXPairs=endXPairs, // name mismatch one side uses stop, the other end. no time to fix now. not actually an issue
+          .stopYPairs=endYPairs
+    };
+
+    triggerImageCapture(imgReq);
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -241,32 +271,17 @@ namespace CubeRover {
   // ----------------------------------------------------------------------
 
 
-  void CameraComponentImpl::triggerImageCapture(uint8_t camera, uint16_t callbackId)
+  void CameraComponentImpl::triggerImageCapture(Camera::ImageRequest imgReq)
   {
-      tlmWrite_Cam_LatestCallbackId(callbackId);
-      uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
-
-#ifdef DUMMY_IMG_GRID
-
-      int grid_x_spacing = IMAGE_WIDTH / DUMMY_IMG_GRID;
-      int grid_y_spacing = IMAGE_HEIGHT / DUMMY_IMG_GRID;
-
-      for (int y = 0; y < IMAGE_HEIGHT; y++) {
-          for (int x = 0; x < IMAGE_WIDTH; x++) {
-              // if camera == 0 then all black, else black and white grid, in theory...
-              m_imageLineBuffer[x] = camera * 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
-              // Make it a gradient in both x and y for debugging:
-              if(m_imageLineBuffer[x] == 0x00){
-                  m_imageLineBuffer[x] += 255 * x / IMAGE_WIDTH / 3;
-                  m_imageLineBuffer[x] += 255 * y / IMAGE_HEIGHT / 3;
-              } else {
-                  m_imageLineBuffer[x] -= 255 * x / IMAGE_WIDTH / 3;
-                  m_imageLineBuffer[x] -= 255 * y / IMAGE_HEIGHT / 3;
-              }
-          }
-          downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), callbackId, createTime);
+//      tlmWrite_Cam_LatestCallbackId(callbackId);
+      // Set the image request data:
+      m_cameraTask.m_imageRequest.setData(imgReq);
+      // Trigger the capture:
+      if(m_cameraTask.m_cameraState.getState() == Camera::CameraState::IDLE){
+          // Only move to taking a new image if it's not in idle:
+          // Move to taking image by setting state to SETUP:
+          m_cameraTask.m_cameraState.setState(Camera::CameraState::SETUP);
       }
-#endif
       m_imagesSent++;
       tlmWrite_Cam_ImagesSent(m_imagesSent);
 

@@ -56,7 +56,8 @@ export default new Vuex.Store({
             length: 1,
             staleTime: Infinity,
             autopopulate: true
-        })
+        }),
+        fleurInitialized: false
     },
 
     getters: {
@@ -75,7 +76,9 @@ export default new Vuex.Store({
     },
 
     mutations: {
-
+        fleurInitialized(state) {
+            state.fleurInitialized = true;
+        }
     },
 
     actions: {

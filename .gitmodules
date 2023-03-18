@@ -1,0 +1,4 @@
+[submodule "Apps/FrontendSoftware/public/FLEUR"]
+	path = Apps/FrontendSoftware/public/FLEUR
+	url = git@github.com:PlanetaryRobotics/FLEUR.git
+	branch = integration-dev

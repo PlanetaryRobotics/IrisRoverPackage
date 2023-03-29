@@ -5,7 +5,7 @@ is replaying logs from previous testing.
 Includes any supporting functions necessary for maintaining serial connection.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 07/03/2022
+@last-updated: 03/11/2023
 """
 from typing import Any, Optional, Callable, Dict, Deque, List, Union, Type, cast
 
@@ -34,6 +34,8 @@ class PcapParseOpts:
     filter_port: Union[str, int] = 'any'
     # protocol to filter packets with (only select packets with this protocol - e.g. `scp.UDP`):
     filter_protocol: Optional[Any] = None
+    # Exclude any packets containing these layers:
+    exclude_packets_with_layers: Optional[List[Any]] = [scp.ICMP]
     packetgap: int = 0  # 36000
     deadspace: int = 0
     logging_level: str = 'INFO'
@@ -81,6 +83,11 @@ def load_pcap(opts: PcapParseOpts) -> List[bytes]:
     else:
         pcap_usable = pcap
     pcap_packets = list(pcap_usable[opts.packetgap:])
+    # Exclude any packets containing any of the exclusion layers:
+    pcap_packets = [
+        p for p in pcap_packets
+        if len(set(opts.exclude_packets_with_layers) & set(p.layers())) == 0
+    ]
 
     if isinstance(opts.filter_port, int):
         pcap_packets = list(
@@ -100,7 +107,16 @@ def load_pcap(opts: PcapParseOpts) -> List[bytes]:
     extract_start: float = time()
     failed_packet_count: int = 0
     for i, pcap_packet in enumerate(pcap_packets):
-        packet_bytes = scp.raw(pcap_packet.getlayer(scp.Raw))[opts.deadspace:]
+        try:
+            packet_bytes = scp.raw(pcap_packet.getlayer(scp.Raw))[
+                opts.deadspace:]
+        except Exception as e:
+            logger.warning(
+                f"Failed to parse {pcap_packet} "
+                f"with data:\n{scp.hexdump(pcap_packet)}\n"
+                f"because:\n{e!s}"
+            )
+            packet_bytes = b''
         if not i % 100:
             logger.log(
                 log_level,

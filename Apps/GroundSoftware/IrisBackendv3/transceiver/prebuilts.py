@@ -37,6 +37,34 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                 ),
                 **kwargs
             )
+        case 'IMG-GRID-500':
+            default_kwargs = dict(
+                fixed_period_ms=200,
+                loop=False,
+                endecs=[UnityEndec()]
+            )
+            # Combine `default_kwargs` with `kwargs`, overriding any
+            # `default_kwargs` with given `kwargs`:
+            kwargs = {**default_kwargs, **kwargs}
+            return PcapTransceiver(
+                PcapParseOpts(
+                    # ___img_8_0_21.5__with_RDL_prints_at_each_state_load__no_crash.pcap',
+                    # pcap_file='./test-data/___img_final_sm_w_ilock_loss_flush_handler.pcap',
+                    # pcap_file='./test-data/___img_new_gi_dl_test__and_fail.pcap',
+                    # pcap_file='./test-data/____real_img_via_flash_grid_test.pcap', # ! real flash grid
+                    # pcap_file='./test-data/____real_img_via_flash_cam1.pcap', # !! real image
+                    # pcap_file='./test-data/____real_img_via_flash_cam0.pcap',  # !! real image ( but shitty - maybe bad camera)
+                    # pcap_file='./test-data/____real_img_via_flash_cam1.pcap', # !! real image
+                    # pcap_file='./test-data/____real_img_via_flash_post_img_grid_test_to_test_clear.pcap',  # !! real image
+                    pcap_file='./test-data/____real_img_of_real_grid_cam1_w_herc_mon_on.pcap',  # !! real image of real grid
+                    filter_port='any',
+                    filter_protocol=None,
+                    packetgap=kwargs.get('packetgap', 0),
+                    deadspace=kwargs.get('deadspace', 0),
+                    logging_level='INFO'
+                ),
+                **kwargs
+            )
 
     # Nothing matched... raise an error:
     raise ValueError(

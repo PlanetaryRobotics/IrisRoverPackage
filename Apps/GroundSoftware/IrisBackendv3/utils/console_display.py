@@ -270,7 +270,7 @@ def str_user_command(
     else:
         if filter_input:
             filtered_results = filter_command_dataframe(
-                partial_command_alias=user_cmd_input_str,
+                partial_cmd_alias=user_cmd_input_str,
                 prepared_commands_dataframe=prepared_commands_dataframe
             )
         else:

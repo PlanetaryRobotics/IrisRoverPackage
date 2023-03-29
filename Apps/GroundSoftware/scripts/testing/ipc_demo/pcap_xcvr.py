@@ -26,8 +26,19 @@ parser = argparse.ArgumentParser(description=(
 
 
 def get_opts():
+    parser.add_argument('-x', '--prebuilt-xcvr-name', type=str,
+                        default='PCAP-18H',
+                        help='Name of the prebuilt Transceiver to use.')
     parser.add_argument('-t', '--period-ms', type=float, default=1000,
                         help='Period between packets in ms.')
+    parser.add_argument('-g', '--packet-gap', type=int, default=37000,
+                        help=(
+                            'Number of packets at the start of the pcap to '
+                            'skip before reading.'
+                        ))
+    parser.add_argument('--loop', default=True,
+                        action=argparse.BooleanOptionalAction,
+                        help="Whether or not to loop the packet.")
     parser.add_argument('--bind', default=True,
                         action=argparse.BooleanOptionalAction,
                         help="Whether or not to bind the port.")
@@ -40,10 +51,10 @@ opts = get_opts()
 # Load data:
 xcvrLoggerLevel('NOTICE')
 xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
-    'PCAP-18H',
-    packetgap=37000,  # skip first 37000 packets (of 37644)
+    opts.prebuilt_xcvr_name,
+    packetgap=opts.packet_gap,  # skip first 37000 packets (of 37644)
     fixed_period_ms=opts.period_ms,
-    loop=True,
+    loop=opts.loop,
     log_on_receive=False
 )
 xcvr.begin()

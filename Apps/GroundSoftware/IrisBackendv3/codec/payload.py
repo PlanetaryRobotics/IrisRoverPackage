@@ -1088,6 +1088,25 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     @property
     def file_type_magic(self) -> FileTypeMagic: return self._file_type_magic
 
+    @property
+    def full_file_id(self) -> int:
+        """ID that specifies which larger file this line came from (since
+        each line of the image is being downlinked as a "file").
+        For now, since all lines of an image share the same `createTime`
+        timestamp, we'll just use that.
+        """
+        return self._timestamp
+
+    def __str__(self) -> str:
+        return (
+            "FileBlockMetadata["
+            f"{self.file_type_magic.name}: "
+            f"file={self.full_file_id}, "
+            f"call={self.callback_id}, "
+            f"time={self.timestamp}"
+            "]"
+        )
+
 
 class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
     """Metadata about the file contained inside Block 0 of a `FileBlockPayload`."""
@@ -1136,23 +1155,26 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         timestamp_bytes = data[ptr:size]
         timestamp: int = struct.unpack(endianness_code+'L', timestamp_bytes)[0]
 
-        ptr, size = size, size+1  # `file_type_magic` is 1B
-        file_type_magic_val: int = int(data[ptr:size][0])
-        try:
-            file_type_magic = FileMetadata.FileTypeMagic(file_type_magic_val)
-        except ValueError as e:
-            # Invalid FTM received:
-            logger.error((
-                f"While decoding `FileMetadata` in a `FileBlockPayload` the "
-                f"the received `file_type_magic` value of {file_type_magic_val}` "
-                f"is not a valid `FileTypeMagic`. Valid values are: "
-                f"{[f'{m.name}=0x{m.value:02x}' for m in FileMetadata.FileTypeMagic if m != FileMetadata.FileTypeMagic.BAD]}"
-                f"\n For: FileMetadata{{callback_id={callback_id}, "
-                f"timestamp={timestamp}, "
-                f"file_type_magic_val={file_type_magic_val}}}"
-                f"\n Packet data supplied to `FileMetadata` extractor: {data!r}"
-            ))
-            file_type_magic = FileMetadata.FileTypeMagic.BAD
+        # ptr, size = size, size+1  # `file_type_magic` is 1B
+        # file_type_magic_val: int = int(data[ptr:size][0])
+        # try:
+        #     file_type_magic = FileMetadata.FileTypeMagic(file_type_magic_val)
+        # except ValueError as e:
+        #     # Invalid FTM received:
+        #     logger.error((
+        #         f"While decoding `FileMetadata` in a `FileBlockPayload` the "
+        #         f"the received `file_type_magic` value of {file_type_magic_val}` "
+        #         f"is not a valid `FileTypeMagic`. Valid values are: "
+        #         f"{[f'{m.name}=0x{m.value:02x}' for m in FileMetadata.FileTypeMagic if m != FileMetadata.FileTypeMagic.BAD]}"
+        #         f"\n For: FileMetadata{{callback_id={callback_id}, "
+        #         f"timestamp={timestamp}, "
+        #         f"file_type_magic_val={file_type_magic_val}}}"
+        #         f"\n Packet data supplied to `FileMetadata` extractor: {data!r}"
+        #     ))
+        #     file_type_magic = FileMetadata.FileTypeMagic.BAD
+        # ! TODO: FSW doesn't do filetype magic rn, so we'll just assume
+        # ! everything's an image.
+        file_type_magic = FileMetadata.FileTypeMagic.IMAGE
 
         # All data used by the metadata:
         data_used = data[:size]
@@ -1233,6 +1255,19 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
     @property
     def file_metadata(self) -> Optional[FileMetadata]:
         return self._file_metadata
+    
+    @property
+    def is_metadata(self) -> bool: return self.file_metadata is not None
+
+    def __str__(self) -> str:
+        return (
+            "FileBlock["
+            f"{self.block_number}/{self.total_blocks}: "
+            f"{self.length}B, "
+            f"line={self.hashed_id}, "
+            f"bad={self.possible_corruption}"
+            "]"
+        )
 
 
 class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
@@ -1298,9 +1333,9 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
         ptr, header_size = header_size, header_size+1  # `block_number` is 1B
         block_number: int = int(data[ptr:header_size][0])
 
-        ptr, header_size = header_size, header_size+4  # `length` is 4B
+        ptr, header_size = header_size, header_size+2  # `length` is 2B (U16)
         length_bytes = data[ptr:header_size]
-        length: int = struct.unpack(endianness_code+'L', length_bytes)[0]
+        length: int = struct.unpack(endianness_code+'H', length_bytes)[0]
 
         max_length = (len(data)-header_size)
         if length > max_length:
@@ -1315,7 +1350,22 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
                 f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
                 f"block_num={block_number}, total_blocks={total_blocks}, "
                 f"length={length}}}"
-                f"\n Packet data supplied to `FileBlockPayload` extractor: {data!r}"
+                f"\n Packet data supplied to `FileBlockPayload` extractor: "
+                f"{data!r}"
+            ))
+            possible_corruption = True
+
+        if block_number > total_blocks:
+            logger.error((
+                f"While decoding a `FileBlockPayload` the `{total_blocks=}` "
+                f"but `{block_number=}`. Block number should range from 0 to "
+                f"`total_blocks` (with 0 being metadata) but should never be "
+                f"`>total_blocks`. Possible file corruption. "
+                f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
+                f"block_num={block_number}, total_blocks={total_blocks}, "
+                f"length={length}}}"
+                f"\n Packet data supplied to `FileBlockPayload` extractor: "
+                f"{data!r}"
             ))
             possible_corruption = True
 

@@ -47,3 +47,4 @@ pybgapi==1.2.0
 tables
 dill[graph]
 pdoc3
+opencv-python

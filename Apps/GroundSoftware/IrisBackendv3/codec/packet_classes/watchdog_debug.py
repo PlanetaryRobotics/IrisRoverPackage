@@ -98,7 +98,11 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
     @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """Valid if the packet starts with `b'DEBUG'`."""
-        return data[:5].upper() == b'DEBUG'
+        return (
+            data[:5].upper() == b'DEBUG'
+            # TODO: Make DL flushes their own thing
+            or data[:5].upper() == b'DL-FL'
+        )
 
     def __repr__(self) -> str:
         if self._raw is None:
@@ -122,6 +126,10 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
         except UnicodeDecodeError:
             # Contains non-unicode characters
             formatted_data = str(data[5:])
+
+        if data[:5].upper() == b'DL-FL':
+            # TODO: Make DL flushes their own thing
+            formatted_data = 'DL FLUSH ' + formatted_data
 
         return (
             f" \033[1m\033[38;5;243m[{len(data[5:])}B]: {formatted_data}\033[0m"

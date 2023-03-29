@@ -95,6 +95,22 @@ PreparedCommandType = Tuple[
 ]
 
 prepared_commands: Dict[str, PreparedCommandType] = {
+
+    'batt-on': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ENABLE_BATTERIES'),
+        DataPathway.WIRED
+    ),
+    'batt-off': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='DISABLE_BATTERIES'),
+        DataPathway.WIRED
+    ),
+
     'transit': (  # Tell the Watchdog to switch into service mode
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,

@@ -95,6 +95,13 @@ namespace iris
         DebugComms__tryPrintfToLanderNonblocking("[WARNING] WD SW is in Radio-Programming Mode. This should be changed before flight.\n");
 #endif
 
+#ifdef HERC_PROGRAMMING_MODE
+        // [CWC-03/13/2023] Warn that this is the WRONG version of the SW for Flight and should only be used for hercules programming.
+        // Essentially this is a special version of the SW that disable hercules monitioring by default in mission (instead of enables) so
+        // hercules can be programmed. In flight, though, we want Hercules monitoring to be on by default.
+        DebugComms__tryPrintfToLanderNonblocking("[WARNING] WD SW is in Hercules-Programming Mode. This should be changed before flight.\n");
+#endif
+
         /* set up watchdog */
         watchdog_init(&(theContext.m_watchdogFlags),
                       Time__getPointerToCentisecondCount(),

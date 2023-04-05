@@ -14,6 +14,7 @@
 #define GroundInterface_HPP
 
 #include "CubeRover/GroundInterface/GroundInterfaceComponentAc.hpp"
+#include "CubeRover/NetworkManager/NetworkManager.hpp" // ! TODO: FIXME Hacky patch connection to steal NM data
 #include <Include/FswPacket.hpp>
 
 namespace CubeRover {

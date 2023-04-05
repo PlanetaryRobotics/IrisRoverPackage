@@ -27,6 +27,7 @@
 #include <CubeRover/Wf121/Wf121SerialInterface.hpp>
 #include <CubeRover/Wf121/NetworkInterface.hpp>
 #include <CubeRover/Wf121/Timestamp.hpp>
+#include <Os/Mutex.hpp>
 
 extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
@@ -178,11 +179,29 @@ namespace CubeRover
             const NATIVE_INT_TYPE portNum,
             Fw::Buffer &fwBuffer)
     {
+        if(portNum == 1 && m_pRadioDriver->m_networkInterface.udpTxQueueRoom() <= 2){
+            // Don't let WDI send anything if we're currently swamped
+            return;
+        }
+
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once (i.e. GI and WDI)
+        sloppyResourceProtectionMutex.lock();
         // Grab the data from the FW Buffer:
         uint8_t *buffer = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
 
+        if(
+            (fwBuffer.getsize() >= 8 && (memcmp(buffer, "DEBUGRTT", 8) == 0))
+            || (fwBuffer.getsize() >= 8 && (memcmp(buffer, "DEBUGRDL", 8) == 0))
+        ){
+            // Don't let RTT or RDL messages be sent over wifi (too many of them):
+            sloppyResourceProtectionMutex.unLock();
+            return;
+        }
+
+
         // Copy it into the outbound payload:
         m_udpPayloadWorkingBuffer.copyIn(fwBuffer.getsize(), buffer);
+        sloppyResourceProtectionMutex.unLock(); // unlock before potentially getting stuck in Queue wait.
 
         // Queue up the Payload for downlink:
         m_pRadioDriver->m_networkInterface.sendUdpPayload(&m_udpPayloadWorkingBuffer);

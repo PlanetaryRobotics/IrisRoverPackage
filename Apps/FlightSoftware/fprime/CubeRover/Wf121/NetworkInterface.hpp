@@ -72,7 +72,18 @@
 //   to give other Tasks room to work.
 // NOTE: This happens when servicing the `Wf121UdpTxTask` (so doesn't block the main Task).
 // NOTE: FreeRTOS scheduler ticks are every 1ms.
-static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 200 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
+static const TickType_t WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL = 25 / portTICK_PERIOD_MS; // every 200ms (200 ticks)
+
+// These rate limiters were experimentally bumped up until system achieved stability:
+// Amount of time for the TxTask to pause for after a packet downlink to prevent overwhelming the radio:
+static const TickType_t WF121_RADIO_COOLOFF = 15 / portTICK_PERIOD_MS; // 10ms (10 ticks)
+// Delay to add before yielding any data to prevent radio swamping:
+static const TickType_t WF121_MIN_INTERMESSAGE_TICKS = 2 / portTICK_PERIOD_MS; // 2ms (2 ticks)
+// Delay PER ITERATION of the state machine (accidentally found out this helped by putting a log there):
+// Seems like this helps provide relief to other tasks:
+static const TickType_t WF121_TX_ITERATION_RELIEF_TICKS = 2 / portTICK_PERIOD_MS; // 2ms (2 ticks)
+// How long to cooloff after losing ILOCK:
+static const TickType_t WF121_ILOCK_LOSS_COOLOFF = 25 / portTICK_PERIOD_MS; // 2ms (2 ticks)
 
 // Most number of times to try sending a BGAPI command without receiving a
 // response before giving up:
@@ -172,6 +183,12 @@ namespace Wf121
          * Task.)
          */
         bool sendUdpPayload(UdpTxPayload *pPayload);
+
+        /**
+         * @brief Convenience function so outsiders can find out how swamped we
+         * are.
+         */
+        uint8_t udpTxQueueRoom();
 
         /**
          * @brief The callback invoked by the `Wf121UdpTxTask` when it's running
@@ -355,14 +372,42 @@ namespace Wf121
             // saying we're good to send data to the UDP port and it won't
             // interrupt us:
             WAIT_FOR_UDP_INTERLOCK = 0x14,
+
+            // Reset the set transmit size to 0 (so we can flush):
+            SEND_SET_TRANSMIT_SIZE_RESET = 0x1A,
+            // Wait for acknowledgement of `SetTransmitSize` Reset:
+            WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK = 0x1B,
+
+            // Flush the interface by downlinking a small string (kind of a
+            // last minute Hail Mary hack to prevent buffer shifting in the
+            // radio, which we can no longer edit):
+            // Flush the Radio's buffer BEFORE starting (in case we have to
+            // start over due to ILOCK LOSS):
+            FLUSH_UDP = 0x1C,
+            // Flush the interface by downlinking a small string:
+            WAIT_FOR_FLUSH_UDP_ACK = 0x1D,
+
             // We have a message to send and now need to send `SetTransmitSize`:
-            SEND_SET_TRANSMIT_SIZE = 0x15,
+            SEND_SET_TRANSMIT_SIZE = 0x20,
             // Wait for acknowledgement of `SetTransmitSize`:
-            WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x20,
+            WAIT_FOR_SET_TRANSMIT_SIZE_ACK = 0x21,
+
+            // We're going to skip these two pre-chunk ILOCK states for now but
+            // keeping the handlers for posterity. It seems this can crash the Radio
+            // (possibly via ilock semaphore growth in the now immutable Radio FW?)
+            // The only reason for this was to avoid losing ILOCK during a send.
+            // It's rare enough that we can instead just handle ILOCK loss better
+            // (flush the buffer and resend).
+            // Re-request ILOCK before each chunk:
+//            ASK_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2A,
+//            // Wait for requested ILOCK:
+//            WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK = 0x2B,
+
             // Send a UDP chunk:
-            SEND_UDP_CHUNK = 0x21,
+            SEND_UDP_CHUNK = 0x2C,
             // Wait for acknowledgement of last UDP chunk's `SendEndpoint`:
-            WAIT_FOR_UDP_CHUNK_ACK = 0x22,
+            WAIT_FOR_UDP_CHUNK_ACK = 0x2D,
+
             // Done downlinking data:
             DONE_DOWNLINKING = 0xE0,
             // Handle a failure to send a BGAPI command (after surpassing WF121_BGAPI_COMMAND_MAX_TRIES):
@@ -370,14 +415,24 @@ namespace Wf121
         };
         // State handlers:
         UdpTxUpdateState handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData);
+        void handleTxState_WAIT_FOR_BGAPI_READY_Core(uint16_t cooloff_ticks);
         UdpTxUpdateState handleTxState_WAIT_FOR_NEXT_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_START_SENDING_MESSAGE(bool *yieldData);
         UdpTxUpdateState handleTxState_ASK_FOR_UDP_INTERLOCK(bool *yieldData);
+//        UdpTxUpdateState handleTxState_ASK_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData);
+//        UdpTxUpdateState handleTxState_WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(bool *yieldData, UdpTxUpdateState prevState, UdpTxUpdateState targetNextState);
         UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData);
+        UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(bool *yieldData);
+        UdpTxUpdateState handleTxState_SEND_SET_TRANSMIT_SIZE_Core(bool *yieldData, const uint16_t targetTransmitSize, UdpTxUpdateState targetNextState);
         UdpTxUpdateState handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK_Core(bool *yieldData, UdpTxUpdateState prevState, UdpTxUpdateState targetNextState);
         UdpTxUpdateState handleTxState_SEND_UDP_CHUNK(bool *yieldData);
+        UdpTxUpdateState handleTxState_FLUSH_UDP(bool *yieldData);
         UdpTxUpdateState handleTxState_WAIT_FOR_UDP_CHUNK_ACK(bool *yieldData);
+        UdpTxUpdateState handleTxState_WAIT_FOR_FLUSH_UDP_ACK(bool *yieldData);
         UdpTxUpdateState handleTxState_DONE_DOWNLINKING(bool *yieldData);
         UdpTxUpdateState handleTxState_BGAPI_CMD_FAIL(bool *yieldData);
     };

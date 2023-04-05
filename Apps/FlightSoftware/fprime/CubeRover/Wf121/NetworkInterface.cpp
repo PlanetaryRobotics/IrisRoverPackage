@@ -155,6 +155,15 @@ namespace Wf121
     }
 
     /**
+     * @brief Convenience function so outsiders can find out how swamped we
+     * are.
+     */
+    uint8_t NetworkInterface::udpTxQueueRoom()
+    {
+        return uxQueueSpacesAvailable(m_xUdpTxPayloadQueue);
+    }
+
+    /**
      * @brief Add the given payload to the UDP TX Queue.
      *
      * NOTE: UART writing happens asynchronously and this Queue will be
@@ -207,6 +216,17 @@ namespace Wf121
                     (xQueueSend(m_xUdpTxPayloadQueue, (void *)pPayload, WF121_UDP_TX_ENQUEUE_WAIT_TICKS) == pdPASS);
             }
         }
+//        if(
+//            enqueuedSuccessfully
+//            && !(pPayload->dataSize >= 4 && (memcmp(pPayload->data, "RDL:", 4) == 0))
+//            && !(pPayload->dataSize >= 9 && (memcmp(pPayload->data, "DEBUGRDL:", 9) == 0))
+//        ){
+//            // ! TODO: REMOVEME DEBUGGING [CWC] Forward what we're uplinking to WD as well
+//            // (but only do that for non-fwd'd messages, to prevent runaway)
+//            static const uint8_t debugDownlinkPrefix[] = "RDL: ";
+//            watchDogInterface.debugPrintfBufferWithPrefix((uint8_t *)debugDownlinkPrefix, getStrBufferLen(debugDownlinkPrefix), pPayload->data, pPayload->dataSize);
+//        }
+
         return enqueuedSuccessfully;
     }
 
@@ -554,6 +574,19 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY(bool *yieldData)
     {
+        // Wait for ready:
+        handleTxState_WAIT_FOR_BGAPI_READY_Core(WF121_RADIO_COOLOFF);
+        // Go:
+        return UdpTxUpdateState::WAIT_FOR_NEXT_MESSAGE;
+    }
+
+    // Core impl. of waiting until BGAPI is ready:
+    void NetworkInterface::handleTxState_WAIT_FOR_BGAPI_READY_Core(uint16_t cooloff_ticks)
+    {
+        // Cool off briefly before allowing BGAPI to be used again (Radio BGS needs to catch up if this is going fast):
+        // Cool off briefly after downlinking to prevent spamming the radio.
+        // (Also kind of a hacky way of letting the radio process the ReleaseUdpInterlock message from prev DONE_DOWNLINKING)
+        vTaskDelay(cooloff_ticks);
         // Poll to make sure BGAPI is done processing the last command
         // and it's okay to another BGAPI command:
         //
@@ -569,7 +602,6 @@ namespace Wf121
             vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
         }
 
-        return UdpTxUpdateState::WAIT_FOR_NEXT_MESSAGE;
     }
 
     // Helper function to handle the `WAIT_FOR_NEXT_MESSAGE` `UdpTxUpdateState`
@@ -627,6 +659,10 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_START_SENDING_MESSAGE(bool *yieldData)
     {
+        // In case we've come back to this state from a higher state, which may or may not have sent a command,
+        // check to make sure we are allowed to send data:
+        handleTxState_WAIT_FOR_BGAPI_READY_Core(1);
+
         // Perform any setup:
 
         // We're about to send a new UDP packet so, reset the status manager
@@ -671,12 +707,63 @@ namespace Wf121
         return UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK;
     }
 
+//    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_ASK_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData)
+//    {
+//        // Pack the data for setting the transmit size (size of `m_xUdpTxWorkingData`):
+//        RequestUdpInterlock(&m_bgApiCommandBuffer);
+//        *yieldData = true; // tell State Machine to send this data
+//
+//        // Set up everything so we can capture any responses starting now, even
+//        // if it comes before we enter the WAIT_ state:
+//        while (!m_udpTxCommsStatusManager.startListeningFor_getUdpInterlock_Response())
+//        {
+//            // NOTE: If startListening failed for some reason, that means we're
+//            // very early (or things are very wrong) and things aren't set up
+//            // yet. Technically that means we're not actually ready to downlink,
+//            // so let's other tasks breathe while we wait for this to be set up:
+//            // (NOTE: if this is because things are very wrong, Earth will
+//            // notice it's not getting anything and, since it can still command
+//            // us and Watchdog, it will reset us).
+//            vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
+//        }
+//
+//        // Next state will be waiting for a response (after sending data):
+//        return UdpTxUpdateState::WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK;
+//    }
+
     // Helper function to handle the `WAIT_FOR_UDP_INTERLOCK` `UdpTxUpdateState`
     // state in `udpTxUpdateHandler`:
     // Sets the yieldData flag if it needs the State Machine to pause and yield
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK(bool *yieldData)
+    {
+        return NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(
+                yieldData,
+                UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK,
+                UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE_RESET
+                //---
+        );
+    }
+
+
+//    // Ensure we still have ilock before sending each chunk:
+//    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK(bool *yieldData)
+//    {
+//        return NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(
+//                yieldData,
+//                UdpTxUpdateState::ASK_FOR_PRE_CHUNK_UDP_INTERLOCK,
+//                UdpTxUpdateState::SEND_UDP_CHUNK
+//                //---
+//        );
+//    }
+
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_UDP_INTERLOCK_Core(
+            bool *yieldData,
+            NetworkInterface::UdpTxUpdateState prevState,
+            NetworkInterface::UdpTxUpdateState targetNextState
+            //---
+    )
     {
         UdpTxUpdateState nextState;
 
@@ -690,7 +777,7 @@ namespace Wf121
         {
         case BgApi::ErrorCode::NO_ERROR:
             // Cool, we can move on.
-            nextState = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+            nextState = targetNextState;
             // Reset fail counter:
             m_bgApiCommandFailCount = 0;
             break;
@@ -725,7 +812,7 @@ namespace Wf121
             else
             {
                 // Try getting interlock again:
-                nextState = UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
+                nextState = prevState;
             }
             break;
         }
@@ -740,10 +827,34 @@ namespace Wf121
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE(bool *yieldData)
     {
+        return NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE_Core(
+            yieldData,
+            m_xUdpTxWorkingData.dataSize,
+            UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_ACK
+            //---
+        );
+    }
+
+    // Reset the transmit size so we can flush it:
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(bool *yieldData)
+    {
+        return NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE_Core(
+            yieldData,
+            0,
+            UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK
+            //---
+        );
+    }
+
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_SEND_SET_TRANSMIT_SIZE_Core(
+        bool *yieldData,
+        const uint16_t targetTransmitSize,
+        NetworkInterface::UdpTxUpdateState targetNextState)
+    {
         // Pack the data for setting the transmit size (size of `m_xUdpTxWorkingData`):
         SetTransmitSize(&m_bgApiCommandBuffer,
                         m_downlinkTargetEndpoint,
-                        m_xUdpTxWorkingData.dataSize);
+                        targetTransmitSize);
         *yieldData = true; // tell State Machine to send this data
 
         // Set up everything so we can capture any responses starting now, even
@@ -761,7 +872,7 @@ namespace Wf121
         }
 
         // Next state will be waiting for a response (after sending data):
-        return UdpTxUpdateState::WAIT_FOR_SET_TRANSMIT_SIZE_ACK;
+        return targetNextState;
     }
 
     // Helper function to handle the `WAIT_FOR_SET_TRANSMIT_SIZE_ACK`
@@ -770,6 +881,39 @@ namespace Wf121
     // data to the `Wf121UdpTxTask`.
     // Returns the next state to transition to.
     NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(bool *yieldData)
+    {
+        UdpTxUpdateState nextState = NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK_Core(
+            yieldData,
+            UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE,
+            UdpTxUpdateState::SEND_UDP_CHUNK
+            //---
+        );
+        if (nextState == UdpTxUpdateState::SEND_UDP_CHUNK)
+        {
+            // It worked.
+            // Since we're necessarily starting a new send, reset the byte counter:
+            m_totalUdpMessageBytesDownlinked = 0;
+        }
+        return nextState;
+    }
+
+    // Wait for an ACK on resetting the transmit size:
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK(bool *yieldData)
+    {
+        return NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK_Core(
+            yieldData,
+            UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE_RESET,
+            UdpTxUpdateState::FLUSH_UDP
+            //---
+        );
+    }
+
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK_Core(
+        bool *yieldData,
+        NetworkInterface::UdpTxUpdateState prevState,
+        NetworkInterface::UdpTxUpdateState targetNextState
+        //---
+    )
     {
         UdpTxUpdateState nextState;
 
@@ -783,11 +927,9 @@ namespace Wf121
         {
         case BgApi::ErrorCode::NO_ERROR:
             // Cool, we can move on.
-            nextState = UdpTxUpdateState::SEND_UDP_CHUNK;
+            nextState = targetNextState;
             // Reset fail counter:
             m_bgApiCommandFailCount = 0;
-            // Since we're necessarily starting a new send, reset the byte counter:
-            m_totalUdpMessageBytesDownlinked = 0;
             break;
 
         case BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK:
@@ -797,6 +939,8 @@ namespace Wf121
             // transitions section, we'll check to see if we still have the
             // interlock against the current state and this anomaly will be
             // dealt with there.
+            watchDogInterface.debugPrintfToWatchdog("RADIO: ERR: STS lost ILOCK.");
+            nextState = prevState; // try again by default
             break;
         case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
             // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
@@ -821,7 +965,7 @@ namespace Wf121
             else
             {
                 // Send again:
-                nextState = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+                nextState = prevState;
             }
             break;
         }
@@ -842,7 +986,9 @@ namespace Wf121
         // pending until we receive a success response):
         // Max number of bytes to send in each chunk is 255
         // (BGAPI limitation, why we need SetTransmitSize):
-        m_chunkBytesPending = (bytesLeftToSend > 0xFF) ? 0xFF : bytesLeftToSend;
+        // We've had problems when pushing the limit at 255, so we'll use 254
+        // instead.
+        m_chunkBytesPending = (bytesLeftToSend > 0xFE) ? 0xFE : bytesLeftToSend;
 
         // Pack the data for the UDP chunk:
         SendEndpoint(&m_bgApiCommandBuffer,
@@ -867,6 +1013,39 @@ namespace Wf121
 
         // Next state will be waiting for a response (after sending data):
         return UdpTxUpdateState::WAIT_FOR_UDP_CHUNK_ACK;
+    }
+
+    // Send a small string to flush the UDP Downlink.
+    // Not at all efficient but this is kind of a last minute Hail Mary hack to
+    // prevent buffer shifting in the radio, which we can no longer edit):
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_FLUSH_UDP(bool *yieldData)
+    {
+        uint8_t flushMessage[] = "DL-FL";
+        static const uint8_t flushMessageLen = 5;
+
+        // Pack the data for the UDP chunk:
+        SendEndpoint(&m_bgApiCommandBuffer,
+                     m_downlinkTargetEndpoint,
+                     flushMessage,
+                     flushMessageLen);
+        *yieldData = true; // tell State Machine to send this data
+
+        // Set up everything so we can capture any responses starting now, even
+        // if it comes before we enter the WAIT_ state:
+        while (!m_udpTxCommsStatusManager.startListeningFor_sendEndpointUdp_Response())
+        {
+            // NOTE: If startListening failed for some reason, that means we're
+            // very early (or things are very wrong) and things aren't set up
+            // yet. Technically that means we're not actually ready to downlink,
+            // so let's other tasks breathe while we wait for this to be set up:
+            // (NOTE: if this is because things are very wrong, Earth will
+            // notice it's not getting anything and, since it can still command
+            // us and Watchdog, it will reset us).
+            vTaskDelay(WF121_DOWNLINK_READY_TO_SEND_POLLING_CHECK_INTERVAL);
+        }
+
+        // Next state will be waiting for a response (after sending data):
+        return UdpTxUpdateState::WAIT_FOR_FLUSH_UDP_ACK;
     }
 
     // Helper function to handle the `WAIT_FOR_UDP_CHUNK_ACK`
@@ -915,6 +1094,8 @@ namespace Wf121
             // transitions section, we'll check to see if we still have the
             // interlock against the current state and this anomaly will be
             // dealt with there.
+            watchDogInterface.debugPrintfToWatchdog("RADIO: ERR: UDPC lost ILOCK early.");
+            nextState = UdpTxUpdateState::SEND_UDP_CHUNK; // try again by default
             break;
         case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
             // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
@@ -935,7 +1116,7 @@ namespace Wf121
             watchDogInterface.debugPrintfToWatchdog("RADIO: WAIT_FOR_UDP_CHUNK_ACK FAIL: %#04x, %u", errorCode, m_bgApiCommandFailCount); // For debugging. TODO: [CWC] REMOVEME
             if (m_bgApiCommandFailCount > WF121_BGAPI_COMMAND_MAX_TRIES)
             {
-                // We've sent this again too many times. Go to bad case:
+                // We've sent this again too many times. Go to bad case:x
                 nextState = UdpTxUpdateState::BGAPI_CMD_FAIL;
             }
             else
@@ -943,6 +1124,71 @@ namespace Wf121
                 // Send the same chunk again (don't increment anything,
                 // just try the send chunk step again):
                 nextState = UdpTxUpdateState::SEND_UDP_CHUNK;
+            }
+            break;
+        }
+
+        return nextState;
+    }
+
+    NetworkInterface::UdpTxUpdateState NetworkInterface::handleTxState_WAIT_FOR_FLUSH_UDP_ACK(bool *yieldData)
+    {
+        UdpTxUpdateState nextState;
+
+        // Wait for a response from the downlink endpoint (or timeout):
+        // NOTE: This will clear the mailbox first (see function definition for
+        // why). So, if somehow the Radio responded (and we processed the
+        // response) basically instantly after us sending the data, then this
+        // will block until `UDP_TX_RESPONSE_TIMEOUT_TICKS`.
+        BgApi::ErrorCode errorCode = m_udpTxCommsStatusManager.awaitResponse_sendEndpointUdp();
+        switch (errorCode)
+        {
+        case BgApi::ErrorCode::NO_ERROR:
+            // Cool, we can move on.
+
+            // We've flushed the UDP interface. Ready to proceed:
+            nextState = UdpTxUpdateState::SEND_SET_TRANSMIT_SIZE;
+
+            // Reset fail counter:
+            m_bgApiCommandFailCount = 0;
+            break;
+
+        case BgApi::ErrorCode::INTERNAL__LOST_INTERLOCK:
+            // We lost the interlock while processing this command, which means
+            // we have to assume our entire message is lost.
+            // Nothing to actually do here besides break. Outside the state
+            // transitions section, we'll check to see if we still have the
+            // interlock against the current state and this anomaly will be
+            // dealt with there.
+            watchDogInterface.debugPrintfToWatchdog("RADIO: ERR: FL lost ILOCK early.");
+            nextState = UdpTxUpdateState::FLUSH_UDP; // try again by default
+            break;
+        case BgApi::ErrorCode::INTERNAL__BAD_SYNTAX:
+            // INTERNAL__BAD_SYNTAX isn't a real BGAPI code, but is instead put
+            // into the mailbox in response to an `evt_endpoint_syntax_error`
+            // being emitted by the Radio while we're awaiting a response to
+            // this command (likely means our command got garbled).
+            // So, just try sending it again:
+        case BgApi::ErrorCode::INTERNAL__TRY_AGAIN:
+            // INTERNAL__TRY_AGAIN isn't a real BGAPI code, it's just part of
+            // the interpreter and means something, didn't work correctly (or
+            // wasn't ready). So, try again:
+        case BgApi::ErrorCode::TIMEOUT:
+            // Didn't get a response in a long time. Maybe Radio didn't get it?
+            // Try again.
+        default:
+            // Some other error occurred, try again:
+            m_bgApiCommandFailCount++;
+            watchDogInterface.debugPrintfToWatchdog("RADIO: WAIT_FOR_FLUSH_UDP_ACK FAIL: %#04x, %u", errorCode, m_bgApiCommandFailCount); // For debugging. TODO: [CWC] REMOVEME
+            if (m_bgApiCommandFailCount > WF121_BGAPI_COMMAND_MAX_TRIES)
+            {
+                // We've sent this again too many times. Go to bad case:x
+                nextState = UdpTxUpdateState::BGAPI_CMD_FAIL;
+            }
+            else
+            {
+                // Try flushing again:
+                nextState = UdpTxUpdateState::FLUSH_UDP;
             }
             break;
         }
@@ -1062,6 +1308,13 @@ namespace Wf121
         // Keep pushing through the state machine until someone wants to yieldData:
         while (!yieldData)
         {
+            // Preserve where we started this loop iteration for diagnostics:
+            UdpTxUpdateState inner_state_at_loop_start = inner_state;
+//            watchDogInterface.debugPrintfToWatchdog("RDL-RADIO: UDPTX at 0x%02x", inner_state_at_loop_start);
+            // Having this ^ log here significantly helped with stability... don't know why.
+            // Likely task priority mismatch. Just adding a 1 cycle relief for now:
+            vTaskDelay(WF121_TX_ITERATION_RELIEF_TICKS);
+
             // If we're in the middle of sending chunks for a message and are no
             // longer connected, reset the state to the beginning of trying to send
             // the current message. That is, wait for reconnect and try sending the
@@ -1106,6 +1359,22 @@ namespace Wf121
                 inner_state = handleTxState_WAIT_FOR_UDP_INTERLOCK(&yieldData);
                 break;
 
+            case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE_RESET:
+                inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE_RESET(&yieldData);
+                break;
+
+            case UdpTxUpdateState::/******/ WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK:
+                inner_state = handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_RESET_ACK(&yieldData);
+                break;
+
+            case UdpTxUpdateState::/******/ FLUSH_UDP:
+                inner_state = handleTxState_FLUSH_UDP(&yieldData);
+                break;
+
+            case UdpTxUpdateState::/******/ WAIT_FOR_FLUSH_UDP_ACK:
+                inner_state = handleTxState_WAIT_FOR_FLUSH_UDP_ACK(&yieldData);
+                break;
+
             case UdpTxUpdateState::/******/ SEND_SET_TRANSMIT_SIZE:
                 inner_state = handleTxState_SEND_SET_TRANSMIT_SIZE(&yieldData);
                 break;
@@ -1113,6 +1382,14 @@ namespace Wf121
             case UdpTxUpdateState::/******/ WAIT_FOR_SET_TRANSMIT_SIZE_ACK:
                 inner_state = handleTxState_WAIT_FOR_SET_TRANSMIT_SIZE_ACK(&yieldData);
                 break;
+
+//            case UdpTxUpdateState::/******/ ASK_FOR_PRE_CHUNK_UDP_INTERLOCK:
+//                inner_state = handleTxState_ASK_FOR_PRE_CHUNK_UDP_INTERLOCK(&yieldData);
+//                break;
+//
+//            case UdpTxUpdateState::/******/ WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK:
+//                inner_state = handleTxState_WAIT_FOR_PRE_CHUNK_UDP_INTERLOCK(&yieldData);
+//                break;
 
             case UdpTxUpdateState::/******/ SEND_UDP_CHUNK:
                 inner_state = handleTxState_SEND_UDP_CHUNK(&yieldData);
@@ -1132,8 +1409,8 @@ namespace Wf121
             default:
                 // There must have been a bit-flip or something because we've
                 // enumerated all the states above.
-                // Attempt to recover by going back to the start:
-                inner_state = UdpTxUpdateState::WAIT_FOR_BGAPI_READY;
+                // Attempt to recover by starting over
+                inner_state = UdpTxUpdateState::START_SENDING_MESSAGE;
             }
 
             // If we're in the middle of sending a message (between downlink
@@ -1158,6 +1435,7 @@ namespace Wf121
                 // assumed we had the interlock.
                 yieldData = false;
 
+                watchDogInterface.debugPrintfToWatchdog("RADIO: ERR: UDP interlock loss at 0x%02x", inner_state_at_loop_start);
                 // Make sure this doesn't happen too often in a row:
                 m_unexpectedUdpInterlockLossCount++;
                 if (m_unexpectedUdpInterlockLossCount > WF121_MAX_UDP_INTERLOCK_LOSSES)
@@ -1177,10 +1455,20 @@ namespace Wf121
                 }
                 else
                 {
-                    // We have to start sending the message over again,
+                    // We have to start sending whatever we were doing over again,
                     // which will start by us asking for the interlock again:
-                    inner_state = UdpTxUpdateState::START_SENDING_MESSAGE;
+                    switch(inner_state_at_loop_start){
+//                        // If the reset started before we've sent anything, just ask for the ILOCK again:
+//                        case UdpTxUpdateState::WAIT_FOR_UDP_INTERLOCK:
+//                            inner_state = UdpTxUpdateState::ASK_FOR_UDP_INTERLOCK;
+//                            break;
+                        default:
+                            // Otherwise, just start over fresh (which will also ask for ilock):
+                            inner_state = UdpTxUpdateState::START_SENDING_MESSAGE;
+                    }
                 }
+                // Cool off no matter what before proceeding if we lost ILOCK (and needed it):
+                vTaskDelay(WF121_ILOCK_LOSS_COOLOFF);
             }
 
             if (inner_state == UdpTxUpdateState::BGAPI_CMD_FAIL)
@@ -1196,6 +1484,8 @@ namespace Wf121
         }
 
         // If we're out here, we have BGAPI data to send to the radio:
+        // Pause this task briefly so we don't swamp the radio:
+        vTaskDelay(WF121_MIN_INTERMESSAGE_TICKS); // really should just time it, impl. a rate check, and delay for time remaining but since can only delay in ticks anyway, we couldn't do less than 1 tick which is the current value
         // Yield (pass) BGAPI Comm Buffer data to WF121:
         m_bgApiStatus.setProcessingCmd(true); // flag that WF121 is about to be processing a command
         return &m_bgApiCommandBuffer;

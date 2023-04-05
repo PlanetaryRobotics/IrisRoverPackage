@@ -71,7 +71,7 @@ namespace CubeRover {
   {
     m_numComponentImgsReq++;
     tlmWrite_Cam_ComponentImagesRequested(m_numComponentImgsReq);
-    triggerImageCapture(CameraNum, CallbackId);
+    takeImage(CameraNum, CallbackId);
   }
 
   // ----------------------------------------------------------------------
@@ -98,7 +98,7 @@ namespace CubeRover {
   {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
-    triggerImageCapture(camera_num, callback_id);
+    takeImage(camera_num, callback_id);
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
 
@@ -199,66 +199,149 @@ namespace CubeRover {
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
   
-    void CameraComponentImpl::downsampleLine() {
-        for(uint32_t x = 0; x < IMAGE_WIDTH/DOWNSAMPLING; x++) {
-            m_imageLineBuffer[x] = m_imageLineBuffer[x*DOWNSAMPLING];
-        }
-    }
-  
-    void CameraComponentImpl::selectCamera(int cameraSelect) {
-        // ASSERT camera == 0 or 1
-        gioSetBit(linPORT, 1, cameraSelect & 0x01);
-        
-        // add small delays to make sure camera is selection is done
-        for(int delay=0; delay<500; delay++) asm("  NOP");
-    }
-  
-    // TODO: Implement dual queue image capture to allow for two threads to downlink an
-    // image at once (ie navigation and science photo)
-    void CameraComponentImpl::triggerImageCapture(uint8_t camera, uint16_t callbackId) {
-        uint16_t spiTxCmd = 0xFF;
-        spiDAT1_t fpgaDataConfig;
-        
-        S25fl512l::MemAlloc alloc;
-        alloc.startAddress = 0;     // Uhhh. Should use S25fl512l alloc method
-        alloc.reservedSize = 0;
+  // ----------------------------------------------------------------------
+  // User Methods
+  // ----------------------------------------------------------------------
 
-        fpgaDataConfig.CS_HOLD = false;
-        fpgaDataConfig.DFSEL = SPI_FMT_0;
-        fpgaDataConfig.WDEL = false;
-        fpgaDataConfig.CSNR = 0;
-        
-        selectCamera(static_cast<int>(camera));
+  // TAKE IMAGE
+  void CameraComponentImpl::takeImage(uint8_t camera, uint16_t callbackId)
+  {
+      // Set the camera and callback IDs
+      m_cameraSelect = camera;
+      m_lastCallbackId = callbackId;
+      tlmWrite_Cam_LatestCallbackId(callbackId);
 
-        gioSetBit(spiPORT1, 0, 0); // set CS LOW
-        spiTransmitData(spiREG1, &fpgaDataConfig, 1, &spiTxCmd);    // send data
-        gioSetBit(spiPORT1, 0, 1); // set CS HIGH
-        
-        tlmWrite_Cam_LatestCallbackId(callbackId);
-        while(gioGetBit(gioPORTB, 1));  // Wait until image capture complete FIXME: This could loop forever :(
-        uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
-            
-        // TODO: Operator should be able to specify DOWNSAMPLING (but for testing smaller images are faster
-        for(int i = 0; i < IMAGE_HEIGHT; i+=DOWNSAMPLING) {
-#ifdef __USE_DUMMY_IMAGE__
-            getLineDummyImage(i, m_imageLineBuffer);
+#ifdef DUMMY_IMG_GRID
+      // Create and send Dummy Image
+      generateDummyImage();
 #else
-            m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
-            alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
+      // Take Real Image!
+
+      // set bit to control camera
+      gioSetBit(linPORT, 1, m_cameraSelect & 0x01);
+
+      eraseFpgaFlash();
+
+      // add small delays to make sure camera is selection is done
+      for(int delay=0; delay<500; delay++) asm("  NOP");
+
+      uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
+
+      // capture image
+      triggerImageCapture();
+      while(gioGetBit(gioPORTB, 1));
+
+      // send image from flash
+      sendImgFromFlash(createTime);
 #endif
-            downsampleLine();
-            downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), callbackId, createTime);
-        }
-        m_imagesSent++;
-        tlmWrite_Cam_ImagesSent(m_imagesSent);
+  }
+
+
+  // CREATE AND SEND DUMMY IMAGE
+  void CameraComponentImpl::generateDummyImage(void)
+  {
+      int grid_x_spacing = DUMMY_IMAGE_WIDTH / DUMMY_IMG_GRID_n;
+      int grid_y_spacing = DUMMY_IMAGE_HEIGHT / DUMMY_IMG_GRID_n;
+
+#ifdef VIA_FLASH
+      // Prep Flash before writing each line
+      S25fl512l::MemAlloc alloc;
+      alloc.startAddress = 0;
+      alloc.reservedSize = sizeof(m_imageLineBuffer);
+
+      eraseFpgaFlash();
+#endif
+
+      uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
+
+      for (int y = 0; y < DUMMY_IMAGE_HEIGHT; y++) {
+          for (int x = 0; x < DUMMY_IMAGE_WIDTH; x++) {
+              // if camera == 0 then all black, else black and white grid, in theory...
+              m_imageLineBuffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
+              // Make it a gradient in both x and y for debugging:
+              if(m_imageLineBuffer[x] == 0x00){
+                  m_imageLineBuffer[x] += 255 * x / DUMMY_IMAGE_WIDTH / 3;
+                  m_imageLineBuffer[x] += 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+              } else {
+                  m_imageLineBuffer[x] -= 255 * x / DUMMY_IMAGE_WIDTH / 3;
+                  m_imageLineBuffer[x] -= 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+              }
+          }
+#ifdef VIA_FLASH
+      // write each line to flash
+          m_fpgaFlash.writeDataToFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+          alloc.startAddress += PAGE_SIZE * 6;
+      }
+      // then send from flash
+      sendImgFromFlash(createTime);
+#else
+      // send each line as it is created
+          downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime);
+      }
+#endif
+
+      // Finished sending Dummy Image
+      m_imagesSent++;
+      tlmWrite_Cam_ImagesSent(m_imagesSent);
+  }
+
+
+// TRIGGER IMAGE CAPTURE ON CAMERA
+void CameraComponentImpl::triggerImageCapture()
+{
+    uint16_t spiTxCmd = 0xFF;
+    spiDAT1_t g_fpgaDataConfig;
+
+    g_fpgaDataConfig.CS_HOLD = false;
+    g_fpgaDataConfig.DFSEL = SPI_FMT_0;
+    g_fpgaDataConfig.WDEL = false;
+    g_fpgaDataConfig.CSNR = 0;
+
+    gioSetBit(spiPORT1, 0, 0); // set CS LOW
+
+    // send data
+    spiTransmitData(spiREG1, &g_fpgaDataConfig, 1, &spiTxCmd);
+
+    gioSetBit(spiPORT1, 0, 1); // set CS HIGH
+}
+
+
+  // ERASE FLASH
+  void CameraComponentImpl::eraseFpgaFlash(void){
+    for(int i=0; i< 40; i++){
+        m_fpgaFlash.sectorErase(i);
     }
-    
-    void CameraComponentImpl::downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime) {
-        Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
-        downlinkImage_out(0, callbackId, createTime, fwBuffer);
-        m_bytesSent += static_cast<U32>(size);
-        tlmWrite_Cam_BytesSent(m_bytesSent);
-    }
-    
+  }
+
+
+  // SEND IMAGE FROM FLASH
+  void CameraComponentImpl::sendImgFromFlash(uint32_t createTime)
+  {
+      S25fl512l::MemAlloc alloc;
+      alloc.startAddress = 0;
+      alloc.reservedSize = 0;
+
+      for(int i=0;i<IMAGE_HEIGHT; i++){
+          m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+          alloc.startAddress = 6* PAGE_SIZE * i; // jump to next available block
+
+          downlinkImage(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime);
+      }
+
+      m_imagesSent++;
+      tlmWrite_Cam_ImagesSent(m_imagesSent);
+  }
+
+
+  // DOWNLINK ONE ROW OF IMAGE
+  void CameraComponentImpl::downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime)
+  {
+      Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
+      downlinkImage_out(0, callbackId, createTime, fwBuffer);
+      m_bytesSent += static_cast<U32>(size);
+      tlmWrite_Cam_BytesSent(m_bytesSent);
+  }
+
+
 
 } // end namespace CubeRover

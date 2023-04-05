@@ -224,11 +224,12 @@ namespace CubeRover
         );
 
         // User defined methods, members, and structs
-
+public:
         // Pointer to the RadioDriver being used (we add this level of indirection
         // and don't just use `CORE_RADIO_DRIVER` in case we want to change what's
         // used in the future):
         Wf121::RadioDriver *m_pRadioDriver;
+PRIVATE:
         // Single common working buffer used for handling RX'd or TX'ing UDP Payloads:
         // (NOT for long term storage of data / passing data out of NetworkManager):
         Wf121::UdpPayload m_udpPayloadWorkingBuffer;

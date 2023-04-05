@@ -212,6 +212,17 @@ namespace iris
             disableHeater();
         }
 
+#ifdef HERC_PROGRAMMING_MODE
+        // [CWC-03/13/2023] Warn that this is the WRONG version of the SW for Flight and should only be used for hercules programming.
+        // Essentially this is a special version of the SW that disable hercules monitioring by default in mission (instead of enables) so
+        // hercules can be programmed. In flight, though, we want Hercules monitoring to be on by default.
+        DPRINTF("Defaulting MONITOR_HERCULES to OFF in MISSION for programming.");
+        theContext.m_watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+#else
+        DPRINTF("Defaulting MONITOR_HERCULES to ON in MISSION.");
+        theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES; // default to monitoring Hercules for aliveness
+#endif
+
         return getState();
     }
 

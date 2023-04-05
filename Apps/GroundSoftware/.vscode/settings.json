@@ -276,6 +276,9 @@
         "*sandbox*"
     ],
     "files.associations": {
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }

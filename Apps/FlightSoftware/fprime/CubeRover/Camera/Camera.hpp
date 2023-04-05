@@ -1,6 +1,6 @@
 // ======================================================================
 // \title  CameraComponentImpl.hpp
-// \author justin
+// \author Raewyn
 // \brief  hpp file for Camera component implementation class
 //
 // \copyright
@@ -17,12 +17,23 @@
 
 #include "S25fl512l.hpp"
 
+// --- SYSTEM IMAGE PARAMS ---
 #define IMAGE_WIDTH        2592
 #define IMAGE_HEIGHT       1944
 
-#define DOWNSAMPLING        2
-#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
-#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
+// --- DUMMY IMAGE PARAMS ---
+
+//#define DUMMY_IMG_GRID  // Dummy image is grid of NxN squares
+#define DUMMY_IMG_GRID_n  5 // Dummy image is grid of NxN squares
+#define VIA_FLASH   // Read & Write dummy image w/ FPGA Flash
+
+#define DUMMY_IMAGE_WIDTH     IMAGE_WIDTH
+#define DUMMY_IMAGE_HEIGHT    IMAGE_HEIGHT
+
+// RAD TODO - isn't downsampling a user-defined parameter?
+//#define DOWNSAMPLING        1
+//#define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
+//#define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
 
 namespace CubeRover {
 
@@ -181,20 +192,25 @@ namespace CubeRover {
       );
       
       
-      // User methods
-      
-        void downsampleLine();
-        void selectCamera(int camera);
-        void triggerImageCapture(uint8_t camera, uint16_t callbackId);
-        void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
-      
-        S25fl512l m_fpgaFlash;
-        uint8_t m_imageLineBuffer[IMAGE_WIDTH];
-        U32 m_numComponentImgsReq;
-        U32 m_numGroundImgsReq;
-        U32 m_imagesSent;
-        U32 m_bytesSent;
+      // ----------------------------------------------------------------------
+      // User Methods
+      // ----------------------------------------------------------------------
 
+      void takeImage(uint8_t camera, uint16_t callbackId);
+      void generateDummyImage(void);
+      void triggerImageCapture(void);
+      void eraseFpgaFlash(void);
+      void sendImgFromFlash(uint32_t createTime);
+      void downlinkImage(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime);
+
+      S25fl512l m_fpgaFlash;
+      uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+      U32 m_numComponentImgsReq;
+      U32 m_numGroundImgsReq;
+      U32 m_imagesSent;
+      U32 m_bytesSent;
+      uint16_t m_lastCallbackId;
+      uint8_t m_cameraSelect;
     };
 
 } // end namespace CubeRover

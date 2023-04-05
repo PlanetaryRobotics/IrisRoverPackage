@@ -11,8 +11,11 @@
 // ======================================================================
 
 #include <CubeRover/GroundInterface/GroundInterface.hpp>
+#include <CubeRover/NetworkManager/NetworkManager.hpp> // ! TODO: FIXME Hacky patch connection to steal NM data
 #include "Fw/Types/BasicTypes.hpp"
 #include <string.h>
+
+extern CubeRover::NetworkManagerComponentImpl networkManager; // ! TODO: FIXME Hacky patch connection to steal NM data
 
 namespace CubeRover
 {
@@ -172,6 +175,7 @@ namespace CubeRover
         {
             struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(downlinkBuffer);
             obj->header.magic = FSW_FILE_MAGIC;
+            obj->header.hashedId = hashedId;
             obj->header.totalBlocks = 1;
             obj->header.blockNumber = 1;
             obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
@@ -179,6 +183,14 @@ namespace CubeRover
             downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
             downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
             m_appBytesDownlinked += singleFileObjectSize;
+            // ! TODO: FIXME
+            // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
+            // ! (do this to avoid maxing out the radio Tx queue):
+            flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
+            int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
+            while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
+                vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
+            }
         }
         else
         { // Send file fragments
@@ -207,6 +219,13 @@ namespace CubeRover
                     log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
                     downlink(downlinkBuffer, datagramLength);
                     data += blockLength;
+                    // ! TODO: FIXME
+                    // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
+                    // ! (do this to avoid maxing out the radio Tx queue):
+                    int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
+                    while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
+                        vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
+                    }
                 }
                 else
                 { // Final Fragment is written to the member buffer to downlink with other objects

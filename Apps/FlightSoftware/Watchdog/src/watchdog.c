@@ -169,6 +169,14 @@ int watchdog_monitor(HerculesComms__State *hState,
     DEBUG_LOG_NULL_CHECK_RETURN(writeIOExpander, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(details, "Parameter is NULL", -1);
 
+    // Quick and dirty parameters for tuning Hercules Monitoring:
+    // How many consequtive kicks has hercules missed since being reset:
+    static uint8_t herc_conseq_missed_kicks_since_reset = 0;
+    // How many consequtive missed kicks until a reset (testing has shown it has to be at least 2):
+    // -- setting this too low won't give Hercules time to reboot after a crash and reset before
+    // being reset again...
+    static const uint8_t HERC_CONSEQ_MISSED_KICK_THRESHOLD = 3;
+
     /* temporarily disable interrupts */
     __disable_interrupt();
 
@@ -206,6 +214,7 @@ int watchdog_monitor(HerculesComms__State *hState,
         *watchdogFlags ^= WDFLAG_UNRESET_HERCULES;
         *writeIOExpander = TRUE;
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_UNRESET);
+        DPRINTF("Unreset Hercules.");
     }
 
     /* unreset motor 1 */
@@ -276,29 +285,42 @@ int watchdog_monitor(HerculesComms__State *hState,
     if (*watchdogFlags & WDFLAG_HERCULES_KICK)
     {
         *watchdogFlags ^= WDFLAG_HERCULES_KICK;
+        herc_conseq_missed_kicks_since_reset = 0;
+        // Let Ground know Hercules is still alive
+        // (if Hercules was rebooted while our comms were only over Wifi,
+        // we wouldn't know when it would be good to send SWITCH TO WIFI MODE).
+        DPRINTF("Hercules Alive.");
     }
     else
     {
         if (*watchdogOpts & WDOPT_MONITOR_HERCULES)
         {
-            // reset the hercules
-            setHerculesReset();
+            // Only inc. counter if Herc is being monitored.
+            herc_conseq_missed_kicks_since_reset += 1;
+            DPRINTF("Hercules Unresponsive.");
+            // Only reset if counter too big:
+            if(herc_conseq_missed_kicks_since_reset >= HERC_CONSEQ_MISSED_KICK_THRESHOLD){
+                // reset the hercules
+                DPRINTF("No Hercules Kick. Resetting Hercules . . .");
+                herc_conseq_missed_kicks_since_reset = 0;
+                setHerculesReset();
 
-            SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
+                // queue up hercules unreset
+                *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
+                SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
 
-            // Set the flag so that the next time this function triggers, the Hercules will be un-reset
-            *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
+                // if the issue was due to a comms breakdown, reset the comms state
+                if (NULL != hState)
+                {
+                    DPRINTF("\t Resetting Hercules Comms . . .");
+                    HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
 
-            // if the issue was due to a comms breakdown, reset the comms state
-            if (NULL != hState)
-            {
-                HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
+                    //!< @todo Replace with returning watchdog error code once that is implemented.
+                    DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+                }
 
-                //!< @todo Replace with returning watchdog error code once that is implemented.
-                DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+                *writeIOExpander = TRUE;
             }
-
-            *writeIOExpander = TRUE;
         }
         else
         {

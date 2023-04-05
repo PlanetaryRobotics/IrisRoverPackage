@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "comms/debug_comms.h"
 #include "drivers/bsp.h"
 
 namespace iris
@@ -42,6 +43,9 @@ namespace iris
     RoverState RoverStateEnteringService::transitionTo(RoverContext& theContext)
     {
         *(theContext.m_persistentInMission) = false;
+
+        DPRINTF("Defaulting MONITOR_HERCULES to OFF in SERVICE.");
+        theContext.m_watchdogOpts &= ~WDOPT_MONITOR_HERCULES; // don't monitor Hercules for aliveness by default in service
 
         // Enable the falling edge interrupt for WD_INT (should be done after unlocking LOCKLPM5 per slau367p section 12.3.2)
         enableWdIntFallingEdgeInterrupt();

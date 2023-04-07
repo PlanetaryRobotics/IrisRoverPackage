@@ -10,7 +10,7 @@
     <import_port_type>Fw/Buffer/BufferGetPortAi.xml</import_port_type>
     <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
-        
+
     <comment>
         Validates inbound/outbound FSW packets and routes them to the correct endpoint. For uplinked
         packets, they are received/validated  synchronously and immediately queued on to the 
@@ -19,10 +19,15 @@
         handlers be guarded to ensure thread safety of the buffer. This component only checks packets
         at the FSW packet header level, all UDP framing needs to occur outside of this component.
     </comment>
-            
+
     <ports>
 
         <!-- Input ports -->
+        <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>Clock from RateGroupLowFreq. Sends a name or message.
+            </comment>
+        </port>
+        
         <port name="tlmDownlink" data_type="Fw::Com"  kind="guarded_input"    max_number="1">
             <comment>
                 TlmChannel sends GroundInterface telemetry items to downlink. The GroundInterface component will serialize the
@@ -178,6 +183,29 @@
                 </arg>
             </args>
         </event>
+        <event id="0xA0" name="BroughtToYouBy" severity="ACTIVITY_LO" format_string = "Made Possible By: %s." >
+           <comment>
+            Thank you to an Iris member / donor stored on the Rover.
+           </comment>
+           <args>
+                <arg name="name" type="string" size="50">
+                    <comment>Name of an Iris member / donor stored on the Rover.</comment>
+                </arg>
+           </args>
+        </event>
+        <event id="0xA1" name="SpecialMessage" severity="ACTIVITY_LO" format_string = "%s says: %s" >
+           <comment>
+            Message from an Iris member / donor.
+           </comment>
+           <args>
+                <arg name="name" type="string" size="50">
+                    <comment>Name of an Iris member / donor stored on the Rover who sent a message.</comment>
+                </arg>
+                <arg name="message" type="string" size="100">
+                    <comment>Their special message.</comment>
+                </arg>
+           </args>
+        </event>
     </events>
     
     <commands>
@@ -201,13 +229,29 @@
             <args>
                 <arg name="telemetry_level" type="ENUM">
                     <enum name="TelemetryLevel">
-                        <item name="CRITICAL" comment="Emit critical telemetry items only." />
+                        <item name="CRITICAL" comment="Emit CRITICAL telemetry items only." />
                         <item name="IMPORTANT" comment="Emit CRITICAL and important telemetry items only." />
                         <item name="ALL" comment="Emit all telemetry items." />
                     </enum>
                 </arg>
             </args>
         </command>
+        <command kind="sync" opcode="0xA0" mnemonic="RollCredits">
+        	<comment>
+        		Turn ON/OFF whether names and messages should be downlinked. Default is ON.
+    		</comment>
+    		<args>
+    			<arg name="on" type="bool"></arg>
+			</args>
+		</command>
+		<command kind="sync" opcode="0xA1" mnemonic="Set_NameAndMessage_Period">
+			<comment>
+				Set how many seconds (minimum) should occur between each name/message downlink. Min is 1.
+			</comment>
+			<args>
+				<arg name="seconds" type="U16"></arg>
+			</args>
+		</command>
     </commands>
             
 </component>

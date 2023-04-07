@@ -16,14 +16,15 @@
 #include "CubeRover/GroundInterface/GroundInterfaceComponentAc.hpp"
 #include "CubeRover/NetworkManager/NetworkManager.hpp" // ! TODO: FIXME Hacky patch connection to steal NM data
 #include <Include/FswPacket.hpp>
+#include "NamesAndMessagesSender.hpp"
 
 namespace CubeRover {
 
 extern int8_t m_persistent_state;
 
   class GroundInterfaceComponentImpl :
-    public GroundInterfaceComponentBase
-  {
+    public GroundInterfaceComponentBase,
+    public ::IrisNames::NamesAndMessageSender {
 
     public:
 
@@ -56,6 +57,13 @@ extern int8_t m_persistent_state;
       // ----------------------------------------------------------------------
       // Handler implementations for user-defined typed input ports
       // ----------------------------------------------------------------------
+
+      //! Handler for input port schedIn
+      //
+      void schedIn_handler(
+          NATIVE_INT_TYPE portNum, /*!< The port number*/
+          NATIVE_UINT_TYPE context /*!< The call order*/
+      );
 
       //! Handler implementation for tlmDownlink
       //!
@@ -121,6 +129,21 @@ extern int8_t m_persistent_state;
           TelemetryLevel telemetry_level 
       );
 
+      //! Handler for command RollCredits
+      /* Turn ON/OFF whether names and messages should be downlinked. Default is ON. */
+      void RollCredits_cmdHandler(
+          FwOpcodeType opCode, /*!< The opcode*/
+          U32 cmdSeq, /*!< The command sequence number*/
+          bool on 
+      );
+
+      //! Handler for command Set_NameAndMessage_Period
+      /* Set how many seconds (minimum) should occur between each name/message downlink. Min is 1. */
+      void Set_NameAndMessage_Period_cmdHandler(
+          FwOpcodeType opCode, /*!< The opcode*/
+          U32 cmdSeq, /*!< The command sequence number*/
+          U16 seconds 
+      );
 
         // User defined methods, members, and structs
             
@@ -146,7 +169,13 @@ extern int8_t m_persistent_state;
         PrimaryInterface m_interface_port_num;
         PrimaryInterface m_temp_interface_port_num;
         TelemetryLevel m_telemetry_level;
+
+        PRIVATE:
+          void downlinkNameCoreImpl(const char * pHead);
+          void downlinkMessageCoreImpl(const char * pMessagerString, const char * pMessageString);
     };
+
+
 
 } // end namespace CubeRover
 

@@ -1,6 +1,7 @@
 #ifndef IRIS_NAMES_AND_MESSAGES_SENDER_HPP
 #define IRIS_NAMES_AND_MESSAGES_SENDER_HPP
 
+#include <stdint.h>
 #include <Fw/Cfg/Config.hpp>
 #include "NamesAndMessages.hpp"
 
@@ -20,9 +21,26 @@ public:
     MESSAGES = 2
   } m_downlinkingNamesOrMessages;
 
+  // Min period (ms) between name / message downlinks:
+  uint32_t m_nameOrMessageDownlinkPeriod_ms = 5000;
+  // Time the last name / message was sent:
+  uint32_t m_prevNameOrMessageSendTime_ms = 0;
+  // Whether or not a name/message log has been put into the packet buffer and is awaiting downlink:
+  bool m_awaitingNameOrMessageDownlink = false;
+  // Whether or not downlinking names and messages is allowed:
+  bool m_namesAndMessagesAllowed = true;
+
   NamesAndMessageSender();
   virtual ~NamesAndMessageSender();
 
+  // Downlinks the currently queued up name or message IF ALLOWED (by target period) based on the current time stamp:
+  void downlinkNameOrMessageIfAllowed(uint32_t now_ms);
+  
+  // Advances the name or messeage head pointer if necessary (i.e. if a message is awaiting completion of a downlink).
+  // Also resets the `m_awaitingNameOrMessageDownlink` flag.
+  void advanceNameOrMessageHeadIfNeeded();
+
+private:
   // Downlinks the currently queued up name or message.
   void downlinkNameOrMessage();
   /* Advances the name or message head pointer to the next
@@ -34,8 +52,6 @@ public:
    */
   void advanceNameOrMessageHead();
 
-private:
-  // External function for downlinking a message
   /* Downlink a name.
    * `pHead` must be the head of a null-terminated cstring.
   **/

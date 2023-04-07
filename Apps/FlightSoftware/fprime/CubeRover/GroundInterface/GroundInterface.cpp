@@ -106,6 +106,15 @@ namespace CubeRover
     // Handler implementations for user-defined typed input ports
     // ----------------------------------------------------------------------
 
+    //! Handler for input port schedIn
+    //
+    void GroundInterfaceComponentImpl::schedIn_handler(
+        NATIVE_INT_TYPE portNum, /*!< The port number*/
+        NATIVE_UINT_TYPE context /*!< The call order*/
+    ){
+        this->downlinkNameOrMessageIfAllowed(getTime().get_time_ms());
+    }
+
     void GroundInterfaceComponentImpl ::
         tlmDownlink_handler(
             const NATIVE_INT_TYPE portNum,
@@ -117,7 +126,11 @@ namespace CubeRover
         FswPacket::Length_t length = static_cast<FswPacket::Length_t>(data.getBuffLength());
         downlinkBufferWrite(tlmData, length, DownlinkTelemetry);
         m_tlmItemsDownlinked++;
-        updateTelemetry();
+
+        // Avoid emitting GI telemetry here since downlinking telemetry would cause >1
+        // telemetry item to be emitted, which could create unbounded growth where each telemetry item
+        // creates > 1 telemetry item and suddenly all telemetry is GI telemetry.
+        // ! updateTelemetry();
     }
 
     void GroundInterfaceComponentImpl ::
@@ -139,7 +152,10 @@ namespace CubeRover
         // NOTE: These go into the telem downlink buffer, right along side telemetry (intentionally).
         downlinkBufferWrite(logData, length, DownlinkLog);
         m_logsDownlinked++;
-        updateTelemetry();
+
+        // Update only relevant telemetry:
+        tlmWrite_GI_LogsDownlinked(m_logsDownlinked);
+        tlmWrite_GI_LogsReceived(m_logsReceived);
     }
 
     void GroundInterfaceComponentImpl ::
@@ -336,6 +352,31 @@ namespace CubeRover
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
+    //! Handler for command RollCredits
+    /* Turn ON/OFF whether names and messages should be downlinked. Default is ON. */
+    void GroundInterfaceComponentImpl::RollCredits_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq, /*!< The command sequence number*/
+        bool on 
+    ){
+        // Set allowed state:
+        m_namesAndMessagesAllowed = on;
+        // Reset awaiting status:
+        m_awaitingNameOrMessageDownlink = false;
+        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
+
+    //! Handler for command Set_NameAndMessage_Period
+    /* Set how many seconds (minimum) should occur between each name/message downlink. Min is 1. */
+    void GroundInterfaceComponentImpl::Set_NameAndMessage_Period_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq, /*!< The command sequence number*/
+        U16 seconds 
+    ){
+        m_nameOrMessageDownlinkPeriod_ms = seconds * 1000;
+        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+    }
+
     /*
      * @brief Write a packet to the downlink buffer.
      *
@@ -385,6 +426,10 @@ namespace CubeRover
         downlink(m_tlmDownlinkBuffer, length);
         m_tlmDownlinkBufferPos = m_tlmDownlinkBuffer + sizeof(struct FswPacket::FswPacketHeader);
         m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
+        // Update all GI telemetry now (starts off a new packet):
+        updateTelemetry();
+        // Update the name / message head pointer:
+        advanceNameOrMessageHeadIfNeeded();
     }
 
     /*
@@ -486,5 +531,18 @@ namespace CubeRover
         metadata.file.metadata.timestamp = timestamp_ms;
         downlinkBufferWrite(&metadata, static_cast<FswPacket::Length_t>(sizeof(metadata)), DownlinkFile);
     }
+
+  void GroundInterfaceComponentImpl::downlinkNameCoreImpl(const char * pHead){
+    // Convert to FW string and emit the log:
+    Fw::LogStringArg name(pHead);
+    this->log_ACTIVITY_LO_BroughtToYouBy(name);
+  }
+
+  void GroundInterfaceComponentImpl::downlinkMessageCoreImpl(const char * pMessagerString, const char * pMessageString){
+    // Convert to FW strings and emit the log:
+    Fw::LogStringArg messager(pMessagerString);
+    Fw::LogStringArg message(pMessageString);
+    this->log_ACTIVITY_LO_SpecialMessage(messager, message);
+  }
 
 } // end namespace CubeRover

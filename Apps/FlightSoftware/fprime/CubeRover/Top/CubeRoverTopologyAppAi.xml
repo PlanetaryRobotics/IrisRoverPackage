@@ -113,18 +113,18 @@
   </connection>
   
   <connection name = "rgLowFreq_to_watchDogInterface_clk">
-    <source component = "rateGroupLowFreq" port = "RateGroupMemberOut" type = "Sched" num = "1" />
+    <source component = "rateGroupLowFreq" port="RateGroupMemberOut" type = "Sched" num = "1" />
     <target component = "watchDogInterface" port = "Run" type = "Sched" num = "0"/>
   </connection>
 
   <connection name="rgLowFreq_to_groundInterface_clk">
-    <source component="rateGroupLowFreq" port="RateGroupMemberOut" type="Sched" num="0" />
+    <source component="rateGroupLowFreq" port="RateGroupMemberOut" type="Sched" num="2" />
     <target component="groundInterface" port="schedIn" type="Sched" num="0"/>
   </connection>
   
   <!--
   <connection name = "rgHighFreq_to_health_clk">
-    <source component = "rateGroupHighFreq" port = "RateGroupMemberOut" type = "Sched" num = "0" />
+    <source component = "rateGroupHighFreq" port="RateGroupMemberOut" type = "Sched" num = "3" />
     <target component = "health" port = "Run" type = "Sched" num = "0"/>
   </connection>-->
 
@@ -134,11 +134,11 @@
      -->
   <connection name="rgMedFreq_to_networkManager">
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
-    <target component="networkManager" port="schedIn" type="sched" num="0"/>
+    <target component="networkManager" port="schedIn" type="Sched" num="0"/>
   </connection>
   
   <connection name = "rgMedFreq_to_navigation_clk">
-    <source component = "rateGroupMedFreq" port = "RateGroupMemberOut" type = "Sched" num = "1" />
+    <source component = "rateGroupMedFreq" port="RateGroupMemberOut" type = "Sched" num = "1" />
     <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
   </connection>
 
@@ -148,7 +148,7 @@
      -->
   <connection name="rgHiFreq_to_IMU">
     <source component="rateGroupHiFreq" port="RateGroupMemberOut" type="Sched" num="1" />
-    <target component="IMU" port="schedIn" type="sched" num="0"/>
+    <target component="IMU" port="schedIn" type="Sched" num="0"/>
   </connection>
 
 <!-- *********************************************************************************************************

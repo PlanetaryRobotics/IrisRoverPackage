@@ -162,6 +162,8 @@ Note that time base and time context are only serialized if `FW_USE_TIME_BASE` o
 
 - Object is declared with unique base ID corresponding to the C&TL 
 - If rate driven component, that component is connected to its respective rate group's `RateGroupMemberOut` with type `Svc::Sched`
+    - you may have to check `ActiveRateGroupOutputPorts` in `fprime/Fw/Cfg/AcConstants.ini` to make sure the max value is high enough.
+    - make sure `num` is incremented correctly in `Top` for each `port="RateGroupMemberOut"` connection in each `ActiveRateGroup` instance
 - The component is connected to the CubeRoverTime `timeGetPort` of type `Time`
 - The component is connected to TlmChan `TlmRecv` port of type `Tlm`
 - The component is connected to CmdDispatcher `compCmdReg` port of type `CmdReg`

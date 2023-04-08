@@ -131,7 +131,7 @@ namespace CubeRover
         //! Handler for command SetInterfaceAutoSwitch
         /* Turn ON/OFF whether Hercules is allowed to automatically switch its
         primary network interface based on connection status. Default is ON. */
-        void GroundInterfaceComponentImpl::SetInterfaceAutoSwitch_cmdHandler(
+        void SetInterfaceAutoSwitch_cmdHandler(
             FwOpcodeType opCode, /*!< The opcode*/
             U32 cmdSeq,          /*!< The command sequence number*/
             bool on);

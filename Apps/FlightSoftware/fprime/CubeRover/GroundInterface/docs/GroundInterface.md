@@ -10,6 +10,10 @@
 | | | |primary_interface|PrimaryInterface||
 |Set_GroundInterface_Telemetry_Level|1 (0x1)|Sets the telemetry level of this component| | |
 | | | |telemetry_level|TelemetryLevel||
+|SetInterfaceAutoSwitch|2 (0x2)|Turn ON/OFF whether Hercules is allowed to automatically switch 
+                its primary network interface based on connection status.
+                Default is ON.| | |
+| | | |on|bool||
 |RollCredits|160 (0xa0)|Turn ON/OFF whether names and messages should be downlinked. Default is ON.| | |
 | | | |on|bool||
 |Set_NameAndMessage_Period|161 (0xa1)|Set how many seconds (minimum) should occur between each name/message downlink. Min is 1.| | |
@@ -53,6 +57,13 @@
 |GI_DownlinkedItem|4 (0x4)|An item was added to the packet for downlink. This will be basically never used since using it would mean adding 1 downlink item for every item downlinked (which would run away).| | | | |
 | | | |seq|U8|||
 | | | |from|downlinkPacketType|||
+|InterfaceAutoSwitchChanged|5 (0x5)|Whether or not `GroundInterface` is allowed to automatically change
+            Hercules' downlink interface based on the WiFi connection state.| | | | |
+| | | |on|bool|||
+|InterfaceAutoSwitch|6 (0x6)|`GroundInterface` has automatically changed its downlink interface
+            based on the WiFi connection state.| | | | |
+| | | |from|FromInterface|||
+| | | |to|ToInterface|||
 |BroughtToYouBy|160 (0xa0)|Thank you to an Iris member / donor stored on the Rover.| | | | |
 | | | |name|Fw::LogStringArg&|50|Name of an Iris member / donor stored on the Rover.|
 |SpecialMessage|161 (0xa1)|Message from an Iris member / donor.| | | | |

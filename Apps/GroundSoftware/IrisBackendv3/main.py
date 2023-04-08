@@ -24,9 +24,9 @@ storage = LocalArchive()
 """
 
 # standards = DataStandards.build_standards()
-
-with open('../test-data/Iris_Telemetry_201118.pcap', 'rb') as fp:
-    raw_data = pcap.structs.read_bytes(stream=fp, size=100)
-    scanner = pcap.FileScanner(fp)
-    for block in scanner:
-        print(block)
+if __name__ == "__main__":
+    with open('../test-data/Iris_Telemetry_201118.pcap', 'rb') as fp:
+        raw_data = pcap.structs.read_bytes(stream=fp, size=100)
+        scanner = pcap.FileScanner(fp)
+        for block in scanner:
+            print(block)

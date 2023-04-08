@@ -210,7 +210,7 @@ class BGLibListener(object):
         The commands are grouped by the API name, defined in the API file. For
         example, if the API is the Silicon Labs Bluetooth API, it will appear
         as an attribute `bt` in the BGLib object:
-        >>> bglib.bt.system.hello()
+        `>>> bglib.bt.system.hello()`
 
         help() is available for further details, e.g., help(bglib.bt.system)
 

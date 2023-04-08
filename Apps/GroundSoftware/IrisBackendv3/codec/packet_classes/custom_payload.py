@@ -6,21 +6,21 @@ for communication with the Watchdog which doesn't use the Iris Common Packet
 format for its telemetry (to minimize bandwidth use).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/09/2022
+@last-updated: 03/05/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from .packet import Packet, CT
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Optional, ClassVar, TypeVar, cast, Generic, Type, Dict
-
+import inspect
 import time
 
-from ..magic import Magic
-from ..payload import TelemetryPayload
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.magic import Magic
+from IrisBackendv3.codec.payload import TelemetryPayload
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
 
 from IrisBackendv3.data_standards.module import Module
 
@@ -146,8 +146,8 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
             b.thing  # -> prints "Sub class thing getter bb"
         ```
         """
-        if self._payloads != payloads:
-            # only recompute if a change is actually occuring (necessary to
+        if not hasattr(self, '_payloads') or self._payloads != payloads:
+            # only recompute if a change is actually occurring (necessary to
             # avoid needing to recompute in the constructor since it sets
             # `_custom_payload` then `_payloads` and then has to dispatch to
             # `super`'s `__init__` which will call this setter again.
@@ -218,8 +218,31 @@ class CustomPayloadPacket(Packet[CT], Generic[CT, CPCT]):
                 "no `CUSTOM_PAYLOAD_CLASS` ClassVar was given."
             )
         else:
-            c = self.CUSTOM_PAYLOAD_CLASS  # need to alias so ignore works below
-            return c(**custom_payload_args)  # type: ignore [call-arg]
+            # NOTE: `custom_payload_args` will often contain custom computed
+            # values from CustomPayload, alongside the core (raw) values
+            # required to init the custom payload
+            # (e.g. `custom_payload_args` may contain `TempRaw` and
+            # `TempKelvin` but the CustomPayload may only require `TempRaw` to
+            # be init'd since it computes `TempKelvin`).
+            # To prevent CustomPayload's constructor from complaining, only
+            # supply the fields from `custom_payload_args` that it **needs**
+            # for init (note: the constructor will implicitly make sure that
+            # it has all the fields it needs - i.e. it will catch if the set
+            # intersection is too small).
+            c = self.CUSTOM_PAYLOAD_CLASS  # need to alias for 'ignore' below
+            required_args = {*inspect.signature(c.__init__).parameters.keys()}
+            required_args = required_args - {'self'}  # not actually an arg
+            available_fields = {*custom_payload_args.keys()}
+            # Intersect the set of available fields and required fields to
+            # determine what to supply:
+            fields_to_supply = available_fields & required_args
+            # Subset the `custom_payload_args` dictionary:
+            custom_payload_init_args = {
+                k: v
+                for k, v in custom_payload_args.items()
+                if k in fields_to_supply
+            }
+            return c(**custom_payload_init_args)  # type: ignore [call-arg]
 
     def unpack_custom_payload_to_payloads(
         self,

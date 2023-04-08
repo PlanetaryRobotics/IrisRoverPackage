@@ -237,7 +237,7 @@ class EnhancedPayloadCollection(Iterable[List[Payload]]):
     epc[DownlinkedPayload]
     ```
     will get all `Payload`s in the collection that are instances of
-    a class that's a decendant of `DownlinkedPayload` (such as
+    a class that's a descendant of `DownlinkedPayload` (such as
     `FileBlockPayload`, `EventPayload`, `TelemetryPayload`, any subclasses of
     `TelemetryPayload`, etc.).
 

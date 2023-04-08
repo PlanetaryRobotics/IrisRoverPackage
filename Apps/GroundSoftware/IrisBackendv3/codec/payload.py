@@ -18,22 +18,22 @@ from collections import OrderedDict
 import struct
 from datetime import datetime
 
-from .magic import Magic, MAGIC_SIZE
-from .metadata import DataPathway, DataSource, DownlinkTimes, UplinkTimes
-from .container import ContainerCodec
-from .fsw_data_codec import encode as fsw_data_encode
-from .fsw_data_codec import decode as fsw_data_decode
+from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
+from IrisBackendv3.codec.metadata import DataPathway, DataSource, DownlinkTimes, UplinkTimes
+from IrisBackendv3.codec.container import ContainerCodec
+from IrisBackendv3.codec.fsw_data_codec import encode as fsw_data_encode
+from IrisBackendv3.codec.fsw_data_codec import decode as fsw_data_decode
 
-from .logging import logger
+from IrisBackendv3.codec.logging import logger
 
-from .settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.module import Module, Command, TelemetryChannel, Event
 from IrisBackendv3.data_standards import FswDataType
 from IrisBackendv3.utils.basic import full_dict_spec_check
 
-from .exceptions import PacketDecodingException
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 
 PIT = TypeVar('PIT')
@@ -1088,6 +1088,25 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     @property
     def file_type_magic(self) -> FileTypeMagic: return self._file_type_magic
 
+    @property
+    def full_file_id(self) -> int:
+        """ID that specifies which larger file this line came from (since
+        each line of the image is being downlinked as a "file").
+        For now, since all lines of an image share the same `createTime`
+        timestamp, we'll just use that.
+        """
+        return self._timestamp
+
+    def __str__(self) -> str:
+        return (
+            "FileBlockMetadata["
+            f"{self.file_type_magic.name}: "
+            f"file={self.full_file_id}, "
+            f"call={self.callback_id}, "
+            f"time={self.timestamp}"
+            "]"
+        )
+
 
 class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
     """Metadata about the file contained inside Block 0 of a `FileBlockPayload`."""
@@ -1136,7 +1155,7 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         timestamp_bytes = data[ptr:size]
         timestamp: int = struct.unpack(endianness_code+'L', timestamp_bytes)[0]
 
-        ptr, size = size, size+1  # `file_type_magic` is 1B
+        # ptr, size = size, size+1  # `file_type_magic` is 1B
         # file_type_magic_val: int = int(data[ptr:size][0])
         # try:
         #     file_type_magic = FileMetadata.FileTypeMagic(file_type_magic_val)
@@ -1153,6 +1172,8 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         #         f"\n Packet data supplied to `FileMetadata` extractor: {data!r}"
         #     ))
         #     file_type_magic = FileMetadata.FileTypeMagic.BAD
+        # ! TODO: FSW doesn't do filetype magic rn, so we'll just assume
+        # ! everything's an image.
         file_type_magic = FileMetadata.FileTypeMagic.IMAGE
 
         # All data used by the metadata:
@@ -1235,6 +1256,19 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
     def file_metadata(self) -> Optional[FileMetadata]:
         return self._file_metadata
 
+    @property
+    def is_metadata(self) -> bool: return self.file_metadata is not None
+
+    def __str__(self) -> str:
+        return (
+            "FileBlock["
+            f"{self.block_number}/{self.total_blocks}: "
+            f"{self.length}B, "
+            f"line={self.hashed_id}, "
+            f"bad={self.possible_corruption}"
+            "]"
+        )
+
 
 class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
     """Implementation of Payload Interface for IRIS File Blocks."""
@@ -1299,7 +1333,7 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
         ptr, header_size = header_size, header_size+1  # `block_number` is 1B
         block_number: int = int(data[ptr:header_size][0])
 
-        ptr, header_size = header_size, header_size+2  # `length` is 2B
+        ptr, header_size = header_size, header_size+2  # `length` is 2B (U16)
         length_bytes = data[ptr:header_size]
         length: int = struct.unpack(endianness_code+'H', length_bytes)[0]
 
@@ -1316,7 +1350,22 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
                 f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
                 f"block_num={block_number}, total_blocks={total_blocks}, "
                 f"length={length}}}"
-                f"\n Packet data supplied to `FileBlockPayload` extractor: {data!r}"
+                f"\n Packet data supplied to `FileBlockPayload` extractor: "
+                f"{data!r}"
+            ))
+            possible_corruption = True
+
+        if block_number > total_blocks:
+            logger.error((
+                f"While decoding a `FileBlockPayload` the `{total_blocks=}` "
+                f"but `{block_number=}`. Block number should range from 0 to "
+                f"`total_blocks` (with 0 being metadata) but should never be "
+                f"`>total_blocks`. Possible file corruption. "
+                f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
+                f"block_num={block_number}, total_blocks={total_blocks}, "
+                f"length={length}}}"
+                f"\n Packet data supplied to `FileBlockPayload` extractor: "
+                f"{data!r}"
             ))
             possible_corruption = True
 

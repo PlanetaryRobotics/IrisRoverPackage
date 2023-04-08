@@ -8,17 +8,17 @@ important Watchdog statuses during cis-lunar transit.
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
-from .packet import CT
-from .custom_payload import CustomPayloadPacket, CPCT
+from IrisBackendv3.codec.packet_classes.packet import CT
+from IrisBackendv3.codec.packet_classes.custom_payload import CustomPayloadPacket, CPCT
 
 from typing import List, Any, Optional, ClassVar, cast, Union, Type
 
 import struct
 
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE, settings
-from ..exceptions import PacketDecodingException
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
+from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 from IrisBackendv3.data_standards.module import Module
 
@@ -140,7 +140,7 @@ class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
     def __repr__(self) -> str:
         return self.custom_payload.__repr__()
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
@@ -162,11 +162,10 @@ class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
         )
 
     def encode(self, **kwargs: Any) -> bytes:
-        #! TODO (not really a typical use case so not super necessary besides for completeness)
-        #!! TODO: IS NECESSARY FOR IPC (OR JUST ENCODE THAT STUFF IN A STATE) <- Not with new `Packet`-specific `__reduce__` strategy
+        # TODO (not really a typical use case so not super necessary besides for completeness)
         raise NotImplementedError()
 
-    @ classmethod
+    @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.

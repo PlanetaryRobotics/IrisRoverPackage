@@ -23,4 +23,11 @@ def set_codec_standards(standards: DataStandards):
     """
     settings["STANDARDS"] = standards
 
+
+def get_codec_standards() -> DataStandards:
+    """
+    Gets the DataStandards to use for all encoding / decoding (codec) operations.
+    """
+    return settings["STANDARDS"]
+
 # *TODO: Make all these^ settable via cli args (opts?)

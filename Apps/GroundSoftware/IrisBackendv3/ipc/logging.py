@@ -1,21 +1,34 @@
-# IPC Package-wide logging format standards.
-import logging
+# IPC Package-wide logging format standards for the IPC Layer.
+import os.path
+from typing import Final, Callable, Tuple
 import verboselogs  # type: ignore # mypy doesn't see type hints
-import coloredlogs  # type: ignore # mypy doesn't see type hints
+from IrisBackendv3.logging.logger_template import create_logger_from_template
 
-verboselogs.install()
-logger = logging.getLogger(__name__)
-"""
-Any logs at a level >= the level selected below will be displayed.
-Levels in ascending order are:
-    - SPAM (5)
-    - DEBUG (10)
-    - VERBOSE (15)
-    - INFO (20)
-    - NOTICE (25)
-    - WARNING (30)
-    - SUCCESS (35)
-    - ERROR (40)
-    - CRITICAL (50)
-"""
-coloredlogs.install(logger=logger, level='DEBUG')
+from IrisBackendv3.ipc.settings import settings
+
+logger_build: Final = create_logger_from_template(
+    logger_name='IrisBackendv3.Ipc',
+    sub_folder='Ipc',
+    save_to_file=True,
+    default_console_log_level="DEBUG"
+)
+logger: Final = logger_build[0]
+logger_setConsoleLevel: Final = logger_build[1]
+logger_setFileLevel: Final = logger_build[2]
+
+
+def create_app_logger() -> Tuple[verboselogs.VerboseLogger, Callable[[str], None], Callable[[str], None]]:
+    """Creates a special logger for this IPC App.
+    NOTE: You should set `ipc.settings.settings['app_name']` first.
+
+    Returns a tuple containing the logger, along with a function handle to
+    change just the console log level and a function handle to change just
+    the file log level.
+    """
+    app_name = settings['app_name']
+    return create_logger_from_template(
+        logger_name=f'IrisBackendv3.IpcApp.{app_name}',
+        sub_folder=os.path.join("IpcApps", app_name),
+        log_file_name_suffix="",
+        default_console_log_level="DEBUG"
+    )

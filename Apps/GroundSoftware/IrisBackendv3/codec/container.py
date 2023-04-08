@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import struct
 
-from .settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
 
 CT = TypeVar('CT')
 

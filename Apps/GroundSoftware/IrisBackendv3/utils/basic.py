@@ -26,7 +26,7 @@ def type_guard_argument(
         var_type (Union[Type, Tuple[Type, ...]]): Allowable type(s) for argument
         var_name (str): Name of argument (from parameters list ideally)
         var_val (Any): Value of argument given
-        attempt_cast (bool, optional): Whether to attemp to cast. Defaults to True.
+        attempt_cast (bool, optional): Whether to attempt to cast. Defaults to True.
         calling_function_name (str, optional): Name of function which had the arg 
             being checked. Defaults to None, in which case the name of the calling 
             function is grabbed from the stack.

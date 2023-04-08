@@ -11,16 +11,16 @@ from __future__ import annotations
 # Activate postponed annotations (for using classes as return type in their own methods)
 from prompt_toolkit import formatted_text
 
-from .packet import Packet, CT
+from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
 
 from scapy.utils import hexdump  # type: ignore
 
-from ..payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
-from ..settings import ENDIANNESS_CODE
-from ..logging import logger
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.logging import logger
 
 
 class WatchdogDebugPacketInterface(Packet[CT]):
@@ -98,7 +98,11 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
     @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """Valid if the packet starts with `b'DEBUG'`."""
-        return data[:5].upper() == b'DEBUG'
+        return (
+            data[:5].upper() == b'DEBUG'
+            # TODO: Make DL flushes their own thing
+            or data[:5].upper() == b'DL-FL'
+        )
 
     def __repr__(self) -> str:
         if self._raw is None:
@@ -122,6 +126,10 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
         except UnicodeDecodeError:
             # Contains non-unicode characters
             formatted_data = str(data[5:])
+
+        if data[:5].upper() == b'DL-FL':
+            # TODO: Make DL flushes their own thing
+            formatted_data = 'DL FLUSH ' + formatted_data
 
         return (
             f" \033[1m\033[38;5;243m[{len(data[5:])}B]: {formatted_data}\033[0m"

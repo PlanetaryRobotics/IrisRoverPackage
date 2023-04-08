@@ -9,12 +9,12 @@ from __future__ import annotations  # Activate postponed annotations (for using 
 from typing import Any, List, Optional, Callable, Tuple, TypeVar, Dict, cast
 from abc import ABC, abstractmethod
 
-from ..container import ContainerCodec
-from ..payload_collection import EnhancedPayloadCollection
-from ..metadata import DataPathway, DataSource
+from IrisBackendv3.codec.container import ContainerCodec
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.metadata import DataPathway, DataSource
 
-from ..settings import ENDIANNESS_CODE
-from ..logging import logger
+from IrisBackendv3.codec.settings import ENDIANNESS_CODE
+from IrisBackendv3.codec.logging import logger
 
 
 CT = TypeVar('CT')
@@ -218,10 +218,10 @@ class Packet(ContainerCodec[CT], ABC):
             state = None
 
         # The "Callable object" returned will be the decoding function:
-        # If a subclassed object is reduced, it will call that subclass' `decode`
-        # function (assuming it's been implemented).
-        # The output of `decode` will then have its `__setstate__` called with
-        # an argument of `state` (to build back metadata).
+        # If a subclassed object is reduced, it will call that subclass'
+        # `build_minimum_packet` function (assuming it's been implemented).
+        # The output of the decoder will then have its `__setstate__` called
+        # with an argument of `state` (to build back metadata).
         return (
             self.__class__.build_minimum_packet,
             (self.payloads, self._raw, self._endianness_code),

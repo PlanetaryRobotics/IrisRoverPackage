@@ -11,6 +11,7 @@ seaborn~=0.12.2
 pandas
 tabulate
 styleframe
+xlsxwriter
 pynput
 multi-await
 plotly
@@ -21,13 +22,18 @@ hvplot
 datashader
 lxml
 pytest
+pytest-asyncio
+coverage
+pytest-cov
 requests
-yamcs-client<=1.6.3
+# Need Protobuf <=3.20.x (after that is 4, which breaks yamcs protos)
+protobuf <= 3.20.999
+yamcs-client==1.7.5
 jsonpickle
 termcolor
 colorama
 verboselogs
-coloredlogs
+coloredlogs~=15.0.1
 ulid-py
 pyserial
 pyserial-asyncio
@@ -38,3 +44,7 @@ attrs
 argparse
 streamz
 pybgapi==1.2.0
+tables
+dill[graph]
+pdoc3
+opencv-python

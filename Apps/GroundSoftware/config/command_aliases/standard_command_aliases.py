@@ -1,9 +1,8 @@
 """
 Shorthand aliases for common ground commands used during testing.
-(A quick hack for EMI/EMC testing).
 
 If you want to explore the Data Standards to build new commands, run:
-`pyenv exec python datastandards_lookup.py`.
+`make standards` from `Apps/GroundSoftware`.
 
 Last Update: 03/10/2023
 """

@@ -76,5 +76,48 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Tell WD to STOP monitoring Herc to see if it's unresponsive."
+        ),
+
+        'roll-credits': PreparedCommand(
+            'GroundInterface_RollCredits',
+            OrderedDict(on=True),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell the Rover it's allowed to emit names and messages."
+        ),
+        'names-start': PreparedCommand(
+            'GroundInterface_RollCredits',
+            OrderedDict(on=True),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell the Rover it's allowed to emit names and messages."
+        ),
+        'names-stop': PreparedCommand(
+            'GroundInterface_RollCredits',
+            OrderedDict(on=False),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell the Rover it's NOT allowed to emit names and messages."
+        ),
+        'names-1s': PreparedCommand(
+            'GroundInterface_SetNameAndMessagePeriod',
+            OrderedDict(seconds=1),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell the Rover to emit a new name or message NO FASTER THAN once every 1s."
+        ),
+        'names-5s': PreparedCommand(
+            'GroundInterface_SetNameAndMessagePeriod',
+            OrderedDict(seconds=5),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell the Rover to emit a new name or message NO FASTER THAN once every 5s."
+        ),
+        'names-10s': PreparedCommand(
+            'GroundInterface_SetNameAndMessagePeriod',
+            OrderedDict(seconds=10),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell the Rover to emit a new name or message NO FASTER THAN once every 10s."
         )
     }

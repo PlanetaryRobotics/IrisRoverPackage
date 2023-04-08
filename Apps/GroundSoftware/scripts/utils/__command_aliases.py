@@ -996,7 +996,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRELESS
     ),
 
-    'roll_credits': (
+    'roll-credits': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'GroundInterface_RollCredits',

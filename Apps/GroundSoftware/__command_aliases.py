@@ -967,6 +967,49 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'RadioGround_HerculesDm',
         OrderedDict(text_to_echo='state:INIT'),
         DataPathway.WIRELESS
+    ),
+
+    'roll_credits': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_RollCredits',
+        OrderedDict(on=True),
+        DataPathway.WIRED
+    ),
+    'names-start': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_RollCredits',
+        OrderedDict(on=True),
+        DataPathway.WIRED
+    ),
+    'names-stop': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_RollCredits',
+        OrderedDict(on=False),
+        DataPathway.WIRED
+    ),
+    'names-1s': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_SetNameAndMessagePeriod',
+        OrderedDict(seconds=1),
+        DataPathway.WIRED
+    ),
+    'names-5s': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_SetNameAndMessagePeriod',
+        OrderedDict(seconds=5),
+        DataPathway.WIRED
+    ),
+    'names-10s': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_SetNameAndMessagePeriod',
+        OrderedDict(seconds=10),
+        DataPathway.WIRED
     )
 }
 

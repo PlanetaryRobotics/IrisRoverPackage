@@ -10,6 +10,10 @@
 | | | |primary_interface|PrimaryInterface||
 |Set_GroundInterface_Telemetry_Level|1 (0x1)|Sets the telemetry level of this component| | |
 | | | |telemetry_level|TelemetryLevel||
+|RollCredits|160 (0xa0)|Turn ON/OFF whether names and messages should be downlinked. Default is ON.| | |
+| | | |on|bool||
+|Set_NameAndMessage_Period|161 (0xa1)|Set how many seconds (minimum) should occur between each name/message downlink. Min is 1.| | |
+| | | |seconds|U16||
 
 ## Telemetry Channel List
 
@@ -49,3 +53,8 @@
 |GI_DownlinkedItem|4 (0x4)|An item was added to the packet for downlink. This will be basically never used since using it would mean adding 1 downlink item for every item downlinked (which would run away).| | | | |
 | | | |seq|U8|||
 | | | |from|downlinkPacketType|||
+|BroughtToYouBy|160 (0xa0)|Thank you to an Iris member / donor stored on the Rover.| | | | |
+| | | |name|Fw::LogStringArg&|50|Name of an Iris member / donor stored on the Rover.|
+|SpecialMessage|161 (0xa1)|Message from an Iris member / donor.| | | | |
+| | | |name|Fw::LogStringArg&|50|Name of an Iris member / donor stored on the Rover who sent a message.|
+| | | |message|Fw::LogStringArg&|100|Their special message.|

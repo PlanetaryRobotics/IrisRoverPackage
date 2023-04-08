@@ -94,6 +94,7 @@ class FswDataType(Enum):
     STRING39 = 'H39s', 'char[39]', Category.STRING, str
     STRING40 = 'H40s', 'char[40]', Category.STRING, str
     STRING50 = 'H50s', 'char[50]', Category.STRING, str
+    STRING100 = 'H100s', 'char[240]', Category.STRING, str
     STRING240 = 'H240s', 'char[240]', Category.STRING, str
     # Variable length string with max length of 255 (at this point in time,
     # effectively the same as STRING. A relic from when STRING was considered

@@ -1,6 +1,6 @@
 mypy
 typing_extensions>=4.0.0
-typeguard
+typeguard~=2.13.3
 ipykernel
 scapy
 python-pcapng

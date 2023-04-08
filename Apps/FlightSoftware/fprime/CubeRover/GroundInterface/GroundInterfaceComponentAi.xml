@@ -183,6 +183,37 @@
                 </arg>
             </args>
         </event>
+        <event id="5" name="InterfaceAutoSwitchChanged" severity="ACTIVITY_HI" format_string = "Interface auto-switching changed to %d." >
+           <comment>
+            Whether or not `GroundInterface` is allowed to automatically change
+            Hercules' downlink interface based on the WiFi connection state.
+           </comment>
+           <args>
+                <arg name="on" type="bool"></arg>
+           </args>
+        </event>
+        <event id="6" name="InterfaceAutoSwitch" severity="ACTIVITY_HI" format_string = "Hercules downlink interface automatically changed from %s to %s." >
+           <comment>
+            `GroundInterface` has automatically changed its downlink interface
+            based on the WiFi connection state.
+           </comment>
+           <args>
+                <arg name="from" type="ENUM">
+                    <!--Must match the `PrimaryInterface` enum from `Set_Primary_Interface`-->
+                    <enum name="FromInterface">
+                        <item name="FROM_WATCHDOG" comment="Watchdog wired interface (RS422). Matches WatchdogInterface component attached to port 0." />
+                        <item name="FROM_WF121" comment="WF121 wireless interface (WiFi). Matches NetworkManager component attached to port 1." />
+                    </enum>
+                </arg>
+                <arg name="to" type="ENUM">
+                    <!--Must match the `PrimaryInterface` enum from `Set_Primary_Interface`-->
+                    <enum name="ToInterface">
+                        <item name="TO_WATCHDOG" comment="Watchdog wired interface (RS422). Matches WatchdogInterface component attached to port 0." />
+                        <item name="TO_WF121" comment="WF121 wireless interface (WiFi). Matches NetworkManager component attached to port 1." />
+                    </enum>
+                </arg>
+           </args>
+        </event>
         <event id="0xA0" name="BroughtToYouBy" severity="ACTIVITY_LO" format_string = "Made Possible By: %s." >
            <comment>
             Thank you to an Iris member / donor stored on the Rover.
@@ -234,6 +265,16 @@
                         <item name="ALL" comment="Emit all telemetry items." />
                     </enum>
                 </arg>
+            </args>
+        </command>
+        <command kind="sync" opcode="0x2" mnemonic="SetInterfaceAutoSwitch">
+            <comment>
+                Turn ON/OFF whether Hercules is allowed to automatically switch 
+                its primary network interface based on connection status.
+                Default is ON.
+            </comment>
+            <args>
+                <arg name="on" type="bool"></arg>
             </args>
         </command>
         <command kind="sync" opcode="0xA0" mnemonic="RollCredits">

@@ -148,7 +148,7 @@ build-cte:
 ####
 # Run the Commander IPC App:
 ####
-console:
+commander:
 	./run-script.sh ipc_apps/commander.py
 
 ####

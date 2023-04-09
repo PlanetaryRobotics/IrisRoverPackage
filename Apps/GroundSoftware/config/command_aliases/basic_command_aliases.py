@@ -42,6 +42,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             Magic.WATCHDOG_COMMAND,
             comment="Switch to Mission Mode."
         ),
+
         'wifi-mode': PreparedCommand(
             'GroundInterface_SetPrimaryInterface',
             OrderedDict(primary_interface='WF_121'),
@@ -63,6 +64,21 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             Magic.COMMAND,
             comment="Tell Herc to downlink over RS422."
         ),
+        'auto-switch-on': PreparedCommand(
+            'GroundInterface_SetInterfaceAutoSwitch',
+            OrderedDict(on=True),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Allow Hercules to auto-switch it's primary downlink interface."
+        ),
+        'auto-switch-off': PreparedCommand(
+            'GroundInterface_SetInterfaceAutoSwitch',
+            OrderedDict(on=False),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="DON'T allow Hercules to auto-switch it's primary downlink interface."
+        ),
+
         'monitor-hercules-on': PreparedCommand(
             'WatchDogInterface_ResetSpecific',
             OrderedDict(reset_value='HERCULES_WATCHDOG_ENABLE'),

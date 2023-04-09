@@ -220,6 +220,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(primary_interface='WATCHDOG'),
         DataPathway.WIRELESS
     ),
+    'auto-switch-on': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_SetInterfaceAutoSwitch',
+        OrderedDict(on=True),
+        DataPathway.WIRED
+    ),
+    'auto-switch-off': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'GroundInterface_SetInterfaceAutoSwitch',
+        OrderedDict(on=False),
+        DataPathway.WIRED
+    ),
     'deploy': (
         DataPathway.WIRED,
         Magic.COMMAND,  # "normal" command is for Hercules

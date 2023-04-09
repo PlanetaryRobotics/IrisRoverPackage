@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte commander console xconsole xterm-normal xterm-wide cloc
+.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte commander console xconsole console-debug xconsole-debug xterm-normal xterm-wide cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -35,6 +35,10 @@ help:
 	@echo "	make console: Run the Iris Console CLI application"
 	@echo " "
 	@echo "	make xconsole: Run the Iris Console CLI application in XTerm (for WSL users)"
+	@echo " "
+	@echo "	make console-debug: Run the Iris Console CLI application for the debug harness (J36_debugger)."
+	@echo " "
+	@echo "	make xconsole-debug: Run the Iris Console CLI application for the debug harness (J36_debugger) in XTerm (for WSL users)"
 	@echo " "
 	@echo "	make xterm-normal: Launches the program in the PROG variable inside a new XTerm window with normal settings and the geometry given in GEOM. Run as: 'make xterm-normal GEOM=\"300x100+0+0\" PROG=\"./run-script.sh whatever.py\"'."
 	@echo " "
@@ -148,7 +152,7 @@ build-cte:
 ####
 # Run the Commander IPC App:
 ####
-console:
+commander:
 	./run-script.sh ipc_apps/commander.py
 
 ####
@@ -162,6 +166,18 @@ console:
 ####
 xconsole:
 	make xterm-wide GEOM="300x100+0+0" PROG="make console"
+
+####
+# Run the Iris Console CLI application for the debug harness (J36_debugger):
+####
+console-debug:
+	./run-script.sh __run_console.py -s J36_debugger
+
+####
+# Run the Iris Console CLI application for the debug harness (J36_debugger) in XTerm (for WSL users):
+####
+xconsole-debug:
+	make xterm-wide GEOM="300x100+0+0" PROG="make console-debug"
 
 ####
 # Launches the program in the PROG variable inside a new XTerm window with 

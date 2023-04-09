@@ -133,6 +133,36 @@ html {
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
+			<td rowspan="2">InterfaceAutoSwitchChanged</td>
+			<td rowspan="2">2309 (0x905)</td>
+			<td rowspan="2">Whether or not `GroundInterface` is allowed to automatically change
+            Hercules' downlink interface based on the WiFi connection state.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>on</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">InterfaceAutoSwitch</td>
+			<td rowspan="3">2310 (0x906)</td>
+			<td rowspan="3">`GroundInterface` has automatically changed its downlink interface
+            based on the WiFi connection state.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>from</td>
+						<td>FromInterface</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to</td>
+						<td>ToInterface</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
 			<td rowspan="2">BroughtToYouBy</td>
 			<td rowspan="2">2464 (0x9a0)</td>
 			<td rowspan="2">Thank you to an Iris member / donor stored on the Rover.</td>

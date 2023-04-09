@@ -15,6 +15,7 @@ from serial.tools import list_ports, list_ports_common  # type: ignore
 from termcolor import colored
 
 from scripts.utils.trans_tools import *
+from scripts.utils.trans_tools_console import IrisConsoleDisplayDriver
 from IrisBackendv3.codec.payload import EventPayload
 
 import scapy.all as scp  # type: ignore
@@ -37,7 +38,11 @@ app_context: Dict[str, Any] = {
         'gateway_ip': '192.168.150.254',
         'lander_ip': '192.168.10.105',
         'lander_port': 43531,
-    }
+    },
+    # Whether this is being run inside a debugger (e.x. we should forgo drawing):
+    'debug-mode': False,
+    # Console driver instance:
+    'console_driver': IrisConsoleDisplayDriver()
 }
 
 # Special message types that wrap primitives (so we can check type in Queue receiver):
@@ -333,6 +338,7 @@ async def run_forever():
 
 def handle_async_packet(packet: Packet) -> None:
     """Handles a packet pushed asynchronously to a queue."""
+    driver = app_context['console_driver']
     # If there are any EventPayloads in the packet,
     # print them in the order received (NOTE: some
     # don't have timestamps - e.g. RadioGround - so
@@ -341,7 +347,7 @@ def handle_async_packet(packet: Packet) -> None:
     for event in events:
         # Push directly to the queue:
         # ... the handle_streamed_packet will take care of the refreshing
-        nontelem_packet_prints.appendleft(
+        driver.nontelem_packet_prints.appendleft(
             f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {event!s}"
         )
 
@@ -354,7 +360,7 @@ def handle_async_packet(packet: Packet) -> None:
         elif packet.pathway == DataPathway.WIRELESS:
             prefix = 'WIFI '
         # To the console:
-        nontelem_packet_prints.appendleft(
+        driver.nontelem_packet_prints.appendleft(
             f"{prefix}Packet Bytes:\n-----------------\n" +
             scp.hexdump(echo_bytes, dump=True)
         )
@@ -366,9 +372,9 @@ def handle_async_packet(packet: Packet) -> None:
 def handle_async_message(msg: str) -> None:
     """Handles a message pushed asynchronously to a queue."""
     # Add the message to the non-telemetry feed:
-    nontelem_packet_prints.appendleft(msg)
+    app_context['console_driver'].nontelem_packet_prints.appendleft(msg)
     # Refresh the display:
-    refresh_console_view(app_context)
+    app_context['console_driver'].refresh_console_view(app_context)
 
 
 async def console_main(serial_settings):
@@ -377,7 +383,7 @@ async def console_main(serial_settings):
     # Uses the serial interface defined by the given settings.
 
     # Set up the console:
-    init_console_view()
+    app_context['console_driver'].init_console_view()
 
     # Setup IPC Queues:
     packet_queue = asyncio.Queue()
@@ -448,15 +454,17 @@ async def console_main(serial_settings):
                             handle_async_packet(cast(Packet, r))
                         elif isinstance(r, (pynput.keyboard.Key, pynput.keyboard.KeyCode)):
                             # NOTE: this refreshes the screen too
-                            handle_keypress(r, message_queue,
-                                            serial_writer, app_context)
+                            app_context['console_driver'].handle_keypress(r, message_queue,
+                                                                          serial_writer, app_context)
                         elif isinstance(r, str):
                             handle_async_message(cast(str, r))
                         elif isinstance(r, QueueMessage):
                             handle_async_message(cast(QueueMessage, r).msg)
                         elif isinstance(r, QueueTick):
                             # Don't do anything special besides update screen:
-                            refresh_console_view(app_context)
+                            app_context['console_driver'].refresh_console_view(
+                                app_context
+                            )
 
         # Clean up if the above closes for some reason:
         [await t for t in tasks]

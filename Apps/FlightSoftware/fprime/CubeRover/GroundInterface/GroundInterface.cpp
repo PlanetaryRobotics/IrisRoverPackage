@@ -111,8 +111,26 @@ namespace CubeRover
     void GroundInterfaceComponentImpl::schedIn_handler(
         NATIVE_INT_TYPE portNum, /*!< The port number*/
         NATIVE_UINT_TYPE context /*!< The call order*/
-    ){
+    )
+    {
+        // Downlink a new Name or Message if allowed (and it's time):
         this->downlinkNameOrMessageIfAllowed(getTime().get_time_ms());
+
+        // Automatically switch network mode if allowed:
+        if (m_auto_switch_allowed)
+        {
+            Wf121::DirectMessage::RadioSwState radio_state = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRadioState();
+            if (m_interface_port_num != WF121 && radio_state == Wf121::DirectMessage::RadioSwState::UDP_CONNECTED)
+            {
+                log_ACTIVITY_HI_InterfaceAutoSwitch(static_cast<FromInterface>(m_interface_port_num), static_cast<ToInterface>(WF121));
+                Switch_Primary_Interface(WF121);
+            }
+            else if (m_interface_port_num != WATCHDOG && radio_state != Wf121::DirectMessage::RadioSwState::UDP_CONNECTED)
+            {
+                log_ACTIVITY_HI_InterfaceAutoSwitch(static_cast<FromInterface>(m_interface_port_num), static_cast<ToInterface>(WATCHDOG));
+                Switch_Primary_Interface(WATCHDOG);
+            }
+        }
     }
 
     void GroundInterfaceComponentImpl ::
@@ -204,7 +222,8 @@ namespace CubeRover
             // ! (do this to avoid maxing out the radio Tx queue):
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
             int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-            while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
+            while (startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1)
+            {
                 vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
             }
         }
@@ -239,7 +258,8 @@ namespace CubeRover
                     // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
                     // ! (do this to avoid maxing out the radio Tx queue):
                     int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-                    while(startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1){
+                    while (startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1)
+                    {
                         vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
                     }
                 }
@@ -314,15 +334,8 @@ namespace CubeRover
         updateTelemetry();
     }
 
-    // ----------------------------------------------------------------------
-    // Command handler implementations
-    // ----------------------------------------------------------------------
-
     void GroundInterfaceComponentImpl ::
-        Set_Primary_Interface_cmdHandler(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            PrimaryInterface primary_interface)
+        Switch_Primary_Interface(PrimaryInterface primary_interface)
     {
         flushTlmDownlinkBuffer();
         // TODO: Should probably flush file downlink buffers too
@@ -339,6 +352,42 @@ namespace CubeRover
         }
         m_tlmDownlinkBufferSpaceAvailable = m_downlink_objects_size;
         m_interface_port_num = primary_interface;
+    }
+
+    void GroundInterfaceComponentImpl::Set_Interface_Auto_Switch(bool on)
+    {
+        m_auto_switch_allowed = on;
+        log_ACTIVITY_HI_InterfaceAutoSwitchChanged(on);
+    }
+
+    // ----------------------------------------------------------------------
+    // Command handler implementations
+    // ----------------------------------------------------------------------
+
+    void GroundInterfaceComponentImpl ::
+        Set_Primary_Interface_cmdHandler(
+            const FwOpcodeType opCode,
+            const U32 cmdSeq,
+            PrimaryInterface primary_interface)
+    {
+        // If the primary interface is being manually changed, turn off
+        // auto-switch (and do this before the interface change so the event
+        // goes out on the old interface).
+        Set_Interface_Auto_Switch(false);
+        // Change interface:
+        Switch_Primary_Interface(primary_interface);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    }
+
+    //! Handler for command SetInterfaceAutoSwitch
+    /* Turn ON/OFF whether Hercules is allowed to automatically switch its
+    primary network interface based on connection status. Default is ON. */
+    void GroundInterfaceComponentImpl::SetInterfaceAutoSwitch_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq,          /*!< The command sequence number*/
+        bool on)
+    {
+        Set_Interface_Auto_Switch(on);
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
@@ -356,25 +405,25 @@ namespace CubeRover
     /* Turn ON/OFF whether names and messages should be downlinked. Default is ON. */
     void GroundInterfaceComponentImpl::RollCredits_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq, /*!< The command sequence number*/
-        bool on 
-    ){
+        U32 cmdSeq,          /*!< The command sequence number*/
+        bool on)
+    {
         // Set allowed state:
         m_namesAndMessagesAllowed = on;
         // Reset awaiting status:
         m_awaitingNameOrMessageDownlink = false;
-        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     //! Handler for command Set_NameAndMessage_Period
     /* Set how many seconds (minimum) should occur between each name/message downlink. Min is 1. */
     void GroundInterfaceComponentImpl::Set_NameAndMessage_Period_cmdHandler(
         FwOpcodeType opCode, /*!< The opcode*/
-        U32 cmdSeq, /*!< The command sequence number*/
-        U16 seconds 
-    ){
+        U32 cmdSeq,          /*!< The command sequence number*/
+        U16 seconds)
+    {
         m_nameOrMessageDownlinkPeriod_ms = seconds * 1000;
-        this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     /*
@@ -532,17 +581,19 @@ namespace CubeRover
         downlinkBufferWrite(&metadata, static_cast<FswPacket::Length_t>(sizeof(metadata)), DownlinkFile);
     }
 
-  void GroundInterfaceComponentImpl::downlinkNameCoreImpl(const char * pHead){
-    // Convert to FW string and emit the log:
-    Fw::LogStringArg name(pHead);
-    this->log_ACTIVITY_LO_BroughtToYouBy(name);
-  }
+    void GroundInterfaceComponentImpl::downlinkNameCoreImpl(const char *pHead)
+    {
+        // Convert to FW string and emit the log:
+        Fw::LogStringArg name(pHead);
+        this->log_ACTIVITY_LO_BroughtToYouBy(name);
+    }
 
-  void GroundInterfaceComponentImpl::downlinkMessageCoreImpl(const char * pMessagerString, const char * pMessageString){
-    // Convert to FW strings and emit the log:
-    Fw::LogStringArg messager(pMessagerString);
-    Fw::LogStringArg message(pMessageString);
-    this->log_ACTIVITY_LO_SpecialMessage(messager, message);
-  }
+    void GroundInterfaceComponentImpl::downlinkMessageCoreImpl(const char *pMessagerString, const char *pMessageString)
+    {
+        // Convert to FW strings and emit the log:
+        Fw::LogStringArg messager(pMessagerString);
+        Fw::LogStringArg message(pMessageString);
+        this->log_ACTIVITY_LO_SpecialMessage(messager, message);
+    }
 
 } // end namespace CubeRover

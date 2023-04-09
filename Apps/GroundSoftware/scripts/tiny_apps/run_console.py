@@ -60,7 +60,7 @@ def main():
         serial_device_sn=SERIAL_DEVICE_SNS[opts.serial_device],
         baud=opts.baud
     )
-    
+
 
 if __name__ == '__main__':
     main()

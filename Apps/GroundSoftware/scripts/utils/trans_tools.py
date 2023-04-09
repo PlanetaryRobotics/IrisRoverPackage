@@ -39,6 +39,11 @@ from termcolor import cprint
 from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
 from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 from IrisBackendv3.utils.nameiddict import NameIdDict
+from IrisBackendv3.utils.console_display import (
+    packet_print_string,
+    update_telemetry_payload_log_dataframe,
+    update_packet_log_dataframe
+)
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
@@ -62,7 +67,7 @@ from IrisBackendv3.codec.logging import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
 # Load all console helper function:
-from scripts.utils.trans_tools_console import *
+from scripts.utils.trans_tools_console import IrisConsoleDisplayDriver
 
 import seaborn as sns  # type: ignore
 sns.set()
@@ -367,11 +372,15 @@ def degK_to_adc(tempK: float) -> int:
     return degC_to_adc(tempK - 273.15)
 
 
-def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, auto_cache=True, include_in_dataframe: bool = True):
+def update_telemetry_streams_from_payloads(
+    telemetry_payload_log_dataframe: pd.DataFrame,
+    payloads: EnhancedPayloadCollection,
+    auto_cache=True,
+    include_in_dataframe: bool = True
+):
     """
     Updates the `telemetry_streams` from an EnhancedPayloadCollection.
     """
-    global telemetry_payload_log_dataframe
     # before = telemetry_payload_log_dataframe.copy()
     for t in payloads[TelemetryPayload]:
         # If this payload's channel is new (previously un-logged), add it:
@@ -395,13 +404,18 @@ def update_telemetry_streams_from_payloads(payloads: EnhancedPayloadCollection, 
         cache()
 
 
-def update_telemetry_streams(packet: Packet, auto_cache=True) -> None:
+def update_telemetry_streams(
+    telemetry_payload_log_dataframe: pd.DataFrame,
+    packet: Packet,
+    auto_cache=True
+) -> None:
     """
     Add all extracted data values in the packet to their streams:
     """
     # Don't include WatchdogDetailedStatusPackets in the Dataframe since they're *very* detailed
     # (contain way too much data to display)
     update_telemetry_streams_from_payloads(
+        telemetry_payload_log_dataframe,
         packet.payloads,
         auto_cache=auto_cache,
         include_in_dataframe=not isinstance(
@@ -590,13 +604,18 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
     packet [Packet]: Newly received packet.
     use_telem_dataview [bool]: Whether to display the new data using the new Telemetry Dataview (True) or by just printing the packet (False).
     """
+    driver = app_context['console_driver']
+
     if packet is not None:
         # Feed the streams:
-        update_telemetry_streams(packet)  # telem dataframe updated in here
+        # telem dataframe updated in here
+        update_telemetry_streams(
+            driver.telemetry_payload_log_dataframe, packet
+        )
 
         if USE_LOG_DATAFRAMES:
             # Normal packet. Load it:
-            update_packet_log_dataframe(packet_log_dataframe, packet)
+            update_packet_log_dataframe(driver.packet_log_dataframe, packet)
             # If the packet doesn't contain any telemetry or events (i.e. log, debug print, etc.), add it to the non-telem packet log in LiFo manner:
             # - Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
             # going to display it here instead).
@@ -613,7 +632,9 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
                     RadioUartBytePacket
                 ))
             ):
-                nontelem_packet_prints.appendleft(packet_print_string(packet))
+                driver.nontelem_packet_prints.appendleft(
+                    packet_print_string(packet)
+                )
 
         # Save the printout of the packet:
         save_packet_to_packet_prints(packet)
@@ -621,7 +642,7 @@ def handle_streamed_packet(packet: Optional[Packet], use_telem_dataview: bool = 
         # Display the data:
         if use_telem_dataview:
             # Update the display:
-            refresh_console_view(app_context)
+            driver.refresh_console_view(app_context)
         else:
             # Just log the data:
             log_print(packet)
@@ -675,8 +696,13 @@ class SlipState(Enum):
 
 
 def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
+    driver = IrisConsoleDisplayDriver()
+    app_context = {
+        'console_driver': driver
+    }
+
     if use_console_view:
-        init_console_view()
+        driver.init_console_view()
 
     escape = False
     keep_running = True
@@ -731,7 +757,9 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
                         # Process it:
                         packet = parse_ip_udp_packet(data_bytes)
                         # Handle it:
-                        handle_streamed_packet(packet, use_console_view)
+                        handle_streamed_packet(
+                            packet, use_console_view, app_context
+                        )
                         # Move on:
                         data_bytes = bytearray(b'')
                         slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
@@ -759,7 +787,7 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
                 err_print(msg)
             else:
                 # In data view, just push the string to the packet print console:
-                nontelem_packet_prints.appendleft(msg)
+                driver.nontelem_packet_prints.appendleft(msg)
         except Exception as e:
             msg = f"An otherwise unresolved error occurred during packet streaming: {e}"
             if not use_console_view:
@@ -767,7 +795,7 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
                 err_print(msg)
             else:
                 # In data view, just push the string to the packet print console:
-                nontelem_packet_prints.appendleft(msg)
+                driver.nontelem_packet_prints.appendleft(msg)
             data_bytes = bytearray(b'')
             slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
 

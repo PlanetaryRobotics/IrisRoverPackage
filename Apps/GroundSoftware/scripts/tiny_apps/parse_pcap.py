@@ -212,8 +212,11 @@ def parse_pcap(opts):
     )
 
     if opts.cache_telem or opts.plot:
-        print("\t > Building telemetry streams from payloads . . .")
-        update_telemetry_streams_from_payloads(all_payloads, auto_cache=False)
+        raise DeprecationWarning(
+            "This functionality is (currently) no longer supported from parse_pcap."
+        )
+        # print("\t > Building telemetry streams from payloads . . .")
+        # update_telemetry_streams_from_payloads(all_payloads, auto_cache=False)
 
     if opts.cache_telem:
         print("\t > Caching telemetry streams . . .")

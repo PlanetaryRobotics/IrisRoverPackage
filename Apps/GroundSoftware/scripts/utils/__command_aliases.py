@@ -709,6 +709,28 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
+    'reset-motors-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_ALL_MOTORS'),
+        DataPathway.WIRELESS
+    ),
+    'power-on-motors-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_ON'),
+        DataPathway.WIRELESS
+    ),
+    'power-off-motors-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_OFF'),
+        DataPathway.WIRELESS
+    ),
+
 
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'drive-fwd-200': (

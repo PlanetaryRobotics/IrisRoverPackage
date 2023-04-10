@@ -662,36 +662,54 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
-
-
-
     'reset-motors': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
         OrderedDict(reset_value='RESET_ALL_MOTORS'),
         DataPathway.WIRED
     ),
     'power-on-motors': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
         OrderedDict(reset_value='ALL_MOTORS_ON'),
         DataPathway.WIRED
     ),
     'power-off-motors': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
         OrderedDict(reset_value='ALL_MOTORS_OFF'),
         DataPathway.WIRED
     ),
+
+    'reset-motors-herc': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_ALL_MOTORS'),
+        DataPathway.WIRED
+    ),
+    'power-on-motors-herc': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_ON'),
+        DataPathway.WIRED
+    ),
+    'power-off-motors-herc': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_OFF'),
+        DataPathway.WIRED
+    ),
+
+
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'drive-fwd-200': (
         DataPathway.WIRED,

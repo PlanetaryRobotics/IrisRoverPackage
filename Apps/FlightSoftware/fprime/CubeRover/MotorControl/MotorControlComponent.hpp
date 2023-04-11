@@ -26,10 +26,10 @@
 #define FRONT_LEFT_MC_I2C_ID        0x01
 #define FRONT_RIGHT_MC_I2C_ADDR     0x49
 #define FRONT_RIGHT_MC_I2C_ID       0x02
-#define REAR_LEFT_MC_I2C_ADDR       0x4A
-#define REAR_LEFT_MC_I2C_ID         0x03
-#define REAR_RIGHT_MC_I2C_ADDR      0x4B
-#define REAR_RIGHT_MC_I2C_ID        0x04
+#define REAR_RIGHT_MC_I2C_ADDR      0x4A
+#define REAR_RIGHT_MC_I2C_ID        0x03
+#define REAR_LEFT_MC_I2C_ADDR       0x4B
+#define REAR_LEFT_MC_I2C_ID         0x04
 #define NUM_MOTORS                  4
 
 #define MAX_SPEED                   100 // TODO: Should be 255?

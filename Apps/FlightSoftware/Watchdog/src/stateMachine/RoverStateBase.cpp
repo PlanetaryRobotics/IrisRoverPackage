@@ -1725,13 +1725,13 @@ namespace iris
 
         case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_LEFT:
             setMotor1Reset();
-            setMotor3Reset();
+            setMotor4Reset();
             writeIoExpander = true;
             break;
 
         case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_RIGHT:
             setMotor2Reset();
-            setMotor4Reset();
+            setMotor3Reset();
             writeIoExpander = true;
             break;
 
@@ -1747,27 +1747,27 @@ namespace iris
             writeIoExpander = true;
             break;
 
-        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_AD:
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_AC:
             setMotor1Reset();
-            setMotor4Reset();
+            setMotor3Reset();
             writeIoExpander = true;
             break;
 
-        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_CB:
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_DB:
+            setMotor4Reset();
             setMotor2Reset();
-            setMotor3Reset();
             writeIoExpander = true;
             break;
 
         case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_LEFT:
             releaseMotor1Reset();
-            releaseMotor3Reset();
+            releaseMotor4Reset();
             writeIoExpander = true;
             break;
 
         case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_RIGHT:
             releaseMotor2Reset();
-            releaseMotor4Reset();
+            releaseMotor3Reset();
             writeIoExpander = true;
             break;
 
@@ -1783,15 +1783,15 @@ namespace iris
             writeIoExpander = true;
             break;
 
-        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_AD:
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_AC:
             releaseMotor1Reset();
-            releaseMotor4Reset();
+            releaseMotor3Reset();
             writeIoExpander = true;
             break;
 
-        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_CB:
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_DB:
+            releaseMotor4Reset();
             releaseMotor2Reset();
-            releaseMotor3Reset();
             writeIoExpander = true;
             break;
 

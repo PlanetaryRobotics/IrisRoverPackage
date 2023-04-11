@@ -118,15 +118,15 @@
 					    <item name="Reset_Hold_Motors_Right" value = "0xB1" comment="Reset and hold the reset for the Motor Controllers on the Right of the Rover (B, C). For emergency steering."/>
 					    <item name="Reset_Hold_Motors_Front" value = "0xB2" comment="Reset and hold the reset for the Motor Controllers on the Front of the Rover (A, B). For emergency steering."/>
 					    <item name="Reset_Hold_Motors_Rear" value = "0xB3" comment="Reset and hold the reset for the Motor Controllers on the Rear of the Rover (C, D). For emergency steering."/>
-					    <item name="Reset_Hold_Motors_Diag_AD" value = "0xB4" comment="Reset and hold the reset for the Motor Controllers on the A-D diagonal (A, D). For emergency steering."/>
-					    <item name="Reset_Hold_Motors_Diag_CB" value = "0xB5" comment="Reset and hold the reset for the Motor Controllers on the C-B diagonal (C, B). For emergency steering."/>
+					    <item name="Reset_Hold_Motors_Diag_AC" value = "0xB4" comment="Reset and hold the reset for the Motor Controllers on the A-C diagonal (A, C). For emergency steering."/>
+					    <item name="Reset_Hold_Motors_Diag_DB" value = "0xB5" comment="Reset and hold the reset for the Motor Controllers on the D-B diagonal (D, B). For emergency steering."/>
 
 					    <item name="Reset_Release_Motors_Left" value = "0xBF" comment="Release the Reset for (unreset) the Motor Controllers on the Left of the Rover (A, D). For emergency steering."/>
 					    <item name="Reset_Release_Motors_Right" value = "0xBE" comment="Release the Reset for (unreset) the Motor Controllers on the Right of the Rover (B, C). For emergency steering."/>
 					    <item name="Reset_Release_Motors_Front" value = "0xBD" comment="Release the Reset for (unreset) the Motor Controllers on the Front of the Rover (A, B). For emergency steering."/>
 					    <item name="Reset_Release_Motors_Rear" value = "0xBC" comment="Release the Reset for (unreset) the Motor Controllers on the Rear of the Rover (C, D). For emergency steering."/>
-					    <item name="Reset_Release_Motors_Diag_AD" value = "0xBB" comment="Release the Reset for (unreset) the Motor Controllers on the A-D diagonal (A, D). For emergency steering."/>
-					    <item name="Reset_Release_Motors_Diag_CB" value = "0xBA" comment="Release the Reset for (unreset) the Motor Controllers on the C-B diagonal (C, B). For emergency steering."/>
+					    <item name="Reset_Release_Motors_Diag_AC" value = "0xBB" comment="Release the Reset for (unreset) the Motor Controllers on the A-C diagonal (A, C). For emergency steering."/>
+					    <item name="Reset_Release_Motors_Diag_DB" value = "0xBA" comment="Release the Reset for (unreset) the Motor Controllers on the D-B diagonal (D, B). For emergency steering."/>
 
 					    <item name="Reset_Hold_All_Motors" value = "0xB9" comment="Reset and hold all Motor Controller MCUs."/>
 					    <item name="Reset_All_Motors" value = "14" comment="Reset, wait, then Unreset all Motor Controller MCUs."/>

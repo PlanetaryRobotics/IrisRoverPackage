@@ -9,7 +9,7 @@ NOTE: THIS FILE IS DEPRECATED AS OF 03/10/2023. Don't use for new code. Use
 `IrisBackendv3/config/command_aliases`.
 
 Created: 10/29/2021
-Last Update: 01/01/2023
+Last Update: 04/11/2023
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
@@ -766,18 +766,18 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_RELEASE_MOTORS_REAR'),
         DataPathway.WIRELESS
     ),
-    'motors-release-diag-AD-wifi': (  # CW in FWD cfg, CCW in RWD cfg
+    'motors-release-diag-AC-wifi': (  # CW in FWD cfg, CCW in RWD cfg
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_AD'),
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_AC'),
         DataPathway.WIRELESS
     ),
-    'motors-release-diag-CB-wifi': (  # CCW in FWD cfg, CW in RWD cfg
+    'motors-release-diag-DB-wifi': (  # CCW in FWD cfg, CW in RWD cfg
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_CB'),
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_DB'),
         DataPathway.WIRELESS
     ),
 

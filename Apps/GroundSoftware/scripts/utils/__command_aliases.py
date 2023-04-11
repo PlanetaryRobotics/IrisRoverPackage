@@ -731,6 +731,56 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRELESS
     ),
 
+    'motors-hold-all-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_ALL_MOTORS'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-left-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_LEFT'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-right-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_RIGHT'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-front-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_FRONT'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-rear-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_REAR'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-diagCW-AD-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_AD'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-diagCCW-CB-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_CB'),
+        DataPathway.WIRELESS
+    ),
+
 
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'drive-fwd-200': (

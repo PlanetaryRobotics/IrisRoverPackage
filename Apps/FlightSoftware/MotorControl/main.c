@@ -12,6 +12,7 @@
 
 // Emergency Reset-Mediated-Driving Implementation:
 // **CONTROLS:**
+// (these are defined in the compile flags, like `Debug_BootDrive_RWD_MotorA`)
 // #define DRIVE_ON_BOOT
 // #define DRIVE_ON_BOOT_REAR_DRIVE
 // #define DRIVE_ON_BOOT_FRONT_DRIVE
@@ -25,8 +26,8 @@
 #define TICKS_PER_CM 158    /*approx based on math not measurements*/
 #define DRIVE_ON_BOOT_TICKS (DRIVE_ON_BOOT_CM * TICKS_PER_CM)
 #define DRIVE_ON_BOOT_START_DELAY (20 * DELAY_100_ms) /*2 sec*/
-// Technically, max speed is out of `MAX_TARGET_SPEED` but that's 100:
-#define DRIVE_ON_BOOT_SPEED_PERCENT 70
+// Technically, out of 1.0
+#define DRIVE_ON_BOOT_SPEED_PERCENT 0.7
 
 // TODO: re-organize all these variable defs
 _iq g_currentPhaseA;
@@ -604,7 +605,7 @@ void driveOpenLoop(void)
         _iq output;
         if (g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
         {
-            output = _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
+            output = _IQ(DRIVE_ON_BOOT_SPEED_PERCENT); // division here didn't work and always gave 0. just replacing with a different pre-set figure. _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
         }
         else
         {
@@ -738,14 +739,13 @@ void main(void)
     g_controlRegister = 32;
 #ifdef DRIVE_ON_BOOT_OPEN_LOOP
     g_controlRegister |= DRIVE_OPEN_LOOP;
-    // Override open-loop torque for custom speed:
+    // Override open-loop torque for custom speed (DRIVE_ON_BOOT_SPEED_PERCENT):
     g_controlRegister |= OPEN_LOOP_TORQUE_OVERRIDE;
-    g_maxSpeed = DRIVE_ON_BOOT_SPEED_PERCENT;
 #endif
 
 // Flip direction if this wheel should be spinning CW instead of CCW:
-#if (defined(MOTOR_C) || defined(MOTOR_B)) && defined(DRIVE_ON_BOOT_REAR_DRIVE) || \
-    (defined(MOTOR_A) || defined(MOTOR_D)) && defined(DRIVE_ON_BOOT_FRONT_DRIVE)
+#if (defined(MOTOR_B) || defined(MOTOR_D)) && defined(DRIVE_ON_BOOT_REAR_DRIVE) || \
+    (defined(MOTOR_A) || defined(MOTOR_C)) && defined(DRIVE_ON_BOOT_FRONT_DRIVE)
     g_targetPosition = -g_targetPosition;
 #endif
 

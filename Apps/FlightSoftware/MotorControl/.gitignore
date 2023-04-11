@@ -1,3 +1,11 @@
 Readme
 /Debug/
 /Release/
+/Release_BootDrive_RWD_MotorA/
+/Release_BootDrive_RWD_MotorB/
+/Release_BootDrive_RWD_MotorC/
+/Release_BootDrive_RWD_MotorD/
+/Release_BootDrive_FWD_MotorA/
+/Release_BootDrive_FWD_MotorB/
+/Release_BootDrive_FWD_MotorC/
+/Release_BootDrive_FWD_MotorD/

@@ -784,28 +784,28 @@ prepared_commands: Dict[str, PreparedCommandType] = {
 
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'drive-fwd-200': (
-        DataPathway.WIRED,
+        DataPathway.WIRELESS,
         Magic.COMMAND,
         'Navigation_NavDriveForward',
         OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
-        DataPathway.WIRED
+        DataPathway.WIRELESS
     ),
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'motor-control-get-telem': (
-        DataPathway.WIRED,
+        DataPathway.WIRELESS,
         Magic.COMMAND,
         'MotorControl_McUpdateTelemetry',
         OrderedDict(),
-        DataPathway.WIRED
+        DataPathway.WIRELESS
     ),
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'motor-control-spin-all': (
-        DataPathway.WIRED,
+        DataPathway.WIRELESS,
         Magic.COMMAND,
         'MotorControl_McSpin',
         # Change this to whatever motor you want to control (0 is all)
         OrderedDict(motor_id=0x00, raw_ticks=20000),
-        DataPathway.WIRED
+        DataPathway.WIRELESS
     ),
 
     'herc-wired-noop': (

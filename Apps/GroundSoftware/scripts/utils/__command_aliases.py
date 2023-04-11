@@ -731,6 +731,35 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRELESS
     ),
 
+    'motor1-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR1'),
+        DataPathway.WIRELESS
+    ),
+    'motor2-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR2'),
+        DataPathway.WIRELESS
+    ),
+    'motor3-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR3'),
+        DataPathway.WIRELESS
+    ),
+    'motor4-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR4'),
+        DataPathway.WIRELESS
+    ),
+
     'motors-hold-all-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,

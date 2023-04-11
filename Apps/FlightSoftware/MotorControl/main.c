@@ -13,7 +13,6 @@
 // Emergency Reset-Mediated-Driving Implementation:
 // **CONTROLS:**
 // #define DRIVE_ON_BOOT
-// #define DRIVE_ON_BOOT_OPEN_LOOP
 // #define DRIVE_ON_BOOT_REAR_DRIVE
 // #define DRIVE_ON_BOOT_FRONT_DRIVE
 // #define MOTOR_A
@@ -21,6 +20,7 @@
 // #define MOTOR_C
 // #define MOTOR_D
 // **SETTINGS:**
+#define DRIVE_ON_BOOT_OPEN_LOOP
 #define DRIVE_ON_BOOT_CM 15 /*bigger question for testing is how many degrees can we turn*/
 #define TICKS_PER_CM 158    /*approx based on math not measurements*/
 #define DRIVE_ON_BOOT_TICKS (DRIVE_ON_BOOT_CM * TICKS_PER_CM)
@@ -749,7 +749,7 @@ void main(void)
     g_targetPosition = -g_targetPosition;
 #endif
 
-    // Wait before
+    // Wait before starting up (safety):
     __delay_cycles(DRIVE_ON_BOOT_START_DELAY);
 
 #endif

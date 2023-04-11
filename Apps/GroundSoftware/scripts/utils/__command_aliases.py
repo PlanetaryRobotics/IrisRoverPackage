@@ -823,6 +823,13 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='FPGA_CAM_0'),
         DataPathway.WIRED
     ),
+    'select-cam-0-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND, # to Herc first
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='FPGA_CAM_0'),
+        DataPathway.WIRELESS
+    ),
     'select-cam-1': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
@@ -830,28 +837,47 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='FPGA_CAM_1'),
         DataPathway.WIRED
     ),
+    'select-cam-1-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND, # to Herc first
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='FPGA_CAM_1'),
+        DataPathway.WIRELESS
+    ),
     # Herc Take Image
     'take-image-0': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'Camera_TakeImage',
-        # Change this to whatever you want to reset.
         OrderedDict(camera_num=0, callback_id=0),
         DataPathway.WIRED
+    ),
+    'take-image-0-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        OrderedDict(camera_num=0, callback_id=0),
+        DataPathway.WIRELESS
     ),
     'take-image-1': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'Camera_TakeImage',
-        # Change this to whatever you want to reset.
         OrderedDict(camera_num=1, callback_id=0),
         DataPathway.WIRED
     ),
+    'take-image-1-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        OrderedDict(camera_num=1, callback_id=0),
+        DataPathway.WIRELESS
+    ),
+
     'wd-echo-hi-watchdog': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_Echo',
-        # Change this to whatever you want to reset.
         OrderedDict(length='10', message="HiWatchdog"),
         DataPathway.WIRED
     ),

@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "FreeRTOS.h"
+#include "os_task.h"
+
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/CubeRoverConfig.hpp"
 

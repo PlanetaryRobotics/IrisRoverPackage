@@ -619,8 +619,8 @@ namespace CubeRover
     }
 
     /**
-     * @brief 
-     * 
+     * @brief
+     *
      *
      *
      * @param[in]  Distance       The distance to travel in motor ticks
@@ -664,26 +664,36 @@ namespace CubeRover
             Left_Wheels_Relative_ticks = Relative_ticks;
         }
 
-        // FIXME: XXX: CRITICAL SECTION REQUIRED
-        // TODO: [CWC] Get on this. Should be quick: taskENTER_CRITICAL()/taskEXIT_CRITICAL()
-
+        taskENTER_CRITICAL();
         err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
         err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Right_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
         err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Right_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
         err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
-        // FIXME: XXX: CRITICAL SECTION REQUIRED
+        taskEXIT_CRITICAL();
         if (!startMotorMovement())
         {
             return MC_UNEXPECTED_ERROR;
@@ -723,7 +733,7 @@ namespace CubeRover
 
         MotorTick_t Relative_ticks = m_angularToLinear * groundCMToMotorTicks(distance);
 
-        // FIXME: XXX: CRITICAL SECTION REQUIRED
+        taskENTER_CRITICAL();
         StatusRegister_t status;
         err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
         err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
@@ -732,19 +742,27 @@ namespace CubeRover
 
         err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
         err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
         err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
+        {
+            taskEXIT_CRITICAL();
             return err;
+        }
 
         err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
-
-        // FIXME: XXX: CRITICAL SECTION REQUIRED
+        taskEXIT_CRITICAL();
 
         return err;
     }
@@ -769,23 +787,29 @@ namespace CubeRover
             reg == e_REG_STATUS ||
             reg == REG_FAULT)
         {
+            taskENTER_CRITICAL();
             if (i2cMasterReadData(m_i2c, addr, reg_buffer, dataLength, data))
             {
+                taskEXIT_CRITICAL();
                 return MC_NO_ERROR;
             }
             else
             {
+                taskEXIT_CRITICAL();
                 return MC_I2C_TIMEOUT_ERROR;
             }
         }
         else
         {
+            taskENTER_CRITICAL();
             if (i2cMasterTransmit(m_i2c, addr, reg_buffer, dataLength, data))
             {
+                taskEXIT_CRITICAL();
                 return MC_NO_ERROR;
             }
             else
             {
+                taskEXIT_CRITICAL();
                 return MC_I2C_TIMEOUT_ERROR;
             }
         }

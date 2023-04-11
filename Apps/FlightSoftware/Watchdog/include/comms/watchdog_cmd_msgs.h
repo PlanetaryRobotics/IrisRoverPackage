@@ -133,7 +133,23 @@ extern "C"
         WD_CMD_MSGS__RESET_ID__MOTOR_3_RESET_RELEASE = 0xAD, //!< Release the reset for (unreset) motor 3.
         WD_CMD_MSGS__RESET_ID__MOTOR_4_RESET_RELEASE = 0xAC, //!< Release the reset for (unreset) motor 4.
 
-        WD_CMD_MSGS__RESET_ID__ALL_MOTORS_RESET = 0x0E,     //!< Reset all motors.
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_LEFT = 0xB0,    //!< Reset and hold the reset for the Motor Controllers on the Left of the Rover (A, D). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_RIGHT = 0xB1,   //!< Reset and hold the reset for the Motor Controllers on the Right of the Rover (B, C). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_FRONT = 0xB2,   //!< Reset and hold the reset for the Motor Controllers on the Front of the Rover (A, B). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_REAR = 0xB3,    //!< Reset and hold the reset for the Motor Controllers on the Rear of the Rover (C, D). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_AD = 0xB4, //!< Reset and hold the reset for the Motor Controllers on the A-D diagonal (A, D). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_CB = 0xB5, //!< Reset and hold the reset for the Motor Controllers on the C-B diagonal (C, B). For emergency steering.
+
+        WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_LEFT = 0xBF,    //!< Release the Reset for (unreset) the Motor Controllers on the Left of the Rover (A, D). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_RIGHT = 0xBE,   //!< Release the Reset for (unreset) the Motor Controllers on the Right of the Rover (B, C). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_FRONT = 0xBD,   //!< Release the Reset for (unreset) the Motor Controllers on the Front of the Rover (A, B). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_REAR = 0xBC,    //!< Release the Reset for (unreset) the Motor Controllers on the Rear of the Rover (C, D). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_AD = 0xBB, //!< Release the Reset for (unreset) the Motor Controllers on the A-D diagonal (A, D). For emergency steering.
+        WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_CB = 0xBA, //!< Release the Reset for (unreset) the Motor Controllers on the C-B diagonal (C, B). For emergency steering.
+
+        WD_CMD_MSGS__RESET_ID__RESET_HOLD_ALL_MOTORS = 0xB9, //!< Reset and hold all Motor Controller MCUs.
+        WD_CMD_MSGS__RESET_ID__ALL_MOTORS_RESET = 0x0E,      //!< Reset all motors.
+
         WD_CMD_MSGS__RESET_ID__ALL_MOTORS_POWER_ON = 0x0F,  //!< Power on all motors.
         WD_CMD_MSGS__RESET_ID__ALL_MOTORS_POWER_OFF = 0x10, //!< Power off all motors.
 

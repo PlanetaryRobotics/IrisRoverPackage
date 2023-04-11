@@ -766,14 +766,14 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_RELEASE_MOTORS_REAR'),
         DataPathway.WIRELESS
     ),
-    'motors-release-diagCW-AD-wifi': (
+    'motors-release-diag-AD-wifi': (  # CW in FWD cfg, CCW in RWD cfg
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
         OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_AD'),
         DataPathway.WIRELESS
     ),
-    'motors-release-diagCCW-CB-wifi': (
+    'motors-release-diag-CB-wifi': (  # CCW in FWD cfg, CW in RWD cfg
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
@@ -807,6 +807,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(motor_id=0x00, raw_ticks=20000),
         DataPathway.WIRED
     ),
+
     'herc-wired-noop': (
         DataPathway.WIRED,
         Magic.COMMAND,

@@ -208,7 +208,11 @@ namespace CubeRover
         const U32 cmdSeq,
         reset_values_possible reset_value)
     {
-        logAndSendResetSpecific(opCode - this->getIdBase(), cmdSeq, reset_value, true);
+        bool success = logAndSendResetSpecific(opCode - this->getIdBase(), cmdSeq, reset_value, true);
+        if (success)
+        {
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        }
     }
 
     // Special function for other functions to call. Cannot have command response as not a command from ground
@@ -252,6 +256,7 @@ namespace CubeRover
             // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
             // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
             gioSetBit(spiPORT3, deploy_bit, 1);
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
         }
     }
 
@@ -273,6 +278,7 @@ namespace CubeRover
             // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
             // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
             gioSetBit(spiPORT3, deploy_bit, 0);
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
         }
     }
 

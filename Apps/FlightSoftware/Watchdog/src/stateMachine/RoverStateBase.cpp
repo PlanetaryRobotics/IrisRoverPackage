@@ -1679,6 +1679,128 @@ namespace iris
             theContext.m_watchdogFlags |= WDFLAG_UNRESET_MOTOR4;
             break;
 
+        case WD_CMD_MSGS__RESET_ID__MOTOR_1_RESET_HOLD:
+            setMotor1Reset();
+            writeIoExpander = true;
+            // just don't queue up an unreset
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_2_RESET_HOLD:
+            setMotor2Reset();
+            writeIoExpander = true;
+            // just don't queue up an unreset
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_3_RESET_HOLD:
+            setMotor3Reset();
+            writeIoExpander = true;
+            // just don't queue up an unreset
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_4_RESET_HOLD:
+            setMotor4Reset();
+            writeIoExpander = true;
+            // just don't queue up an unreset
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_1_RESET_RELEASE:
+            releaseMotor1Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_2_RESET_RELEASE:
+            releaseMotor2Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_3_RESET_RELEASE:
+            releaseMotor3Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__MOTOR_4_RESET_RELEASE:
+            releaseMotor4Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_LEFT:
+            setMotor1Reset();
+            setMotor4Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_RIGHT:
+            setMotor2Reset();
+            setMotor3Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_FRONT:
+            setMotor1Reset();
+            setMotor2Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_REAR:
+            setMotor3Reset();
+            setMotor4Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_AC:
+            setMotor1Reset();
+            setMotor3Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_MOTORS_DIAG_DB:
+            setMotor4Reset();
+            setMotor2Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_LEFT:
+            releaseMotor1Reset();
+            releaseMotor4Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_RIGHT:
+            releaseMotor2Reset();
+            releaseMotor3Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_FRONT:
+            releaseMotor1Reset();
+            releaseMotor2Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_REAR:
+            releaseMotor3Reset();
+            releaseMotor4Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_AC:
+            releaseMotor1Reset();
+            releaseMotor3Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_RELEASE_MOTORS_DIAG_DB:
+            releaseMotor4Reset();
+            releaseMotor2Reset();
+            writeIoExpander = true;
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__RESET_HOLD_ALL_MOTORS:
+            setMotorsReset();
+            writeIoExpander = true;
+            // just don't queue up an unreset
+            break;
+
         case WD_CMD_MSGS__RESET_ID__ALL_MOTORS_RESET:
             setMotorsReset();
             writeIoExpander = true;

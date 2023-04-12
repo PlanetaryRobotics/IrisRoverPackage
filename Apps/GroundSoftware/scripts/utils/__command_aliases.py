@@ -9,7 +9,7 @@ NOTE: THIS FILE IS DEPRECATED AS OF 03/10/2023. Don't use for new code. Use
 `IrisBackendv3/config/command_aliases`.
 
 Created: 10/29/2021
-Last Update: 01/01/2023
+Last Update: 04/11/2023
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
@@ -662,36 +662,155 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRED
     ),
 
-
-
-
     'reset-motors': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
         OrderedDict(reset_value='RESET_ALL_MOTORS'),
         DataPathway.WIRED
     ),
     'power-on-motors': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
         OrderedDict(reset_value='ALL_MOTORS_ON'),
         DataPathway.WIRED
     ),
     'power-off-motors': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
         OrderedDict(reset_value='ALL_MOTORS_OFF'),
         DataPathway.WIRED
     ),
+
+    'reset-motors-herc': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_ALL_MOTORS'),
+        DataPathway.WIRED
+    ),
+    'power-on-motors-herc': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_ON'),
+        DataPathway.WIRED
+    ),
+    'power-off-motors-herc': (
+        DataPathway.WIRED,
+        # intentionally telling the WD to tell Herc to tell the WD
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_OFF'),
+        DataPathway.WIRED
+    ),
+
+    'reset-motors-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_ALL_MOTORS'),
+        DataPathway.WIRELESS
+    ),
+    'power-on-motors-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_ON'),
+        DataPathway.WIRELESS
+    ),
+    'power-off-motors-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='ALL_MOTORS_OFF'),
+        DataPathway.WIRELESS
+    ),
+
+    'motor1-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR1'),
+        DataPathway.WIRELESS
+    ),
+    'motor2-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR2'),
+        DataPathway.WIRELESS
+    ),
+    'motor3-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR3'),
+        DataPathway.WIRELESS
+    ),
+    'motor4-hold': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_MOTOR4'),
+        DataPathway.WIRELESS
+    ),
+
+    'motors-hold-all-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_HOLD_ALL_MOTORS'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-left-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_LEFT'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-right-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_RIGHT'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-front-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_FRONT'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-rear-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_REAR'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-diag-AC-wifi': (  # CW in FWD cfg, CCW in RWD cfg
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_AC'),
+        DataPathway.WIRELESS
+    ),
+    'motors-release-diag-DB-wifi': (  # CCW in FWD cfg, CW in RWD cfg
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_DB'),
+        DataPathway.WIRELESS
+    ),
+
+
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'drive-fwd-200': (
         DataPathway.WIRED,
@@ -700,7 +819,29 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
         DataPathway.WIRED
     ),
-    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'drive-back-200': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateLeft[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-left-45': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateLeft',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateRight[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-right-45': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateRight',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
     'motor-control-get-telem': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -708,7 +849,6 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(),
         DataPathway.WIRED
     ),
-    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'motor-control-spin-all': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -717,6 +857,55 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(motor_id=0x00, raw_ticks=20000),
         DataPathway.WIRED
     ),
+
+    'drive-fwd-200-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRELESS
+    ),
+    'drive-back-200-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateLeft[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-left-45-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateLeft',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateRight[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-right-45-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateRight',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'motor-control-get-telem-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'MotorControl_McUpdateTelemetry',
+        OrderedDict(),
+        DataPathway.WIRELESS
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'motor-control-spin-all-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Change this to whatever motor you want to control (0 is all)
+        OrderedDict(motor_id=0x00, raw_ticks=20000),
+        DataPathway.WIRELESS
+    ),
+
     'herc-wired-noop': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -732,6 +921,13 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='FPGA_CAM_0'),
         DataPathway.WIRED
     ),
+    'select-cam-0-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,  # to Herc first
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='FPGA_CAM_0'),
+        DataPathway.WIRELESS
+    ),
     'select-cam-1': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
@@ -739,28 +935,47 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='FPGA_CAM_1'),
         DataPathway.WIRED
     ),
+    'select-cam-1-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,  # to Herc first
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='FPGA_CAM_1'),
+        DataPathway.WIRELESS
+    ),
     # Herc Take Image
     'take-image-0': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'Camera_TakeImage',
-        # Change this to whatever you want to reset.
         OrderedDict(camera_num=0, callback_id=0),
         DataPathway.WIRED
+    ),
+    'take-image-0-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        OrderedDict(camera_num=0, callback_id=0),
+        DataPathway.WIRELESS
     ),
     'take-image-1': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'Camera_TakeImage',
-        # Change this to whatever you want to reset.
         OrderedDict(camera_num=1, callback_id=0),
         DataPathway.WIRED
     ),
+    'take-image-1-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        OrderedDict(camera_num=1, callback_id=0),
+        DataPathway.WIRELESS
+    ),
+
     'wd-echo-hi-watchdog': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_Echo',
-        # Change this to whatever you want to reset.
         OrderedDict(length='10', message="HiWatchdog"),
         DataPathway.WIRED
     ),

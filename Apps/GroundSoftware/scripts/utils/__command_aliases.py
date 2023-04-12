@@ -819,7 +819,29 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
         DataPathway.WIRED
     ),
-    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'drive-back-200': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateLeft[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-left-45': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateLeft',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateRight[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-right-45': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateRight',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
     'motor-control-get-telem': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -827,7 +849,6 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(),
         DataPathway.WIRED
     ),
-    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'motor-control-spin-all': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -843,6 +864,29 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'Navigation_NavDriveForward',
         OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
         DataPathway.WIRELESS
+    ),
+    'drive-back-200-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateLeft[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-left-45-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateLeft',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavRotateRight[distance: uint8, speed: uint8, callback_id: uint16]
+    'turn-right-45-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateRight',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
     ),
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'motor-control-get-telem-wifi': (

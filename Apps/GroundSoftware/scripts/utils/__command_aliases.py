@@ -813,6 +813,31 @@ prepared_commands: Dict[str, PreparedCommandType] = {
 
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'drive-fwd-200': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'motor-control-get-telem': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McUpdateTelemetry',
+        OrderedDict(),
+        DataPathway.WIRED
+    ),
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'motor-control-spin-all': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Change this to whatever motor you want to control (0 is all)
+        OrderedDict(motor_id=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+
+    'drive-fwd-200-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'Navigation_NavDriveForward',
@@ -820,7 +845,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRELESS
     ),
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
-    'motor-control-get-telem': (
+    'motor-control-get-telem-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'MotorControl_McUpdateTelemetry',
@@ -828,7 +853,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRELESS
     ),
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
-    'motor-control-spin-all': (
+    'motor-control-spin-all-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'MotorControl_McSpin',
@@ -854,7 +879,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     'select-cam-0-wifi': (
         DataPathway.WIRELESS,
-        Magic.COMMAND, # to Herc first
+        Magic.COMMAND,  # to Herc first
         'WatchDogInterface_ResetSpecific',
         OrderedDict(reset_value='FPGA_CAM_0'),
         DataPathway.WIRELESS
@@ -868,7 +893,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     'select-cam-1-wifi': (
         DataPathway.WIRELESS,
-        Magic.COMMAND, # to Herc first
+        Magic.COMMAND,  # to Herc first
         'WatchDogInterface_ResetSpecific',
         OrderedDict(reset_value='FPGA_CAM_1'),
         DataPathway.WIRELESS

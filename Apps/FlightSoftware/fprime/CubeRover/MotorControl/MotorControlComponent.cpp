@@ -26,7 +26,7 @@ namespace CubeRover
 
     const uint8_t MotorControlComponentImpl::motorIdAddressMap[NUM_MOTORS] = {
         FRONT_LEFT_MC_I2C_ADDR, FRONT_RIGHT_MC_I2C_ADDR,
-        REAR_RIGHT_MC_I2C_ADDR, REAR_LEFT_MC_I2C_ADDR};
+        REAR_LEFT_MC_I2C_ADDR, REAR_RIGHT_MC_I2C_ADDR};
 
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction

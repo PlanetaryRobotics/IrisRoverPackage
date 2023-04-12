@@ -509,6 +509,7 @@ void moderatePIControllers(void){
 
 /*
  * @brief      TODO
+ * RAD TODO : only checks relative position; might have unknown edge cases
  */
 void checkTargetReached(void){
     if  (_IQabs(g_targetPosition - g_currentPosition) < POSITION_CONVERGENCE_THRESHOLD) {
@@ -646,7 +647,7 @@ void handleMotorTimeout(void){
  */
 void main(void){
 
-  // Turn off the watchdog
+  // Turn off the watchdog (RAD: internal?)
   WDT_A_hold(WDT_A_BASE);
 
   initController(); //init all variables and functionality needed to drive

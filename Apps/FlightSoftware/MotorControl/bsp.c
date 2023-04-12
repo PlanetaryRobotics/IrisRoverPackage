@@ -453,9 +453,11 @@ void initializeGpios() {
     uint16_t selectedPins = 0;
 
     // Inputs
+        // RAD UPDATE : MC_TRIG is P1.0
     // P1.1   MC_TRIG
     // P1.2   SHUNT_AMP_A
-    selectedPins = GPIO_PIN1 + GPIO_PIN2;
+    selectedPins = GPIO_PIN0 + GPIO_PIN2;
+//    selectedPins = GPIO_PIN1 + GPIO_PIN2;
     selectedPins = pinSelectEvenPorts(GPIO_PORT_P1, selectedPins);
     set_input(GPIO_PORT_P1, selectedPins);
     selectedPins = 0;
@@ -521,6 +523,7 @@ void initializeGpios() {
     selectedPins = 0;
 
     // Outputs
+        // RAD TODO : P2.1 & P2.2 ?? seems to just be typo in commenting
     // P1.1   LOW_C
     // P1.2   HIGH_C
     selectedPins = GPIO_PIN1 + GPIO_PIN2;

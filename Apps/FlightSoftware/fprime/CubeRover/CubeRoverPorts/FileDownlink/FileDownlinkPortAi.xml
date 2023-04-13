@@ -13,7 +13,7 @@
             <comment>When the File Group this File comes from was created (i.e. image capture time -  each image LINE is a "File", so an image is a "File Group").</comment>
         </arg>
         <arg name="fileGroupLineNumber" type="U16">
-            <comment>Which "line" in the File Group this file is (i.e. image line number - each image LINE is a "File", so an image is a "File Group").</comment>
+            <comment>Which "line" in the File Group this file is (i.e. image line number - each image LINE is a "File", so an image is a "File Group"). 0-indexed.</comment>
         </arg>
         <arg name="fwBuffer" type="Fw::Buffer" pass_by="reference">
             <comment>Buffer containing the data</comment>

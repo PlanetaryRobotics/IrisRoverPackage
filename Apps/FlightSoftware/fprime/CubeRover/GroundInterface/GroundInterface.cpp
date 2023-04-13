@@ -250,7 +250,7 @@ namespace CubeRover
             const NATIVE_INT_TYPE portNum,
             U16 callbackId,
             U32 fileGroupCreateTime, // i.e. image capture time (rem. each image LINE is a "File", so an image is a "File Group")
-            U16 fileGroupLineNumber, // i.e. image line number (rem. each image LINE is a "File", so an image is a "File Group")
+            U16 fileGroupLineNumber, // i.e. image line number (rem. each image LINE is a "File", so an image is a "File Group"). 0-indexed.
             Fw::Buffer &fwBuffer)
     {
         if (!isNetworkConnected())

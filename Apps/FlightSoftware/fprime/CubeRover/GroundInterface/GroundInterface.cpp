@@ -66,6 +66,32 @@ namespace CubeRover
         return (getUdpTxDownlinkQueueRoom() >= 1);
     }
 
+    // Shitty bodge to wait until the current packet is sent through the
+    // NetworkInterface and there is room for another packet (used to prevent
+    // File downlinks from swamping the interface and dropping lines).
+    // Halts the idle thread that include normal GI servicing until this is
+    // done. Big problem is GI is guarded so it also prevents other threads
+    // from using it either. Generally this is just not the place to be doing
+    // this but it works and that does the trick for now (RC8/9).
+    //
+    // Also aborts the wait if network connectivity is lost if
+    // `quitOnNetworkLoss` (so it doesn't halt forever - other important things
+    // probably need to happen even in the idle task if network connectivity
+    // is lost).
+    static void haltIdleUntilPacketDownlinkComplete(bool quitOnNetworkLoss = true)
+    {
+        // ! TODO: FIXME
+        // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
+        // ! (do this to avoid maxing out the radio Tx queue):
+        uint32_t startUdpTxCount = getRadioTxPacketCount();
+        while (startUdpTxCount == getRadioTxPacketCount() &&
+               !isQueueRoomForImageLine() &&
+               !(quitOnNetworkLoss && !isNetworkConnected()))
+        {
+            vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
+        }
+    }
+
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction
     // ----------------------------------------------------------------------
@@ -252,11 +278,7 @@ namespace CubeRover
             // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
             // ! (do this to avoid maxing out the radio Tx queue):
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
-            uint32_t startUdpTxCount = getRadioTxPacketCount();
-            while (startUdpTxCount == getRadioTxPacketCount() && !isQueueRoomForImageLine())
-            {
-                vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
-            }
+            haltIdleUntilPacketDownlinkComplete();
         }
         else
         { // Send file fragments
@@ -285,14 +307,7 @@ namespace CubeRover
                     log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
                     downlink(downlinkBuffer, datagramLength);
                     data += blockLength;
-                    // ! TODO: FIXME
-                    // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
-                    // ! (do this to avoid maxing out the radio Tx queue):
-                    uint32_t startUdpTxCount = getRadioTxPacketCount();
-                    while (startUdpTxCount == getRadioTxPacketCount() && !isQueueRoomForImageLine())
-                    {
-                        vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
-                    }
+                    haltIdleUntilPacketDownlinkComplete();
                 }
                 else
                 { // Final Fragment is written to the member buffer to downlink with other objects

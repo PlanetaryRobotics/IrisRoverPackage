@@ -252,6 +252,14 @@ namespace CubeRover
             U32 createTime,
             Fw::Buffer &fwBuffer)
     {
+        if (!isNetworkConnected())
+        {
+            // Don't downlink if not on network
+            // (we wait for network queue drainage later so if we don't abort
+            // here, we'll just halt infinitely later).
+            return;
+        }
+
         uint8_t *data = reinterpret_cast<uint8_t *>(fwBuffer.getdata());
         U32 dataSize = fwBuffer.getsize();
         U32 singleFileObjectSize = dataSize + sizeof(struct FswPacket::FswFileHeader);
@@ -562,7 +570,6 @@ namespace CubeRover
         case IMPORTANT:
         case CRITICAL:
         default:
-            /* TODO: THESE SHOULD ONLY UPDATE ONCE PER TELEMETRY DOWNLINK NOT ON THE RATE GROUP ITS TOO MUCH */
             tlmWrite_GI_DownlinkSeqNum(m_downlinkSeq);
             tlmWrite_GI_TlmItemsDownlinked(m_tlmItemsDownlinked);
             tlmWrite_GI_LogsDownlinked(m_logsDownlinked);

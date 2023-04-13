@@ -249,7 +249,8 @@ namespace CubeRover
         appDownlink_handler(
             const NATIVE_INT_TYPE portNum,
             U16 callbackId,
-            U32 createTime,
+            U32 fileGroupCreateTime, // i.e. image capture time (rem. each image LINE is a "File", so an image is a "File Group")
+            U32 fileGroupLineNumber, // i.e. image line number (rem. each image LINE is a "File", so an image is a "File Group")
             Fw::Buffer &fwBuffer)
     {
         if (!isNetworkConnected())
@@ -268,23 +269,23 @@ namespace CubeRover
         Fw::Time _txStart = getTime();
         // FW_ASSERT(_txStart.getTimeBase() != TB_NONE);   // Assert time port is connected
         uint32_t txStart = static_cast<uint32_t>(_txStart.get_time_ms());
-        uint16_t hashedId = hashTime(txStart);
+
+        uint16_t fileGroupId = hashTime(fileGroupCreateTime);
+
         uint8_t *downlinkBuffer = m_fileDownlinkBuffer[portNum];
         if (singleFileObjectSize <= m_downlink_objects_size)
         {
             struct FswPacket::FswFile *obj = reinterpret_cast<struct FswPacket::FswFile *>(downlinkBuffer);
             obj->header.magic = FSW_FILE_MAGIC;
-            obj->header.hashedId = hashedId;
+            obj->header.fileGroupId = fileGroupId;
+            obj->header.fileGroupLineNumber = fileGroupLineNumber;
             obj->header.totalBlocks = 1;
             obj->header.blockNumber = 1;
             obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
             memcpy(&obj->file.byte0, data, dataSize);
-            downlinkFileMetadata(hashedId, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
+            downlinkFileMetadata(fileGroupId, fileGroupLineNumber, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
             downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
             m_appBytesDownlinked += singleFileObjectSize;
-            // ! TODO: FIXME
-            // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
-            // ! (do this to avoid maxing out the radio Tx queue):
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
             haltIdleUntilPacketDownlinkComplete();
         }
@@ -294,14 +295,15 @@ namespace CubeRover
             int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
             if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
                 numBlocks++;
-            downlinkFileMetadata(hashedId, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(createTime));
-            flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK METADATA PRIOR TO FILE DOWNLINK
+            downlinkFileMetadata(fileGroupId, fileGroupLineNumber, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
+            flushTlmDownlinkBuffer(); // DOWNLINK METADATA PRIOR TO FILE DOWNLINK.
             int readStride = static_cast<int>(dataSize) / numBlocks;
             struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(downlinkBuffer);
             for (int blockNum = 1; blockNum <= numBlocks; ++blockNum)
             {
                 packet->payload0.file.header.magic = FSW_FILE_MAGIC;
-                packet->payload0.file.header.hashedId = hashedId;
+                packet->payload0.file.header.fileGroupId = fileGroupId;
+                packet->payload0.file.header.fileGroupLineNumber = fileGroupLineNumber;
                 packet->payload0.file.header.totalBlocks = numBlocks;
                 packet->payload0.file.header.blockNumber = blockNum;
                 FswPacket::FileLength_t blockLength;
@@ -587,13 +589,9 @@ namespace CubeRover
     }
 
     /*
-     * @brief Hash the downlink time
-     *
-     * To support parallel file downlinks (ie downlink a navigation image while a science image is being downlinked),
-     * a field, hashedId, is required to differentiate between the two files being downlinked. A 16bit hash of the
-     * 32bit timestamp of when the transfer initiated is used.
-     *
-     * @param time Time the transfer started
+     * @brief Hash the downlink time for uniquely identifying Files, File
+     * Groups, and File Blocks.
+     * @param time 32bit Time used as an ID
      * @return The 16bit hashed timestamp
      *
      */
@@ -615,17 +613,19 @@ namespace CubeRover
      * file block being downlinked. The metadata object is downlinked via the downlink buffer, so it is possible that
      * the metadata object could be sent during or after a file downlink.
      *
-     * @param hashedId    The hashed timestamp of when the transfer initiated so the metadata field can share the value
+     * @param fileGroupId   Which "File Group" this came from. Since we're downlinking image lines as a "File", we need a way for grouping them together so we know they're part of the same image. This is a hash of the image capture time.
+     * @param fileGroupLineNumber This tells us distinctly which line in the "File Group" (image) this "File" is. Used to differentiate blocks so we know which file they came from. This is 0-indexed. (NOTE: This replaces the old hashedId.)
      * @param totalBlocks The total number of blocks in the file (used to match the file header of the downlinked file)
      * @param callbackId  The callback if of the file (the unique ID assigned to the function which generated this file)
-     * @param timestamp_ms  The time the file was created
+     * @param timestamp_ms  The time the file / file group was created (when the image was captured)
      *
      */
-    void GroundInterfaceComponentImpl::downlinkFileMetadata(uint16_t hashedId, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms)
+    void GroundInterfaceComponentImpl::downlinkFileMetadata(uint16_t fileGroupId, uint16_t fileGroupLineNumber, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms)
     {
         struct FswPacket::FswFile metadata = {0};
         metadata.header.magic = FSW_FILE_MAGIC;
-        metadata.header.hashedId = hashedId;
+        metadata.header.fileGroupId = fileGroupId;
+        metadata.header.fileGroupLineNumber = fileGroupLineNumber;
         metadata.header.totalBlocks = totalBlocks;
         metadata.header.blockNumber = 0;
         metadata.header.length = sizeof(struct FswPacket::FswFileMetadata);

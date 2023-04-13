@@ -9,8 +9,11 @@
         <arg name="callbackId" type="U16">
             <comment>Metadata Field: Unique Id to map this file to the command that generated it</comment>
         </arg>
-        <arg name="createTime" type="U32">
-            <comment>Metadata Field: Time the file was created in ms epoch</comment>
+        <arg name="fileGroupCreateTime" type="U32">
+            <comment>When the File Group this File comes from was created (i.e. image capture time -  each image LINE is a "File", so an image is a "File Group").</comment>
+        </arg>
+        <arg name="fileGroupLineNumber" type="U16">
+            <comment>Which "line" in the File Group this file is (i.e. image line number - each image LINE is a "File", so an image is a "File Group").</comment>
         </arg>
         <arg name="fwBuffer" type="Fw::Buffer" pass_by="reference">
             <comment>Buffer containing the data</comment>

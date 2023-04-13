@@ -97,7 +97,8 @@ namespace CubeRover
         void appDownlink_handler(
             const NATIVE_INT_TYPE portNum, /*!< The port number*/
             U16 callbackId,                /*!< Metadata Field: Unique Id to map this file to the command that generated it*/
-            U32 createTime,                /*!< Metadata Field: Time the file was created in ms epoch*/
+            U32 fileGroupCreateTime,       /*!< When the File Group this file comes from was created (i.e. image capture time -  each image LINE is a "File", so an image is a "File Group") */
+            U16 fileGroupLineNumber,       /*!< Which "line" in the File Group this file is (i.e. image line number - each image LINE is a "File", so an image is a "File Group") */
             Fw::Buffer &fwBuffer           /*!< Buffer containing the data*/
         );
 

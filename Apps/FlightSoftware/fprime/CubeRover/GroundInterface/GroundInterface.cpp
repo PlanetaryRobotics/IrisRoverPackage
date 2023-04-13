@@ -35,6 +35,37 @@ namespace CubeRover
         return ~checksum;
     }
 
+    // Fetches whether (NetworkManager thinks) the rover is connected to a
+    // network (and capable of wireless downlink).
+    // Wrapper for extern NetworkManager connection.
+    static bool isNetworkConnected()
+    {
+        Wf121::DirectMessage::RadioSwState radio_state = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRadioState();
+        return (radio_state == Wf121::DirectMessage::RadioSwState::UDP_CONNECTED);
+    }
+
+    // Fetches how many packets have been sent to the Radio for downlink.
+    // Wrapper for extern NetworkManager connection.
+    static uint32_t getRadioTxPacketCount()
+    {
+        return networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
+    }
+
+    // Fetches how many queue spots remain in the NetworkInterface UDP downlink
+    // queue.
+    static uint8_t getRadioTxDownlinkQueueRoom()
+    {
+        return networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom();
+    }
+
+    // Determines whether there's room in the UDP TX Downlink Queue for an
+    // image line (we can choose the threshold to set here and this makes
+    // sure it's applied consistently.
+    static bool isQueueRoomForImageLine()
+    {
+        return (getUdpTxDownlinkQueueRoom() >= 1);
+    }
+
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction
     // ----------------------------------------------------------------------
@@ -119,13 +150,13 @@ namespace CubeRover
         // Automatically switch network mode if allowed:
         if (m_auto_switch_allowed)
         {
-            Wf121::DirectMessage::RadioSwState radio_state = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRadioState();
-            if (m_interface_port_num != WF121 && radio_state == Wf121::DirectMessage::RadioSwState::UDP_CONNECTED)
+            bool network_connected = isNetworkConnected();
+            if (m_interface_port_num != WF121 && network_connected)
             {
                 log_ACTIVITY_HI_InterfaceAutoSwitch(static_cast<FromInterface>(m_interface_port_num), static_cast<ToInterface>(WF121));
                 Switch_Primary_Interface(WF121);
             }
-            else if (m_interface_port_num != WATCHDOG && radio_state != Wf121::DirectMessage::RadioSwState::UDP_CONNECTED)
+            else if (m_interface_port_num != WATCHDOG && !network_connected)
             {
                 log_ACTIVITY_HI_InterfaceAutoSwitch(static_cast<FromInterface>(m_interface_port_num), static_cast<ToInterface>(WATCHDOG));
                 Switch_Primary_Interface(WATCHDOG);
@@ -221,8 +252,8 @@ namespace CubeRover
             // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
             // ! (do this to avoid maxing out the radio Tx queue):
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
-            int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-            while (startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1)
+            uint32_t startUdpTxCount = getRadioTxPacketCount();
+            while (startUdpTxCount == getRadioTxPacketCount() && !isQueueRoomForImageLine())
             {
                 vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
             }
@@ -257,8 +288,8 @@ namespace CubeRover
                     // ! TODO: FIXME
                     // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
                     // ! (do this to avoid maxing out the radio Tx queue):
-                    int startUdpTxCount = networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount();
-                    while (startUdpTxCount == networkManager.m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount() && networkManager.m_pRadioDriver->m_networkInterface.udpTxQueueRoom() < 1)
+                    uint32_t startUdpTxCount = getRadioTxPacketCount();
+                    while (startUdpTxCount == getRadioTxPacketCount() && !isQueueRoomForImageLine())
                     {
                         vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
                     }

@@ -204,7 +204,19 @@ namespace CubeRover
         void downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex);
 
         S25fl512l m_fpgaFlash;
-        uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+
+        // Align image buffer to uint64_t boundary since all FPrime buffers get handled as U64 (for some reason?).
+        // Can't normally align member variable, but uint64_t will be naturally aligned on an 8-byte boundary
+        // thus forcing the m_headerBuffer to also be aligned at such a boundary. In other words, this union
+        // is equivalent to:
+        // uint8_t m_imageLineBuffer[IMAGE_WIDTH] __attribute__((aligned(8)));
+        // Stolen from `WatchDogMpsm` for same purpose.
+        union
+        {
+            uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+            uint64_t not_used__imageLineBuffer;
+        };
+
         U32 m_numComponentImgsReq;
         U32 m_numGroundImgsReq;
         U32 m_imagesSent;

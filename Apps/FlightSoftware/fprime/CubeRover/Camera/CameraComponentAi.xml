@@ -168,8 +168,41 @@
         </command>
         <command kind="sync" opcode="0xa" mnemonic="Image_Dump">
             <comment>
-                TBD
+                Dump (downlink) whatever is stored in the the camera flash rn 
+                without capturing a new image or writing anything to flash 
+                first.
             </comment>
+        </command>
+        <command kind="sync" opcode="0xb" mnemonic="Downlink_Grid">
+            <comment>
+                Downlinks a test grid. If `viaFlash`, grid will be written to
+                flash then read from flash and downlinked. Otherwise, it'll
+                just be downlinked directly.
+            </comment>
+            <args>
+                <arg name="viaFlash" type="bool">
+                    <comment>
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    </comment>
+                </arg>
+            </args>
+        </command>
+        <command kind="sync" opcode="0xc" mnemonic="Downlink_Test_Sequence">
+            <comment>
+                Downlinks a test image where every 4B are an incrementing U32.
+                If `viaFlash`, grid will be written to flash then read from
+                flash and downlinked. Otherwise, it'll just be downlinked
+                directly.
+            </comment>
+            <args>
+                <arg name="viaFlash" type="bool">
+                    <comment>
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    </comment>
+                </arg>
+            </args>
         </command>
     </commands>
 </component>

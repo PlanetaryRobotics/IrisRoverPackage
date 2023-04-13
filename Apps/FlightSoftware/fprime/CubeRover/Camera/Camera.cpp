@@ -178,7 +178,27 @@ namespace CubeRover
           const FwOpcodeType opCode,
           const U32 cmdSeq)
   {
-    // TODO
+    // Capture time isn't stored, so just use now as the createTime:
+    uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
+    sendImgFromFlash(createTime);
+    this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+  }
+
+  void CameraComponentImpl ::
+      Downlink_Grid_cmdHandler(
+          const FwOpcodeType opCode,
+          const bool viaFlash)
+  {
+    generateDummyImage(viaFlash, DummyImageType::GRID);
+    this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+  }
+
+  void CameraComponentImpl ::
+      Downlink_Test_Sequence_cmdHandler(
+          const FwOpcodeType opCode,
+          const bool viaFlash)
+  {
+    generateDummyImage(viaFlash, DummyImageType::SEQUENCE);
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
@@ -194,10 +214,6 @@ namespace CubeRover
     m_lastCallbackId = callbackId;
     tlmWrite_Cam_LatestCallbackId(callbackId);
 
-#ifdef DUMMY_IMG_GRID
-    // Create and send Dummy Image
-    generateDummyImage();
-#else
     // Take Real Image!
 
     // set bit to control camera
@@ -218,57 +234,87 @@ namespace CubeRover
 
     // send image from flash
     sendImgFromFlash(createTime);
-#endif
   }
 
   // CREATE AND SEND DUMMY IMAGE
-  void CameraComponentImpl::generateDummyImage(void)
+  void CameraComponentImpl::generateDummyImage(bool viaFlash, DummyImageType type)
   {
     int grid_x_spacing = DUMMY_IMAGE_WIDTH / DUMMY_IMG_GRID_n;
     int grid_y_spacing = DUMMY_IMAGE_HEIGHT / DUMMY_IMG_GRID_n;
 
-#ifdef VIA_FLASH
-    // Prep Flash before writing each line
     S25fl512l::MemAlloc alloc;
-    alloc.startAddress = 0;
-    alloc.reservedSize = sizeof(m_imageLineBuffer);
+    if (viaFlash)
+    {
+      // Prep Flash before writing each line
+      alloc.startAddress = 0;
+      alloc.reservedSize = sizeof(m_imageLineBuffer);
 
-    eraseFpgaFlash();
-#endif
+      eraseFpgaFlash();
+    }
 
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
 
+    union
+    {
+      uint32_t val;
+      uint8_t arr[4];
+    } sequenceCount;
+    sequenceCount.val = 0;
+    uint32_t sequenceByteCount = 0;
+
     for (int y = 0; y < DUMMY_IMAGE_HEIGHT; y++)
     {
+      // Make a line:
       for (int x = 0; x < DUMMY_IMAGE_WIDTH; x++)
       {
-        // if camera == 0 then all black, else black and white grid, in theory...
-        m_imageLineBuffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
-        // Make it a gradient in both x and y for debugging:
-        if (m_imageLineBuffer[x] == 0x00)
+        switch (type)
         {
-          m_imageLineBuffer[x] += 255 * x / DUMMY_IMAGE_WIDTH / 3;
-          m_imageLineBuffer[x] += 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+        case DummyImageType::GRID:
+          // Make the grid version:
+          // if camera == 0 then all black, else black and white grid, in theory...
+          m_imageLineBuffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
+          // Make it a gradient in both x and y for debugging:
+          if (m_imageLineBuffer[x] == 0x00)
+          {
+            m_imageLineBuffer[x] += 255 * x / DUMMY_IMAGE_WIDTH / 3;
+            m_imageLineBuffer[x] += 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+          }
+          else
+          {
+            m_imageLineBuffer[x] -= 255 * x / DUMMY_IMAGE_WIDTH / 3;
+            m_imageLineBuffer[x] -= 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+          }
+          break;
+        case DummyImageType::SEQUENCE:
+        default:
+          // Make the sequence version where every 4B are an incrementing U32:
+          m_imageLineBuffer[x] = sequenceCount.arr[sequenceByteCount % 4];
+          if (sequenceByteCount % 4 == 3)
+          {
+            // Inc. to next value once all bytes in this value have been added:
+            sequenceCount.val++;
+          }
+          sequenceByteCount++;
         }
-        else
-        {
-          m_imageLineBuffer[x] -= 255 * x / DUMMY_IMAGE_WIDTH / 3;
-          m_imageLineBuffer[x] -= 255 * y / DUMMY_IMAGE_HEIGHT / 3;
-        }
+      } // end of line
+      if (viaFlash)
+      {
+        // write each line to flash
+        m_fpgaFlash.writeDataToFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+        alloc.startAddress += PAGE_SIZE * 6;
       }
-#ifndef VIA_FLASH
-      // send each line as it is created
-      downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, y);
-#else
-      // write each line to flash
-      m_fpgaFlash.writeDataToFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
-      alloc.startAddress += PAGE_SIZE * 6;
-#endif
+      else
+      {
+        // send each line as it is created
+        downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, y);
+      }
     }
-#ifdef VIA_FLASH
-    // then send from flash
-    sendImgFromFlash(createTime);
-#endif
+
+    if (viaFlash)
+    {
+      // read and send whole image from flash
+      sendImgFromFlash(createTime);
+    }
 
     // Finished sending Dummy Image
     m_imagesSent++;

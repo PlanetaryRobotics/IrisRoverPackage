@@ -23,10 +23,9 @@
 
 // --- DUMMY IMAGE PARAMS ---
 
-// #define DUMMY_IMG_GRID  // Dummy image is grid of NxN squares
-#define DUMMY_IMG_GRID_n 5 // Dummy image is grid of NxN squares
-#define VIA_FLASH          // Read & Write dummy image w/ FPGA Flash
+#define VIA_FLASH // Read & Write dummy image w/ FPGA Flash
 
+#define DUMMY_IMG_GRID_n 5 // Dummy image is grid of NxN squares
 #define DUMMY_IMAGE_WIDTH IMAGE_WIDTH
 #define DUMMY_IMAGE_HEIGHT IMAGE_HEIGHT
 
@@ -37,6 +36,13 @@
 
 namespace CubeRover
 {
+
+    enum class DummyImageType
+    {
+        GRID = 0,
+        SEQUENCE = 1,
+        PRE_BAKED = 2 // pre-baked and stored in Hercules FLASH0
+    };
 
     class CameraComponentImpl : public CameraComponentBase
     {
@@ -186,18 +192,27 @@ namespace CubeRover
         );
 
         //! Implementation for Image_Dump command handler
-        //! TBD
         void Image_Dump_cmdHandler(
             const FwOpcodeType opCode, /*!< The opcode*/
             const U32 cmdSeq           /*!< The command sequence number*/
         );
+
+        //! Implementation for Downlink_Grid command handler
+        void Downlink_Grid_cmdHandler(
+            const FwOpcodeType opCode,
+            const bool viaFlash);
+
+        //! Implementation for Downlink_Test_Sequence command handler
+        void Downlink_Test_Sequence_cmdHandler(
+            const FwOpcodeType opCode,
+            const bool viaFlash);
 
         // ----------------------------------------------------------------------
         // User Methods
         // ----------------------------------------------------------------------
 
         void takeImage(uint8_t camera, uint16_t callbackId);
-        void generateDummyImage(void);
+        void generateDummyImage(bool viaFlash, DummyImageType type);
         void triggerImageCapture(void);
         void eraseFpgaFlash(void);
         void sendImgFromFlash(uint32_t createTime);

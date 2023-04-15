@@ -1088,20 +1088,10 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     @property
     def file_type_magic(self) -> FileTypeMagic: return self._file_type_magic
 
-    @property
-    def full_file_id(self) -> int:
-        """ID that specifies which larger file this line came from (since
-        each line of the image is being downlinked as a "file").
-        For now, since all lines of an image share the same `createTime`
-        timestamp, we'll just use that.
-        """
-        return self._timestamp
-
     def __str__(self) -> str:
         return (
             "FileBlockMetadata["
             f"{self.file_type_magic.name}: "
-            f"file={self.full_file_id}, "
             f"call={self.callback_id}, "
             f"time={self.timestamp}"
             "]"
@@ -1208,13 +1198,19 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
     """
 
     __slots__: List[str] = [
-        # A hash of the timestamp when file transmission started. Used to
-        # identify which blocks belong to the same file if multiple files are
-        # being sent at once. *NOT* a globally unique file identifier. Two files
-        # over the course of the entire mission could have the same hashedId.
-        # This is only unique up to the point that no two files with overlapping
-        # transmission periods should have the same hashedId:
-        '_hashed_id',
+        # Which "File Group" this came from. Since we're downlinking image
+        # lines as a "File", we need a way for grouping them together so we
+        # know they're part of the same image. This is a hash of the image
+        # capture time.
+        # Two images over the course of the entire mission could have the same
+        # `fileGroupId`. This is only unique up to the point that no two files
+        # with overlapping or adjacent transmission periods should have the
+        # same `fileGroupId`.
+        '_file_group_id',
+        # This tells us distinctly which line in the "File Group" (image) this
+        # "File" is. Used to differentiate blocks so we know which file they
+        # came from. This is 0-indexed. (NOTE: This replaces the old hashedId.)
+        '_file_group_line_number',
         # Total number of blocks in the file:
         '_total_blocks',
         # Number of this block (**1** indexed - 0 is for the metadata)
@@ -1228,7 +1224,8 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
         # If this is block 0, this contains the decoded file metadata:
         '_file_metadata'
     ]
-    _hashed_id: int
+    _file_group_id: int
+    _file_group_line_number: int
     _total_blocks: int
     _block_number: int
     _length: int
@@ -1240,7 +1237,12 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
     @property
-    def hashed_id(self) -> int: return self._hashed_id
+    def file_group_id(self) -> int: return self._file_group_id
+
+    @property
+    def file_group_line_number(self) -> int:
+        return self._file_group_line_number
+
     @property
     def total_blocks(self) -> int: return self._total_blocks
     @property
@@ -1264,7 +1266,8 @@ class FileBlockPayloadInterface(DownlinkedPayload[PT], ABC):
             "FileBlock["
             f"{self.block_number}/{self.total_blocks}: "
             f"{self.length}B, "
-            f"line={self.hashed_id}, "
+            f"line={self.file_group_line_number}, "
+            f"file={self.file_group_id}, "
             f"bad={self.possible_corruption}"
             "]"
         )
@@ -1277,7 +1280,8 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
     __slots__: List[str] = []
 
     def __init__(self,
-                 hashed_id: int,
+                 file_group_id: int,
+                 file_group_line_number: int,
                  total_blocks: int,
                  block_number: int,
                  length: int,
@@ -1290,7 +1294,8 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
-        self._hashed_id = hashed_id
+        self._file_group_id = file_group_id
+        self._file_group_line_number = file_group_line_number
         self._total_blocks = total_blocks
         self._block_number = block_number
         self._length = length
@@ -1308,28 +1313,38 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
                endianness_code: str = ENDIANNESS_CODE
                ) -> FileBlockPayload:
         """
-        From C&TL at time of writing (10/01/2021):
+        Based on C&TL from 10/01/2021. Revised on 04/14/2023.
         File Block Format:
-        Field	        Type		    Description
-        hashedId	    uint16_t		A hash of the timestamp when file transmission started. Used to identify which blocks belong to the same file if multiple files are being sent at once. *NOT* a globally unique file identifier. Two files over the course of the entire mission could have the same hashedId. This is only unique up to the point that no two files with overlapping transmission periods should have the same hashedId.
-        totalBlocks	    uint8_t		    Total number of blocks in this file (not including metadata block)
-        blockNumber	    uint8_t		    Number of this block (**1 indexed** - 0 is for the metadata)
-        length	        FileLength_t    Number of bytes in this block (not including header data - appears to be uint32_t in FSW as of 09/30/2021. Let's stick to this.)
-        data	        uint8_t[]		All the data bytes. * The data of each block will be compressed using heatshrink
+        Field	                Type		    Description
+        file_group_id           uint16_t        Which "File Group" this came from. Since we're downlinking image lines as a "File", we need a way for grouping them together so we know they're part of the same image. This is a hash of the image capture time. Two images over the course of the entire mission could have the same `fileGroupId`. This is only unique up to the point that no two files with overlapping or adjacent transmission periods should have the same `fileGroupId`.
+        file_group_line_number  uint16_t        This tells us distinctly which line in the "File Group" (image) this "File" is. Used to differentiate blocks so we know which file they came from. This is 0-indexed. (NOTE: This replaces the old hashedId.)
+        totalBlocks	            uint8_t		    Total number of blocks in this file (not including metadata block)
+        blockNumber	            uint8_t		    Number of this block (**1 indexed** - 0 is for the metadata)
+        length	                FileLength_t    Number of bytes in this block (not including header data - appears to be uint32_t in FSW as of 09/30/2021. Let's stick to this.)
+        data	                uint8_t[]		All the data bytes. * The data of each block will be compressed using heatshrink
         """
         # ! TODO: Move `possible_corruption` to `PayloadInterface` so it's more broadly useful?
         # ! NOTE: ^- But then we'd have to make sure it's being used everywhere else that could be relevant...
         possible_corruption = False  # not yet at least... updated later on detection
 
         # Extract header and count up header_size as you go:
-        ptr, header_size = 0, 2  # `hashed_id` is 2B
-        hashed_id_bytes = data[ptr:header_size]
-        hashed_id: int = struct.unpack(endianness_code+'H', hashed_id_bytes)[0]
+        ptr: int = 0
+        header_size: int = 0
+        working_bytes: bytes = b''
+
+        # `file_group_id` (U16)
+        ptr, header_size = header_size, header_size+2
+        working_bytes = data[ptr:header_size]
+        fg_id: int = struct.unpack(endianness_code+'H', working_bytes)[0]
+
+        # `file_group_line_number` (U16)
+        ptr, header_size = header_size, header_size+2
+        working_bytes = data[ptr:header_size]
+        fg_line_num: int = struct.unpack(endianness_code+'H', working_bytes)[0]
 
         ptr, header_size = header_size, header_size+1  # `total_blocks` is 1B
         total_blocks: int = int(data[ptr:header_size][0])
 
-        # ! TODO: `block_number` overflows rn due to packet count. Talk to FSW about this or guarantee not an issue during flight b/c there will be <255 blocks in any file (unlikely since blocks are lines):
         ptr, header_size = header_size, header_size+1  # `block_number` is 1B
         block_number: int = int(data[ptr:header_size][0])
 
@@ -1347,9 +1362,10 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
                 "all data left in this packet will be assumed to be part of this "
                 "block so a file can still be reconstructed even if it's a bit "
                 "corrupted; but, note that this might not be an apt assumption. "
-                f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
+                f"\n For FileBlockPayload{{"
                 f"block_num={block_number}, total_blocks={total_blocks}, "
-                f"length={length}}}"
+                f"{length}B, "
+                f"line={fg_line_num} in file={fg_id}}}"
                 f"\n Packet data supplied to `FileBlockPayload` extractor: "
                 f"{data!r}"
             ))
@@ -1361,9 +1377,10 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
                 f"but `{block_number=}`. Block number should range from 0 to "
                 f"`total_blocks` (with 0 being metadata) but should never be "
                 f"`>total_blocks`. Possible file corruption. "
-                f"\n For: FileBlockPayload{{hashed_id={hashed_id}, "
+                f"\n For: FileBlockPayload{{"
+                f"line={fg_line_num} in file={fg_id}}}, "
                 f"block_num={block_number}, total_blocks={total_blocks}, "
-                f"length={length}}}"
+                f"length={length}B}}"
                 f"\n Packet data supplied to `FileBlockPayload` extractor: "
                 f"{data!r}"
             ))
@@ -1387,7 +1404,8 @@ class FileBlockPayload(FileBlockPayloadInterface[FileBlockPayloadInterface]):
             # This is an actual file_data block; so, no metadata here.
             file_metadata = None
 
-        return cls(hashed_id=hashed_id,
+        return cls(file_group_id=fg_id,
+                   file_group_line_number=fg_line_num,
                    total_blocks=total_blocks,
                    block_number=block_number,
                    length=length,

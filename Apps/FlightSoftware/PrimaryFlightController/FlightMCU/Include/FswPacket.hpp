@@ -108,7 +108,7 @@ namespace FswPacket
     struct FswFileHeader
     {
         Magic_t magic;
-        uint16_t fileGroupId;         // Which "File Group" this came from. Since we're downlinking image lines as a "File", we need a way for grouping them together so we know they're part of the same image. This is a hash of the image capture time.
+        uint16_t fileGroupId;         // Which "File Group" this came from. Since we're downlinking image lines as a "File", we need a way for grouping them together so we know they're part of the same image. This is a hash of the image capture time. Two images over the course of the entire mission could have the same `fileGroupId`. This is only unique up to the point that no two files with overlapping or adjacent transmission periods should have the same `fileGroupId`.
         uint16_t fileGroupLineNumber; // This tells us distinctly which line in the "File Group" (image) this "File" is. Used to differentiate blocks so we know which file they came from. This is 0-indexed. (NOTE: This replaces the old hashedId.)
         uint8_t totalBlocks;
         uint8_t blockNumber; // This is 1-indexed, 0-index is optional and contains file-specific metadata

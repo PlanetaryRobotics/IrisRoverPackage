@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/19/2022
+@last-updated: 04/16/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -1069,12 +1069,15 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
         # Callback IDs for commands requesting images start counting at 0.
         # Callback IDs for commands requesting UWB files start counting at 2^5:
         '_callback_id',
+        # Total number of lines in the File Group (i.e. image):
+        '_file_group_total_lines',
         # Time (in ms since Hercules power up) of when this file was generated:
         '_timestamp',
         # Magic indicating the type of file being encoded:
         '_file_type_magic'
     ]
     _callback_id: int
+    _file_group_total_lines: int
     _timestamp: int
     _file_type_magic: FileTypeMagic
 
@@ -1083,6 +1086,11 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     # `raw` not syncing up with whatever other data is in the container)
     @property
     def callback_id(self) -> int: return self._callback_id
+
+    @property
+    def file_group_total_lines(self) -> int:
+        return self._file_group_total_lines
+
     @property
     def timestamp(self) -> int: return self._timestamp
     @property
@@ -1093,6 +1101,7 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
             "FileBlockMetadata["
             f"{self.file_type_magic.name}: "
             f"call={self.callback_id}, "
+            f"lines={self.file_group_total_lines}, "
             f"time={self.timestamp}"
             "]"
         )
@@ -1106,12 +1115,14 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
 
     def __init__(self,
                  callback_id: int,
+                 file_group_total_lines: int,
                  timestamp: int,
                  file_type_magic: FileMetadata.FileTypeMagic,
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE
                  ) -> None:
         self._callback_id = callback_id
+        self._file_group_total_lines = file_group_total_lines
         self._timestamp = timestamp
         self._file_type_magic = file_type_magic
         super().__init__(raw=raw, endianness_code=endianness_code)
@@ -1122,12 +1133,13 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
                endianness_code: str = ENDIANNESS_CODE
                ) -> FileMetadata:
         """
-        From C&TL at time of writing (10/01/2021):
+        Based on C&TL from 10/01/2021. Revised on 04/15/2023.
         File Metadata Format:	(data in block 0)
-        Field	        Type		Description
-        callbackId	    uint16_t	Monotonically increasing callback ID of the command that triggered this file to be sent. Uniquely links this file to the command which requested it. Callback IDs are unique for images and UWB files. Callback IDs for commands requesting images start counting at 0. Callback IDs for commands requesting UWB files start counting at 2^5
-        timestamp	    uint32_t	Time (in ms since Hercules power up) of when this file was generated.
-        fileTypeMagic	uint8_t		[See below]
+        Field	            Type		Description
+        callbackId	        uint16_t	Monotonically increasing callback ID of the command that triggered this file to be sent. Uniquely links this file to the command which requested it. Callback IDs are unique for images and UWB files. Callback IDs for commands requesting images start counting at 0. Callback IDs for commands requesting UWB files start counting at 2^5
+        fileGroupTotalLines uint16_t    Total Number of lines in the file group (i.e. image).
+        timestamp	        uint32_t	Time (in ms since Hercules power up) of when this file was generated.
+        fileTypeMagic	    uint8_t		[See below]
 
         File        Type Magic (in Metadata):	(data in block 0, inside File Metadata)
         Image:	    0x01
@@ -1136,14 +1148,18 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
 
         # Extract header and count up header_size as you go:
         ptr, size = 0, 2  # `callback_id` is 2B
-        callback_id_bytes = data[ptr:size]
+        working_bytes = data[ptr:size]
         callback_id: int = struct.unpack(
-            endianness_code+'H', callback_id_bytes
+            endianness_code+'H', working_bytes
         )[0]
 
-        ptr, size = size, size+4  # `timestamp` is 4B
-        timestamp_bytes = data[ptr:size]
-        timestamp: int = struct.unpack(endianness_code+'L', timestamp_bytes)[0]
+        ptr, size = size, size+2  # `totalLines` is 2B (U16)
+        working_bytes = data[ptr:size]
+        totalLines: int = struct.unpack(endianness_code+'H', working_bytes)[0]
+
+        ptr, size = size, size+4  # `timestamp` is 4B (U32)
+        working_bytes = data[ptr:size]
+        timestamp: int = struct.unpack(endianness_code+'L', working_bytes)[0]
 
         # ptr, size = size, size+1  # `file_type_magic` is 1B
         # file_type_magic_val: int = int(data[ptr:size][0])
@@ -1171,6 +1187,7 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
 
         return cls(
             callback_id=callback_id,
+            file_group_total_lines=totalLines,
             timestamp=timestamp,
             file_type_magic=file_type_magic,
             raw=data_used,

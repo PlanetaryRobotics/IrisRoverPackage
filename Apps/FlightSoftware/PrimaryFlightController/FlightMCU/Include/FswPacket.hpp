@@ -118,7 +118,8 @@ namespace FswPacket
     struct FswFileMetadata
     { // Block 0 of files
         uint16_t callbackId;
-        uint32_t timestamp; // when the file / file group was created (image capture time)
+        uint16_t fileGroupTotalLines; // Total Number of lines in the file group (i.e. image).
+        uint32_t timestamp;           // when the file / file group was created (i.e. image capture time)
     } __attribute__((packed));
 
     struct FswFile

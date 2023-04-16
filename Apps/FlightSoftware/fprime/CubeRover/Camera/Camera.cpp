@@ -306,7 +306,7 @@ namespace CubeRover
       else
       {
         // send each line as it is created
-        downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, y);
+        downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, y, DUMMY_IMAGE_HEIGHT);
       }
     }
 
@@ -361,7 +361,7 @@ namespace CubeRover
       m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
       alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 
-      downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, i);
+      downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, i, IMAGE_HEIGHT);
     }
 
     m_imagesSent++;
@@ -369,10 +369,10 @@ namespace CubeRover
   }
 
   // DOWNLINK ONE ROW OF IMAGE
-  void CameraComponentImpl::downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex)
+  void CameraComponentImpl::downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines)
   {
     Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
-    downlinkImage_out(0, callbackId, createTime, lineIndex, fwBuffer);
+    downlinkImage_out(0, callbackId, createTime, lineIndex, numLines, fwBuffer);
 
     m_bytesSent += static_cast<U32>(size);
     tlmWrite_Cam_BytesSent(m_bytesSent);

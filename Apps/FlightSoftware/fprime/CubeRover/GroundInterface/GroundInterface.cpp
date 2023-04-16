@@ -251,6 +251,7 @@ namespace CubeRover
             U16 callbackId,
             U32 fileGroupCreateTime, // i.e. image capture time (rem. each image LINE is a "File", so an image is a "File Group")
             U16 fileGroupLineNumber, // i.e. image line number (rem. each image LINE is a "File", so an image is a "File Group"). 0-indexed.
+            U16 fileGroupTotalLines, // total number of lines in the image
             Fw::Buffer &fwBuffer)
     {
         if (!isNetworkConnected())
@@ -283,7 +284,7 @@ namespace CubeRover
             obj->header.blockNumber = 1;
             obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
             memcpy(&obj->file.byte0, data, dataSize);
-            downlinkFileMetadata(fileGroupId, fileGroupLineNumber, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
+            downlinkFileMetadata(fileGroupId, fileGroupLineNumber, fileGroupTotalLines, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
             downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
             m_appBytesDownlinked += singleFileObjectSize;
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
@@ -295,7 +296,7 @@ namespace CubeRover
             int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
             if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
                 numBlocks++;
-            downlinkFileMetadata(fileGroupId, fileGroupLineNumber, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
+            downlinkFileMetadata(fileGroupId, fileGroupLineNumber, fileGroupTotalLines, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
             flushTlmDownlinkBuffer(); // DOWNLINK METADATA PRIOR TO FILE DOWNLINK.
             int readStride = static_cast<int>(dataSize) / numBlocks;
             struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(downlinkBuffer);
@@ -615,12 +616,13 @@ namespace CubeRover
      *
      * @param fileGroupId   Which "File Group" this came from. Since we're downlinking image lines as a "File", we need a way for grouping them together so we know they're part of the same image. This is a hash of the image capture time.
      * @param fileGroupLineNumber This tells us distinctly which line in the "File Group" (image) this "File" is. Used to differentiate blocks so we know which file they came from. This is 0-indexed. (NOTE: This replaces the old hashedId.)
+     * @param fileGroupTotalLines Total Number of lines in the file group (image).
      * @param totalBlocks The total number of blocks in the file (used to match the file header of the downlinked file)
      * @param callbackId  The callback if of the file (the unique ID assigned to the function which generated this file)
      * @param timestamp_ms  The time the file / file group was created (when the image was captured)
      *
      */
-    void GroundInterfaceComponentImpl::downlinkFileMetadata(uint16_t fileGroupId, uint16_t fileGroupLineNumber, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms)
+    void GroundInterfaceComponentImpl::downlinkFileMetadata(uint16_t fileGroupId, uint16_t fileGroupLineNumber, uint16_t fileGroupTotalLines, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms)
     {
         struct FswPacket::FswFile metadata = {0};
         metadata.header.magic = FSW_FILE_MAGIC;
@@ -630,6 +632,7 @@ namespace CubeRover
         metadata.header.blockNumber = 0;
         metadata.header.length = sizeof(struct FswPacket::FswFileMetadata);
         metadata.file.metadata.callbackId = callbackId;
+        metadata.file.metadata.fileGroupTotalLines = fileGroupTotalLines;
         metadata.file.metadata.timestamp = timestamp_ms;
         downlinkBufferWrite(&metadata, static_cast<FswPacket::Length_t>(sizeof(metadata)), DownlinkFile);
     }

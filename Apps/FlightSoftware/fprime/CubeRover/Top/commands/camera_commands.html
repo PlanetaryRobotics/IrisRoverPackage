@@ -165,10 +165,43 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="1">Image_Dump</td>
 			<td rowspan="1">4362 (0x110a)</td>
-			<td rowspan="1">TBD</td>
+			<td rowspan="1">Dump (downlink) whatever is stored in the the camera flash rn 
+                without capturing a new image or writing anything to flash 
+                first.</td>
 				<td></td>
 				<td></td>
 				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">Downlink_Grid</td>
+			<td rowspan="2">4363 (0x110b)</td>
+			<td rowspan="2">Downlinks a test grid. If `viaFlash`, grid will be written to
+                flash then read from flash and downlinked. Otherwise, it'll
+                just be downlinked directly.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>viaFlash</td>
+						<td>bool</td>
+						<td>
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">Downlink_Test_Sequence</td>
+			<td rowspan="2">4364 (0x110c)</td>
+			<td rowspan="2">Downlinks a test image where every 4B are an incrementing U32.
+                If `viaFlash`, grid will be written to flash then read from
+                flash and downlinked. Otherwise, it'll just be downlinked
+                directly.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>viaFlash</td>
+						<td>bool</td>
+						<td>
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    </td>
+					</tr>
 		</tr>
 	</tbody>
 </table>

@@ -200,11 +200,13 @@ namespace CubeRover
         //! Implementation for Downlink_Grid command handler
         void Downlink_Grid_cmdHandler(
             const FwOpcodeType opCode,
+            const U32 cmdSeq,           /*!< The command sequence number*/
             const bool viaFlash);
 
         //! Implementation for Downlink_Test_Sequence command handler
         void Downlink_Test_Sequence_cmdHandler(
             const FwOpcodeType opCode,
+            const U32 cmdSeq,           /*!< The command sequence number*/
             const bool viaFlash);
 
         // ----------------------------------------------------------------------
@@ -216,7 +218,7 @@ namespace CubeRover
         void triggerImageCapture(void);
         void eraseFpgaFlash(void);
         void sendImgFromFlash(uint32_t createTime);
-        void downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex);
+        void downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines);
 
         S25fl512l m_fpgaFlash;
 

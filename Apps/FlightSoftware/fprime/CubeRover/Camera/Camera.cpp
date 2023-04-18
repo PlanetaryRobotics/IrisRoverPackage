@@ -187,6 +187,7 @@ namespace CubeRover
   void CameraComponentImpl ::
       Downlink_Grid_cmdHandler(
           const FwOpcodeType opCode,
+          const U32 cmdSeq,           /*!< The command sequence number*/
           const bool viaFlash)
   {
     generateDummyImage(viaFlash, DummyImageType::GRID);
@@ -196,6 +197,7 @@ namespace CubeRover
   void CameraComponentImpl ::
       Downlink_Test_Sequence_cmdHandler(
           const FwOpcodeType opCode,
+          const U32 cmdSeq,           /*!< The command sequence number*/
           const bool viaFlash)
   {
     generateDummyImage(viaFlash, DummyImageType::SEQUENCE);

@@ -43,7 +43,24 @@
 | | | |cameraNum|U8|
                         Camera Number
                     |
-|Image_Dump|10 (0xa)|TBD| | |
+|Image_Dump|10 (0xa)|Dump (downlink) whatever is stored in the the camera flash rn 
+                without capturing a new image or writing anything to flash 
+                first.| | |
+|Downlink_Grid|11 (0xb)|Downlinks a test grid. If `viaFlash`, grid will be written to
+                flash then read from flash and downlinked. Otherwise, it'll
+                just be downlinked directly.| | |
+| | | |viaFlash|bool|
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    |
+|Downlink_Test_Sequence|12 (0xc)|Downlinks a test image where every 4B are an incrementing U32.
+                If `viaFlash`, grid will be written to flash then read from
+                flash and downlinked. Otherwise, it'll just be downlinked
+                directly.| | |
+| | | |viaFlash|bool|
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    |
 
 ## Telemetry Channel List
 

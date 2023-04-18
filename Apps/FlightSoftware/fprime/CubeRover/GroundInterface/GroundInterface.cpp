@@ -63,7 +63,7 @@ namespace CubeRover
     // sure it's applied consistently.
     static bool isQueueRoomForImageLine()
     {
-        return (getUdpTxDownlinkQueueRoom() >= 1);
+        return (getRadioTxDownlinkQueueRoom() >= 1);
     }
 
     // Shitty bodge to wait until the current packet is sent through the

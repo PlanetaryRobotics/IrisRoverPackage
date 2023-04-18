@@ -971,6 +971,48 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(camera_num=1, callback_id=0),
         DataPathway.WIRELESS
     ),
+    'take-image-1-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImage',
+        OrderedDict(camera_num=1, callback_id=0),
+        DataPathway.WIRELESS
+    ),
+    'image-dump-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_ImageDump',
+        OrderedDict(),
+        DataPathway.WIRELESS
+    ),
+    'image-grid-no-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkGrid',
+        OrderedDict(via_flash=False),
+        DataPathway.WIRELESS
+    ),
+    'image-grid-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkGrid',
+        OrderedDict(via_flash=True),
+        DataPathway.WIRELESS
+    ),
+    'image-seq-no-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkTestSequence',
+        OrderedDict(via_flash=False),
+        DataPathway.WIRELESS
+    ),
+    'image-seq-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkTestSequence',
+        OrderedDict(via_flash=True),
+        DataPathway.WIRELESS
+    ),
 
     'wd-echo-hi-watchdog': (
         DataPathway.WIRED,

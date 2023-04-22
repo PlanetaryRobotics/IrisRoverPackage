@@ -199,10 +199,10 @@ def parse_pcap(opts):
     cprint(
         (
             f"In {extract_time:.3f}s: "
-            f"Successfully loaded {len(all_payloads.TelemetryPayload)} telemetry payloads, "
-            f"{len(all_payloads.EventPayload)} event payloads, "
-            f"{len(all_payloads.FileBlockPayload)} file block payloads, "
-            f"and {len(all_payloads.CommandPayload)} command payloads "
+            f"Successfully loaded {len([*all_payloads.TelemetryPayload])} telemetry payloads, "
+            f"{len([*all_payloads.EventPayload])} event payloads, "
+            f"{len([*all_payloads.FileBlockPayload])} file block payloads, "
+            f"and {len([*all_payloads.CommandPayload])} command payloads "
             f"using {len(pcap_packets)} packets of {len(pcap)} packets in the pcap. "
             f"Of the used packets, a total of {failed_packet_count} were "
             "unrecognizably corrupted or not parsable as downlink packets and "
@@ -213,7 +213,7 @@ def parse_pcap(opts):
 
     if opts.cache_telem or opts.plot:
         raise DeprecationWarning(
-            "This functionality is (currently) no longer supported from parse_pcap."
+            "Telemetry caching and plotting functionality is (currently) no longer supported from parse_pcap."
         )
         # print("\t > Building telemetry streams from payloads . . .")
         # update_telemetry_streams_from_payloads(all_payloads, auto_cache=False)

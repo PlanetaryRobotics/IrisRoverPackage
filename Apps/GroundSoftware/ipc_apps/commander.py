@@ -629,9 +629,9 @@ def main(opts):
     manager = ipc.IpcAppManagerSync(socket_specs={
         PUB_SOCK_NAME: ipc.SocketSpec(
             sock_type=ipc.SocketType.PUBLISHER,
-            port=ipc.Port.TRANSCEIVER,
+            port=ipc.Port.TRANSCEIVER_UL,
             topics=[ipc.Topic.UL_PACKET],
-            bind=False  # XCVR / XCVR AGG will be the one that binds
+            bind=True  # App generating uplink data owns UL port.
         )
     })
 

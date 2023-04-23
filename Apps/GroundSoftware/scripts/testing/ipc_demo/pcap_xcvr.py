@@ -63,7 +63,7 @@ xcvr.begin()
 manager = ipc.IpcAppManagerSync(socket_specs={
     'pub': ipc.SocketSpec(
         sock_type=ipc.SocketType.PUBLISHER,
-        port=ipc.Port.TRANSCEIVER,
+        port=ipc.Port.TRANSCEIVER_DL,
         topics=[ipc.Topic.DL_PACKETS],
         bind=opts.bind
     )

@@ -21,7 +21,9 @@ class Port(Enum):
     """
 
     # (Remember: max port number is 0xFF49).
-    TRANSCEIVER = 0xF00D
+    TRANSCEIVER = 0xF00D  # legacy, use _DL and _UL in main apps now
+    TRANSCEIVER_DL = 0xF00E
+    TRANSCEIVER_UL = 0xF00F
     CODEC = 0xC0DE
     STORAGE = 0x5709
     REMOTEDB = 0xDA7A

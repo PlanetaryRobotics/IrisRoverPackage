@@ -50,7 +50,7 @@ def get_opts():
                             "Name of this App (can be configured to "
                             "accomplish different goals)."
                         ))
-    parser.add_argument('--log-level', type=str_to_log_level, default='VERBOSE',
+    parser.add_argument('-l', '--log-level', type=str_to_log_level, default='VERBOSE',
                         help=(
                             "Console logging level to be used (i.e. how "
                             "annoying the logging printouts should be). Only "
@@ -75,7 +75,10 @@ def get_opts():
                         help="Whether or not to print packet bytes.")
     parser.add_argument('--bind', default=False,
                         action=argparse.BooleanOptionalAction,
-                        help="Whether or not to bind the port.")
+                        help=(
+                            "Whether or not to bind the ports used."
+                            "Since this is just a listener, should be False."
+                        ))
     return parser.parse_args()
 
 
@@ -134,16 +137,13 @@ def packet_to_log_level(packet: IB3.codec.packet.Packet) -> Callable:
 
 # Setup the app:
 
-class Sub(ipc.SocketTopicHandlerAsync['Sub']):
-    """A demo Subscriber that only cares about 1 topic and ends everything
-    after it gets 10 messages."""
+class DownlinkSub(ipc.SocketTopicHandlerAsync['DownlinkSub']):
+    """Subscriber for downlinked packets."""
     _raise_on_unhandled_topics: ClassVar[bool] = False
     _require_unhandled_topic_handler: ClassVar[bool] = False
     # Decorator shorthand (also plays more nicely with syntax highlighting):
-    topic_handler = ipc.SocketTopicHandlerAsync['Sub'].TopicHandlerFactory()
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    topic_handler = \
+        ipc.SocketTopicHandlerAsync['DownlinkSub'].TopicHandlerFactory()
 
     @topic_handler
     async def downlink_handler(
@@ -188,6 +188,19 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
             log_func = packet_to_log_level(packet)
             log_func(log)
 
+    _topic_handlers: ClassVar[ipc.SocketTopicHandlerAsync.TopicHandlerRegistry] = {
+        ipc.Topic.DL_PACKETS: downlink_handler
+    }
+
+
+class UplinkSub(ipc.SocketTopicHandlerAsync['UplinkSub']):
+    """Subscriber for uplinked packets."""
+    _raise_on_unhandled_topics: ClassVar[bool] = False
+    _require_unhandled_topic_handler: ClassVar[bool] = False
+    # Decorator shorthand (also plays more nicely with syntax highlighting):
+    topic_handler = \
+        ipc.SocketTopicHandlerAsync['UplinkSub'].TopicHandlerFactory()
+
     @topic_handler
     async def uplink_handler(
         self,
@@ -207,17 +220,23 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
         )
 
     _topic_handlers: ClassVar[ipc.SocketTopicHandlerAsync.TopicHandlerRegistry] = {
-        ipc.Topic.DL_PACKETS: downlink_handler,
         ipc.Topic.UL_PACKET: uplink_handler
     }
 
 
 manager = ipc.IpcAppManagerAsync(socket_specs={
-    'sub': ipc.SocketSpec(
+    'downlink': ipc.SocketSpec(
         sock_type=ipc.SocketType.SUBSCRIBER,
-        port=ipc.Port.TRANSCEIVER,
-        topics=Sub.TOPICS(),
-        rx_handler=Sub(),
+        port=ipc.Port.TRANSCEIVER_DL,
+        topics=DownlinkSub.TOPICS(),
+        rx_handler=DownlinkSub(),
+        bind=opts.bind
+    ),
+    'uplink': ipc.SocketSpec(
+        sock_type=ipc.SocketType.SUBSCRIBER,
+        port=ipc.Port.TRANSCEIVER_UL,
+        topics=UplinkSub.TOPICS(),
+        rx_handler=UplinkSub(),
         bind=opts.bind
     )
 })

@@ -59,7 +59,7 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
 manager = IB3.ipc.IpcAppManagerAsync(socket_specs={
     'sub': IB3.ipc.SocketSpec(
         sock_type=IB3.ipc.SocketType.SUBSCRIBER,
-        port=IB3.ipc.Port.TRANSCEIVER,
+        port=IB3.ipc.Port.TRANSCEIVER_DL,
         topics=Sub.TOPICS(),
         rx_handler=Sub(),
         bind=True

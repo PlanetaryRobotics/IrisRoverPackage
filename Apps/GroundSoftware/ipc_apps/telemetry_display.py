@@ -173,7 +173,7 @@ def build_manager(
     manager = ipc.IpcAppManagerAsync(socket_specs={
         'sub': ipc.SocketSpec(
             sock_type=ipc.SocketType.SUBSCRIBER,
-            port=ipc.Port.TRANSCEIVER,
+            port=ipc.Port.TRANSCEIVER_DL,
             topics=Sub.TOPICS(),
             rx_handler=Sub(screen_redraw_queue),
             bind=False

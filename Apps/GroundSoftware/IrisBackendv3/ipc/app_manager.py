@@ -830,18 +830,31 @@ class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
         self,
         sock_name: str,
         msg: InterProcessMessage,
+        topics: Topic | List[Topic] | None = None,
         subtopic_bytes: bytes = b''
     ) -> None:
         """Synchronously sends to the socket with the given name using its
-        assigned topic (or all if no topic is assigned), optionally tagging the
-        message with the given subtopic."""
+        assigned topic(s) (or all topics on the Port if no topic is assigned),
+        unless a specific topic(s) is given, then the message is sent to that
+        topic.
+        The message is optionally tagged with the given subtopic."""
         socket = self.sockets[sock_name]
         specs = self.socket_specs[sock_name]
-        if len(specs.topics) == 0:
-            send_to(socket, msg, subtopic_bytes, None)
-        else:
-            for topic in specs.topics:
+
+        if topics is not None:
+            # Send to given topic(s):
+            if not isinstance(topics, list):
+                topics = [topics]
+            for topic in topics:
                 send_to(socket, msg, subtopic_bytes, topic)
+        else:
+            if len(specs.topics) == 0:
+                # Send to all topics on port:
+                send_to(socket, msg, subtopic_bytes, None)
+            else:
+                # Send to all topics assigned to this socket:
+                for topic in specs.topics:
+                    send_to(socket, msg, subtopic_bytes, topic)
 
     def read(self, sock_name: str) -> IpcPayload:
         """Synchronously reads from the socket with the given name."""

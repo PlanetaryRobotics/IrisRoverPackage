@@ -13,7 +13,11 @@ import argparse
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.transceiver.logging import logger_setConsoleLevel as xcvrLoggerLevel
-from IrisBackendv3.ipc.messages import DownlinkedPacketsMessage, DownlinkedPacketsContent
+from IrisBackendv3.ipc.messages import (
+    DownlinkedPacketsMessage, DownlinkedPacketsContent,
+    DownlinkedPayloadsMessage, DownlinkedPayloadsContent
+)
+
 
 IB3.init_from_latest()
 
@@ -64,7 +68,7 @@ manager = ipc.IpcAppManagerSync(socket_specs={
     'pub': ipc.SocketSpec(
         sock_type=ipc.SocketType.PUBLISHER,
         port=ipc.Port.TRANSCEIVER_DL,
-        topics=[ipc.Topic.DL_PACKETS],
+        topics=[ipc.Topic.DL_PACKETS, ipc.Topic.DL_PAYLOADS],
         bind=opts.bind
     )
 })
@@ -73,8 +77,18 @@ while len(packets := xcvr.read()) != 0:
     msg = DownlinkedPacketsMessage(DownlinkedPacketsContent(
         packets=packets
     ))
-    manager.send_to('pub', msg, b'pcap')
+    manager.send_to('pub', msg, ipc.Topic.DL_PACKETS, subtopic_bytes=b'pcap')
     app.logger.notice(
-        f"Sent {msg.content.simple_str()} "
-        f"-> {ipc.Topic.DL_PACKETS}"
+        f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PACKETS}"
+    )
+
+    payloads = packets[0].payloads
+    for packet in packets[1:]:
+        payloads.extend(packet.payloads)
+    msg = DownlinkedPayloadsMessage(DownlinkedPayloadsContent(
+        payloads=payloads
+    ))
+    manager.send_to('pub', msg, ipc.Topic.DL_PAYLOADS, subtopic_bytes=b'pcap')
+    app.logger.notice(
+        f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PAYLOADS}"
     )

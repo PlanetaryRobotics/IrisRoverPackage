@@ -66,9 +66,9 @@ namespace CubeRover
         return (getRadioTxDownlinkQueueRoom() >= 1);
     }
 
-    // Shitty bodge to wait until the current packet is sent through the
-    // NetworkInterface and there is room for another packet (used to prevent
-    // File downlinks from swamping the interface and dropping lines).
+
+    // Shitty bodge to wait until there's room in the queue for an image line
+    // (used to prevent File downlinks from swamping the interface and dropping lines).
     // Halts the idle thread that include normal GI servicing until this is
     // done. Big problem is GI is guarded so it also prevents other threads
     // from using it either. Generally this is just not the place to be doing
@@ -78,17 +78,43 @@ namespace CubeRover
     // `quitOnNetworkLoss` (so it doesn't halt forever - other important things
     // probably need to happen even in the idle task if network connectivity
     // is lost).
-    static void haltIdleUntilPacketDownlinkComplete(bool quitOnNetworkLoss = true)
+    static void haltIdleUntilRoomForImageLine(bool quitOnNetworkLoss = true)
     {
         // ! TODO: FIXME
-        // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
-        // ! (do this to avoid maxing out the radio Tx queue):
-        uint32_t startUdpTxCount = getRadioTxPacketCount();
-        while (startUdpTxCount == getRadioTxPacketCount() &&
-               !isQueueRoomForImageLine() &&
+        // !Forcibly halt the idle thread until ready
+        while (!isQueueRoomForImageLine() &&
                !(quitOnNetworkLoss && !isNetworkConnected()))
         {
-            vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10ms
+            vTaskDelay(5 / portTICK_PERIOD_MS); // Check back in 5 ms (scheduler frames)
+        }
+    }
+
+
+
+    // Shitty bodge to wait until the current packet is sent through the
+    // NetworkInterface and there is room for another packet (used to prevent
+    // File downlinks from swamping the interface and dropping lines).
+    // Halts the idle thread that include normal GI servicing until this is
+    // done. Big problem is GI is guarded so it also prevents other threads
+    // from using it either. Generally this is just not the place to be doing
+    // this but it works and that does the trick for now (RC8/9).
+    //
+    // `startUdpTxCount` is the count captured from `getRadioTxPacketCount`
+    // *right before* data was pushed to the NetworkInterface queue ("downlinked").
+    //
+    // Also aborts the wait if network connectivity is lost if
+    // `quitOnNetworkLoss` (so it doesn't halt forever - other important things
+    // probably need to happen even in the idle task if network connectivity
+    // is lost).
+    static void haltIdleUntilPacketDownlinkComplete(uint32_t startUdpTxCount, bool quitOnNetworkLoss = true)
+    {
+        // ! TODO: FIXME (this is a smelly approach to be taking)
+        // !Forcibly halt the idle thread until Wf121TxTask sends the packet (tx count goes up):
+        // ! (do this to avoid maxing out the radio Tx queue):
+        while (startUdpTxCount == getRadioTxPacketCount() &&
+               !(quitOnNetworkLoss && !isNetworkConnected()))
+        {
+            vTaskDelay(10 / portTICK_PERIOD_MS); // Check back in 10 ms (10 scheduler frames)
         }
     }
 
@@ -273,6 +299,7 @@ namespace CubeRover
 
         uint16_t fileGroupId = hashTime(fileGroupCreateTime);
 
+        uint32_t startUdpTxCount;
         uint8_t *downlinkBuffer = m_fileDownlinkBuffer[portNum];
         if (singleFileObjectSize <= m_downlink_objects_size)
         {
@@ -284,11 +311,21 @@ namespace CubeRover
             obj->header.blockNumber = 1;
             obj->header.length = static_cast<FswPacket::FileLength_t>(dataSize);
             memcpy(&obj->file.byte0, data, dataSize);
+
+
+            haltIdleUntilRoomForImageLine(); // Make sure there's room before sending anything
+            startUdpTxCount = getRadioTxPacketCount(); // grab count right before downlinking
             downlinkFileMetadata(fileGroupId, fileGroupLineNumber, fileGroupTotalLines, 1, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
+            flushTlmDownlinkBuffer(); // DOWNLINK METADATA PRIOR TO FILE DOWNLINK.
+            haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
+
+            haltIdleUntilRoomForImageLine(); // Make sure there's room before sending anything
+            startUdpTxCount = getRadioTxPacketCount(); // grab count right before downlinking
             downlinkBufferWrite(downlinkBuffer, static_cast<FswPacket::Length_t>(singleFileObjectSize), DownlinkFile);
-            m_appBytesDownlinked += singleFileObjectSize;
             flushTlmDownlinkBuffer(); // FLUSH BUFFER TO GET PACKET OUT
-            haltIdleUntilPacketDownlinkComplete();
+            haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
+
+            m_appBytesDownlinked += singleFileObjectSize;
         }
         else
         { // Send file fragments
@@ -296,8 +333,13 @@ namespace CubeRover
             int numBlocks = static_cast<int>(dataSize) / (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader));
             if (static_cast<int>(dataSize) % (m_downlink_objects_size - sizeof(struct FswPacket::FswFileHeader)) > 0)
                 numBlocks++;
+
+            haltIdleUntilRoomForImageLine(); // Make sure there's room before sending anything
+            startUdpTxCount = getRadioTxPacketCount(); // grab count right before downlinking
             downlinkFileMetadata(fileGroupId, fileGroupLineNumber, fileGroupTotalLines, numBlocks, static_cast<uint16_t>(callbackId), static_cast<uint32_t>(fileGroupCreateTime));
             flushTlmDownlinkBuffer(); // DOWNLINK METADATA PRIOR TO FILE DOWNLINK.
+            haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
+
             int readStride = static_cast<int>(dataSize) / numBlocks;
             struct FswPacket::FswPacket *packet = reinterpret_cast<struct FswPacket::FswPacket *>(downlinkBuffer);
             for (int blockNum = 1; blockNum <= numBlocks; ++blockNum)
@@ -316,9 +358,12 @@ namespace CubeRover
                     memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                     FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
                     log_DIAGNOSTIC_GI_DownlinkedItem(m_downlinkSeq, DownlinkFile);
+
+                    haltIdleUntilRoomForImageLine(); // Make sure there's room before sending anything
+                    startUdpTxCount = getRadioTxPacketCount(); // grab count right before downlinking
                     downlink(downlinkBuffer, datagramLength);
+                    haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
                     data += blockLength;
-                    haltIdleUntilPacketDownlinkComplete();
                 }
                 else
                 { // Final Fragment is written to the member buffer to downlink with other objects
@@ -326,8 +371,12 @@ namespace CubeRover
                     blockLength = static_cast<FswPacket::FileLength_t>(dataSize);
                     packet->payload0.file.header.length = blockLength;
                     memcpy(&packet->payload0.file.file.byte0, data, blockLength);
+
+                    haltIdleUntilRoomForImageLine(); // Make sure there's room before sending anything
+                    startUdpTxCount = getRadioTxPacketCount(); // grab count right before downlinking
                     downlinkBufferWrite(&packet->payload0.file, sizeof(struct FswPacket::FswFileHeader) + blockLength, DownlinkFile);
                     flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
+                    haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
                 }
                 m_appBytesDownlinked += blockLength;
             }

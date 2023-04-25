@@ -37,6 +37,24 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                 ),
                 **kwargs
             )
+        case 'PCAP-RC9.5.3-2MIN-IMU':  # 2 Minutes of RC9.5.3 telem w/ IMU movement
+            default_kwargs = dict(
+                fixed_period_ms=588,  # avg. period (204 packets in 120s)
+                loop=True,  # loop this to provide unlimited sample telem
+                endecs=[UnityEndec()]
+            )
+            kwargs = {**default_kwargs, **kwargs}
+            return PcapTransceiver(
+                PcapParseOpts(
+                    pcap_file='./test-data/telem_rc9_9.5.3_200packets_w_IMU.pcap',
+                    filter_port='any',
+                    filter_protocol=None,
+                    packetgap=kwargs.get('packetgap', 0),
+                    deadspace=kwargs.get('deadspace', 0),
+                    logging_level='INFO'
+                ),
+                **kwargs
+            )
         case 'IMG-GRID-500':
             default_kwargs = dict(
                 fixed_period_ms=200,
@@ -56,7 +74,8 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                     # pcap_file='./test-data/____real_img_via_flash_cam0.pcap',  # !! real image ( but shitty - maybe bad camera)
                     # pcap_file='./test-data/____real_img_via_flash_cam1.pcap', # !! real image
                     # pcap_file='./test-data/____real_img_via_flash_post_img_grid_test_to_test_clear.pcap',  # !! real image
-                    pcap_file='./test-data/____real_img_of_real_grid_cam1_w_herc_mon_on.pcap',  # !! real image of real grid
+                    # !! real image of real grid
+                    pcap_file='./test-data/____real_img_of_real_grid_cam1_w_herc_mon_on.pcap',
                     filter_port='any',
                     filter_protocol=None,
                     packetgap=kwargs.get('packetgap', 0),

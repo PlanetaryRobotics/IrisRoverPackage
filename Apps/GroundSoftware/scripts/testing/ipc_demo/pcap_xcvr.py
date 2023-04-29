@@ -31,11 +31,11 @@ parser = argparse.ArgumentParser(description=(
 
 def get_opts():
     parser.add_argument('-x', '--prebuilt-xcvr-name', type=str,
-                        default='PCAP-18H',
+                        default='PCAP-RC9.5.3-2MIN-IMU',
                         help='Name of the prebuilt Transceiver to use.')
     parser.add_argument('-t', '--period-ms', type=float, default=1000,
                         help='Period between packets in ms.')
-    parser.add_argument('-g', '--packet-gap', type=int, default=37000,
+    parser.add_argument('-g', '--packet-gap', type=int, default=0,
                         help=(
                             'Number of packets at the start of the pcap to '
                             'skip before reading.'

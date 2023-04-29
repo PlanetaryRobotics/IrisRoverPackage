@@ -31,7 +31,7 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                     pcap_file='./test-data/Iris_210503_18_hours_of_telem.pcap',
                     filter_port='any',
                     filter_protocol=None,
-                    packetgap=kwargs.get('packetgap', 0),
+                    packetgap=kwargs.get('packetgap', 37000),
                     deadspace=kwargs.get('deadspace', 0),
                     logging_level='INFO'
                 ),

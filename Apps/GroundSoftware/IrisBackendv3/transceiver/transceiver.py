@@ -23,6 +23,7 @@ from typing import Optional, Awaitable, List, Type
 from abc import ABC, abstractmethod, abstractclassmethod, abstractproperty
 from datetime import datetime
 import scapy.all as scp  # type: ignore # no type hints
+import traceback
 import asyncio
 
 from IrisBackendv3.transceiver.logging import logger
@@ -252,9 +253,11 @@ class Transceiver(ABC):
                         f"The TransceiverDecodingException was: `{tde}`."
                     )
         except Exception as e:
+            trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
                 "An otherwise unresolved error occurred during packet "
-                f"processing: {e}"
+                f"processing: {e}. "
+                f"The trace was:\n{trace}."
             )
 
         # Returns all packets successfully retrieved:
@@ -265,9 +268,11 @@ class Transceiver(ABC):
         try:
             byte_packets = await self._async_downlink_byte_packets()
         except Exception as e:
+            trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
                 "An otherwise unresolved error occurred during packet "
-                f"streaming: {e}"
+                f"streaming: {e}. "
+                f"The trace was:\n{trace}."
             )
             # Nothing to process, just return empty:
             return []
@@ -279,9 +284,11 @@ class Transceiver(ABC):
         try:
             byte_packets = self._downlink_byte_packets()
         except Exception as e:
+            trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
                 "An otherwise unresolved error occurred during packet "
-                f"streaming: {e}"
+                f"streaming: {e}. "
+                f"The trace was:\n{trace}."
             )
             # Nothing to process, just return empty:
             return []

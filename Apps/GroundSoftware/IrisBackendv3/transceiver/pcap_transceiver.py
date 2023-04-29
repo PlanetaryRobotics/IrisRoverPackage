@@ -14,6 +14,7 @@ import asyncio
 import scapy.all as scp  # type: ignore
 from time import time
 import logging
+from collections import OrderedDict
 
 from IrisBackendv3.transceiver.transceiver import Transceiver
 from IrisBackendv3.transceiver.endec import Endec, SlipEndec
@@ -51,6 +52,9 @@ def load_pcap(opts: PcapParseOpts) -> List[bytes]:
     """
     extracted_packet_bytes: List[bytes] = []
 
+    # Packet counts at various stages for diagnostics:
+    diag_packet_counts: OrderedDict[str, int] = OrderedDict()
+
     # if debugging_mode := True:
     #     cprint("WARNING. ARGS ARE BEING MODIFIED BECAUSE DEBUG MODE IS ACTIVE", 'red')
     #     opts.pcap_file = './test-data/Iris_Image_Downlink_201223-ImageDLTest_FixedLens.pcapng'
@@ -73,31 +77,48 @@ def load_pcap(opts: PcapParseOpts) -> List[bytes]:
         "\t > Opening pcap . . ."
     )
     pcap = scp.rdpcap(opts.pcap_file)
-
+    diag_packet_counts['Packets in PCAP'] = len(pcap)
     logger.log(
         log_level,
         f"\t > Found {len(pcap)} packets in pcap."
     )
+
     if opts.filter_protocol is not None:
         pcap_usable = pcap[opts.filter_protocol]
     else:
         pcap_usable = pcap
+    diag_packet_counts['Matching protocol filter'] = len(pcap_usable)
+
     pcap_packets = list(pcap_usable[opts.packetgap:])
+    diag_packet_counts['After applying packetgap'] = len(pcap_packets)
+
     # Exclude any packets containing any of the exclusion layers:
     pcap_packets = [
         p for p in pcap_packets
         if len(set(opts.exclude_packets_with_layers) & set(p.layers())) == 0
     ]
+    diag_packet_counts['Excluding packets banned layers'] = len(pcap_packets)
 
     if isinstance(opts.filter_port, int):
         pcap_packets = list(
             filter(lambda x: x.dport == opts.filter_port, pcap_packets)
         )
+    diag_packet_counts['After applying port filter'] = len(pcap_packets)
 
     logger.log(
         log_level,
         f"\t > Found {len(pcap_packets)} packets matching filter criteria."
     )
+    diag_packet_counts['Matching all filter criteria'] = len(pcap_packets)
+
+    if len(pcap_packets) == 0:
+        n_packets_str = '\n'.join(
+            f'\t\t>> {k}:\t {v}' for k, v in diag_packet_counts.items()
+        )
+        logger.error(
+            "\t > Found NO packets matching filter criteria. "
+            f"Packet counts at each stage:\n{n_packets_str}."
+        )
 
     # Parse packets in pcap:
     logger.log(
@@ -105,9 +126,15 @@ def load_pcap(opts: PcapParseOpts) -> List[bytes]:
         "\t > Extracting packets . . ."
     )
     extract_start: float = time()
+    empty_packet_count: int = 0
     failed_packet_count: int = 0
     for i, pcap_packet in enumerate(pcap_packets):
         try:
+            if pcap_packet.getlayer(scp.Raw) is None:
+                # Skip this packet if it doesn't contain any Raw data (example
+                # ARP that made it through the filter). Safety.
+                empty_packet_count += 1
+                continue
             packet_bytes = scp.raw(pcap_packet.getlayer(scp.Raw))[
                 opts.deadspace:]
         except Exception as e:
@@ -137,7 +164,7 @@ def load_pcap(opts: PcapParseOpts) -> List[bytes]:
         f"Successfully loaded {len(extracted_packet_bytes)} raw packets "
         f"out of {len(pcap)} total packets in the pcap. "
         f"Of the used packets, a total of {failed_packet_count} were "
-        "unloadable."
+        f"unloadable and {empty_packet_count} were empty (no `Raw` layer)."
     )
 
     # Return results:

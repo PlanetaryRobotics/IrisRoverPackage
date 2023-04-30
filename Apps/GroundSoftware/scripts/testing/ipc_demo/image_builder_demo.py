@@ -4,7 +4,7 @@ Starting implementation of an IPC file builder.
 Run the Transceiver TopicProxy in a separate terminal before running this
 script and keep it running for the duration of this script:
 ```
-./run-script.sh IrisBackendv3/ipc/topic_proxy.py -i TRANSCEIVER_PUB -o TRANSCEIVER_SUB
+make proxies
 ```
 
 Also run a Transceiver to supply packets (e.g. PcapTransceiver).

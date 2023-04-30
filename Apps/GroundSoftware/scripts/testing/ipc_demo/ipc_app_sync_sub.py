@@ -5,7 +5,7 @@ This demo is designed to be run alongside `ipc_sync_pub.py`.
 Run the Transceiver TopicProxy in a separate terminal before running this
 script and keep it running for the duration of this script:
 ```
-./run-script.sh IrisBackendv3/ipc/topic_proxy.py -i TRANSCEIVER_PUB -o TRANSCEIVER_SUB
+make proxies
 ```
 
 @author: Connor W. Colombo (CMU)

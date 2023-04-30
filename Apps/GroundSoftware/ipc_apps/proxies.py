@@ -11,6 +11,8 @@ from multiprocessing import Process, current_process
 
 import IrisBackendv3.ipc as ipc
 
+app = ipc.IpcAppHelper("Proxies")
+
 # List of all (pub,sub) port tuples to make into proxies:
 PROXY_PORTS: Final[List[Tuple[ipc.Port, ipc.Port]]] = [
     (ipc.Port.TRANSCEIVER_PUB, ipc.Port.TRANSCEIVER_SUB),
@@ -34,7 +36,7 @@ def start_proxy(
     return True
 
 
-def main():
+def main() -> None:
     processes = []
 
     for port_tuple in PROXY_PORTS:
@@ -44,8 +46,6 @@ def main():
 
     for p in processes:
         p.join()
-
-    return True
 
 
 if __name__ == "__main__":

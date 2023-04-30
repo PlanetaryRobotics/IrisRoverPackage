@@ -257,6 +257,7 @@
         "srcs",
         "startcol",
         "startrow",
+        "statelessly",
         "statusing",
         "STHA",
         "stralign",
@@ -309,6 +310,10 @@
         "xcvr",
         "XDMCP",
         "xprop",
+        "XPUB",
+        "XPUBLISHER",
+        "XSUB",
+        "XSUBSCRIBER",
         "yamcs",
         "Yeet",
         "zstyle"

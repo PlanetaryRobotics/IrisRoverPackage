@@ -22,6 +22,8 @@ class Port(Enum):
 
     # (Remember: max port number is 0xFF49).
     TRANSCEIVER = 0xF00D  # legacy, use _DL and _UL in main apps now
+    TRANSCEIVER_PUB = 0xF00B  # Transceiver Proxy inbound port (for Pubs)
+    TRANSCEIVER_SUB = 0xF00C  # Transceiver Proxy outbound port (for Subs)
     TRANSCEIVER_DL = 0xF00E
     TRANSCEIVER_UL = 0xF00F
     CODEC = 0xC0DE

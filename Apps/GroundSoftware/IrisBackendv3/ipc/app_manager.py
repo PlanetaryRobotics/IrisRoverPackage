@@ -6,7 +6,7 @@ At this level, all IPC interface operations have been abstracted. For the
 low-level IPC interface and implementation, see `wrapper.py`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/10/2023
+@last-updated: 04/23/2023
 
 #! NOTE: Many of the example docstrings in here are out of date. Updating soon.
 
@@ -541,7 +541,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
     def __del__(self):
         """Close everything on destruction."""
         # Close sockets:
-        print("Closing IPC socket and context . . .")
+        logger.notice("Closing App's IPC socket(s) and context . . .")
         for socket in self.sockets.values():
             socket.close()
         # Close context (waiting for all sockets to close first):
@@ -563,7 +563,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
 
         # Subscribe to topics if the spec details topics
         # (and we can subscribe):
-        if spec.topics is not None and spec.sock_type == SocketType.SUBSCRIBER:
+        if spec.topics is not None and spec.sock_type._can_subscribe:
             logger.verbose(f'Subscribing `{name}` to: {spec.topics} . . .')
             subscribe(self.sockets[name], spec.topics)
 
@@ -910,7 +910,7 @@ class IpcAppHelper:
         """
         self.name = name
         # Set the name in IPC settings:
-        settings['app_name'] = "PacketPrinter"
+        settings['app_name'] = name
         # Build the logger:
         logger_build = create_app_logger()
         self.logger, self._setLogLevel, self._setFileLogLevel = logger_build

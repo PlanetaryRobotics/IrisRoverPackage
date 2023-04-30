@@ -11,7 +11,7 @@ being used for IPC. That is, if we ever decide to migrate away from ZMQ for IPC,
 the only area that should **need** to be changed would be this file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 04/23/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
@@ -35,19 +35,31 @@ class SocketType(Enum):
     """
     Enumerates all possible socket types.
     """
-    SERVER = 0x00, zmq.REP
-    CLIENT = 0x01, zmq.REQ
-    PUBLISHER = 0x02, zmq.PUB
-    SUBSCRIBER = 0x03, zmq.SUB
+    SERVER = 0x00, zmq.REP, False, False
+    CLIENT = 0x01, zmq.REQ, True, False
+    PUBLISHER = 0x02, zmq.PUB, False, False
+    SUBSCRIBER = 0x03, zmq.SUB, True, True
+    XPUBLISHER = 0x12, zmq.XPUB, False, False
+    XSUBSCRIBER = 0x13, zmq.XSUB, True, True
 
     # Instance attributes for type-checker:
     _zmq_type: int
+    _multiple_ports_allowed: bool
+    _can_subscribe: bool
 
-    def __new__(cls, val: int, zmq_type: int):
+    def __new__(
+        cls,
+        val: int,
+        zmq_type: int,
+        multiple_ports_allowed: bool,
+        can_subscribe: bool
+    ):
         """Constructs a new instance of the Enum."""
         obj = object.__new__(cls)
         obj._value_ = val
         obj._zmq_type = zmq_type
+        obj._multiple_ports_allowed = multiple_ports_allowed
+        obj._can_subscribe = can_subscribe
 
         return obj
 
@@ -95,21 +107,28 @@ def _create_socket(
             f"instead got: `{ports}` of type `{type(ports)}`."
         )
 
-    # Create socket:
-    socket = context.socket(socket_type._zmq_type)
-
     # Make sure socket type is on whitelist of socket types we support
     # (types we've tested this setup with):
     if socket_type not in (whitelist := [
             SocketType.SERVER,
             SocketType.PUBLISHER,
+            SocketType.XPUBLISHER,
             SocketType.CLIENT,
-            SocketType.SUBSCRIBER
+            SocketType.SUBSCRIBER,
+            SocketType.XSUBSCRIBER
     ]):
         logger.error(
             "ValueError: "
             f"Unsupported/unimplemented `{socket_type=}`."
         )
+
+    # Create socket:
+    socket = context.socket(socket_type._zmq_type)
+
+    # Make XPUB sockets verbose so subscription notification forwarding occurs
+    # for use in proxies (the only place we use XPUBs):
+    if socket_type == SocketType.XPUBLISHER:
+        socket.setsockopt(zmq.XPUB_VERBOSE, True)
 
     # Determine appropriate binding approach:
     if bind is None:
@@ -117,8 +136,10 @@ def _create_socket(
         bind = {
             SocketType.SERVER: True,
             SocketType.PUBLISHER: True,
+            SocketType.XPUBLISHER: True,
             SocketType.CLIENT: False,
-            SocketType.SUBSCRIBER: False
+            SocketType.SUBSCRIBER: False,
+            SocketType.XSUBSCRIBER: False
         }[socket_type]
         logger.verbose(
             f"Using default binding scheme (`{bind=}`) for `{socket_type=}`."
@@ -149,10 +170,7 @@ def _create_socket(
         # If we're not binding, then we're connecting:
         # Make sure that we're not connecting to multiple ports if this is a
         # server, publisher, etc where that's not allowed on a single socket:
-        if len(ports) > 1 and socket_type in [
-            SocketType.SERVER,
-            SocketType.PUBLISHER
-        ]:
+        if len(ports) > 1 and not socket_type._multiple_ports_allowed:
             logger.warn(
                 f"Socket with `{socket_type=}` given multiple ports in "
                 f"`_create_socket` (`{ports=}`) but exactly 1 should be given."
@@ -218,30 +236,48 @@ def create_async_socket(
     return cast(AsyncSocket, _create_socket(context, socket_type, ports, bind))
 
 
-def subscribe(socket: Union[Socket, AsyncSocket], topics: Union[Topic, List[Topic]]) -> None:
+def subscribe(
+    socket: Socket | AsyncSocket,
+    topics: Topic | List[Topic] | None,
+) -> None:
     """
     Subscribes the given socket to the given topic(s).
+    Subscribes to all topics on the port (removes any filters) if
+    `topics is None`.
     """
-    if socket.socket_type != SocketType.SUBSCRIBER._zmq_type:
+    sub_whitelist = [st for st in SocketType if st._can_subscribe]
+    if socket.socket_type not in [st._zmq_type for st in sub_whitelist]:
         logger.error(
             "ValueError: "
             f"Attempted to subscribe to topic(s) `{topics}` using a socket "
             f"with invalid type ({socket.socket_type}). "
-            f"Only sockets with type {SocketType.SUBSCRIBER} can subscribe to a topic."
+            f"Only sockets with types `{sub_whitelist}` can subscribe to a "
+            f"topic."
         )
 
-    if isinstance(topics, Topic):
-        topics = [topics]
-    elif not (isinstance(topics, list) and all(isinstance(t, Topic) for t in topics)):
-        logger.error(
-            "TypeError: "
-            "`topics` must be a `Topic` or a `list` containing only `Topic`s. "
-            f"instead got: `{topics}` of type `{type(topics)}`."
-        )
+    if topics is None:
+        # Subscribe to all topics (remove any topic filters):
+        socket.setsockopt(zmq.SUBSCRIBE, b'')
+        socket.subscribe(b'')
+    else:
+        if isinstance(topics, Topic):
+            topics = [topics]
+        elif not (isinstance(topics, list) and all(isinstance(t, Topic) for t in topics)):
+            logger.error(
+                "TypeError: "
+                "`topics` must be a `Topic` or a `list` containing only `Topic`s. "
+                f"instead got: `{topics}` of type `{type(topics)}`."
+            )
 
-    for topic in topics:
-        socket.setsockopt(zmq.SUBSCRIBE, topic.value)
-        socket.subscribe(topic.value)
+        for topic in topics:
+            socket.setsockopt(zmq.SUBSCRIBE, topic.value)
+            socket.subscribe(topic.value)
+
+
+def start_proxy(inbound: Socket, outbound: Socket) -> None:
+    """Starts a blocking proxy between the inbound and outbound sockets.
+    Simple wrapper for ZMQ proxy."""
+    zmq.proxy(inbound, outbound)
 
 
 def _prep_send_payload(

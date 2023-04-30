@@ -5,7 +5,7 @@ Also serves as a demo/test of one of the simplest possible real-world IPC Apps
 that use `IpcAppManagerAsync` involving additional tasks outside of a
 manager (and inter-task communication).
 
-Last Updated: 03/09/2023
+Last Updated: 04/30/2023
 """
 import asyncio
 import argparse
@@ -22,7 +22,8 @@ if __name__ == "__main__":
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import (
-    DownlinkedPacketsMessage
+    DownlinkedPacketsMessage,
+    DownlinkedPayloadsMessage
 )
 
 from IrisBackendv3.utils import console_display
@@ -52,6 +53,8 @@ class RedrawScreenRequest:
     # If this update is triggered from packets being received, packets will contain this list.
     # If this update is just because the screen needs to be redrawn, `packets is None`.
     packets: List[IB3.codec.packet.Packet] | None = None
+    # If this update is triggered by payloads being received, payloads will contain a list:
+    payloads: IB3.codec.payload_collection.EnhancedPayloadCollection | None = None
 
 
 async def screen_updater(queue: asyncio.Queue[RedrawScreenRequest]) -> None:
@@ -76,8 +79,7 @@ async def screen_updater(queue: asyncio.Queue[RedrawScreenRequest]) -> None:
         # Wait for a new update request:
         request = await queue.get()
 
-        # If this request has passed us packets to use to update the dataframes,
-        # update the dataframes:
+        # If this request has passed us packets, update the packet dataframe:
         if request.packets is not None:
             # Add packet data to dataframes:
             for packet in request.packets:
@@ -85,10 +87,12 @@ async def screen_updater(queue: asyncio.Queue[RedrawScreenRequest]) -> None:
                     packet_log_dataframe,
                     packet
                 )
-                telemetry_payload_log_dataframe = console_display.update_telemetry_payload_log_from_packet(
-                    telemetry_payload_log_dataframe,
-                    packet
-                )
+        # If this request has passed us payloads, update the payload dataframe:
+        if request.payloads is not None:
+            telemetry_payload_log_dataframe = console_display.update_telemetry_payload_log_from_payloads(
+                telemetry_payload_log_dataframe,
+                request.payloads
+            )
 
         # Update the timestamps no matter what:
         console_display.update_all_packet_log_times(
@@ -150,7 +154,7 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
         super().__init__(*args, **kwargs)
 
     @topic_handler
-    async def downlink_handler(
+    async def dl_packet_handler(
         self,
         manager: ipc.IpcAppManagerAsync,
         payload: ipc.IpcPayload
@@ -159,11 +163,25 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
         msg = ipc.guard_msg(payload.message, DownlinkedPacketsMessage)
         # Push the packets to the screen update queue:
         self.screen_redraw_queue.put_nowait(
-            RedrawScreenRequest(msg.content.packets)
+            RedrawScreenRequest(packets=msg.content.packets)
+        )
+
+    @topic_handler
+    async def dl_payload_handler(
+        self,
+        manager: ipc.IpcAppManagerAsync,
+        payload: ipc.IpcPayload
+    ) -> None:
+        # Decode the message:
+        msg = ipc.guard_msg(payload.message, DownlinkedPayloadsMessage)
+        # Push the packets to the screen update queue:
+        self.screen_redraw_queue.put_nowait(
+            RedrawScreenRequest(payloads=msg.content.payloads)
         )
 
     _topic_handlers: ClassVar[ipc.SocketTopicHandlerAsync.TopicHandlerRegistry] = {
-        ipc.Topic.DL_PACKETS: downlink_handler
+        ipc.Topic.DL_PACKETS: dl_packet_handler,
+        ipc.Topic.DL_PAYLOADS: dl_payload_handler
     }
 
 
@@ -181,7 +199,7 @@ def build_manager(
     return manager
 
 
-async def main(opts):
+async def main(opts) -> None:
     screen_redraw_queue: asyncio.Queue[RedrawScreenRequest] = asyncio.Queue()
 
     manager = build_manager(screen_redraw_queue)

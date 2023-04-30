@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests standards build-docs run-docs build-cte commander console xconsole console-debug xconsole-debug xterm-normal xterm-wide cloc
+.PHONY = help init update clean run run-tests proxies standards build-docs run-docs build-cte commander console xconsole console-debug xconsole-debug xterm-normal xterm-wide cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -21,6 +21,8 @@ help:
 	@echo "	make run: Rebuild DataStandards and bring up all core IPC Apps"
 	@echo " "
 	@echo "	make run-tests: Run all test suites and produce coverage report"
+	@echo " "
+	@echo "	make proxies: Bring up all topic proxies for all IPC apps."
 	@echo " "
 	@echo "	make standards: Rebuild DataStandards and cache them"
 	@echo " "
@@ -105,7 +107,11 @@ clean:
 run:
 # Rebuild latest datastandards first so every app has access via cache:
 	make standards
-
+# Bring up proxies (hide this window at the back of the stack):
+	make xterm-normal \
+		GEOM="50x25+0+0" \
+		PROG="make proxies"
+# Bring up visualizers:
 	make xterm-normal \
 		GEOM="185x63+0+0" \
 		PROG="./run-script.sh ipc_apps/telemetry_display.py"
@@ -115,7 +121,10 @@ run:
 	make xterm-normal \
 		GEOM="73x73+1000+0" \
 		PROG="./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"
-#	./run-script.sh ./ipc-apps/packet-printer.py
+# Bring up commander:
+	make xterm-normal \
+		GEOM="185x63+0+0" \
+		PROG="make commander"
 
 ####
 # Run all test suites:
@@ -123,6 +132,13 @@ run:
 run-tests:
 # Run all Pytest Tests, Docstrings, and check for coverage in IrisBackendv3:
 	./run-script.sh -m pytest --cov=IrisBackendv3
+
+####
+# Bring up all topic proxies for all IPC apps.
+####
+proxies:
+# Run all Pytest Tests, Docstrings, and check for coverage in IrisBackendv3:
+	./run-script.sh ./ipc_apps/proxies.py
 
 ####
 # Rebuild DataStandards and cache them:

@@ -52,7 +52,7 @@ parser = argparse.ArgumentParser(description=(
 
 
 def get_opts():
-    parser.add_argument('-n', '--name', type=str, default="TelemetryDisplay",
+    parser.add_argument('-n', '--name', type=str, default="Commander",
                         help=(
                             "Name of this App (can be configured to "
                             "accomplish different goals)."

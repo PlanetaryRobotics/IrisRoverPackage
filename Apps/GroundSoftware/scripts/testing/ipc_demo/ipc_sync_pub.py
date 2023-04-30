@@ -6,8 +6,14 @@ This demo uses a reverse topology where the **sub** binds the port and listens
 to 1 or more pubs but can be switched by flipping the `bind` variable in each
 demo.
 
+Run the Transceiver TopicProxy in a separate terminal before running this
+script and keep it running for the duration of this script:
+```
+./run-script.sh IrisBackendv3/ipc/topic_proxy.py -i TRANSCEIVER_PUB -o TRANSCEIVER_SUB
+```
+
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 04/29/2023
 """
 import time
 import IrisBackendv3 as IB3
@@ -21,10 +27,7 @@ IB3.init_from_latest()
 # Load data:
 xcvrLoggerLevel('NOTICE')
 xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
-    'PCAP-18H',
-    packetgap=37000,  # skip first 37000 packets (of 37644)
-    fixed_period_ms=10,
-    loop=False,
+    'PCAP-RC9.5.3-2MIN-IMU',
     log_on_receive=False
 )
 xcvr.begin()
@@ -36,8 +39,7 @@ context = IB3.ipc.create_context()
 socket = IB3.ipc.create_socket(
     context,
     IB3.ipc.SocketType.PUBLISHER,
-    IB3.ipc.Port.TRANSCEIVER,
-    bind=False
+    IB3.ipc.Port.TRANSCEIVER_PUB
 )
 
 # Wait for sub to connect:

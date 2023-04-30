@@ -1,14 +1,15 @@
 """Subscriber/Publisher Proxy which allows N publishers to connect to N 
 subscribers (without having to worry about the discovery or binding problems).
 
-This proxy binds to both the subscriber and publisher ports and forwards
-statelessly messages and subscription notices between them. This follows the
-XPUB-XSUB topology found here: 
+This proxy binds to both the subscriber and publisher ports and statelessly
+forwards messages and un/subscription notices between them. This follows the
+XPUB-XSUB topology found here:
 https://netmq.readthedocs.io/en/latest/xpub-xsub/.
 
 @author: Connor W. Colombo (CMU)
 @last-updated: 04/29/2023
 """
+import socket
 import atexit
 import argparse
 from typing import List
@@ -24,6 +25,8 @@ from IrisBackendv3.ipc.logs import logger
 
 
 class TopicProxy:
+    inbound_port: Port
+    outbound_port: Port
     context: Context
     inbound_socket: Socket
     outbound_socket: Socket
@@ -31,14 +34,19 @@ class TopicProxy:
     def __init__(
         self,
         inbound_port: Port,
-        outbound_port: Port,
-        topics: Topic | List[Topic] | None = None
+        outbound_port: Port
     ) -> None:
         """Binds and subscribes to `inbound_port` and forwards (publishes)
-        all messages to `outbound_port` (also bound). Only forwards messages
-        from topic in `topics`, unless `topics` is None, in which case messages
-        from all `topics` are forwarded.
+        all messages to `outbound_port` (also bound). Forwards messages
+        from all `topics`.
         """
+        logger.verbose(
+            f"Creating `TopicProxy` with: "
+            f"`{inbound_port=}`, `{outbound_port=}`."
+        )
+        self.inbound_port = inbound_port
+        self.outbound_port = outbound_port
+
         self.context = create_context()
         self.inbound_socket = create_socket(
             self.context,
@@ -46,13 +54,17 @@ class TopicProxy:
             ports=inbound_port,
             bind=True
         )
-        subscribe(self.inbound_socket, topics)
         self.outbound_socket = create_socket(
             self.context,
             SocketType.XPUBLISHER,
             ports=outbound_port,
             bind=True
         )
+
+        # Log address (for connections to network over MiLAN):
+        hostname = socket.gethostname()
+        addr = socket.gethostbyname(hostname)
+        logger.info(f"Created {self} at [{hostname}]({addr}).")
 
         # Register to make sure `__del__` gets called when program exits:
         # (via interrupt or actual close)
@@ -61,7 +73,7 @@ class TopicProxy:
     def __del__(self):
         """Close everything on destruction."""
         # Close sockets:
-        # logger.notice("Closing Proxy's IPC sockets and context . . .")
+        logger.notice("Closing Proxy's IPC sockets and context . . .")
         self.inbound_socket.close()
         self.outbound_socket.close()
         # Close context (waiting for all sockets to close first):
@@ -69,7 +81,16 @@ class TopicProxy:
         # Unregister from program exit handler:
         atexit.unregister(self.__del__)
 
+    def __str__(self) -> str:
+        return (
+            f"{self.__class__.__name__}["
+            f"{self.inbound_port}({self.inbound_port.value}=0x{self.inbound_port.value:04X}) "
+            f"-> {self.outbound_port}({self.outbound_port.value}=0x{self.outbound_port.value:04X})"
+            "]"
+        )
+
     def run(self) -> None:
+        logger.notice(f"Starting {self} . . .")
         start_proxy(self.inbound_socket, self.outbound_socket)
 
 
@@ -90,21 +111,11 @@ if __name__ == "__main__":
                         type=str, required=True, choices=port_names,
                         help='Outbound port (for subscribers).')
 
-    topic_names = [t.name for t in Topic]
-    parser.add_argument('-t', '--topics', required=False, choices=topic_names,
-                        nargs='*', default=[],
-                        help=(
-                            "Topics to forward."
-                            "If none given, all topics will be forwarded."
-                        ))
     opts = parser.parse_args()
 
-    # Start Proxy:
-    topics = None if len(opts.topics) == 0 else [Topic[t] for t in opts.topics]
-    # logger.
+    # Create & Start Proxy:
     proxy = TopicProxy(
         inbound_port=Port[opts.inbound_pub_port],
         outbound_port=Port[opts.outbound_sub_port],
-        topics=topics
     )
     proxy.run()

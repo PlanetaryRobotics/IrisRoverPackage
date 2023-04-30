@@ -40,7 +40,7 @@ class SocketType(Enum):
     PUBLISHER = 0x02, zmq.PUB, False, False
     SUBSCRIBER = 0x03, zmq.SUB, True, True
     XPUBLISHER = 0x12, zmq.XPUB, False, False
-    XSUBSCRIBER = 0x13, zmq.XSUB, True, True
+    XSUBSCRIBER = 0x13, zmq.XSUB, True, False  # XSUB doesn't sub like SUB
 
     # Instance attributes for type-checker:
     _zmq_type: int
@@ -135,11 +135,11 @@ def _create_socket(
         # Use default binding (look it up):
         bind = {
             SocketType.SERVER: True,
-            SocketType.PUBLISHER: True,
+            SocketType.PUBLISHER: False,
             SocketType.XPUBLISHER: True,
             SocketType.CLIENT: False,
             SocketType.SUBSCRIBER: False,
-            SocketType.XSUBSCRIBER: False
+            SocketType.XSUBSCRIBER: True
         }[socket_type]
         logger.verbose(
             f"Using default binding scheme (`{bind=}`) for `{socket_type=}`."

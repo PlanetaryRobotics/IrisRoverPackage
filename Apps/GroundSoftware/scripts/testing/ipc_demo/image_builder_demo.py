@@ -1,8 +1,16 @@
 """
-Really crude starting implementation of an IPC file builder.
+Starting implementation of an IPC file builder.
+
+Run the Transceiver TopicProxy in a separate terminal before running this
+script and keep it running for the duration of this script:
+```
+./run-script.sh IrisBackendv3/ipc/topic_proxy.py -i TRANSCEIVER_PUB -o TRANSCEIVER_SUB
+```
+
+Also run a Transceiver to supply packets (e.g. PcapTransceiver).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/18/2023
+@last-updated: 04/29/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -47,9 +55,8 @@ CallbackIdType: TypeAlias = int
 manager = ipc.IpcAppManagerSync(socket_specs={
     'sub': ipc.SocketSpec(
         sock_type=ipc.SocketType.SUBSCRIBER,
-        port=ipc.Port.TRANSCEIVER_UL,
-        topics=[ipc.Topic.DL_PAYLOADS],
-        bind=False
+        port=ipc.Port.TRANSCEIVER_SUB,
+        topics=[ipc.Topic.DL_PAYLOADS]
     )
 })
 

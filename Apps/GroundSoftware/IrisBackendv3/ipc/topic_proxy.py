@@ -74,10 +74,13 @@ class TopicProxy:
         """Close everything on destruction."""
         # Close sockets:
         logger.notice("Closing Proxy's IPC sockets and context . . .")
-        self.inbound_socket.close()
-        self.outbound_socket.close()
+        if hasattr(self, 'inbound_socket'):
+            self.inbound_socket.close()
+        if hasattr(self, 'outbound_socket'):
+            self.outbound_socket.close()
         # Close context (waiting for all sockets to close first):
-        self.context.destroy()  # closes any remaining ctx sockets then `term`
+        if hasattr(self, 'context'):
+            self.context.destroy()  # closes any remaining ctx sockets then `term`
         # Unregister from program exit handler:
         atexit.unregister(self.__del__)
 

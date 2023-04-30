@@ -43,9 +43,9 @@ def get_opts():
     parser.add_argument('--loop', default=True,
                         action=argparse.BooleanOptionalAction,
                         help="Whether or not to loop the packet.")
-    parser.add_argument('--bind', default=True,
+    parser.add_argument('--bind', default=False,
                         action=argparse.BooleanOptionalAction,
-                        help="Whether or not to bind the port.")
+                        help="Whether or not to bind the port. Should be false except for diagnostics.")
     return parser.parse_args()
 
 
@@ -67,7 +67,7 @@ xcvr.begin()
 manager = ipc.IpcAppManagerSync(socket_specs={
     'pub': ipc.SocketSpec(
         sock_type=ipc.SocketType.PUBLISHER,
-        port=ipc.Port.TRANSCEIVER_DL,
+        port=ipc.Port.TRANSCEIVER_PUB,
         topics=[ipc.Topic.DL_PACKETS, ipc.Topic.DL_PAYLOADS],
         bind=opts.bind
     )

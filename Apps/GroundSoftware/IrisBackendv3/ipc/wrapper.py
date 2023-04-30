@@ -93,7 +93,7 @@ def _create_socket(
     If `bind=True`, binding will be attempted no matter the `socket_type` (can
     be useful for inverse topologies with many pubs and one sub which binds).
     If `bind` is not given (`bind is None`), binding will be chosen by default
-    behavior: servers & pubs bind, clients & subs don't.
+    behavior: server, xpub, and xsub bind, everything else just connects.
 
     NOTE: Bound sockets can only take one port. Unbound sockets that are not
     server or publisher can take multiple.
@@ -207,7 +207,7 @@ def create_socket(
     If `bind=True`, binding will be attempted no matter the `socket_type` (can
     be useful for inverse topologies with many pubs and one sub which binds).
     If `bind` is not given (`bind is None`), binding will be chosen by default
-    behavior: servers & pubs bind, clients & subs don't.
+    behavior: server, xpub, and xsub bind, everything else just connects.
 
     NOTE: Bound sockets can only take one port. Unbound sockets that are not
     server or publisher can take multiple.
@@ -228,7 +228,7 @@ def create_async_socket(
     If `bind=True`, binding will be attempted no matter the `socket_type` (can
     be useful for inverse topologies with many pubs and one sub which binds).
     If `bind` is not given (`bind is None`), binding will be chosen by default
-    behavior: servers & pubs bind, clients & subs don't.
+    behavior: server, xpub, and xsub bind, everything else just connects.
 
     NOTE: Bound sockets can only take one port. Unbound sockets that are not
     server or publisher can take multiple.

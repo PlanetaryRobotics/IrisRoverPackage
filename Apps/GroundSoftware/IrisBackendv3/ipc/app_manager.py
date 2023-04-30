@@ -460,7 +460,8 @@ class SocketSpec(Generic[_HT]):
     rx_handler: Optional[_HT] = None
     # Whether or not this socket should be binding the port:
     # (if not given, AppManager chooses
-    # - servers & pubs bind, clients & subs don't)
+    # - generally you shouldn't worry about binding unless you have a specific
+    # need, proxies will take care of binding).
     bind: Optional[bool] = None
     # Whether this should just be treated as a consumer (i.e. ignore any
     # rx_handler and just consume (rx & throw away) data on this

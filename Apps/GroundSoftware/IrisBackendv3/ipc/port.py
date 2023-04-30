@@ -21,15 +21,17 @@ class Port(Enum):
     """
 
     # (Remember: max port number is 0xFF49).
-    TRANSCEIVER = 0xF00D  # legacy, use _DL and _UL in main apps now
-    TRANSCEIVER_PUB = 0xF00B  # Transceiver Proxy inbound port (for Pubs)
-    TRANSCEIVER_SUB = 0xF00C  # Transceiver Proxy outbound port (for Subs)
-    TRANSCEIVER_DL = 0xF00E
-    TRANSCEIVER_UL = 0xF00F
-    CODEC = 0xC0DE
-    STORAGE = 0x5709
-    REMOTEDB = 0xDA7A
-    CLI_WINDOW = 0xF001
-    TELEM_WINDOW = 0xFEED
-    GUI = 0x15EE
-    ATLAS = 0x06DE
+    TRANSCEIVER_PUB = 0xF00D  # Transceiver Proxy inbound port (for Pubs)
+    TRANSCEIVER_SUB = 0xF00E  # Transceiver Proxy outbound port (for Subs)
+    CODEC_PUB = 0xC0DE
+    CODEC_SUB = 0xC0DF
+    STORAGE_PUB = 0x5709
+    STORAGE_SUB = 0x570A
+    REMOTEDB_PUB = 0xDA7A
+    REMOTEDB_SUB = 0xDA7B
+    # CLI_WINDOW = 0xF001
+    # TELEM_WINDOW = 0xFEED
+    GUI_PUB = 0x15EE
+    GUI_SUB = 0x15EF
+    ATLAS_PUB = 0x06DE
+    ATLAS_SUB = 0x06DF

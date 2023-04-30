@@ -227,14 +227,14 @@ class UplinkSub(ipc.SocketTopicHandlerAsync['UplinkSub']):
 manager = ipc.IpcAppManagerAsync(socket_specs={
     'downlink': ipc.SocketSpec(
         sock_type=ipc.SocketType.SUBSCRIBER,
-        port=ipc.Port.TRANSCEIVER_DL,
+        port=ipc.Port.TRANSCEIVER_SUB,
         topics=DownlinkSub.TOPICS(),
         rx_handler=DownlinkSub(),
         bind=opts.bind
     ),
     'uplink': ipc.SocketSpec(
         sock_type=ipc.SocketType.SUBSCRIBER,
-        port=ipc.Port.TRANSCEIVER_UL,
+        port=ipc.Port.TRANSCEIVER_SUB,
         topics=UplinkSub.TOPICS(),
         rx_handler=UplinkSub(),
         bind=opts.bind

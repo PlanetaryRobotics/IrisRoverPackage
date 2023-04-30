@@ -1,9 +1,6 @@
 """
 Simple demo of synchronous subscriber over IPC, without using an AppManager.
 This demo is designed to be run alongside `ipc_sync_pub.py`.
-This demo uses a reverse topology where the **sub** binds the port and listens
-to 1 or more pubs but can be switched by flipping the `bind` variable in each
-demo.
 
 Run the Transceiver TopicProxy in a separate terminal before running this
 script and keep it running for the duration of this script:

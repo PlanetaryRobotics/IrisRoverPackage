@@ -105,11 +105,11 @@ def build_app(opts) -> IpcAppManagerAsync:
         socket_specs={
             PUB_SOCK: SocketSpec(
                 sock_type=ipc.SocketType.PUBLISHER,
-                port=ipc.Port.TRANSCEIVER_DL
+                port=ipc.Port.TRANSCEIVER_PUB
             ),
             SUB_SOCK: SocketSpec(
                 sock_type=ipc.SocketType.SUBSCRIBER,
-                port=ipc.Port.TRANSCEIVER_UL,
+                port=ipc.Port.TRANSCEIVER_SUB,
                 topics=Sub.TOPICS(),
                 rx_handler=Sub()
             )

@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests proxies standards build-docs run-docs build-cte console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer
+.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer
 
 .DEFAULT_GOAL = help
 all: help
@@ -19,6 +19,8 @@ help:
 	@echo "	make clean: Teardown and Cleanup the Development Environment"
 	@echo " "
 	@echo "	make run: Rebuild DataStandards and bring up all core IPC Apps"
+	@echo " "
+	@echo "	make run-infra: Rebuild DataStandards and bring up just core infrastructure."
 	@echo " "
 	@echo "	make run-tests: Run all test suites and produce coverage report"
 	@echo " "
@@ -115,16 +117,8 @@ clean:
 # Rebuild DataStandards and bring up all core IPC Apps:
 ####
 run:
-# Rebuild latest datastandards first so every app has access via cache:
-	make standards
-# Bring up proxies (hide this window at the back of the stack):
-	make xterm-normal \
-		GEOM="50x25+0+0" \
-		PROG="make proxies"
-# Start the processors:
-	make xterm-normal \
-		GEOM="50x25+0+0" \
-		PROG="./run-script.sh ipc_apps/dl_processor.py"
+# Rebuild latest datastandards and bring up infrastructure:
+	make run-infra
 # Bring up visualizers:
 	make xterm-normal \
 		GEOM="185x63+0+0" \
@@ -139,6 +133,21 @@ run:
 	make xterm-normal \
 		GEOM="185x63+0+0" \
 		PROG="make app-commander"
+
+####
+# Rebuild DataStandards and bring up just core infrastructure:
+####
+run-infra:
+# Rebuild latest datastandards first so every app has access via cache:
+	make standards
+# Bring up proxies (hide this window at the back of the stack):
+	make xterm-normal \
+		GEOM="50x25+0+0" \
+		PROG="make proxies"
+# Start the processors:
+	make xterm-normal \
+		GEOM="50x25+10+5" \
+		PROG="./run-script.sh ipc_apps/dl_processor.py"
 
 ####
 # Run all test suites:
@@ -278,4 +287,4 @@ app-message-printer:
 # Run the PacketBytesPrinter IPC App:
 ####
 app-packet-bytes-printer:
-	./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"
+	./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events

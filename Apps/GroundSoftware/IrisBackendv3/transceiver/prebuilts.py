@@ -17,6 +17,27 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
     the prebuilt transceiver.
     """
     match name.upper():
+        case 'PCAP-GENERIC':
+            default_kwargs = dict(
+                fixed_period_ms=588,  # avg. period (204 packets in 120s)
+                loop=True,  # loop this to provide unlimited sample telem
+                endecs=[UnityEndec()]
+            )
+            kwargs = {**default_kwargs, **kwargs}
+            return PcapTransceiver(
+                PcapParseOpts(
+                    pcap_file=kwargs.get(
+                        'pcap_file',
+                        './test-data/telem_rc9_9.5.3_200packets_w_IMU.pcap'
+                    ),
+                    filter_port='any',
+                    filter_protocol=None,
+                    packetgap=kwargs.get('packetgap', 0),
+                    deadspace=kwargs.get('deadspace', 0),
+                    logging_level='INFO'
+                ),
+                **kwargs
+            )
         case 'PCAP-18H':
             default_kwargs = dict(
                 fixed_period_ms=1000,

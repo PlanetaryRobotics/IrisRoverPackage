@@ -6,7 +6,7 @@ This app is designed as a simple way to semi-realistically hydrate IPC Apps
 that require data originating at the XCVR layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/08/2023
+@last-updated: 04/30/2023
 """
 import time
 import argparse
@@ -31,8 +31,10 @@ parser = argparse.ArgumentParser(description=(
 
 def get_opts():
     parser.add_argument('-x', '--prebuilt-xcvr-name', type=str,
-                        default='PCAP-RC9.5.3-2MIN-IMU',
+                        default='PCAP-GENERIC',
                         help='Name of the prebuilt Transceiver to use.')
+    parser.add_argument('-f', '--pcap-file', type=str, default="",
+                        help='PCAP file to use.')
     parser.add_argument('-t', '--period-ms', type=float, default=1000,
                         help='Period between packets in ms.')
     parser.add_argument('-g', '--packet-gap', type=int, default=0,
@@ -40,12 +42,12 @@ def get_opts():
                             'Number of packets at the start of the pcap to '
                             'skip before reading.'
                         ))
+    parser.add_argument('-l', '--log-level', type=str, default="NOTICE",
+                        choices=IB3.logs.VALID_LOG_LEVELS,
+                        help="Logging level.")
     parser.add_argument('--loop', default=True,
                         action=argparse.BooleanOptionalAction,
                         help="Whether or not to loop the packet.")
-    parser.add_argument('--bind', default=False,
-                        action=argparse.BooleanOptionalAction,
-                        help="Whether or not to bind the port. Should be false except for diagnostics.")
     return parser.parse_args()
 
 
@@ -53,13 +55,19 @@ opts = get_opts()
 
 
 # Load data:
-xcvrLoggerLevel('NOTICE')
-xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
-    opts.prebuilt_xcvr_name,
+xcvrLoggerLevel(opts.log_level)
+app.setLogLevel(opts.log_level)
+kwargs = dict(
     packetgap=opts.packet_gap,  # skip first 37000 packets (of 37644)
     fixed_period_ms=opts.period_ms,
     loop=opts.loop,
     log_on_receive=False
+)
+if opts.pcap_file != "" and opts.pcap_file is not None:
+    kwargs['pcap_file'] = opts.pcap_file
+xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
+    opts.prebuilt_xcvr_name,
+    **kwargs
 )
 xcvr.begin()
 
@@ -68,8 +76,7 @@ manager = ipc.IpcAppManagerSync(socket_specs={
     'pub': ipc.SocketSpec(
         sock_type=ipc.SocketType.PUBLISHER,
         port=ipc.Port.TRANSCEIVER_PUB,
-        topics=[ipc.Topic.DL_PACKETS, ipc.Topic.DL_PAYLOADS],
-        bind=opts.bind
+        topics=[ipc.Topic.DL_PACKETS]
     )
 })
 
@@ -77,18 +84,7 @@ while len(packets := xcvr.read()) != 0:
     msg = DownlinkedPacketsMessage(DownlinkedPacketsContent(
         packets=packets
     ))
-    manager.send_to('pub', msg, ipc.Topic.DL_PACKETS, subtopic_bytes=b'pcap')
+    manager.send_to('pub', msg, subtopic_bytes=b'pcap')
     app.logger.notice(
         f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PACKETS}"
-    )
-
-    payloads = packets[0].payloads
-    for packet in packets[1:]:
-        payloads.extend(packet.payloads)
-    msg = DownlinkedPayloadsMessage(DownlinkedPayloadsContent(
-        payloads=payloads
-    ))
-    manager.send_to('pub', msg, ipc.Topic.DL_PAYLOADS, subtopic_bytes=b'pcap')
-    app.logger.notice(
-        f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PAYLOADS}"
     )

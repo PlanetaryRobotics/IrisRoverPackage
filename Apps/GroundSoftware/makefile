@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests proxies standards build-docs run-docs build-cte commander console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc
+.PHONY = help init update clean run run-tests proxies standards build-docs run-docs build-cte console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer
 
 .DEFAULT_GOAL = help
 all: help
@@ -32,8 +32,6 @@ help:
 	@echo " "
 	@echo "	make build-cte: Build the Commands, Telemetry, & Events (CT&E) Table. Run as: 'make build-cte FILE=your_file_name'."
 	@echo " "
-	@echo "	make commander: Run the Commander IPC App."
-	@echo " "
 	@echo "	make console: Run the Iris Console CLI application"
 	@echo " "
 	@echo "	make xconsole: Run the Iris Console CLI application in XTerm (for WSL users)"
@@ -51,6 +49,14 @@ help:
 	@echo "	make port-culler: Kills every process using a GDS IPC port (kills any zombie processes)."
 	@echo " "
 	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries"
+	@echo " "
+	@echo "	make app-commander: Run the Commander IPC App."
+	@echo " "
+	@echo "	make app-telemetry-display: Run the TelemetryDisplay IPC App."
+	@echo " "
+	@echo "	make app-message-printer: Run the MessagePrinter IPC App."
+	@echo " "
+	@echo "	make app-packet-bytes-printer: Run the PacketBytesPrinter IPC App."
 	@echo "----------------------------------"
 
 
@@ -115,20 +121,24 @@ run:
 	make xterm-normal \
 		GEOM="50x25+0+0" \
 		PROG="make proxies"
+# Start the processors:
+	make xterm-normal \
+		GEOM="50x25+0+0" \
+		PROG="./run-script.sh ipc_apps/dl_processor.py"
 # Bring up visualizers:
 	make xterm-normal \
 		GEOM="185x63+0+0" \
-		PROG="./run-script.sh ipc_apps/telemetry_display.py"
+		PROG="make app-telemetry-display"
 	make xterm-normal \
 		GEOM="185x10+0+800" \
-		PROG="./run-script.sh ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes"
+		PROG="make app-message-printer"
 	make xterm-normal \
 		GEOM="73x73+1000+0" \
-		PROG="./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"
+		PROG="make app-packet-bytes-printer"
 # Bring up commander:
 	make xterm-normal \
 		GEOM="185x63+0+0" \
-		PROG="make commander"
+		PROG="make app-commander"
 
 ####
 # Run all test suites:
@@ -168,12 +178,6 @@ run-docs:
 ####
 build-cte:
 	./run-script.sh ./scripts/tiny_apps/datastandards_lookup.py -f $(FILE)
-
-####
-# Run the Commander IPC App:
-####
-commander:
-	./run-script.sh ipc_apps/commander.py
 
 ####
 # Run the Iris Console CLI application:
@@ -251,3 +255,27 @@ port-culler:
 ####
 cloc:
 	cloc --exclude-dir=__pycache__,node_modules,.idea,.mypy_cache,.pytest_cache .
+
+####
+# Run the Commander IPC App:
+####
+app-commander:
+	./run-script.sh ipc_apps/commander.py
+
+####
+# Run the TelemetryDisplay IPC App:
+####
+app-telemetry-display:
+	./run-script.sh ipc_apps/telemetry_display.py
+
+####
+# Run the MessagePrinter IPC App:
+####
+app-message-printer:
+	./run-script.sh ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes
+
+####
+# Run the PacketBytesPrinter IPC App:
+####
+app-packet-bytes-printer:
+	./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events"

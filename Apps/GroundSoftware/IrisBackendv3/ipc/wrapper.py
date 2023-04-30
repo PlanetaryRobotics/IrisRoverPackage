@@ -11,7 +11,7 @@ being used for IPC. That is, if we ever decide to migrate away from ZMQ for IPC,
 the only area that should **need** to be changed would be this file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/23/2023
+@last-updated: 04/29/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
@@ -125,10 +125,10 @@ def _create_socket(
     # Create socket:
     socket = context.socket(socket_type._zmq_type)
 
-    # Make XPUB sockets verbose so subscription notification forwarding occurs
-    # for use in proxies (the only place we use XPUBs):
+    # Make XPUB sockets verbose so un/subscription notification forwarding
+    # occurs for use in proxies (the only place we use XPUBs):
     if socket_type == SocketType.XPUBLISHER:
-        socket.setsockopt(zmq.XPUB_VERBOSE, True)
+        socket.setsockopt(zmq.XPUB_VERBOSER, True)
 
     # Determine appropriate binding approach:
     if bind is None:

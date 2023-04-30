@@ -24,7 +24,7 @@ from IrisBackendv3.codec.container import ContainerCodec
 from IrisBackendv3.codec.fsw_data_codec import encode as fsw_data_encode
 from IrisBackendv3.codec.fsw_data_codec import decode as fsw_data_decode
 
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
 

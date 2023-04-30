@@ -32,7 +32,7 @@ import inspect
 import traceback
 import scapy.all as scp  # type: ignore
 
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 # TODO: Add `__str__` / `__repr__`s
 

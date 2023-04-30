@@ -11,7 +11,7 @@ import traceback
 from typing import cast, Final, List
 
 from IrisBackendv3.ipc.messages import DownlinkedPacketsMessage, DownlinkedPacketsContent
-from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logs import logger
 import IrisBackendv3 as IB3
 IB3.init_from_latest()
 

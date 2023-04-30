@@ -25,7 +25,7 @@ from typing import Any, Final, ClassVar, Dict, Set
 from types import ModuleType
 
 # from IrisBackendv3.utils.imports import import_package_modules
-from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logs import logger
 
 import IrisBackendv3.transceiver.xcvr_enum
 import IrisBackendv3.codec.packet_classes

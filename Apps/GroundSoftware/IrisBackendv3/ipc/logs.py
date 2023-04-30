@@ -2,7 +2,7 @@
 import os.path
 from typing import Final, Callable, Tuple
 import verboselogs  # type: ignore # mypy doesn't see type hints
-from IrisBackendv3.logging.logger_template import create_logger_from_template
+from IrisBackendv3.logs.logger_template import create_logger_from_template
 
 from IrisBackendv3.ipc.settings import settings
 

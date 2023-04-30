@@ -20,7 +20,7 @@ from IrisBackendv3.ipc.wrapper import (
 )
 from IrisBackendv3.ipc.port import Port
 from IrisBackendv3.ipc.topics_registry import Topic
-# from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logs import logger
 
 
 class TopicProxy:

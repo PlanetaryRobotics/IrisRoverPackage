@@ -23,7 +23,7 @@ from termcolor import colored
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 
 import IrisBackendv3.codec.bgapi as bgapi

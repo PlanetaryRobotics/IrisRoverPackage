@@ -65,7 +65,7 @@ from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 from IrisBackendv3.ipc.port import Port
 from IrisBackendv3.ipc.topics_registry import Topic
 from IrisBackendv3.ipc.settings import settings
-from IrisBackendv3.ipc.logging import logger, create_app_logger
+from IrisBackendv3.ipc.logs import logger, create_app_logger
 from IrisBackendv3.ipc.exceptions import UnhandledTopicException, IpcEndAppRequest
 
 # Context Type (sync or async):

@@ -37,12 +37,12 @@ parser = argparse.ArgumentParser(description=(
 
 def get_opts():
     def str_to_log_level(s) -> str:
-        if (level := IB3.logging.str_to_log_level(s)) is not None:
+        if (level := IB3.logs.str_to_log_level(s)) is not None:
             return level
         else:
             raise argparse.ArgumentTypeError(
                 f"Valid log level expected. "
-                f"Log levels are: {IB3.logging.VALID_LOG_LEVELS}"
+                f"Log levels are: {IB3.logs.VALID_LOG_LEVELS}"
             )
 
     parser.add_argument('-n', '--name', type=str, default="PacketPrinter",
@@ -56,7 +56,7 @@ def get_opts():
                             "annoying the logging printouts should be). Only "
                             "logs with this level or greater are displayed in "
                             "the console. Valid logging levels are: "
-                            f"{IB3.logging.VALID_LOG_LEVELS}"
+                            f"{IB3.logs.VALID_LOG_LEVELS}"
                         ))
     parser.add_argument('--full-packets', default=True,
                         action=argparse.BooleanOptionalAction,

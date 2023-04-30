@@ -18,8 +18,8 @@ import ulid
 from matplotlib import pyplot as plt  # type: ignore
 
 from IrisBackendv3.codec.payload import TelemetryPayload
-from IrisBackendv3.logging import VALID_LOG_LEVELS
-from IrisBackendv3.codec.logging import logger_setConsoleLevel as CodecLoggerLevel
+from IrisBackendv3.logs import VALID_LOG_LEVELS
+from IrisBackendv3.codec.logs import logger_setConsoleLevel as CodecLoggerLevel
 from IrisBackendv3.codec.packet_classes.packet import Packet
 
 from IrisBackendv3.codec.packet import parse_packet

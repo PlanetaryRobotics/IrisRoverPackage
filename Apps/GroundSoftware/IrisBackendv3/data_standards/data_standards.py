@@ -41,7 +41,7 @@ import ulid
 
 from termcolor import cprint
 
-from .logging import logger
+from .logs import logger
 from .exceptions import StandardsFormattingException
 
 from IrisBackendv3.utils import NameIdDict

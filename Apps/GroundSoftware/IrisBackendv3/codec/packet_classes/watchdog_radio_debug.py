@@ -21,7 +21,7 @@ from scapy.utils import hexdump  # type: ignore
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 
 class WatchdogRadioDebugPacketInterface(Packet[CT]):

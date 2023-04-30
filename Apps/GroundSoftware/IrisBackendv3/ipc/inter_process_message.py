@@ -17,7 +17,7 @@ import typeguard
 from IrisBackendv3.ipc.exceptions import DecodedInterProcessMessageContentTypeException
 from IrisBackendv3.ipc.restricted_pickler import IRIS_RESTRICTED_PICKLER_VERSION
 from IrisBackendv3.ipc.serializer import IrisGenericSerializer, IRIS_SERIALIZER_VERSION
-from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logs import logger
 
 # Create special serializer for messages:
 _MessageSerializer = IrisGenericSerializer()

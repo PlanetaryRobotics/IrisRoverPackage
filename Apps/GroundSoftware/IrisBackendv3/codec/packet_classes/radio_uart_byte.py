@@ -25,7 +25,7 @@ from termcolor import colored
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 # Fixed prefix. All `RadioBgApiPacket`s start with b'DEBUG' then `BGB: `
 # (BGapi Byte). Note the b'DEBUG' prefix is there b/c this is sent through

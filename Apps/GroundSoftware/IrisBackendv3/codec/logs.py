@@ -1,6 +1,6 @@
 # Codec Package-wide logging format standards.
 from typing import Final
-from IrisBackendv3.logging.logger_template import create_logger_from_template
+from IrisBackendv3.logs.logger_template import create_logger_from_template
 
 from IrisBackendv3.ipc.settings import settings
 

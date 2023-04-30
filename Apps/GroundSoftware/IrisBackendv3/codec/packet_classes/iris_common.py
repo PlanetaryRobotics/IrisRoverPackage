@@ -26,7 +26,7 @@ from IrisBackendv3.codec.payload import TelemetryPayload, EventPayload, FileBloc
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 from IrisBackendv3.utils.basic import full_dict_spec_check

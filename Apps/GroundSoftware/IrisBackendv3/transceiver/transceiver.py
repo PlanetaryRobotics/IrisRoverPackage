@@ -26,7 +26,7 @@ import scapy.all as scp  # type: ignore # no type hints
 import traceback
 import asyncio
 
-from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.endec import Endec, UnityEndec
 from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException
 

@@ -21,7 +21,7 @@ from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.fsw_data_codec import StringPacker
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 
 class RadioHelloPacketInterface(Packet[CT]):

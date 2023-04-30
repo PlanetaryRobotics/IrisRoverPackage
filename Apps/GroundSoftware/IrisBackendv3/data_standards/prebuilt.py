@@ -13,7 +13,7 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 from .data_standards import DataStandards
 from .module import Module, Command, Event, Argument, TelemetryChannel, EnumItem, BitfieldStruct
 from .fsw_data_type import FswDataType
-from .logging import logger
+from .logs import logger
 
 T = TypeVar('T')
 

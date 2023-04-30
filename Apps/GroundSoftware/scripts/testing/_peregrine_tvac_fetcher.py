@@ -14,7 +14,7 @@ it).
 from __future__ import annotations
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.codec.packet import parse_packet
-from IrisBackendv3.data_standards.logging import (
+from IrisBackendv3.data_standards.logs import (
     logger as DsLogger,
     logger_setConsoleLevel as DsLoggerLevel
 )

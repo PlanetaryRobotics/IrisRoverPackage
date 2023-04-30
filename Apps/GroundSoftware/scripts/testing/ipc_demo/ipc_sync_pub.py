@@ -14,7 +14,7 @@ import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import DownlinkedPacketsMessage, DownlinkedPacketsContent
 from IrisBackendv3.ipc.messages import UplinkPacketRequestMessage, UplinkPacketRequestContent
-from IrisBackendv3.transceiver.logging import logger_setConsoleLevel as xcvrLoggerLevel
+from IrisBackendv3.transceiver.logs import logger_setConsoleLevel as xcvrLoggerLevel
 
 IB3.init_from_latest()
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException
 
 

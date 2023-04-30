@@ -13,7 +13,7 @@ from typing import Any, Final, ClassVar, Awaitable, Callable, Dict, TypeAlias, T
 import asyncio
 import argparse
 
-from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.transceiver import Transceiver
 from IrisBackendv3.transceiver.prebuilts import build_xcvr_by_name
 

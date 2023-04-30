@@ -65,17 +65,22 @@ if __name__ == "__main__":
                 if conns.laddr.port in port_vals:
                     port = Port(conns.laddr.port)
                     port_users[port] = (proc, conns)
-        except (PermissionError, psutil.AccessDenied):
-            app.logger.info(f"Couldn't investigate {proc}. Permission denied.")
+        except (PermissionError, psutil.AccessDenied, psutil.ZombieProcess) as e:
+            app.logger.info(
+                f"{e.__class__.__name__}: "
+                f"Couldn't investigate {proc}. Permission denied."
+            )
 
     # Print status report:
     user_strs = []
     for port, user in port_users.items():
+        user_str = f"{port}({port.value} = 0x{port.value:04X})"
         if user is None:
-            user_strs.append(f"{port}:\t {user}")
+            user_str += f"\t {user}"
         else:
             proc, conn = user
-            user_strs.append(f"{port}:\n\tPROC: {proc}\n\tCONN: {conn}")
+            user_str += f"\n\tPROC: {proc}\n\tCONN: {conn}"
+        user_strs.append(user_str)
     app.logger.notice('\n'+'\n'.join(user_strs))
 
     # Optionally, kill any users:

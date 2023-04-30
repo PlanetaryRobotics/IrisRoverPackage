@@ -159,11 +159,11 @@ def get_active_window_title() -> Optional[str]:
 
 
 def update_reference_window_title() -> str:
-    return get_active_window_title()
+    return str(get_active_window_title())
 
 
-def window_is_focused(actual_reference_window_title) -> bool:
-    return get_active_window_title() == actual_reference_window_title
+def window_is_focused(actual_reference_window_title: str) -> bool:
+    return str(get_active_window_title()) == actual_reference_window_title
 
 
 def clear_console() -> None:
@@ -213,7 +213,7 @@ def build_command_dataframe(
 
 def filter_command_dataframe(
     partial_cmd_alias: str,
-    prepared_commands_dataframe: str
+    prepared_commands_dataframe: pd.DataFrame
 ) -> pd.DataFrame:
     """
     Returns a copy of `prepared_commands_dataframe` that:
@@ -238,8 +238,8 @@ def filter_command_dataframe(
 
 def str_command_dataframe(cdf: pd.DataFrame) -> str:
     # Pretty-Formats the given Command Dataframe (possibly after being filtered):
-    table = tabulate(cdf.fillna(''), headers='keys',
-                     tablefmt='fancy_grid', numalign='left', stralign='left')
+    table: str = tabulate(cdf.fillna(''), headers='keys',
+                          tablefmt='fancy_grid', numalign='left', stralign='left')
 
     # If there's only one entry (we've locked it in), make table green:
     if cdf.shape[0] == 1:
@@ -313,7 +313,7 @@ def reset_console_command() -> Tuple[str, str, str]:
     return user_cmd_input_str, current_user_arg, user_prompt
 
 
-def accept_top_suggestion(user_cmd_input_str, user_prompt, prepared_commands_dataframe) -> str:
+def accept_top_suggestion(user_cmd_input_str: str, user_prompt: str, prepared_commands_dataframe: pd.DataFrame) -> str:
     """
     Sets current command to top suggestion in command table if:
     A. The user is currently being prompted for a command.
@@ -406,12 +406,16 @@ def update_telemetry_payload_log_dataframe(
     return telemetry_payload_log_dataframe
 
 
-def update_telemetry_payload_log_from_packet(telemetry_payload_log_dataframe: pd.DataFrame, packet: Packet) -> pd.DataFrame:
-    telem = [*packet.payloads[TelemetryPayload]]
+def update_telemetry_payload_log_from_payloads(telemetry_payload_log_dataframe: pd.DataFrame, payloads: EnhancedPayloadCollection) -> pd.DataFrame:
+    telem = cast(List[TelemetryPayload], [*payloads[TelemetryPayload]])
     for t in telem:
         telemetry_payload_log_dataframe = update_telemetry_payload_log_dataframe(
             telemetry_payload_log_dataframe, t)
     return telemetry_payload_log_dataframe
+
+
+def update_telemetry_payload_log_from_packet(telemetry_payload_log_dataframe: pd.DataFrame, packet: Packet) -> pd.DataFrame:
+    return update_telemetry_payload_log_from_payloads(telemetry_payload_log_dataframe, packet.payloads)
 
 
 def str_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.DataFrame) -> str:
@@ -419,7 +423,7 @@ def str_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.Data
     df_out = telemetry_payload_log_dataframe.copy()
     df_out.index = df_out.index.map(lambda x: f"0x{x:04X}")
     df_out['Updated'] = [x.strftime('%H:%M:%S') for x in df_out['Updated']]
-    return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', numalign='right', stralign='right')
+    return str(tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', numalign='right', stralign='right'))
 
 
 ##
@@ -536,7 +540,7 @@ def str_packet_log_dataframe(packet_log_dataframe: pd.DataFrame) -> str:
         x.isoformat(sep=' ', timespec='milliseconds')
         for x in df_out['Updated']
     ]
-    return tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', floatfmt=".3f", numalign='right', stralign='right')
+    return str(tabulate(df_out.fillna('').sort_index(ascending=True), headers='keys', tablefmt='fancy_grid', floatfmt=".3f", numalign='right', stralign='right'))
 
 
 def packet_print_string(

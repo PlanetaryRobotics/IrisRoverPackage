@@ -48,3 +48,4 @@ tables
 dill[graph]
 pdoc3
 opencv-python
+psutil

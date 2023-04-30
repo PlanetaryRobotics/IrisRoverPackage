@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-tests proxies standards build-docs run-docs build-cte commander console xconsole console-debug xconsole-debug xterm-normal xterm-wide cloc
+.PHONY = help init update clean run run-tests proxies standards build-docs run-docs build-cte commander console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc
 
 .DEFAULT_GOAL = help
 all: help
@@ -45,6 +45,10 @@ help:
 	@echo "	make xterm-normal: Launches the program in the PROG variable inside a new XTerm window with normal settings and the geometry given in GEOM. Run as: 'make xterm-normal GEOM=\"300x100+0+0\" PROG=\"./run-script.sh whatever.py\"'."
 	@echo " "
 	@echo "	make xterm-wide: Launches the program in the PROG variable inside a new XTerm window with wide settings and the geometry given in GEOM. Run as: 'make xterm-wide GEOM=\"300x100+0+0\" PROG=\"./run-script.sh whatever.py\"'."
+	@echo " "
+	@echo "	make port-investigator: Finds out who's using all GDS IPC ports."
+	@echo " "
+	@echo "	make port-culler: Kills every process using a GDS IPC port (kills any zombie processes)."
 	@echo " "
 	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries"
 	@echo "----------------------------------"
@@ -229,6 +233,18 @@ xterm-wide:
 	-xrm "XTerm*HiBackColor: Grey15" \
 	-xrm "XTerm*geometry: $(GEOM)" \
 	-hold -e $(PROG) &
+
+####
+# Finds out who's using all GDS IPC ports:
+####
+port-investigator:
+	./run-script.sh ./scripts/find_port_user.py
+
+####
+# Kills every process using a GDS IPC port (kills any zombie processes):
+####
+port-culler:
+	./run-script.sh ./scripts/find_port_user.py --kill
 
 ####
 # Count Lines of Code (for fun):

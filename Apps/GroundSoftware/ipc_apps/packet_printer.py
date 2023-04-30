@@ -132,7 +132,7 @@ def packet_to_log_level(packet: IB3.codec.packet.Packet) -> Callable:
             # Everything else gets printed only at verbose level:
             log_func = app.logger.verbose
 
-    return log_func
+    return log_func  # type: ignore
 
 
 # Setup the app:

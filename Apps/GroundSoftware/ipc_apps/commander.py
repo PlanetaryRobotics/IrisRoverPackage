@@ -19,7 +19,7 @@ from termcolor import colored
 from enum import Enum as PyEnum
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Final, Callable, ClassVar, Tuple, Dict, List
+from typing import Final, Callable, ClassVar, Tuple, Dict, List, cast
 
 if __name__ == "__main__":
     # very slow (embedded) machines may take a while to import the library,
@@ -112,6 +112,8 @@ class ConsoleState:
             return self.alias_input
         elif self.activity == ConsoleState.Activity.EDITING_COMMAND:
             return self.edited_command
+        else:
+            return self.alias_input
 
     @active_str.setter
     def active_str(self, val: str) -> None:
@@ -311,12 +313,12 @@ def cmd_string_to_command(
                 args_dict[k] = v[1:-1]
             else:
                 # no quotes equals not a string. has to be a number. Cast:
-                v = float(v)
+                n = float(v)
                 # make it an int if it can be an int:
-                if int(v) == v:
-                    args_dict[k] = int(v)
+                if int(n) == n:
+                    args_dict[k] = str(int(n))
                 else:
-                    args_dict[k] = v
+                    args_dict[k] = str(n)
 
         # Extract and Validate the target XCVR:
         cmd_str = cmd_str.strip().removeprefix('->').strip()
@@ -495,6 +497,7 @@ def handle_keypress(
             success_so_far: bool = True  # success (so far)
             cmd, xcvr = cmd_string_to_command(state, state.edited_command)
             success_so_far &= (cmd is not None and xcvr is not None)
+            cmd, xcvr = cast(CommandPayload, cmd), cast(TransceiverEnum, xcvr)
 
             if success_so_far:
                 success_so_far &= uplink_command_request(

@@ -108,6 +108,7 @@ systemd=true
       - Close the WSL terminal
       - Open Powershell in Windows and run `wsl --shutdown`
   - Run a graphical application (example `make xconsole`)
+
 # Help
 Running the following will tell you all the standard tasks for the GDS that have been automated in the `makefile` (for non-developers, this is a good starting place):
 
@@ -127,7 +128,18 @@ Example:
 
 # Run the Core:
 The following will rebuild & cache the DataStandards then bring up all core IPC Apps:
+
 `make run`
+
+If you don't want any of the CLI tools (`TelemetryDisplay`, `MessagePrinter`, etc.) and just want to run the core IPC infrastructure, you can just run:
+
+`make run-infra`
+
+Commonly used IPC apps can be found by using
+
+`make help`
+
+or tab-completing `make app-` (e.g. `make app-commander`, `make app-telemetry-display`, etc.)
 
 # Teardown and Cleanup Development Environment
 Run this before reinitializing (in case something broke):

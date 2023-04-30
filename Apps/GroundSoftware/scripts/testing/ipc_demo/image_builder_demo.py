@@ -47,7 +47,7 @@ CallbackIdType: TypeAlias = int
 manager = ipc.IpcAppManagerSync(socket_specs={
     'sub': ipc.SocketSpec(
         sock_type=ipc.SocketType.SUBSCRIBER,
-        port=ipc.Port.TRANSCEIVER,
+        port=ipc.Port.TRANSCEIVER_UL,
         topics=[ipc.Topic.DL_PAYLOADS],
         bind=False
     )

@@ -142,11 +142,11 @@ run-infra:
 	make standards
 # Bring up proxies (hide this window at the back of the stack):
 	make xterm-normal \
-		GEOM="50x25+0+0" \
+		GEOM="150x10+0+0" \
 		PROG="make proxies"
 # Start the processors:
 	make xterm-normal \
-		GEOM="50x25+10+5" \
+		GEOM="150x10+0+205" \
 		PROG="./run-script.sh ipc_apps/dl_processor.py"
 
 ####

@@ -10,7 +10,7 @@ make proxies
 Also run a Transceiver to supply packets (e.g. PcapTransceiver).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/29/2023
+@last-updated: 04/30/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -20,7 +20,6 @@ import cv2
 import ulid
 import os.path
 from functools import lru_cache
-import dataclasses
 from dataclasses import dataclass
 from itertools import zip_longest
 from collections import OrderedDict, Counter
@@ -38,6 +37,7 @@ from IrisBackendv3.ipc.messages import (
 IB3.init_from_latest()
 
 app = ipc.IpcAppHelper("FileBuilderDemo")
+app.setLogLevel('VERBOSE')
 
 # Where output files get saved (w.r.t GroundSoftware)
 OUTPUT_DIR: Final[str] = './out/image_file_decoding_tests/'
@@ -120,6 +120,9 @@ class ImageLine:
     def validate_line_num(self) -> bool:
         """Checks if reported line numbers are internally consistent within
         this line."""
+        if len(self.data_block_payloads) == 0:
+            # No data yet.
+            return True
         # Check for consensus:
         b0_num = self.data_block_payloads[0].file_group_line_number
         if any(b.file_group_line_number != b0_num for b in self.data_block_payloads):
@@ -128,7 +131,8 @@ class ImageLine:
             app.logger.warning(
                 f"For `ImageLine` with metadata: `{self.metadata}`: "
                 f"Disagreement about `file_group_line_number`. "
-                f"Values reported by blocks in file line are: `{nums}`. "
+                f"Counts of values reported by blocks in file line are: "
+                f"`{Counter(nums)}`. "
                 f"Using value: `{self.line_num = }`."
             )
             return False
@@ -138,6 +142,9 @@ class ImageLine:
     def validate_file_group_id(self) -> bool:
         """Checks if reported `file_group_id` is internally consistent within
         this line."""
+        if len(self.data_block_payloads) == 0:
+            # No data yet.
+            return True
         # Check for consensus:
         b0_fg_id = self.data_block_payloads[0].file_group_id
         if any(b.file_group_id != b0_fg_id for b in self.data_block_payloads):
@@ -147,7 +154,8 @@ class ImageLine:
                 f"For `ImageLine` with `line_num = {self.line_num}` "
                 f"and metadata: `{self.metadata}`: "
                 f"Disagreement about `file_group_id`. "
-                f"Values reported by blocks in file line are: `{fg_ids}`. "
+                f"Counts of values reported by blocks in file line are: "
+                f"`{Counter(fg_ids)}`. "
                 f"Using value: `{self.file_group_id = }`."
             )
             return False
@@ -169,7 +177,7 @@ class ImageLine:
                 f"For `ImageLine` with `line_num = {self.line_num}` "
                 f"and metadata: `{self.metadata}`: "
                 f"All blocks in line should agree on total blocks. "
-                f"Space allocated for blocks: `{self.num_blocks=}`. "
+                f"Space allocated for blocks: `{self.total_num_blocks=}`. "
                 f"Instead, blocks say: "
                 f"{[b.total_blocks for b in self.data_block_payloads]}"
             )
@@ -306,39 +314,56 @@ class Image:
     # Number of lines that were complete the last time a block was processed:
     lines_complete_on_last_block: int = 0
 
+    def __str__(self) -> str:
+        return (
+            "Image["
+            f"{len(self.lines_in_progress)} lines in progress, "
+            f"{self.lines_complete_on_last_block} complete"
+            "]"
+        )
+
     @property
     def num_lines_found(self) -> int:
         return len(self.lines_in_progress)
 
     @staticmethod
     @lru_cache(maxsize=3)
-    def _total_lines_calculator(lines_in_progress: _LIP_T) -> int:
+    def _total_lines_calculator(
+        n_lines_in_progress: int,
+        total_lines_vals: Tuple[int, ...]
+    ) -> int:
         """Total number of lines in the `ImageLine` ("File Group").
         This is downlinked as part of the metadata block for each `ImageLine`
         ("File").
 
         Internal cached function to calculate the total number of lines (and
         check for consensus and sanity). Runs once per set of values.
+
+        Args:
+            n_lines_in_progress (int): Number of lines in progress
+            total_lines_vals (Tuple[int]): `file_group_total_lines` from the
+                metadata for every line in progress that has metadata.
+
+        NOTE: This doesn't just take the OrderedDict[int, ImageLine] as an
+        argument b/c `lru_cache` requires the arguments to be hashable and
+        `OrderedDict` and `ImageLine` aren't (since they're mutable).
+        Instead, all of the arguments are pre-chewed.
         """
-        # Internal helper function to find the appropriate source for the line
-        # count based on the data available:
-        def _get_src(lines_in_progress: _LIP_T) -> int:
+        def _get_src(n_lines_in_progress: int, total_lines_vals: Tuple[int, ...]) -> int:
+            """Internal helper function to find the appropriate source for the
+            line count based on the data available."""
             # Return the default if no lines exist yet:
-            if len(lines_in_progress) == 0:
+            if n_lines_in_progress == 0:
                 return DEFAULT_IMAGE_LINE_COUNT
 
             # Check for consensus across all the file lines about the total line
             # count:
-            total_lines_vals = [
-                line.metadata.file_group_total_lines
-                for line in lines_in_progress.values()
-                if line.metadata is not None
-            ]
-            total_lines_vals = [v for v in total_lines_vals if v > 0]
+            # (ignore any sub-zero values):
+            total_lines_vals = tuple(v for v in total_lines_vals if v > 0)
             if len(total_lines_vals) == 0:
                 # Return the default if no valid estimates exist:
                 app.logger.warning(
-                    f"{len(lines_in_progress)} lines have been received for an"
+                    f"{n_lines_in_progress} lines have been received for an"
                     f"`Image` but no values for total line count. "
                     f"Either no metadata has been downlinked or all metadata line "
                     "total line count values are invalid (<=0)."
@@ -353,7 +378,8 @@ class Image:
                 # Report the disagreement and resolution:
                 app.logger.warning(
                     f"Disagreement about total line count. "
-                    f"Values reported in metadata are: `{total_lines_vals}`. "
+                    f"Counts of values reported in metadata are: "
+                    f"`{Counter(total_lines_vals)}`. "
                     f"Using most common value of: `{most_common}`."
                 )
                 return most_common
@@ -362,18 +388,18 @@ class Image:
             # So, use that agreed upon value:
             return total_lines_vals[0]
 
-        total_lines = _get_src(lines_in_progress)
+        total_lines = _get_src(n_lines_in_progress, total_lines_vals)
 
         # Make sure we haven't received more lines than this:
-        if len(lines_in_progress) > total_lines:
+        if n_lines_in_progress > total_lines:
             app.logger.warning(
-                f"There are {len(lines_in_progress)} lines in `Image` "
+                f"There are {n_lines_in_progress} lines in `Image` "
                 f"but `total_lines` was estimated to only be {total_lines}. "
                 f"Perhaps there's been data corruption. "
-                f"Using {len(lines_in_progress)} as the total lines estimate "
+                f"Using {n_lines_in_progress} as the total lines estimate "
                 f"to prevent overflow."
             )
-            total_lines = lines_in_progress
+            total_lines = n_lines_in_progress
 
         return total_lines
 
@@ -382,7 +408,14 @@ class Image:
         """Total number of lines in the `ImageLine` ("File Group").
         This is downlinked as part of the metadata block for each `ImageLine`
         ("File")."""
-        return self._total_lines_calculator(self.lines_in_progress)
+        return self._total_lines_calculator(
+            n_lines_in_progress=len(self.lines_in_progress),
+            total_lines_vals=tuple(
+                line.metadata.file_group_total_lines
+                for line in self.lines_in_progress.values()
+                if line.metadata is not None
+            )
+        )
 
     @property
     def num_lines_complete(self) -> int:
@@ -424,7 +457,8 @@ class Image:
             # Report the disagreement and resolution:
             app.logger.warning(
                 f"Disagreement about `file_group_id` in `Image`. "
-                f"Values reported by lines in file are: `{fg_ids}`. "
+                f"Counts of values reported by lines in file are: "
+                f"`{Counter(fg_ids)}`. "
                 f"Using value: `{self.file_group_id = }`."
             )
             return False
@@ -531,12 +565,14 @@ class Image:
             )
 
         # Log status report:
-        app.logger.info(
-            f"\tReport \n\t\t"
+        full_report = (
+            f"\tReport for Image {self.file_group_id}: \n\t\t"
             + ',\n\t\t'.join(self.report())
         )
+        app.logger.info(full_report)
 
         # Get data for all lines:
+        app.logger.info("Assembling Image . . .")
         lines_data: List[bytes] = \
             self.assemble(equalize_lengths=True, pad_byte=b'\xAA')
 
@@ -544,16 +580,19 @@ class Image:
         n_rows = len(lines_data)
         n_cols_max = max(len(line) for line in lines_data)
         app.logger.info(
-            f"File {file_name_base} is {n_rows} x {n_cols_max}."
+            f"File {file_name_base} is {n_rows}R x {n_cols_max}C."
         )
 
         # Build raw file stream:
+        app.logger.info("Building Raw File . . .")
         raw_file_data = b''.join(lines_data)
 
         # Build 2D integer array (split byte streams):
+        app.logger.info("Building Integer Image . . .")
         lines_arr = [[int(x) for x in l] for l in lines_data]
 
         # Build text file version of file where each line is on a new line:
+        app.logger.info("Building Raw Image Text File (long) . . .")
         txt_file_data = [
             # Group every 4B (U32) for sequence counting:
             ' : '.join(
@@ -564,14 +603,25 @@ class Image:
         ]
 
         # Build raw (greyscale, possibly bayered) image:
-        raw_img = np.array(lines_arr)
+        app.logger.info("Building Raw Image . . .")
+        raw_img = np.array(lines_arr, dtype=np.uint8)
 
         # Debayer image:
+        app.logger.info("Building Debayered Color Image . . .")
         color_img = cv2.cvtColor(raw_img, cv2.COLOR_BAYER_BG2BGR)
 
         # Make sure the save directory exists:
         if not os.path.exists(OUTPUT_DIR):
             os.makedirs(OUTPUT_DIR)
+
+        # Save file report:
+        report_file_name = file_name_base + ".report.txt"
+        report_file_path = os.path.join(OUTPUT_DIR, report_file_name)
+        app.logger.notice(
+            f"\tSaving file report to {report_file_path} . . ."
+        )
+        with open(report_file_path, "w") as report_file:
+            report_file.write(full_report + '\n')
 
         # Save raw file data:
         raw_file_name = file_name_base + ".raw"
@@ -591,7 +641,7 @@ class Image:
         )
         with open(txt_file_path, "w") as txt_file:
             # Write bytes to file
-            txt_file.writelines(txt_file_data)
+            txt_file.write('\n'.join(txt_file_data) + '\n')
 
         # Save raw (greyscale, possibly bayered) image:
         raw_img_name = file_name_base + ".raw.png"
@@ -612,6 +662,7 @@ class Image:
             f"to {color_img_path} . . ."
         )
         cv2.imwrite(color_img_path, color_img)
+        app.logger.success(f"Saved {file_name_base}.")
 
     def add_block(self, block: FileBlockPayload) -> None:
         """Adds the given `FileBlockPayload` to the appropriate line in this
@@ -680,8 +731,8 @@ class BasicImageDecoder:
             image.save()
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:
-        blocks = packet.payloads[FileBlockPayload]
-        for block in blocks:
+        for block in packet.payloads[FileBlockPayload]:
+            block = cast(FileBlockPayload, block)
             self.process_file_block(block)
 
 
@@ -699,7 +750,8 @@ def main() -> None:
                     f"Failed to decode IPC message `{msg}` "
                     f"of `{ipc_payload=}` b/c: `{e}`."
                 )
-            for block in payloads[IB3.codec.payload.FileBlockPayload]:
+            for block in payloads[FileBlockPayload]:
+                block = cast(FileBlockPayload, block)
                 decoder.process_file_block(block)
         except KeyboardInterrupt as ki:
             """User can press key to export all in-progress images."""

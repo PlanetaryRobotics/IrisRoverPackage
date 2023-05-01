@@ -1127,6 +1127,16 @@ class FileMetadata(FileMetadataInterface[FileMetadataInterface]):
         self._file_type_magic = file_type_magic
         super().__init__(raw=raw, endianness_code=endianness_code)
 
+    def __str__(self) -> str:
+        return (
+            "FileMetadata["
+            f"cid: {self._callback_id:3d},\t "
+            f"fgtl: {self._file_group_total_lines:4d},\t "
+            f"time: 0x{self._timestamp:08X},\t "
+            f"magic: {self._file_type_magic.name:5s}"
+            "]"
+        )
+
     @classmethod
     def decode(cls,
                data: bytes,

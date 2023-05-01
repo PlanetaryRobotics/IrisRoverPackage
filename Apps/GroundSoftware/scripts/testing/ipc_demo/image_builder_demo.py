@@ -76,6 +76,24 @@ class ImageLine:
     # `totalBlocks`)
     ordered_data_blocks: List[bytes]
 
+    def __str__(self) -> str:
+        return (
+            "ImageLine["
+            f"line: {0 if self.line_num is None else self.line_num:4d},\t "
+            f"fgid: {0 if self.file_group_id is None else self.file_group_id:6d},\t "
+            f"{len(self.data_block_payloads):2d} blocks,\t "
+            f"{len(self.ordered_data_blocks):2d} allocd,\t "
+            f"{sum(1 for x in self.ordered_data_blocks if x != b''):2d} used,\t "
+            f"nbf: {self.num_blocks_found:2d},\t "
+            f"tnb: {self.total_num_blocks:2d},\t "
+            f"empt: {'y' if self.is_empty else 'n'},\t "
+            f"comp: {'y' if self.is_complete else 'n'},\t "
+            f"corr: {'y' if self.contains_corrupted_blocks() else 'n'},\t "
+            f"val: {'y' if self.validate() else 'n'},\t "
+            f"meta: {self.metadata!s}"
+            "]"
+        )
+
     @property
     def num_blocks_found(self) -> int:
         return len(self.data_block_payloads)
@@ -86,7 +104,8 @@ class ImageLine:
 
     @property
     def is_complete(self) -> bool:
-        return self.num_blocks_found == self.total_num_blocks
+        # Using >= not == b/c sometimes we get duplicate blocks:
+        return self.num_blocks_found >= self.total_num_blocks
 
     @property
     def line_num(self) -> int | None:
@@ -208,9 +227,10 @@ class ImageLine:
     def is_empty(self) -> bool:
         """Returns whether this `ImageLine` contains no data."""
         return (
-            self.metadata is None and
+            # No non-metadata blocks received yet:
             len(self.data_block_payloads) == 0 and
-            len(self.ordered_data_blocks) == 0
+            # No data in blocks (*should* be equivalent to the prev. condition):
+            sum(1 for x in self.ordered_data_blocks if x != b'') == 0
         )
 
     def validate(self) -> bool:
@@ -606,6 +626,17 @@ class Image:
             )
             for l in lines_arr
         ]
+        # Append ImageLine summary string to each line:
+        line_summaries: List[ImageLine | None] = [None] * len(txt_file_data)
+        # ... fill in all lines present:
+        for line_idx, line in self.lines_in_progress.items():
+            line_summaries[line_idx] = line
+        # ... prefix all the lines:
+        for i, line_summary in enumerate(line_summaries):
+            txt_file_data[i] = (
+                str(line_summary).expandtabs(4).ljust(250, ' ')
+                + txt_file_data[i]
+            )
 
         # Build raw (greyscale, possibly bayered) image:
         app.logger.info("Building Raw Image . . .")

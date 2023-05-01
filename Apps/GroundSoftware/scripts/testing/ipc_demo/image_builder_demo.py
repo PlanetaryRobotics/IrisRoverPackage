@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 import cv2
 import ulid
+import pickle
 import os.path
 from functools import lru_cache
 from dataclasses import dataclass
@@ -665,6 +666,18 @@ class Image:
         )
         with open(report_file_path, "w") as report_file:
             report_file.write(full_report + '\n')
+
+        # Save a pickle of the entire Image object (an exact clone of this
+        # object will allow us to retroactively investigate data that doesn't
+        # make it into the final copy of the image, e.g. multiple copies of
+        # image line blocks):
+        pickle_file_name = file_name_base + ".image.pkl"
+        pickle_file_path = os.path.join(OUTPUT_DIR, pickle_file_name)
+        app.logger.notice(
+            f"\tSaving Image pickle to {pickle_file_path} . . ."
+        )
+        with open(pickle_file_path, 'wb') as handle:
+            pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         # Save raw file data:
         raw_file_name = file_name_base + ".raw"

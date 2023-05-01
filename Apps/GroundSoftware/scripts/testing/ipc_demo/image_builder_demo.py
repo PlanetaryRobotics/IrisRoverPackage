@@ -1,16 +1,21 @@
 """
 Starting implementation of an IPC file builder.
 
-Run the Transceiver TopicProxy in a separate terminal before running this
-script and keep it running for the duration of this script:
+Run all GDS infrastructure before running this:
 ```
-make proxies
+make run-infra
 ```
 
 Also run a Transceiver to supply packets (e.g. PcapTransceiver).
 
+The following is an example of a way to feed data from a wirelessly captured
+PCAP using a PcapTransceiver:
+```
+./run-script.sh scripts/testing/ipc_demo/pcap_xcvr.py -t 10 -g 0 -l VERBOSE --no-loop -f test-data/img_image-grid-flash-wifi_test_rebootAfter6292.pcap
+```
+
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/30/2023
+@last-updated: 05/01/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations

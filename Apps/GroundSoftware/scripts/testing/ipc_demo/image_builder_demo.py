@@ -105,7 +105,14 @@ class ImageLine:
     @property
     def is_complete(self) -> bool:
         # Using >= not == b/c sometimes we get duplicate blocks:
-        return self.num_blocks_found >= self.total_num_blocks
+        return (
+            # Make sure we've received enough blocks:
+            self.num_blocks_found >= self.total_num_blocks
+            # And no allocated sections are empty:
+            # (have to check this because it's possible we've received a
+            # multiple copies of one block, inflating the count):
+            and not any(x == b'' for x in self.ordered_data_blocks)
+        )
 
     @property
     def line_num(self) -> int | None:

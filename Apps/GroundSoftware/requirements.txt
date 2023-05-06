@@ -16,6 +16,8 @@ pynput
 multi-await
 plotly
 dash
+dash_bootstrap_components
+dash_bootstrap_templates
 panel
 holoviews
 hvplot

@@ -25,11 +25,12 @@ import cv2
 import ulid
 import pickle
 import os.path
+import argparse
 from functools import lru_cache
 from dataclasses import dataclass
 from itertools import zip_longest
 from collections import OrderedDict, Counter
-from typing import Dict, List, Tuple, cast, TypeAlias, Type, Final, Callable
+from typing import Any, Dict, List, Tuple, cast, TypeAlias, Type, Final, Callable
 
 import numpy as np
 
@@ -53,6 +54,7 @@ FILE_PREFIX: Final[str] = 'RC9_Test_Img'
 
 # Default number of lines in an image:
 DEFAULT_IMAGE_LINE_COUNT: Final[int] = 1944
+DEFAULT_IMAGE_WIDTH: Final[int] = 2592
 
 FileIdType: TypeAlias = int
 CallbackIdType: TypeAlias = int
@@ -332,6 +334,77 @@ class ImageLine:
         return line
 
 
+def justin_algorithm(
+    mem: np.ndarray,
+    n_interleave: int = 8
+) -> Dict[str, np.ndarray]:
+    """Uses Justin's algorithm from `image_from_pcap.py` to convert an image
+    from memory space to pixel space."""
+    # Interleave rows:
+    np_img: np.ndarray  # working image. result of each stage
+    results: Dict[str, np.ndarray] = dict()
+    img_int = []
+    for i in range(int(mem.shape[0] / n_interleave)):
+        for n in range(n_interleave):
+            img_int.append(mem[int(mem.shape[0] / n_interleave * n + i)])
+    np_img = np.array(img_int)
+    results['interleaved'] = np_img
+
+    # # Rearrange the four quadrants:
+    # split_y = int(1748.0 * mem.shape[0] / DEFAULT_IMAGE_LINE_COUNT)
+    # split_x = int(1878.0 * mem.shape[1] / DEFAULT_IMAGE_WIDTH)
+    # br = np_img[:split_y, :split_x]
+    # tr = np_img[split_y:, :split_x]
+    # bl = np_img[:split_y, split_x:]
+    # tl = np_img[split_y:, split_x:]
+    # picture: np.ndarray = np.ndarray(mem.shape, dtype=np.uint8)
+    # picture[:tl.shape[0], :tl.shape[1]] = tl
+    # picture[:tr.shape[0], tl.shape[1]:] = tr
+    # picture[tr.shape[0]:, tl.shape[1]:] = br
+    # picture[tl.shape[0]:, :tl.shape[1]] = bl
+    # np_img = picture
+    # results['rearranged'] = np_img
+
+    # Get rid of every 8th row (all the white rows)
+    pic = []
+    for i, row in enumerate(np_img):
+        if i % 8 == 7:
+            pass
+        else:
+            pic.append(row)
+    np_img = np.array(pic)
+    results['pruned'] = np_img
+
+    # Stretch pruned image back to the original size:
+    results['pruned-stretched-nearest'] = cv2.resize(
+        results['pruned'],
+        (mem.shape[1], mem.shape[0]),
+        interpolation=cv2.INTER_NEAREST
+    )
+    results['pruned-stretched-linear'] = cv2.resize(
+        results['pruned'],
+        (mem.shape[1], mem.shape[0]),
+        interpolation=cv2.INTER_LINEAR
+    )
+    results['pruned-stretched-cubic'] = cv2.resize(
+        results['pruned'],
+        (mem.shape[1], mem.shape[0]),
+        interpolation=cv2.INTER_CUBIC
+    )
+    results['pruned-stretched-area'] = cv2.resize(
+        results['pruned'],
+        (mem.shape[1], mem.shape[0]),
+        interpolation=cv2.INTER_AREA
+    )
+    results['pruned-stretched-lanczos'] = cv2.resize(
+        results['pruned'],
+        (mem.shape[1], mem.shape[0]),
+        interpolation=cv2.INTER_LANCZOS4
+    )
+
+    return results
+
+
 # Type for `lines_in_progress` (reused in several places):
 _LIP_T: TypeAlias = OrderedDict[int, ImageLine]
 
@@ -581,7 +654,7 @@ class Image:
             f"Lines with Corrupted Data:\t {num_corrupted_lines}",
         ]
 
-    def save(self) -> None:
+    def save(self, debayer: bool = True) -> None:
         # Make file name base for all files:
         file_name_base = f"img_{FILE_PREFIX}__{ulid.new()}__{self.file_group_id}"
 
@@ -651,8 +724,9 @@ class Image:
         raw_img = np.array(lines_arr, dtype=np.uint8)
 
         # Debayer image:
-        app.logger.info("Building Debayered Color Image . . .")
-        color_img = cv2.cvtColor(raw_img, cv2.COLOR_BAYER_BG2BGR)
+        if debayer:
+            app.logger.info("Building Debayered Color Image . . .")
+            color_img = cv2.cvtColor(raw_img, cv2.COLOR_BAYER_BG2BGR)
 
         # Make sure the save directory exists:
         if not os.path.exists(OUTPUT_DIR):
@@ -709,15 +783,54 @@ class Image:
         )
         cv2.imwrite(raw_img_path, raw_img)
 
-        # Save raw (greyscale, possibly bayered) image:
-        color_img_name = file_name_base + ".color.png"
-        color_img_path = os.path.join(OUTPUT_DIR, color_img_name)
-        app.logger.notice(
-            f"\tSaving {' x '.join(str(x) for x in color_img.shape)} "
-            f"color (debayered) image "
-            f"to {color_img_path} . . ."
-        )
-        cv2.imwrite(color_img_path, color_img)
+        # Save debayered (possibly color) image:
+        if debayer:
+            color_img_name = file_name_base + ".color.png"
+            color_img_path = os.path.join(OUTPUT_DIR, color_img_name)
+            app.logger.notice(
+                f"\tSaving {' x '.join(str(x) for x in color_img.shape)} "
+                f"color (debayered) image "
+                f"to {color_img_path} . . ."
+            )
+            cv2.imwrite(color_img_path, color_img)
+
+        # Apply and Save Justin's Algorithm:
+        app.logger.notice("Applying Reconstruction Algorithm . . .")
+        app.logger.info("Applying Justin's Algorithm . . .")
+        j_results = justin_algorithm(raw_img)
+        for res_name, res_img in j_results.items():
+            app.logger.info(f"\t> Debayering {res_name} JA result . . .")
+            j_images = [res_img]
+            if debayer:
+                # Apply all possible debayering patterns to each result:
+                patterns = OrderedDict([
+                    ('BG2RGB', cv2.COLOR_BAYER_BG2RGB),  # RGGB (likely)
+                    ('BG2BGR', cv2.COLOR_BAYER_BG2BGR),  # RGGB (likely)
+                    ('GB2RGB', cv2.COLOR_BAYER_GB2RGB),  # GRBG (likely)
+                    ('GB2BGR', cv2.COLOR_BAYER_GB2BGR),  # GRBG (likely)
+                    ('RG2RGB', cv2.COLOR_BAYER_RG2RGB),  # BGGR (unlikely)
+                    ('GR2RGB', cv2.COLOR_BAYER_GR2RGB)  # GBRG (unlikely)
+                ])
+                for pattern in patterns.values():
+                    j_images.append(cv2.cvtColor(res_img, pattern))
+            else:
+                patterns = OrderedDict()
+            # Save each version of this result:
+            app.logger.info(f"\t> Saving all {res_name} JA images . . .")
+            for i, j_img in enumerate(j_images):
+                pattern_name = [*patterns.keys()][i-1] if i > 0 else '_none'
+                img_name = (
+                    f"{file_name_base}__justin_{res_name}__p{i}"
+                    f"_{pattern_name}.png"
+                )
+                img_path = os.path.join(OUTPUT_DIR, img_name)
+                app.logger.notice(
+                    f"\tSaving Justin's Algorithm Output "
+                    f"(raw image -> Justin's Algorithm -> {pattern_name}) "
+                    f"to {img_path} . . ."
+                )
+                cv2.imwrite(img_path, j_img)
+
         app.logger.success(f"Saved {file_name_base}.")
 
     def add_block(self, block: FileBlockPayload) -> None:
@@ -781,10 +894,10 @@ class BasicImageDecoder:
             image.save()
             self.finish_image(file_group_id)
 
-    def export_all(self):
+    def export_all(self, debayer: bool = True):
         """Forces an export of all current in-process images."""
         for image in self.images_in_progress.values():
-            image.save()
+            image.save(debayer)
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:
         for block in packet.payloads[FileBlockPayload]:
@@ -792,7 +905,7 @@ class BasicImageDecoder:
             self.process_file_block(block)
 
 
-def main() -> None:
+def main(opts) -> None:
     decoder = BasicImageDecoder.new_empty()
     while True:
         try:
@@ -811,8 +924,23 @@ def main() -> None:
                 decoder.process_file_block(block)
         except KeyboardInterrupt as ki:
             """User can press key to export all in-progress images."""
-            decoder.export_all()
+            decoder.export_all(debayer=opts.debayer)
+
+
+parser = argparse.ArgumentParser(description=(
+    'IRIS Lunar Rover — Image Builder Demo — CLI'
+))
+
+
+def get_opts():
+    parser.add_argument('--debayer', default=False,
+                        action=argparse.BooleanOptionalAction,
+                        help=(
+                            "Whether or not to attempt debayering of images."
+                        ))
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    main()
+    opts = get_opts()
+    main(opts)

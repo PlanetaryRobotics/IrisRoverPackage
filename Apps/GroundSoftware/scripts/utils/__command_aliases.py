@@ -347,12 +347,35 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     'reset-fpga': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
         # Change this to whatever you want to reset.
         OrderedDict(reset_value='RESET_FPGA'),
         DataPathway.WIRED
+    ),
+    'reset-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='RESET_FPGA'),
+        DataPathway.WIRELESS
+    ),
+    'power-off-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
+        DataPathway.WIRELESS
+    ),
+    'power-on-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRELESS
     ),
     '3v3-on': (
         DataPathway.WIRED,

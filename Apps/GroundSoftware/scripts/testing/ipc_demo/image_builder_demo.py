@@ -15,7 +15,7 @@ PCAP using a PcapTransceiver:
 ```
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2023
+@last-updated: 05/07/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -33,6 +33,7 @@ from collections import OrderedDict, Counter
 from typing import Any, Dict, List, Tuple, cast, TypeAlias, Type, Final, Callable
 
 import numpy as np
+from scipy.interpolate import LinearNDInterpolator
 
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
@@ -107,6 +108,7 @@ class ImageLine:
 
     @property
     def is_complete(self) -> bool:
+        # TODO: Cache this based on num blocks received (won't change if new blocks don't come in)
         # Using >= not == b/c sometimes we get duplicate blocks:
         return (
             # Make sure we've received enough blocks:
@@ -420,6 +422,19 @@ class Image:
     # Number of lines that were complete the last time a block was processed:
     lines_complete_on_last_block: int = 0
 
+    # Dimensions of a full image (target size after correcting for
+    # downsampling, etc.):
+    full_image_columns: int = DEFAULT_IMAGE_WIDTH
+    full_image_rows: int = DEFAULT_IMAGE_LINE_COUNT
+
+    # Number of scanning sections in SBC flash:
+    # (equivalent to n_interleave in Justin's algorithm):
+    n_scan_sections: int = 8
+
+    # Number of blank (i.e. vertical blanking interval) rows to ignore at the
+    # top of the File Group (flash memory space):
+    n_top_blank: int = 13
+
     def __str__(self) -> str:
         return (
             "Image["
@@ -585,6 +600,107 @@ class Image:
             fg_id_valid and
             all_lines_valid
         )
+
+    def fg_to_img_line_idx(self, fg_idx: int) -> int | None:
+        """Returns index where a line of data should be placed in an image
+        given it's file line index. Because of the scan order of the FPGA, the
+        order of File Lines in File Group space don't match the order of the
+        lines in the image, so this acts as transform between them.
+
+        If a line shouldn't end up in the final image (i.e. all white line from
+        the 8th sector), it's given an index of `None`.
+
+        Based on the interleaving and skipping portion of Justin's algorithm.
+        """
+        scan_size = int(self.full_image_rows / self.n_scan_sections)
+        scan_idx = fg_idx // scan_size
+
+        # Ignore the last scan section (it's all white):
+        if (
+            scan_idx == (self.n_scan_sections-1)
+            or fg_idx < self.n_top_blank
+        ):
+            return None
+        else:
+            return (fg_idx % scan_size)*self.n_scan_sections + scan_idx
+
+    def interim_build(
+        self,
+        pad_byte: bytes = b'\x00',  # Easier to see with 0x00 than 0xAA or 0xFF
+        interpolate_unknown: bool = True
+    ) -> np.ndarray:
+        """Builds an interim version of the Image as a numpy array from interim
+        data (a possibly incomplete dataset). This is designed to act as visual
+        progress bar.
+        Unknown cells will be filled with `pad_byte`.
+        If `interpolate_unknown`, any cells where no valid data exists will be
+        interpolated from adjacent cells (otherwise, just `pad_byte` will be
+        used).
+
+        TODO: Figure out how to update this when we move to partial image
+        downlinks (crops and sub/downsampling) with file slice summary logs.
+        """
+        # Initialize memory space for full-size image:
+        full_shape = (self.full_image_rows, self.full_image_columns)
+        image: np.ma.MaskedArray = np.ma.MaskedArray(
+            data=np.zeros(full_shape, dtype=np.uint8),
+            mask=True
+        )
+        image_out: np.ndarray
+
+        # Grab each line in File Group (memory) space and assign its value to
+        # the appropriate row in the full-sized image space:
+        # NOTE: The mask is automatically updated based on cells used.
+        line_data: bytes
+        for fg_idx, line in self.lines_in_progress.items():
+            img_idx = self.fg_to_img_line_idx(fg_idx)
+            if img_idx is None:
+                # Skip. Don't add this line to the image (it's out-of-bounds):
+                continue
+            line_data = line.assemble()
+            image[img_idx, 0:len(line_data)] = [int(x) for x in line_data]
+
+        interpolation_failed: bool = False
+        if interpolate_unknown:
+            try:
+                X, Y = np.mgrid[0:image.shape[0], 0:image.shape[1]]
+                valid = ~image.mask  # has data
+                interpolator = LinearNDInterpolator(
+                    list(zip(X[valid], Y[valid])), image[valid]
+                )
+                image_out = interpolator(X, Y)
+            except Exception as e:
+                app.logger.debug(
+                    f"Interim Image interpolation failed b/c `{e}`. "
+                    f"Defaulting to fill with `{pad_byte[0]!r}`."
+                )
+                interpolation_failed = True
+
+        # If interpolation fails or not successful, just use the pad byte as
+        # fill:
+        if not interpolate_unknown or interpolation_failed:
+            image_out = image.filled(int(pad_byte[0]))
+
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.imshow(image_out, cmap='gray')
+        plt.show()
+
+        return image_out
+
+        # # Build a mask that indicates which cells in the image have known good
+        # # data (1 in this mask means the cell needs to be interpolated):
+        # interp_mask = np.ones(full_shape)
+
+        #     # If necessary, remove this row from the `interp_mask``:
+        #     if interpolate_unknown:
+        #         interp_mask[img_idx, 0:len(line_data)] = 0
+
+        # # Apply the mask and interpolate (if applicable):
+        # if interpolate_unknown:
+        #     m_img = np.
+
+        # return image
 
     def assemble(
         self,
@@ -897,6 +1013,7 @@ class BasicImageDecoder:
     def export_all(self, debayer: bool = True):
         """Forces an export of all current in-process images."""
         for image in self.images_in_progress.values():
+            image.interim_build()
             image.save(debayer)
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:

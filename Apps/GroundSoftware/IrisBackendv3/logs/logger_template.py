@@ -95,7 +95,7 @@ def create_logger_from_template(
             filename=file_path,
             mode='a',
             delay=True,  # don't make file until we write something to it
-            maxBytes=10e6,  # rollover log files after about 1MB
+            maxBytes=int(10e6),  # rollover log files after about 1MB
             # create up to 5000 rollovers of the file (50GB max) (before
             # trashing the oldest data - at this point, we likely have a
             # runaway but we still want this threshold to be high in the case
@@ -109,7 +109,7 @@ def create_logger_from_template(
         logger.addHandler(file_handler)
     else:
         # Create a no-op lambda:
-        def file_level_changer(_: str): pass
+        def file_level_changer(level: int | str) -> None: pass
 
     # Add colored logs:
     # NOTE: This will replace (build upon) the `console_handler` made above,

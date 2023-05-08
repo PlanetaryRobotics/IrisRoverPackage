@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer
+.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer
 
 .DEFAULT_GOAL = help
 all: help
@@ -14,6 +14,7 @@ help:
 	@echo "	make help: Information"
 	@echo " "
 	@echo "	make init: Clean and resetup the project on a *new* system"
+	@echo " "
 	@echo "	make update: Install any new dependencies and update existing dependencies"
 	@echo " "
 	@echo "	make clean: Teardown and Cleanup the Development Environment"
@@ -33,6 +34,10 @@ help:
 	@echo "	make run-docs: Spins up an interactive documentation server (WIP)"
 	@echo " "
 	@echo "	make build-cte: Build the Commands, Telemetry, & Events (CT&E) Table. Run as: 'make build-cte FILE=your_file_name'."
+	@echo " "
+	@echo "	make data: Play an infinitely looping recording of rover test data from a PCAP into IPC."
+	@echo " "
+	@echo "	make data-image: Play a fixed non-looping recording recording of rover test data from a PCAP into IPC, that starts with downlink of image(s)."
 	@echo " "
 	@echo "	make console: Run the Iris Console CLI application"
 	@echo " "
@@ -148,6 +153,13 @@ run-infra:
 	make xterm-normal \
 		GEOM="150x10+0+205" \
 		PROG="./run-script.sh ipc_apps/dl_processor.py"
+# Bring up a Redis Stack Server
+# (only needed for a subset of apps like GDS-GUI, if you're not using any
+# redis-dependent apps, you won't need redis installed, in which case this will
+# fail which is fine):
+	make xterm-normal \
+		GEOM="150x10+0+410" \
+		PROG="redis-stack-server"
 
 ####
 # Run all test suites:
@@ -187,6 +199,21 @@ run-docs:
 ####
 build-cte:
 	./run-script.sh ./scripts/tiny_apps/datastandards_lookup.py -f $(FILE)
+
+####
+# Play an infinitely looping recording of rover test data from a PCAP into IPC.
+####
+data:
+	./run-script.sh ./scripts/testing/ipc_demo/pcap_xcvr.py
+
+####
+# Play a fixed non-looping recording of rover test data from a PCAP into IPC,
+# that starts with downlink of image(s).
+####
+data-image:
+	./run-script.sh scripts/testing/ipc_demo/pcap_xcvr.py \
+		-t 7 -g 0 --no-loop \
+		-f test-data/img_rc9.5.3_sbc4_cam1_field_of_irises_6.7_only_laptop_lighting_dim__12mm_lens_sep__shorted_ferrite.pcap
 
 ####
 # Run the Iris Console CLI application:

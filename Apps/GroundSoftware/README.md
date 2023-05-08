@@ -235,22 +235,22 @@ Less common (and possibly lower quality) IPC apps can be run using `./run-script
 - Release-ready IPC apps can be found in: `GroundSoftware/ipc_apps`.
 - IPC test scripts, some of which may be solid and executable, can be found in: `GroundSoftware/scripts/testing/ipc_demo`.
 
-# 8. Common Use Cases:
+# 7. Common Use Cases
 
 NOTE: **All of the following are meant to be run from the `GroundSoftware` directory unless otherwise stated.**
 
-## 8.1 Bringing up the Full Stack
+## 7.1 Bringing up the Full Stack:
 This will launch all the GDS tools and core apps. Likely more than you'll need outside of a full stack mission simulation:
 1. Run `make run`
 
-## 8.2. `Iris Console` for FSW:
+## 7.2. `Iris Console` for FSW:
 You're a FSW developer and want to use the legacy single-process `Iris Console` CLI script:
 1. Run `make console`
     - or `make console-debug` if you're using the debug lander harness (and not the RS422 transceiver that plugs into the EM4 pogo pins).
     - NOTE: you may have to zoom out a bunch in your CLI for this to work properly.
    - or `make xconsole` / `make xconsole-debug` if you want to open an `xterm` with the appropriate zoom settings.
 
-## 8.2. Running the GDS GUI:
+## 7.2. Running the GDS GUI:
 Runs a low-level developer / diagnostic interface for working with the rover. Mainly designed for use by Flight Software engineers:
 1. Run `make run-infra`
 2. Run `make app-gui`
@@ -263,13 +263,13 @@ Runs a low-level developer / diagnostic interface for working with the rover. Ma
       1. For infinite generic data: `make data`
       2. For finite data containing image(s): `make data-image`
 
-## 8.3. Testing a new IPC App:
+## 7.3. Testing a new IPC App:
 If you're testing your own new IPC app:
 1. Run `make run-infra`
 2. Run `./run-script.sh ./path/to/your_app.py`.
 3. If you want test rover data to be infinitely played from a recording, open a new terminal and run: `make data`.
 
-# 7. Teardown and Cleanup Development Environment
+# 8. Teardown and Cleanup Development Environment
 Run this before reinitializing (in case something broke):
 
 `make clean`

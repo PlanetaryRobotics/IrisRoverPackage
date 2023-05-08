@@ -57,8 +57,9 @@ manager = ipc.IpcAppManagerSync(socket_specs={
 @dataclass
 class GuiContext:
     telem_df: pd.DataFrame = field(default_factory=lambda: (
-        console_display.init_telemetry_payload_log_dataframe(
-            pd.DataFrame())  # type: ignore
+        console_display.init_telemetry_payload_log_dataframe(  # type: ignore
+            pd.DataFrame()
+        )
     ))
 
     @property

@@ -289,6 +289,7 @@
         "structs",
         "Styleable",
         "styleframe",
+        "subcomponent",
         "Subpacket",
         "SUBPACKETS",
         "subtracing",

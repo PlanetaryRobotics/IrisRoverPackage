@@ -1,0 +1,52 @@
+/* General style to apply to the whole page. */
+
+/** FONT: **/
+@font-face {
+    font-family: "Barlow";
+    src: url("Barlow/Barlow-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Barlow";
+    src: url("Barlow/Barlow-Medium.ttf") format("truetype");
+    font-weight: medium;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Barlow";
+    src: url("Barlow/Barlow-SemiBold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Barlow";
+    src: url("Barlow/Barlow-Italic.ttf") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+
+* {
+    font-family: "Barlow";
+}
+
+html {
+    font-family: "Barlow";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    box-sizing: border-box;
+    font-size: 100%;
+}
+
+/** COLOR: **/
+html {
+    color: #222222;
+}
+
+body {
+    background-color: #2A2A2A;
+}

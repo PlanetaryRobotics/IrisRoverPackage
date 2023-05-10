@@ -25,21 +25,13 @@ class GuiContext:
             ipc.IpcAppHelper(app_name)
         )
     )
-
-    ipc_mgr: ipc.IpcAppManagerSync = field(default_factory=lambda: (
-        ipc.IpcAppManagerSync(socket_specs={
-            'sub': ipc.SocketSpec(
-                sock_type=ipc.SocketType.SUBSCRIBER,
-                port=ipc.Port.TRANSCEIVER_SUB,
-                topics=[ipc.Topic.DL_PAYLOADS]
-            )
-        })
-    ))
+    ipc_mgr: ipc.IpcAppManagerAsync | None = None
 
     STANDARDS: Final[IB3.data_standards.DataStandards] = field(
         default_factory=lambda: IB3.get_codec_standards()
     )
 
+    inner_db: Any | None = None
     dash_callback_mgr: CeleryManager | None = None
     dash_app: Dash | None = None
     dom: Any | None = None

@@ -15,8 +15,8 @@ from dash import Dash
 import dash_bootstrap_components as dbc
 import dash_bootstrap_templates as dbt
 
-from gui.context import GuiContext
-from gui.layout import GuiAIO
+from .context import GuiContext
+from .layout import GuiAIO
 
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
@@ -27,30 +27,6 @@ from IrisBackendv3.ipc.messages import (
 )
 
 from IrisBackendv3.utils import console_display
-
-
-def ingest_data(context: GuiContext, telem_df: pd.DataFrame) -> pd.DataFrame:
-    """Synchronously listens for new IPC data to be available and returns an
-    updated telem dataframe when it is."""
-    payloads = IB3.codec.payload_collection.EnhancedPayloadCollection()
-    try:
-        ipc_payload = context.ipc_mgr.read('sub')
-        msg = ipc.guard_msg(ipc_payload.message,
-                            DownlinkedPayloadsMessage)
-        payloads = msg.content.payloads
-    except Exception as e:
-        context.ipc_app.logger.error(
-            f"Failed to decode IPC message `{msg}` "
-            f"of `{ipc_payload=}` b/c: `{e}`."
-        )
-        # Just make an empty payload collection:
-        payloads = IB3.codec.payload_collection.EnhancedPayloadCollection()
-
-    # Update the payload dataframe with whatever we got (if anything):
-    telem_df = console_display.update_telemetry_payload_log_from_payloads(
-        telem_df, payloads
-    )
-    return telem_df
 
 
 def add_app_callbacks(context: GuiContext) -> Dash:
@@ -75,10 +51,14 @@ def add_app_callbacks(context: GuiContext) -> Dash:
         )
 
     # Add application callbacks:
+
+    # NOTE: At present, there are no application-level callbacks.
+    # Below is a template of what one looked like before being removed:
+    """
+    ```py
     @context.dash_app.callback(
         output=dict(
-            telem=dash.Output(context.dom.telem_table.telem_store, 'data'),
-            signal=dash.Output(context.dom.ipc_signal, 'data')
+            telem=dash.Output(context.dom.telem_table.telem_store, 'data')
         ),
         inputs=dict(signal=dash.Input(context.dom.ipc_signal, 'data')),
         state=dict(
@@ -88,13 +68,14 @@ def add_app_callbacks(context: GuiContext) -> Dash:
         manager=context.dash_callback_mgr
     )
     def get_more_data(signal, telem_store):
-        """Background callback to fetch IPC data. Triggers itself when done
-        (effectively a loop)."""
+        "Background callback to fetch IPC data. Triggers itself when done
+        (effectively a loop)."
         telem_df = pd.read_json(telem_store)
         telem_df = ingest_data(context, telem_df)
         return dict(
-            telem=telem_df.to_json(),
-            signal=signal+1
+            telem=telem_df.to_json(date_format='iso', date_unit='ms')
         )
+    ```
+    """
 
     return context.dash_app

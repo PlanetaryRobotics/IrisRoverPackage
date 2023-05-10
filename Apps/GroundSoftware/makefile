@@ -204,7 +204,7 @@ build-cte:
 # Play an infinitely looping recording of rover test data from a PCAP into IPC.
 ####
 data:
-	./run-script.sh ./scripts/testing/ipc_demo/pcap_xcvr.py
+	./run-script.sh ./scripts/testing/ipc_demo/pcap_xcvr.py --loop
 
 ####
 # Play a fixed non-looping recording of rover test data from a PCAP into IPC,

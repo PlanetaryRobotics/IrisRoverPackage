@@ -351,6 +351,18 @@ def init_telemetry_payload_log_dataframe(telemetry_payload_log_dataframe: pd.Dat
     return telemetry_payload_log_dataframe
 
 
+def format_telem_value(val: Any) -> str:
+    if (
+        isinstance(val, int)
+        or isinstance(val, float) and int(val) == val
+    ):
+        return str(int(val))
+    if isinstance(val, float):
+        return f"{val:.6g}"
+    else:
+        return str(val)
+
+
 def update_telemetry_payload_log_dataframe(
     telemetry_payload_log_dataframe: pd.DataFrame,
     t: TelemetryPayload
@@ -382,7 +394,7 @@ def update_telemetry_payload_log_dataframe(
             'Channel': t.channel.name,
             'nRX': old_row['nRX'] + 1,
             'Updated': datetime.now(),
-            'Current Value': val,
+            'Current Value': format_telem_value(val),
             'H+1': old_row['Current Value'],
             'H+2': old_row['H+1'],
             'H+3': old_row['H+2']
@@ -393,10 +405,10 @@ def update_telemetry_payload_log_dataframe(
             'Channel': t.channel.name,
             'nRX': 1,
             'Updated': datetime.now(),
-            'Current Value': val,
-            'H+1': np.nan,
-            'H+2': np.nan,
-            'H+3': np.nan
+            'Current Value': format_telem_value(val),
+            'H+1': "",
+            'H+2': "",
+            'H+3': ""
         }
 
     # Save row:

@@ -15,6 +15,7 @@ xlsxwriter
 pynput
 multi-await
 plotly
+pyarrow
 celery
 redis[hiredis]
 dash[diskcache, celery]

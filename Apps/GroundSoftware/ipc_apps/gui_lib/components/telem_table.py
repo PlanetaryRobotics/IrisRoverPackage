@@ -139,12 +139,13 @@ class _TelemTableAIO(html.Div):
         )
         self.table = dash_table.DataTable(
             id=self.ids.table(aio_id),
+            data=init_telem_df.to_dict('records'),
+            columns=[{"name": i, "id": i} for i in init_telem_df.columns],
             **{
-                'data': init_telem_df.to_dict('records'),
                 'page_size': 10,
                 'sort_action': 'native',
-                # 'filter_action': 'native',
-                # 'filter_options': {'placeholder_text': 'Filter...'},
+                'filter_action': 'native',
+                'filter_options': {'placeholder_text': 'Filter...'},
                 'style_cell_conditional': [
                     {
                         'if': {'column_id': c},

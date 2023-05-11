@@ -164,7 +164,7 @@ class _PacketTableAIO(html.Div):
         df_out['Avg. bits/sec w/CCSDS'] = [
             f"{x:.1f}" for x in df_out['Avg. bits/sec w/CCSDS']]
         df_out['Updated'] = [
-            x.isoformat(sep=' ', timespec='milliseconds')
+            x.isoformat(sep=' ', timespec='milliseconds')[5:]  # trim year
             for x in df_out['Updated']
         ]
         return df_out.fillna('')

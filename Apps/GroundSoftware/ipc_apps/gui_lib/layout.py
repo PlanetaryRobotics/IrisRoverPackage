@@ -17,7 +17,7 @@ from flask import send_from_directory
 from .context import GuiContext
 from .components.telem_table import _TelemTableAIO, make_telem_table_aio
 from .components.packet_table import _PacketTableAIO, make_packet_table_aio
-from .style import IrisDerivedColor
+from . import style
 
 
 class GuiAIO(html.Div):
@@ -38,6 +38,23 @@ class GuiAIO(html.Div):
         self.telem_table = make_telem_table_aio(context)
         self.packet_table = make_packet_table_aio(context)
 
+        # Build layouts for each tab:
+        table_tab = dbc.Tab(label='Tables', children=[
+            # Build the actual page:
+            html.Br(),
+            self.packet_table,
+            html.Br(),
+            self.telem_table
+        ])
+
+        plots_tab = dbc.Tab(label='Plots', children=[
+            html.Label('Plots')
+        ])
+
+        camera_tab = dbc.Tab(label='Camera', children=[
+            html.Label('Camera')
+        ])
+
         # Build layout:
         super().__init__(
             [  # `html.Div([...])`
@@ -47,13 +64,17 @@ class GuiAIO(html.Div):
                     rel='stylesheet',
                     href='/static/custom.css'
                 ),
-                # Build the actual page:
-                self.packet_table,
-                *[html.Br()]*2,
-                self.telem_table
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Tabs([table_tab, plots_tab, camera_tab])
+                    ], width=9),
+                    dbc.Col([
+                        html.Label("Event Stream.")
+                    ], width=3)  # 3/12 grid spots
+                ])
             ],
             style={
-                'background-color': IrisDerivedColor.BACKGROUND.value
+                'background-color': style.IrisDerivedColor.BACKGROUND.value
             }
         )
 

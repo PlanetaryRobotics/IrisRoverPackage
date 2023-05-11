@@ -82,9 +82,7 @@ LABEL_STYLE_MIXIN: Final[Dict] = {
 DROPDOWN_STYLE_MIXIN: Final[Dict] = {
     'style': {
         'background-color': IrisColor.GREY3.value,
-        'min-width': '25ch',
-        'max-height': '7em',
-        'overflow-y': 'scroll'
+        'min-width': '25ch'
     }
 }
 
@@ -99,28 +97,62 @@ DROPDOWN_LABEL_STYLE_MIXIN: Final[Dict] = {
 TABLE_STYLE_MIXIN: Final[Dict] = {
     'style_data': {
         'color': IrisDerivedColor.NEAR_WHITE.value,
-        'backgroundColor': IrisColor.GREY5.value
+        'backgroundColor': IrisColor.GREY5.value,
     },
     'style_data_conditional': [
         {
             'if': {'row_index': 'even'},
             'backgroundColor': IrisColor.GREY6.value,
+        },
+        {
+            "if": {"state": "selected"},  # 'active' | 'selected'
+            'color': IrisColor.BLUE_ACCENT.value,
+            "backgroundColor": IrisColor.BLUE_ACCENT.value + "6A",  # + alpha
+            "border": "1px solid " + IrisColor.BLUE_ACCENT.value + "6A",
+        },
+        {
+            "if": {"state": "active"},  # 'active' | 'selected'
+            'color': IrisColor.BLUE_ACCENT.value,
+            "backgroundColor": IrisColor.BLUE_ACCENT.value + "6A",
+            "border": "1px solid " + IrisColor.BLUE_ACCENT.value,
         }
     ],
     'style_header': {
-        'backgroundColor': IrisColor.GREY4.value,
         'color': IrisDerivedColor.NEAR_WHITE.value,
+        'backgroundColor': IrisColor.GREY4.value,
         'fontWeight': 'bold'
     },
     # Style cells to default to smallest possible width:
     'style_cell': {
-        'width': '5rem',
+        'width': '2ch'
     },
 
     # Scroll if overflowing, keeping first row and column frozen:
     'fixed_columns': {'headers': True, 'data': 1},
     'style_table': {
         'minWidth': '100%',
+        'maxWidth': '100%',
         'overflowX': 'scroll'
-    }
+    },
+
+    'style_filter': {  # only applies to the outer wrapper
+        'backgroundColor': IrisColor.GREY6.value
+    },
+    # Custom CSS for specialized needs (e.g. styling filter):
+    'css': [
+        {
+            'selector': '.dash-spreadsheet-container .dash-spreadsheet-inner input:not([type=radio]):not([type=checkbox])',
+            'rule': (
+                f'color: {IrisColor.BLUE_ACCENT.value} !important; '
+                f'text-align: left !important; '
+                f'padding-left: 0.5em; '
+            )
+        },
+        {
+            'selector': '.dash-spreadsheet-container .dash-spreadsheet-inner th.dash-filter input',
+            'rule': (
+                f'accent: {IrisColor.BLUE_ACCENT.value} !important; '
+            )
+        }
+    ]
 }

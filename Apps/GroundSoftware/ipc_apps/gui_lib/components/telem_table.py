@@ -24,7 +24,7 @@ from IrisBackendv3.utils.console_display import init_telemetry_payload_log_dataf
 from . import aio
 from ..context import GuiContext
 from ..backend import DatabaseKey, db_ready
-from ..style import LABEL_STYLE_MIXIN, DROPDOWN_STYLE_MIXIN, TABLE_STYLE_MIXIN
+from .. import style
 
 
 def modules_dropdown(
@@ -40,7 +40,7 @@ def modules_dropdown(
     Any extra `kwargs` given are passed straight through to `dcc.Dropdown`.
     """
     if preselected is None:
-        preselected = [n for n in context.STANDARDS.modules.names]
+        preselected = context.STANDARDS.modules.names
     else:
         preselected = [
             n for n in preselected if n in context.STANDARDS.modules.names
@@ -54,13 +54,16 @@ def modules_dropdown(
     return dcc.Dropdown(
         [
             {
-                "label": html.Span([m.name], style={'color': 'Purple'}),
-                "value": m.name,
+                "label": html.Span(
+                    [name],
+                    **style.DROPDOWN_LABEL_STYLE_MIXIN
+                ),
+                "value": name,
             }
-            for m in context.STANDARDS.modules.vals
+            for name in sorted(context.STANDARDS.modules.names)
         ],
         value=preselected,
-        **DROPDOWN_STYLE_MIXIN,
+        **style.DROPDOWN_STYLE_MIXIN,
         **kwargs
     )
 
@@ -148,9 +151,9 @@ class _TelemTableAIO(html.Div):
                         'textAlign': 'left'
                     } for c in ['Module', 'Channel']
                 ],
-                **TABLE_STYLE_MIXIN,
+                **style.TABLE_STYLE_MIXIN,
                 # Change number of columns frozen when x-scrolling:
-                'fixed_columns': {'headers': True, 'data': 3},
+                'fixed_columns': {'headers': True, 'data': 0},
                 **table_props
             }
         )
@@ -170,12 +173,12 @@ class _TelemTableAIO(html.Div):
         )
         self.mods_store = dcc.Store(
             id=self.ids.mods_store(aio_id),
-            data=context.STANDARDS.modules.names
+            data=sorted(context.STANDARDS.modules.names)
         )
 
         # Build layout:
         super().__init__([  # `html.Div([...])`
-            html.Label(self.title, **LABEL_STYLE_MIXIN),
+            html.Label(self.title, **style.LABEL_STYLE_MIXIN),
             html.Div([
                 self.modules,
                 self.show_all

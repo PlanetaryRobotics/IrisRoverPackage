@@ -22,7 +22,7 @@ class IrisColor(Enum):
     PURPLE_LIGHT = "#B4A1FF"
     PURPLE = "#8A8DFF"
     PURPLE_DARK = "#6148C5"
-    PRIMARY_DARKER = "#4930AD"
+    PURPLE_DARKER = "#4930AD"
     GREEN_LIGHT = "#21DF9A"
     YELLOW = "#FFD039"
     RED_BRIGHT = "#FF2F46"
@@ -51,7 +51,7 @@ class IrisDerivedColor(Enum):
     PRIMARY_LIGHT = IrisColor.PURPLE_LIGHT.value
     PRIMARY = IrisColor.PURPLE.value
     PRIMARY_DARK = IrisColor.PURPLE_DARK.value
-    PRIMARY_DARKER = IrisColor.PRIMARY_DARKER.value
+    PRIMARY_DARKER = IrisColor.PURPLE_DARKER.value
     NOMINAL = IrisColor.GREEN_LIGHT.value
     CAUTION = IrisColor.YELLOW.value
     DANGER = IrisColor.RED_BRIGHT.value
@@ -81,13 +81,20 @@ LABEL_STYLE_MIXIN: Final[Dict] = {
 
 DROPDOWN_STYLE_MIXIN: Final[Dict] = {
     'style': {
-        'color': IrisColor.BLUE_ACCENT.value,
-        'background-color': IrisColor.GREY4.value,
+        'background-color': IrisColor.GREY3.value,
         'min-width': '25ch',
         'max-height': '7em',
         'overflow-y': 'scroll'
     }
 }
+
+DROPDOWN_LABEL_STYLE_MIXIN: Final[Dict] = {
+    'style': {
+        'color': IrisColor.BLUE_ACCENT.value,
+        'font-weight': 'bold'
+    }
+}
+
 
 TABLE_STYLE_MIXIN: Final[Dict] = {
     'style_data': {

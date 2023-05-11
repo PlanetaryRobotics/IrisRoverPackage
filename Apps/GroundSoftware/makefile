@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer
+.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
 
 .DEFAULT_GOAL = help
 all: help
@@ -64,6 +64,8 @@ help:
 	@echo "	make app-message-printer: Run the MessagePrinter IPC App."
 	@echo " "
 	@echo "	make app-packet-bytes-printer: Run the PacketBytesPrinter IPC App."
+	@echo " "
+	@echo "	make app-gui: Bring up the server for the GDS GUI (viewed in a browser)."
 	@echo "----------------------------------"
 
 
@@ -315,3 +317,9 @@ app-message-printer:
 ####
 app-packet-bytes-printer:
 	./run-script.sh ipc_apps/packet_printer.py -n PacketBytesPrinter --no-full-packets --packet-bytes --no-message-packets --no-events
+
+####
+# Bring up the server for the GDS GUI (viewed in a browser):
+####
+app-gui:
+	./run-script.sh ipc_apps/gui.py

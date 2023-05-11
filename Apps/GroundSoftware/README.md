@@ -164,7 +164,7 @@ If you intend to author commits to this repo:
 - Make sure you have WSL2 using a linux kernel from Sept. 2022 or later (`systemd` support was added then)
     - Make sure you're using Windows 11 22H2 or later to get this (Windows 10 22H2 or later may also work but hasn't been tested yet).
 - Install `VcXrv` on Windows (1.20.14.0 was used in testing)
-- Somewhere conveniently accesssible, create a file called `Ubuntu_GUI.xlaunch` in Windows with the following contents:
+- Somewhere conveniently accessible, create a file called `Ubuntu_GUI.xlaunch` in Windows with the following contents:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <XLaunch WindowMode="MultiWindow" ClientMode="NoClient" LocalClient="False" Display="-1" LocalProgram="xcalc" RemoteProgram="xterm" RemotePassword="" PrivateKey="" RemoteHost="" RemoteUser="" XDMCPHost="" XDMCPBroadcast="False" XDMCPIndirect="False" Clipboard="True" ClipboardPrimary="True" ExtraParams="" Wgl="True" DisableAC="True" XDMCPTerminate="False"/>

@@ -36,7 +36,7 @@ class PcapParseOpts:
     # protocol to filter packets with (only select packets with this protocol - e.g. `scp.UDP`):
     filter_protocol: Optional[Any] = None
     # Exclude any packets containing these layers:
-    exclude_packets_with_layers: Optional[List[Any]] = [scp.ICMP]
+    exclude_packets_with_layers: List[Any] = [scp.ICMP]
     packetgap: int = 0  # 36000
     deadspace: int = 0
     logging_level: str = 'INFO'

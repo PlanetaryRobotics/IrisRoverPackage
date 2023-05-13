@@ -239,6 +239,14 @@ Less common (and possibly lower quality) IPC apps can be run using `./run-script
 
 NOTE: **All of the following are meant to be run from the `GroundSoftware` directory unless otherwise stated.**
 
+## 7.0 Making Room:
+If any of the IPC-based apps below, specifically anything that starts with `make run`, complains about not being able to bind to a port, that's probably because something else is using a necessary IPC port - maybe something wasn't closed before (?).
+
+- To see what, if anything, is using ports needed by IPC, run: `make port-investigator`
+- To see what, if anything, is using ports needed by IPC, **and kill everything using those ports** so what you're trying to run can use them, run: `make port-culler`
+
+Neither of these should be necessary except in extreme fault conditions or if this is your first time and there's a port collision (unlikely but possible). But, if you do need them, these are quite valuable for quickly diagnosing problems.
+
 ## 7.1 Bringing up the Full Stack:
 This will launch all the GDS tools and core apps. Likely more than you'll need outside of a full stack mission simulation:
 1. Run `make run`
@@ -259,7 +267,7 @@ Runs a low-level developer / diagnostic interface for working with the rover. Ma
       1. `make xcvr-rs422` for a RS422+UDP/SLIP transceiver
       2. `make xcvr-wifi` for a WiFi transceiver
       3. `make xcvr` to bring up all transceivers in parallel. Any transceivers that can connect to the rover will forward data to it in both directions.
-   2. To replay replay some test data:
+   2. To replay replay pre-made test data:
       1. For infinite generic data: `make data`
       2. For finite data containing image(s): `make data-image`
 

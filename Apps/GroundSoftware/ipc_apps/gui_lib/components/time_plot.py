@@ -208,7 +208,7 @@ class _TimePlotAIO(html.Div):
             n_clicks=0
         )
         self.refresh_button_tooltip = dbc.Tooltip(
-            "Reloads all data, in and out of view (panacea for weird data).",
+            "Reloads all data, in and out of view (panacea for weird dataviz).",
             id=aio.id_generator('_TimePlotAIO', 'rb_tooltip')(aio_id),
             target=self.ids.refresh_button(aio_id),
             placement='bottom'
@@ -217,7 +217,7 @@ class _TimePlotAIO(html.Div):
         self.interval = dcc.Interval(
             id=self.ids.interval(aio_id),
             **{
-                'interval': 1.0*1000,  # once every 1.0s,
+                'interval': 0.2*1000,  # ms
                 'n_intervals': 0,
                 **interval_props
             }
@@ -504,7 +504,9 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
                     data=data_series,
                     layout={
                         'plot_bgcolor': style.IrisDerivedColor.BACKGROUND.value,
-                        'paper_bgcolor': style.IrisDerivedColor.BACKGROUND.value
+                        'paper_bgcolor': style.IrisDerivedColor.BACKGROUND.value,
+                        'hovermode': 'x unified',
+                        'hoverdistance': -1  # no limit
                     }
                 ),
                 channels=plot_cfg.channels_shown

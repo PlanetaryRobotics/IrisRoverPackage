@@ -4,7 +4,7 @@ Filtering Telemetry Table Component.
 Following pattern from: https://dash.plotly.com/all-in-one-components
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 05/10/2023
+Last Updated: 05/13/2023
 """
 from __future__ import annotations
 
@@ -134,6 +134,7 @@ class _TelemTableAIO(html.Div):
                 'min': 2,
                 'max': 100,
                 'value': 11,
+                'tooltip': {"placement": "bottom", "always_visible": False},
                 **size_slider_props
             }
         )
@@ -276,7 +277,7 @@ def make_telem_table_aio(context: GuiContext, *args, **kwargs) -> _TelemTableAIO
             Input(ids.size_slider(MATCH), 'value')
         )
         def update_telem_table_size(new_size):
-            return new_size
+            return int(new_size)
 
         @callback(
             Output(ids.modules(MATCH), 'value'),

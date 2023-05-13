@@ -12,7 +12,7 @@ import json
 import plotly
 import pandas as pd
 from enum import Enum
-import redis  # type: ignore
+import redis
 from celery import Celery
 from dash import CeleryManager
 
@@ -77,9 +77,10 @@ class InternalDatabase:
         serialized_type = self._redis.get(f'{key.value}_type')
         try:
             if serialized_type == b'pd.DataFrame':
-                value = pd.read_parquet(io.BytesIO(serialized_value))
+                value = pd.read_parquet(
+                    io.BytesIO(serialized_value))  # type: ignore
             else:
-                value = json.loads(serialized_value)
+                value = json.loads(serialized_value)  # type: ignore
         except Exception as e:
             self.context.ipc_app.logger.error(
                 f"[Internal Database] Failed to load key=`{key}`. "

@@ -2,9 +2,9 @@
 Responsible for the Dash App Layout.
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 05/08/2023
+Last Updated: 05/13/2023
 """
-from typing import Tuple
+from typing import Tuple, List
 
 import os
 import uuid
@@ -17,6 +17,7 @@ from flask import send_from_directory
 from .context import GuiContext
 from .components.telem_table import _TelemTableAIO, make_telem_table_aio
 from .components.packet_table import _PacketTableAIO, make_packet_table_aio
+from .components.time_plot import _TimePlotAIO, make_time_plot_aio
 from . import style
 
 
@@ -25,6 +26,7 @@ class GuiAIO(html.Div):
     # NOTE: All-in-One Components should be suffixed with 'AIO'
     telem_table:  _TelemTableAIO
     packet_table: _PacketTableAIO
+    time_plots: List[_TimePlotAIO]
 
     def __init__(
         self,
@@ -37,6 +39,13 @@ class GuiAIO(html.Div):
         # Build Components:
         self.telem_table = make_telem_table_aio(context)
         self.packet_table = make_packet_table_aio(context)
+        self.time_plots = [
+            make_time_plot_aio(context),
+            # make_time_plot_aio(
+            #     context,
+            #     default_channels=['Imu_XAcc', 'Imu_YAcc', 'Imu_ZAcc']
+            # )
+        ]
 
         # Build layouts for each tab:
         table_tab = dbc.Tab(label='Tables', children=[
@@ -48,7 +57,7 @@ class GuiAIO(html.Div):
         ])
 
         plots_tab = dbc.Tab(label='Plots', children=[
-            html.Label('Plots')
+            *self.time_plots
         ])
 
         camera_tab = dbc.Tab(label='Camera', children=[

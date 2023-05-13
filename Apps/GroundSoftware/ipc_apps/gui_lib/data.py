@@ -4,12 +4,13 @@ IPC Data Pipeline for GDS GUI.
 Author: Connor W. Colombo (colombo@cmu.edu)
 Last Updated: 05/09/2023
 """
-import asyncio
-from typing import Any, Final, ClassVar, List
+from typing import ClassVar, List, cast
+from datetime import datetime
 
 import pandas as pd
 
 from IrisBackendv3.codec.packet_classes.packet import Packet
+from IrisBackendv3.codec.payload import TelemetryPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.utils.console_display import (
     init_telemetry_payload_log_dataframe,
@@ -18,6 +19,7 @@ from IrisBackendv3.utils.console_display import (
     update_packet_log_dataframe
 )
 
+import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import (
     DownlinkedPacketsMessage, DownlinkedPayloadsMessage
@@ -25,6 +27,96 @@ from IrisBackendv3.ipc.messages import (
 
 from .context import GuiContext
 from .backend import DatabaseKey, db_ready
+
+
+def channel_to_ts_key(module_name: str, channel_name: str) -> str:
+    """Returns the standardized time series key that should be used for the
+    given `TelemetryChannel` inside the given `Module`."""
+    return f"ts:{module_name}_{channel_name}"
+
+
+def datetime_to_timestamp(dt: datetime) -> int:
+    """Converts the given datetime object to an integer timestamp used to index
+    the TimeSeries database."""
+    return int(dt.timestamp()) * 1000  # ms
+
+
+def timestamp_to_datetime(timestamp: int) -> datetime:
+    """Converts the given integer timestamp used to index the TimeSeries
+    database to a datetime object."""
+    return datetime.fromtimestamp(timestamp/1000)
+
+
+def init_all_telem_time_series(
+    context: GuiContext,
+    standards: IB3.data_standards.DataStandards
+) -> None:
+    """Creates (if necessary) time series for all telemetry channels in all
+    modules in the given datastandards and applies a standard set of policies.
+    """
+    context.ipc_app.logger.info("Creating/altering time series policies . . .")
+    if not db_ready(context.inner_db):
+        raise ValueError(
+            "Inner DB should have been initialized before attempting "
+            "`init_all_telem_time_series`."
+        )
+
+    for module in standards.modules.vals:
+        for channel in module.telemetry.vals:
+            key = channel_to_ts_key(module.name, channel.name)
+            ts = context.inner_db._redis.ts()
+            policies = dict(
+                # let data expire after 1 month - way longer than we'll need
+                # (this is just in the store used by the GUI, **NOT** the
+                # archive store):
+                retention_msecs=30*24*60*60*1000,
+                duplicate_policy='LAST'  # for eq val & timestamps, keep latest
+            )
+
+            if context.inner_db._redis.exists(key):
+                context.ipc_app.logger.verbose(
+                    f"Altering time series policies for {key}..."
+                )
+                ts.alter(key, **policies)  # type: ignore
+            else:
+                context.ipc_app.logger.verbose(
+                    f"Creating time series for {key} and adding policies..."
+                )
+                ts.create(key, **policies)  # type: ignore
+
+
+def push_telemetry_time_series(
+    context: GuiContext,
+    payloads: EnhancedPayloadCollection
+) -> None:
+    """Pushes telemetry data for each telemetry payload to the appropriate time
+    series in Redis."""
+    if not db_ready(context.inner_db):
+        return
+
+    # Create a pipeline where all the adds happen at once (much faster):
+    pipe = context.inner_db._redis.pipeline()
+    for payload in payloads[TelemetryPayload]:
+        payload = cast(TelemetryPayload, payload)
+        # For now, we're just using transceiver receive time as the timestamp.
+        # TODO: Use better `downlink_times` once they're populated:
+        if payload.downlink_times is not None and payload.downlink_times.pmcc_rx is not None:
+            time = payload.downlink_times.pmcc_rx
+        else:
+            time = datetime.now()
+        timestamp = datetime_to_timestamp(time)
+        key = channel_to_ts_key(payload.module.name, payload.channel.name)
+        # Add the command to the pipe:
+        pipe.execute_command('ts.add', key, timestamp, payload.data)
+    # Run all the commands in the pipe (push all the data):
+    try:
+        pipe.execute()
+    except Exception as e:
+        context.ipc_app.logger.error(
+            f"Failed to push time series for telemetry in payload collection: "
+            f"`{payloads}` b/c: `{e}` (likely only a few values are at fault "
+            "here)."
+        )
 
 
 def make_ipc_manager(context: GuiContext) -> ipc.IpcAppManagerAsync:
@@ -96,6 +188,7 @@ def make_ipc_manager(context: GuiContext) -> ipc.IpcAppManagerAsync:
             # available to Dash):
             if db_ready(context.inner_db):
                 context.inner_db.save(DatabaseKey.TELEM_DF, self.telem_df)
+                push_telemetry_time_series(context, payloads)
 
         @topic_handler
         async def dl_packet_handler(

@@ -15,7 +15,7 @@ PCAP using a PcapTransceiver:
 ```
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/07/2023
+@last-updated: 05/17/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -27,7 +27,7 @@ import pickle
 import os.path
 import argparse
 from functools import lru_cache
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import zip_longest
 from collections import OrderedDict, Counter
 from typing import Any, Dict, List, Tuple, cast, TypeAlias, Type, Final, Callable
@@ -48,7 +48,7 @@ app = ipc.IpcAppHelper("FileBuilderDemo")
 app.setLogLevel('VERBOSE')
 
 # Where output files get saved (w.r.t GroundSoftware)
-OUTPUT_DIR: Final[str] = './out/image_file_decoding_tests/'
+OUTPUT_DIR_ROOT: Final[str] = './out/image_file_decodings/'
 
 # Prefix to apply to all files:
 FILE_PREFIX: Final[str] = 'RC9_Test_Img'
@@ -419,6 +419,10 @@ class Image:
     # like a list would if totalLines isn't downlinked:
     lines_in_progress: _LIP_T
 
+    # Guaranteed ULID (lexicographically sortable unique identifier) based on
+    # GDS creation time:
+    ulid_start: str = field(default_factory=lambda: str(ulid.new()))
+
     # Number of lines that were complete the last time a block was processed:
     lines_complete_on_last_block: int = 0
 
@@ -433,15 +437,34 @@ class Image:
 
     # Number of blank (i.e. vertical blanking interval) rows to ignore at the
     # top of the File Group (flash memory space):
-    n_top_blank: int = 13
+    n_top_blank: int = 13  # 50  # 13
+
+    # X-Index of the "Horizontal Seam line" (where the image should be wrapped
+    # around):
+    # This is the index of the last pixel that should be considered to be on
+    # the left side of the seam (so, `0` if no seam.)
+    idx_x_seam: int = 0  # 2018  # 2592
+
+    # Y-Index of the "Vertical Seam line" (where the image should be wrapped
+    # around):
+    # This is the index of the last pixel that should be considered to be on
+    # the top side of the seam (so `0` if no seam):
+    idx_y_seam: int = 0
 
     def __str__(self) -> str:
         return (
-            "Image["
+            f"Image[{self.file_group_id}: "
             f"{len(self.lines_in_progress)} lines in progress, "
             f"{self.lines_complete_on_last_block} complete"
             "]"
         )
+
+    @property
+    def file_name_base(self):
+        """Unique prefix to start all file names with.
+        ULID before FGID so the names are lexicographically sortable:
+        """
+        return f"img_{FILE_PREFIX}__{self.ulid_start}__{self.file_group_id}"
 
     @property
     def num_lines_found(self) -> int:
@@ -616,6 +639,8 @@ class Image:
         scan_idx = fg_idx // scan_size
 
         # Ignore the last scan section (it's all white):
+        # Ignore the blank section at the top (and any other odd pixels up
+        # there):
         if (
             scan_idx == (self.n_scan_sections-1)
             or fg_idx < self.n_top_blank
@@ -627,7 +652,8 @@ class Image:
     def interim_build(
         self,
         pad_byte: bytes = b'\x00',  # Easier to see with 0x00 than 0xAA or 0xFF
-        interpolate_unknown: bool = True
+        interpolate_unknown: bool = True,
+        interactive_plot_result: bool = False
     ) -> np.ndarray:
         """Builds an interim version of the Image as a numpy array from interim
         data (a possibly incomplete dataset). This is designed to act as visual
@@ -639,6 +665,9 @@ class Image:
 
         TODO: Figure out how to update this when we move to partial image
         downlinks (crops and sub/downsampling) with file slice summary logs.
+        ^ - turns out this is actually just a way to perform downsampling and
+        handles it implicitly if we only downlink any subset of the rows (so
+        long as their line num is true to the original line num):
         """
         # Initialize memory space for full-size image:
         full_shape = (self.full_image_rows, self.full_image_columns)
@@ -681,26 +710,18 @@ class Image:
         if not interpolate_unknown or interpolation_failed:
             image_out = image.filled(int(pad_byte[0]))
 
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.imshow(image_out, cmap='gray')
-        plt.show()
+        # Apply seam fixes:
+        image_out = np.roll(
+            image_out, (-self.idx_y_seam, -self.idx_x_seam), axis=(0, 1)
+        )
+
+        if interactive_plot_result:
+            import matplotlib.pyplot as plt
+            plt.figure()
+            plt.imshow(image_out, cmap='gray')
+            plt.show()
 
         return image_out
-
-        # # Build a mask that indicates which cells in the image have known good
-        # # data (1 in this mask means the cell needs to be interpolated):
-        # interp_mask = np.ones(full_shape)
-
-        #     # If necessary, remove this row from the `interp_mask``:
-        #     if interpolate_unknown:
-        #         interp_mask[img_idx, 0:len(line_data)] = 0
-
-        # # Apply the mask and interpolate (if applicable):
-        # if interpolate_unknown:
-        #     m_img = np.
-
-        # return image
 
     def assemble(
         self,
@@ -771,16 +792,13 @@ class Image:
         ]
 
     def save(self, debayer: bool = True) -> None:
-        # Make file name base for all files:
-        file_name_base = f"img_{FILE_PREFIX}__{ulid.new()}__{self.file_group_id}"
-
-        app.logger.notice(f"Saving {file_name_base} . . .")
+        app.logger.notice(f"Saving {self.file_name_base} . . .")
 
         # Validate file first:
         if not self.validate():
             app.logger.warning(
-                f"Saving file {file_name_base} but it's not valid and likely "
-                f"contains corruption. "
+                f"Saving file {self.file_name_base} but it's not valid and "
+                f"likely contains corruption. "
                 f"Other warnings should have been logged earlier "
                 f"providing more details. "
                 f"File: `{self}`"
@@ -802,7 +820,7 @@ class Image:
         n_rows = len(lines_data)
         n_cols_max = max(len(line) for line in lines_data)
         app.logger.info(
-            f"File {file_name_base} is {n_rows}R x {n_cols_max}C."
+            f"File {self.file_name_base} is {n_rows}R x {n_cols_max}C."
         )
 
         # Build raw file stream:
@@ -835,6 +853,10 @@ class Image:
                 + txt_file_data[i]
             )
 
+        # Building  image:
+        app.logger.info("Building Interpolated Image (very long) . . .")
+        interp_image = self.interim_build(interpolate_unknown=True)
+
         # Build raw (greyscale, possibly bayered) image:
         app.logger.info("Building Raw Image . . .")
         raw_img = np.array(lines_arr, dtype=np.uint8)
@@ -845,11 +867,15 @@ class Image:
             color_img = cv2.cvtColor(raw_img, cv2.COLOR_BAYER_BG2BGR)
 
         # Make sure the save directory exists:
+        if not os.path.exists(OUTPUT_DIR_ROOT):
+            os.makedirs(OUTPUT_DIR_ROOT)
+        # Make the directory for all the files in this image:
+        OUTPUT_DIR: Final = os.path.join(OUTPUT_DIR_ROOT, self.file_name_base)
         if not os.path.exists(OUTPUT_DIR):
             os.makedirs(OUTPUT_DIR)
 
         # Save file report:
-        report_file_name = file_name_base + ".report.txt"
+        report_file_name = self.file_name_base + ".report.txt"
         report_file_path = os.path.join(OUTPUT_DIR, report_file_name)
         app.logger.notice(
             f"\tSaving file report to {report_file_path} . . ."
@@ -861,7 +887,7 @@ class Image:
         # object will allow us to retroactively investigate data that doesn't
         # make it into the final copy of the image, e.g. multiple copies of
         # image line blocks):
-        pickle_file_name = file_name_base + ".image.pkl"
+        pickle_file_name = self.file_name_base + ".image.pkl"
         pickle_file_path = os.path.join(OUTPUT_DIR, pickle_file_name)
         app.logger.notice(
             f"\tSaving Image pickle to {pickle_file_path} . . ."
@@ -869,8 +895,16 @@ class Image:
         with open(pickle_file_path, 'wb') as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+        # Save interpolated image:
+        interp_file_name = self.file_name_base + ".interp.png"
+        interp_file_path = os.path.join(OUTPUT_DIR, interp_file_name)
+        app.logger.notice(
+            f"\tSaving interpolated file to {interp_file_path} . . ."
+        )
+        cv2.imwrite(interp_file_path, interp_image)
+
         # Save raw file data:
-        raw_file_name = file_name_base + ".raw"
+        raw_file_name = self.file_name_base + ".raw"
         raw_file_path = os.path.join(OUTPUT_DIR, raw_file_name)
         app.logger.notice(
             f"\tSaving raw file to {raw_file_path} . . ."
@@ -880,7 +914,7 @@ class Image:
             raw_file.write(raw_file_data)
 
         # Save raw file data as text:
-        txt_file_name = file_name_base + ".raw.txt"
+        txt_file_name = self.file_name_base + ".raw.txt"
         txt_file_path = os.path.join(OUTPUT_DIR, txt_file_name)
         app.logger.notice(
             f"\tSaving raw as text file to {txt_file_path} . . ."
@@ -890,7 +924,7 @@ class Image:
             txt_file.write('\n'.join(txt_file_data) + '\n')
 
         # Save raw (greyscale, possibly bayered) image:
-        raw_img_name = file_name_base + ".raw.png"
+        raw_img_name = self.file_name_base + ".raw.png"
         raw_img_path = os.path.join(OUTPUT_DIR, raw_img_name)
         app.logger.notice(
             f"\tSaving {' x '.join(str(x) for x in raw_img.shape)} "
@@ -901,7 +935,7 @@ class Image:
 
         # Save debayered (possibly color) image:
         if debayer:
-            color_img_name = file_name_base + ".color.png"
+            color_img_name = self.file_name_base + ".color.png"
             color_img_path = os.path.join(OUTPUT_DIR, color_img_name)
             app.logger.notice(
                 f"\tSaving {' x '.join(str(x) for x in color_img.shape)} "
@@ -936,7 +970,7 @@ class Image:
             for i, j_img in enumerate(j_images):
                 pattern_name = [*patterns.keys()][i-1] if i > 0 else '_none'
                 img_name = (
-                    f"{file_name_base}__justin_{res_name}__p{i}"
+                    f"{self.file_name_base}__justin_{res_name}__p{i}"
                     f"_{pattern_name}.png"
                 )
                 img_path = os.path.join(OUTPUT_DIR, img_name)
@@ -947,7 +981,7 @@ class Image:
                 )
                 cv2.imwrite(img_path, j_img)
 
-        app.logger.success(f"Saved {file_name_base}.")
+        app.logger.success(f"Saved {self.file_name_base}.")
 
     def add_block(self, block: FileBlockPayload) -> None:
         """Adds the given `FileBlockPayload` to the appropriate line in this
@@ -1013,7 +1047,6 @@ class BasicImageDecoder:
     def export_all(self, debayer: bool = True):
         """Forces an export of all current in-process images."""
         for image in self.images_in_progress.values():
-            image.interim_build()
             image.save(debayer)
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:

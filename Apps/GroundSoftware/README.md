@@ -60,7 +60,7 @@ but manually inspect this url's contents before running to ensure it hasn't chan
 **Note:** If `pyenv` has a build failure (when running `make init` or `pyenv install X.X.X`), make sure all `pyenv` prerequisites are present on your machine (see [pyenv - Common Build Problems](https://github.com/pyenv/pyenv/wiki/common-build-problems) for help.)
 
 
-Optionally, if you want to run the GDS GUI, you'll need to install [Redis Stack](https://redis.io/docs/stack/get-started/install/).
+Optionally, if you want to run the GDS GUI, you'll need to install [Redis Stack](https://redis.io/docs/stack/get-started/install/) - at least version 7.0.x.
 
 ## 1.3. Check Your Setup:
 First, if you haven't already:

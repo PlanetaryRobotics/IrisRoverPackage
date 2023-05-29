@@ -27,7 +27,7 @@
 #define DRIVE_ON_BOOT_TICKS (DRIVE_ON_BOOT_CM * TICKS_PER_CM)
 #define DRIVE_ON_BOOT_START_DELAY (20 * DELAY_100_ms) /*2 sec*/
 // Technically, out of 1.0
-#define DRIVE_ON_BOOT_SPEED_PERCENT 0.7
+#define DRIVE_ON_BOOT_SPEED_PERCENT 0.3
 
 // TODO: re-organize all these variable defs
 _iq g_currentPhaseA;
@@ -737,17 +737,17 @@ void main(void)
 #ifdef DRIVE_ON_BOOT
     g_targetPosition = DRIVE_ON_BOOT_TICKS;
     g_controlRegister = 32;
-#ifdef DRIVE_ON_BOOT_OPEN_LOOP
-    g_controlRegister |= DRIVE_OPEN_LOOP;
-    // Override open-loop torque for custom speed (DRIVE_ON_BOOT_SPEED_PERCENT):
-    g_controlRegister |= OPEN_LOOP_TORQUE_OVERRIDE;
-#endif
+    #ifdef DRIVE_ON_BOOT_OPEN_LOOP
+        g_controlRegister |= DRIVE_OPEN_LOOP;
+        // Override open-loop torque for custom speed (DRIVE_ON_BOOT_SPEED_PERCENT):
+        g_controlRegister |= OPEN_LOOP_TORQUE_OVERRIDE;
+    #endif
 
-// Flip direction if this wheel should be spinning CW instead of CCW:
-#if (defined(MOTOR_B) || defined(MOTOR_D)) && defined(DRIVE_ON_BOOT_REAR_DRIVE) || \
-    (defined(MOTOR_A) || defined(MOTOR_C)) && defined(DRIVE_ON_BOOT_FRONT_DRIVE)
-    g_targetPosition = -g_targetPosition;
-#endif
+    // Flip direction if this wheel should be spinning CW instead of CCW:
+    #if (defined(MOTOR_B) || defined(MOTOR_D)) && defined(DRIVE_ON_BOOT_REAR_DRIVE) || \
+        (defined(MOTOR_A) || defined(MOTOR_C)) && defined(DRIVE_ON_BOOT_FRONT_DRIVE)
+        g_targetPosition = -g_targetPosition;
+    #endif
 
     // Wait before starting up (safety):
     __delay_cycles(DRIVE_ON_BOOT_START_DELAY);

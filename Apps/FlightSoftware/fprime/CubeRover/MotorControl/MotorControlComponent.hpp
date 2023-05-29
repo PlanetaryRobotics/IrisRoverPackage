@@ -16,6 +16,7 @@
 
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 #include "MotorController_i2c.h"
+#include "RAD_mc.hpp"
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
 #define ALL_MOTOR_ADDR 0x00
@@ -34,6 +35,7 @@
 #define NUM_MOTORS 4
 
 #define MAX_SPEED 100 // TODO: Should be 255?
+#define START_MOTORS_VAL 32 // [RAD TODO]: 32/33?
 #define CUBEROVER_WHEEL_DIAMETER_CM 18.2f
 #define CUBEROVER_COM_TO_WHEEL_CIRC_CM 78.54f
 #define MOTOR_NB_PAIR_POLES 1.0f
@@ -218,8 +220,8 @@ namespace CubeRover
         {
             MC_NO_ERROR,
             MC_I2C_TIMEOUT_ERROR,
-            MC_UNEXPECTED_ERROR,
-            MC_BAD_COMMAND_INPUT
+            MC_BAD_COMMAND_INPUT,
+            MC_UNEXPECTED_ERROR
         } MCError_t;
 
         typedef int32_t Distance_cm_t;
@@ -231,7 +233,8 @@ namespace CubeRover
 
         i2cBASE_t *m_i2c;
 
-        MCError_t sendAllMotorsData(const RegisterAddress_t id, void *_data);
+        MCError_t sendAllMotorsData(const RegisterAddress_t reg, void *_data);
+        MCError_t RAD_sendAllMotorsData(const RegisterAddress_t reg, void *_data);
 
         MCError_t motorControlTransfer(I2cSlaveAddress_t add,
                                        RegisterAddress_t reg,
@@ -241,7 +244,8 @@ namespace CubeRover
 
         bool checkMotorsStatus();
         bool startMotorMovement();
-        MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
+        MCError_t spinMotors(uint8_t Motor_ID, int32_t Raw_Ticks);
+        MCError_t moveAllMotorsStraight(int32_t distance, uint8_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
 

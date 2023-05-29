@@ -20,6 +20,7 @@
 
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/CubeRoverConfig.hpp"
+#include "Include/settingsConfig.hpp"
 
 namespace CubeRover
 {
@@ -126,7 +127,11 @@ namespace CubeRover
             switch (movement_type)
             {
             case CubeRoverPorts::MC_Forward:
+#ifdef TESTING
+                err = spinMotors(ALL_MOTOR_ID, TEST_TICKS);
+#else
                 err = moveAllMotorsStraight(Distance, Speed);
+#endif
                 log_COMMAND_MC_moveStarted();
                 break;
             case CubeRoverPorts::MC_Backward:
@@ -149,7 +154,7 @@ namespace CubeRover
             }
             if (err != MC_NO_ERROR) // TODO: Should stop right?
                 log_WARNING_HI_MC_MSPNotResponding();
-            pollStatus();
+            pollStatus(); // wait for command to finish; doesn't do anything with return...
         }
         else if (command_type == CubeRoverPorts::MC_UpdateTelemetry)
         {
@@ -425,28 +430,23 @@ namespace CubeRover
      * @param[in]  Motor_ID        The motor(s) ID
      * @param[in]  Raw_Ticks       Raw ticks to send to the motor controllers
      */
-    void MotorControlComponentImpl ::MC_Spin_cmdHandler(const FwOpcodeType opCode,
-                                                        const U32 cmdSeq,
-                                                        U8 Motor_ID,
-                                                        U32 Raw_Ticks)
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl ::spinMotors(uint8_t Motor_ID, int32_t Raw_Ticks)
     {
-        // TODO: Should this force open loop control as well?
-        MCError_t err;
+        MCError_t err = MC_NO_ERROR;
         uint8_t speed = MAX_SPEED;
         if (Motor_ID == ALL_MOTOR_ID)
         {
             err = sendAllMotorsData(REG_TARGET_SPEED, &speed);
             if (err != MC_NO_ERROR)
             {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
+                return err;
             }
 
             err = sendAllMotorsData(REG_RELATIVE_TARGET_POSITION, &Raw_Ticks);
             if (err != MC_NO_ERROR)
             {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
+                return err;
             }
         }
         else
@@ -454,24 +454,36 @@ namespace CubeRover
             err = motorControlTransfer(motorIdAddressMap[Motor_ID], REG_TARGET_SPEED, &speed);
             if (err != MC_NO_ERROR)
             {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
+                return err;
             }
 
             err = motorControlTransfer(motorIdAddressMap[Motor_ID], REG_RELATIVE_TARGET_POSITION, &Raw_Ticks);
             if (err != MC_NO_ERROR)
             {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
+                return err;
             }
         }
 
         if (!startMotorMovement())
         {
+            return MC_UNEXPECTED_ERROR;
+        }
+
+        return err;
+    }
+
+    void MotorControlComponentImpl ::MC_Spin_cmdHandler(const FwOpcodeType opCode,
+                                                        const U32 cmdSeq,
+                                                        U8 Motor_ID,
+                                                        U32 Raw_Ticks)
+    {
+        // TODO: Should this force open loop control as well?
+        MCError_t err = spinMotors(Motor_ID, Raw_Ticks);
+        if (err != MC_NO_ERROR)
+        {
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
             return;
         }
-
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
@@ -606,7 +618,7 @@ namespace CubeRover
     bool MotorControlComponentImpl::startMotorMovement()
     {
         MCError_t err;
-        char motorStartValue = 32;
+        char motorStartValue = START_MOTORS_VAL;
         for (int i = 0; i < NUM_MOTORS; ++i)
         {
             err = motorControlTransfer(motorIdAddressMap[i], REG_CTRL, &motorStartValue);
@@ -630,7 +642,7 @@ namespace CubeRover
      * @param[in]  Speed          The speed to travel in normalized speed
      */
     MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed)
+    MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, uint8_t speed)
     {
         MCError_t err;
 
@@ -640,7 +652,7 @@ namespace CubeRover
         // Enforce speed always positive. Direction set by distance
         if (speed > 0)
         {
-            motor_speed = groundSpeedToSpeedPrecent(speed);
+//            motor_speed = groundSpeedToSpeedPrecent(speed);
 
             // Send the speed to all the motors
             // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
@@ -650,7 +662,7 @@ namespace CubeRover
         }
         else
         {
-            return MC_BAD_COMMAND_INPUT;
+            return MC_BAD_COMMAND_INPUT; // NO THIS IS STOP COMMAND!!!!!!!!!!
         }
 
         MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
@@ -766,6 +778,8 @@ namespace CubeRover
 
         err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
         taskEXIT_CRITICAL();
+
+        // startMotorMovement() ??
 
         return err;
     }
@@ -918,5 +932,23 @@ namespace CubeRover
 
         return true;
     }
+
+
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::RAD_sendAllMotorsData(const RegisterAddress_t reg, void *_data)
+    {
+        uint8_t *data = static_cast<uint8_t *>(_data);
+
+        for (int i = 0; i < NUM_MOTORS; ++i)
+        {
+            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
+            if (err != MC_NO_ERROR)
+                return err;
+        }
+        // TODO: What if one latched up? Should we check status here and issue STOP?
+
+        return MC_NO_ERROR;
+    }
+
 
 } // end namespace CubeRover

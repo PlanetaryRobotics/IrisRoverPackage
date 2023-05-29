@@ -161,6 +161,11 @@ namespace CubeRover {
       uint16_t m_yaw;
 
       // Member functions
+#ifdef TESTING
+      bool updateCurrMove();
+      void driveTicks();
+#endif
+
       //! Change our state
       bool Change_State(NAVState New_State);
 

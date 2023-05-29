@@ -13,6 +13,7 @@
 
 #include <CubeRover/Navigation/NavigationComponent.hpp>
 #include "Fw/Types/BasicTypes.hpp"
+#include "Include/settingsConfig.h"
 
 namespace CubeRover {
 
@@ -111,7 +112,11 @@ namespace CubeRover {
         break;
 
       case NAV_ACTIVELY_DRIVING:
+#ifdef TESTING
+        driveTicks();
+#else
         Actively_Drive_Task();
+#endif
         break;
 
       case NAV_IMAGEING:
@@ -286,6 +291,50 @@ namespace CubeRover {
   // Handler implementations for state related functions
   // ----------------------------------------------------------------------
 
+#ifdef TESTING
+  bool NavigationComponentImpl :: updateCurrMove()
+  {
+      if(m_currMove != m_lastestMove)
+      {
+        if(m_currMove >= (NAV_MOVE_BUFFER_LIMIT - 1))
+        {
+          m_currMove = 0;
+        }
+
+        else
+        {
+          m_currMove++;
+        }
+
+        m_distanceToGo = m_moveRecord[m_currMove].Distance;
+        return false;
+      }
+      return true;
+  }
+  void NavigationComponentImpl :: driveTicks()
+  {
+      if (!m_currMoving)
+      {
+          if(updateCurrMove())
+          {
+              Change_State(NAV_IDLE);
+              return;
+          }
+
+          m_currMove = m_lastestMove;
+          m_distanceToGo = 200;
+          motorCommandOut_out(0,
+                              CubeRoverPorts::MC_DrivingConfiguration,
+                              m_moveRecord[m_currMove].MoveType,
+                              m_distanceToGo,
+                              m_moveRecord[m_currMove].Speed);
+        //      Add_Telem_Disp(m_moveRecord[m_currMove].MoveType, m_distanceToGo);
+          m_distanceToGo = 0;
+      }
+  }
+#endif
+
+
   /**
    * @brief      Implementation for changing states
    *
@@ -374,6 +423,7 @@ namespace CubeRover {
         else
         {
           // Not sure when this would occur. But this is bad!
+          // ...not bad? m_currMoving = True ?
         }
       }
     }

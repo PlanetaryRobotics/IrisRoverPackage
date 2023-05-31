@@ -33,7 +33,7 @@
 _iq g_currentPhaseA;
 _iq g_currentPhaseB;
 _iq g_currentPhaseC;
-_iq g_feedforwardFW;
+_iq g_feedForwardFW;
 
 // Used for calibration
 _iq g_currentOffsetPhaseA;
@@ -403,7 +403,7 @@ void initializeSoftwareControlVariables(void)
 }
 
 /*
- * @breif   initialize motor controller related variables (PI controllers for speed and current)
+ * @brief   initialize motor controller related variables (PI controllers for speed and current)
  */
 void initializeControllerVariables(void)
 {

@@ -30,5 +30,10 @@
 			<type>2</type>
 			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
 		</link>
+		<link>
+			<name>CubeRover/MotorControl/RAD_mc.hpp</name>
+			<type>1</type>
+			<location>/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/SharedResources/MotorControl/RAD_mc.hpp</location>
+		</link>
 	</linkedResources>
 </projectDescription>

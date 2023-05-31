@@ -5,8 +5,10 @@
  *      Author: iris
  */
 
+
 //#include "RAD_mc.hpp"
 #include "RAD_mc.hpp"
+
 
 //namespace IrisMC
 //{
@@ -25,7 +27,7 @@
         int i = 0;
         MCError_t err = MC_NO_ERROR;
         for (i; i < NUM_MOTORS; i++) {
-            motors[i].id
+            motors[i].id = 0;
         }
         return true;
     }

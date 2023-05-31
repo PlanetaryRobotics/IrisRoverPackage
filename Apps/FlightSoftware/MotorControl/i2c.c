@@ -181,7 +181,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
 
 
 /**
- * @brief      This function takes care the copying data recevied from i2c to
+ * @brief      This function takes care the copying data received from i2c to
  *             variables
  *
  * @param[in]  cmd   The command
@@ -364,7 +364,7 @@ __interrupt void USCI_B0_ISR(void){
     case USCI_I2C_UCRXIFG0:                 // Vector 22: RXIFG0
     {
       rxBuf = UCB0RXBUF;
-      if(g_slaveMode == RX_REG_ADDRESS_MODE){ // recieving register address that master wants to interact with
+      if(g_slaveMode == RX_REG_ADDRESS_MODE){ // receiving register address that master wants to interact with
         TB0CCTL0 = 0x0000; // Turn off timer interrupt
         g_readRegAddr = rxBuf;
         i2cSlaveProcessCmd(g_readRegAddr);

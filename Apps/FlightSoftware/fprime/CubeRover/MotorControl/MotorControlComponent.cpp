@@ -1,7 +1,7 @@
 // ======================================================================
 // \title  MotorControlComponentImpl.cpp
 // \author cedric
-// \editted by Michael
+// \edited by Michael
 // \brief  cpp file for MotorControl component implementation class
 //
 // \copyright
@@ -47,10 +47,10 @@ namespace CubeRover
 #endif
     {
         m_i2c = MOTOR_CONTROL_I2CREG;
-        m_stallDetectectionEnabled[0] = true;
-        m_stallDetectectionEnabled[1] = true;
-        m_stallDetectectionEnabled[2] = true;
-        m_stallDetectectionEnabled[3] = true;
+        m_stallDetectionEnabled[0] = true;
+        m_stallDetectionEnabled[1] = true;
+        m_stallDetectionEnabled[2] = true;
+        m_stallDetectionEnabled[3] = true;
         m_FL_Encoder_Count_Offset = 0;
         m_FR_Encoder_Count_Offset = 0;
         m_RR_Encoder_Count_Offset = 0;
@@ -79,7 +79,7 @@ namespace CubeRover
         // Initialize the encoder tick to cm ratio
         m_encoderTickToCMRatio = m_ticksToRotation / (PI * CUBEROVER_WHEEL_DIAMETER_CM); //(PI * CUBEROVER_WHEEL_DIAMETER_CM) / (MOTOR_NB_PAIR_POLES * MOTOR_GEAR_BOX_REDUCTION * 6.0);
 
-        // Initalize the converting values
+        // Initialize the converting values
         m_angularToLinear = CUBEROVER_COM_TO_WHEEL_CIRC_CM / 360;
         // This should be the circumference from the COM of the rover to the wheel.
     }
@@ -278,7 +278,7 @@ namespace CubeRover
      * @param[in]  opCode          The operation code
      * @param[in]  cmdSeq          The command sequence
      * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  Rate_Values     Acceleration and Decelleration rates
+     * @param[in]  Rate_Values     Acceleration and Deceleration rates
      */
     void MotorControlComponentImpl ::MC_Acceleration_cmdHandler(const FwOpcodeType opCode,
                                                                 const U32 cmdSeq,
@@ -330,14 +330,14 @@ namespace CubeRover
      * @param[in]  opCode          The operation code
      * @param[in]  cmdSeq          The command sequence
      * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  Spin_Type       A value to enable or disable powerbost
+     * @param[in]  Spin_Type       A value to enable or disable power-boost
      */
     void MotorControlComponentImpl ::MC_StallDetection_cmdHandler(const FwOpcodeType opCode,
                                                                   const U32 cmdSeq,
                                                                   U8 Motor_ID,
                                                                   U8 Value)
     {
-        // TODO: KEEP OR DEPRACATE? What does this do
+        // TODO: KEEP OR DEPRECATE? What does this do
         if ((Value != 0x00 && Value != 0xFF) | Motor_ID > 4)
         {
             // Not a valid option
@@ -350,18 +350,18 @@ namespace CubeRover
             for (int i = 0; i < 4; i++)
             {
                 if (Value == 0xFF)
-                    m_stallDetectectionEnabled[i] = true;
+                    m_stallDetectionEnabled[i] = true;
                 else
-                    m_stallDetectectionEnabled[i] = false;
+                    m_stallDetectionEnabled[i] = false;
             }
         }
 
         else
         {
             if (Value == 0xFF)
-                m_stallDetectectionEnabled[Motor_ID] = true;
+                m_stallDetectionEnabled[Motor_ID] = true;
             else
-                m_stallDetectectionEnabled[Motor_ID] = false;
+                m_stallDetectionEnabled[Motor_ID] = false;
         }
 
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
@@ -378,7 +378,7 @@ namespace CubeRover
                                                                  const U32 cmdSeq,
                                                                  U8 Motor_ID)
     {
-        // TODO: DEPRACATE THIS? What does this actually do?
+        // TODO: DEPRECATE THIS? What does this actually do?
         switch (Motor_ID)
         {
         // Motor 0 (FL)
@@ -493,7 +493,7 @@ namespace CubeRover
      * @param[in]  opCode          The operation code
      * @param[in]  cmdSeq          The command sequence
      * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  Value           A value to enable or disable powerbost
+     * @param[in]  Value           A value to enable or disable power-boost
      */
     void MotorControlComponentImpl ::MC_PowerBoost_cmdHandler(const FwOpcodeType opCode,
                                                               const U32 cmdSeq,
@@ -559,7 +559,7 @@ namespace CubeRover
             return 2;
         case REG_RELATIVE_TARGET_POSITION:
         case REG_CURRENT_POSITION:
-        case REG_MOTOR_CURRENT: // TODO: CHeck if this retuns 2 byts or 4!? 2 from thismethod 4 from micheal's update current tlm code
+        case REG_MOTOR_CURRENT: // TODO: CHeck if this retuns 2 bytes or 4!? 2 from this method 4 from micheal's update current tlm code
             return 4;
         default:
             return 0;
@@ -599,12 +599,12 @@ namespace CubeRover
             else if (m_currStatus[i].bits.controller_error)
             {
                 // TODO: Send STOP general call
-                // TODO: Need to check mappping between resetting one motor and which one is connected to watchdog
+                // TODO: Need to check mapping between resetting one motor and which one is connected to watchdog
                 // TODO: Check status again after reset
                 // TODO: Replace this function with whatever the new working one that gets made is. Reference NetworkManager.cpp for how to do this
                 watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
                 return false;
-                // XXX: Do we need to update our tlm counter?
+                // ? Do we need to update our tlm counter?
             }
             else if (!m_currStatus[i].bits.position_converged)
             {
@@ -652,7 +652,7 @@ namespace CubeRover
         // Enforce speed always positive. Direction set by distance
         if (speed > 0)
         {
-//            motor_speed = groundSpeedToSpeedPrecent(speed);
+//            motor_speed = groundSpeedToSpeedPercent(speed);
 
             // Send the speed to all the motors
             // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
@@ -733,7 +733,7 @@ namespace CubeRover
         // Enforce speed always positive. Direction set by distance
         if (speed > 0)
         {
-            Throttle_t motor_speed = m_angularToLinear * groundSpeedToSpeedPrecent(speed);
+            Throttle_t motor_speed = m_angularToLinear * groundSpeedToSpeedPercent(speed);
 
             // Send the speed to all the motors
             // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
@@ -844,7 +844,7 @@ namespace CubeRover
     // Convert ground units to motor control native units (cm/s -> msp430 scaled speed)
     constexpr float MC_MSP_IQ_SPEED_SCALER = 255.0 / 7968.75;
     MotorControlComponentImpl::Throttle_t
-    MotorControlComponentImpl::groundSpeedToSpeedPrecent(int16_t speed)
+    MotorControlComponentImpl::groundSpeedToSpeedPercent(int16_t speed)
     {
         // TODO: If no constant multiple by operator editable 1
         // This is what's used to set the MC MSP speed register.

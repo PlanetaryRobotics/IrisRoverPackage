@@ -1,0 +1,17 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/Debug_BootDrive_RWD_MotorC": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/.launches": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/.settings": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/Debug": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/Debug_BootDrive_RWD_MotorA": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/Debug_BootDrive_RWD_MotorB": true,
+        "/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/MotorControl/Debug_BootDrive_RWD_MotorD": true
+    }
+}

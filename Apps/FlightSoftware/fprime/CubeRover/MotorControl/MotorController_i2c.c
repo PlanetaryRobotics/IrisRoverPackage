@@ -1,3 +1,7 @@
+// ======================================================================
+// \title  MotorController_i2c.c
+// ======================================================================
+
 #include "MotorController_i2c.h"
 
 #include <FreeRTOSConfig.h>
@@ -6,7 +10,7 @@
 const uint16_t i2c_timeout = 51350;
 
 /*
- * Reimplementation of HAL's i2cSend (without interrupt mode) which times out if nothing was
+ * Re-implementation of HAL's i2cSend (without interrupt mode) which times out if nothing was
  * received in a certain amount of cycles. Returns false if timed out, true on success
  */
 static bool i2cSendWithTimeout(i2cBASE_t *i2c, uint32 length, uint8 * data, unsigned timeout) {

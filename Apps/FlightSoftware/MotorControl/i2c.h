@@ -43,7 +43,7 @@ typedef enum I2cRegisterIds{
 
 // Different modes for i2c functionality
 //  _REG_ADDRESS_MODE -> receiving register id from Hercules that it wants to interact with
-//  _DATA_MODE        -> ready to write or read bytes of data to/from Herules
+//  _DATA_MODE        -> ready to write or read bytes of data to/from Hercules
 typedef enum I2cMode{
     RX_REG_ADDRESS_MODE = 0,
     TX_DATA_MODE = 1,

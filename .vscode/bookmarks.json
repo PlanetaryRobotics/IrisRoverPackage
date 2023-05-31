@@ -1,0 +1,184 @@
+{
+	"files": [
+		{
+			"path": "Apps/FlightSoftware/fprime/CubeRover/MotorControl/MotorController_i2c.c",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 14,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/fprime/CubeRover/MotorControl/MotorControlComponentAi.xml",
+			"bookmarks": [
+				{
+					"line": 3,
+					"column": 7,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/fprime/CubeRover/MotorControl/MotorControlComponent.cpp",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 13,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/fprime/CubeRover/MotorControl/MotorControlComponent.hpp",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 16,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/fprime/CubeRover/MotorControl/MotorController_i2c.h",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 16,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/fprime/CubeRover/MotorControl/RAD_mc.cpp",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 3,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/MotorControl/i2c.c",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 12,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/MotorControl/i2c.h",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 12,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/MotorControl/main.c",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 15,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/MotorControl/main.h",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 7,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/PrimaryFlightController/FlightMCU/Include/settingsConfig.hpp",
+			"bookmarks": [
+				{
+					"line": 6,
+					"column": 7,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/SharedResources/MotorControl/mc_attrs_auto_gen.py",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 14,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/SharedResources/MotorControl/mc_attrs_def.yaml",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 41,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/SharedResources/MotorControl/motor_regs_def.hpp",
+			"bookmarks": [
+				{
+					"line": 0,
+					"column": 21,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/SharedResources/MotorControl/RAD_mc (copy).hpp",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 7,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/SharedResources/MotorControl/RAD_mc.cpp",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 9,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "Apps/FlightSoftware/SharedResources/MotorControl/RAD_mc.hpp",
+			"bookmarks": [
+				{
+					"line": 1,
+					"column": 11,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../../../.config/Code/User/settings.json",
+			"bookmarks": [
+				{
+					"line": 25,
+					"column": 7,
+					"label": "Better Comments Extension Settings"
+				}
+			]
+		}
+	]
+}

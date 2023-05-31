@@ -1,0 +1,61 @@
+{
+    "i2c_regs": [
+        {
+            "NAME": "I2C_ADDR",
+            "ADDR": "0x00",
+            "ID": null,
+            "CMD_READ_WRITE": false,
+            "CMD_SET_VAL": null,
+            "DATA_TYPE": "uint8_t",
+            "DATA": null,
+
+            "DEPRICATED": false
+        },
+        {
+            "NAME": "TARGET_REL_POS",
+            "ADDR": "0x01",
+            "ID": null,
+            "CMD_READ_WRITE": true,
+            "CMD_SET_VAL": null,
+            "DATA_TYPE": "int32",
+            "DATA": null,
+            
+            "DEPRICATED": false
+        }
+    ],
+    "COMMENTS_motors": "",
+    "motors": [
+        {
+            "NAME": "MOTOR_A",
+            "ADDR": "0x48",
+            "ORIENTATION": {
+                "FRONT" : true,
+                "LEFT" : true
+            },
+            "ID": "0",
+            "I2C_REG": null
+        },
+        {
+            "NAME": "MOTOR_B",
+            "ADDR": "0x49",
+            "ID": "1",
+            "ORIENTATION": {
+                "FRONT" : true,
+                "LEFT" : true
+            },
+            "I2C_REG": null
+        },
+        {
+            "NAME": "MOTOR_C",
+            "ADDR": "0x4A",
+            "ID": null,
+            "I2C_REG": null
+        },
+        {
+            "NAME": "MOTOR_D",
+            "ADDR": "0x4B",
+            "ID": null,
+            "I2C_REG": null
+        }
+    ]
+}

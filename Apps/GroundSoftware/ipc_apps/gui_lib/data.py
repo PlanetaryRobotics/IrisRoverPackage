@@ -21,8 +21,6 @@ from IrisBackendv3.utils.console_display import (
     update_packet_log_dataframe
 )
 
-from ansi2html import Ansi2HTMLConverter
-
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import (
@@ -119,12 +117,8 @@ def remove_ansi_escape_codes(msg: str) -> str:
 def event_to_html_string(event: EventPayload) -> str:
     """Creates a standard format for logging an `EventPayload` as an HTML
     string."""
-    # Convert any ANSI color strings in core string to HTML:
-    converter = Ansi2HTMLConverter()
-    event_fstr = converter.convert(event.formatted_string)
-
     # Remove any lingering ANSI escape codes (for the command line):
-    event_fstr = remove_ansi_escape_codes(event_fstr)
+    event_fstr = remove_ansi_escape_codes(event.formatted_string)
 
     msg = (
         f"<b>{event.event.severity_str}</b>&nbsp;&nbsp;"

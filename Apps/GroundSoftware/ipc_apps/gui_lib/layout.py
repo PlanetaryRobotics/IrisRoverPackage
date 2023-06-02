@@ -111,7 +111,8 @@ def build_dash_app(context: GuiContext) -> Tuple[Dash, GuiAIO]:
         external_stylesheets=[
             # Apply an Iris-Cosmos-like dark theme to cover our bases in
             # case we miss something in style.py:
-            '/static/bootstrap_darkly.min.css'  # == dbc.themes.DARKLY
+            '/static/bootstrap_darkly.min.css',  # == dbc.themes.DARKLY
+            '/static/ansi_html.min.css'  # from `ansi2html`
         ]
     )
     # Dark theme plots & figures:

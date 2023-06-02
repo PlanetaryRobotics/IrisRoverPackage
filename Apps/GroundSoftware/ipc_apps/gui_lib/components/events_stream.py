@@ -82,7 +82,10 @@ def event_stream_dataframe_from_entries(
     # Create DataFrame from dict entries, ensuring only and all of the expected
     # columns are present:
     df = pd.DataFrame(
-        (e for _, e in event_entries),
+        (e
+         for _, e in event_entries
+         if 'severity_lvl' in e and str(e['severity_lvl']) != '0'  # safer
+         ),
         columns=[
             'time_id',
             'time',

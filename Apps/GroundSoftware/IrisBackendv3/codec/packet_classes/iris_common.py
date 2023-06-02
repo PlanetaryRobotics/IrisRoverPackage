@@ -189,9 +189,10 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         cmds = [*self.payloads[CommandPayload]]
         if len(cmds) == len(self.payloads):
             return (
-                f"LEGACY2020 ICP["
+                f"ICP["
                 f"#{self.common_packet_header.seq_num}::"
-                f"{self.common_packet_header.vlp_len}] > {', '.join(cmds)}"
+                f"{self.common_packet_header.vlp_len}] > "
+                f"{', '.join(str(c) for c in cmds)}"
             )
 
         # Grab the string of the latest value for each unique telemetry channel:
@@ -550,7 +551,8 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
             return (
                 f"LEGACY2020 ICP["
                 f"#{self.common_packet_header.seq_num}::"
-                f"{self.common_packet_header.vlp_len}] > {', '.join(cmds)}"
+                f"{self.common_packet_header.vlp_len}] > "
+                f"{', '.join(str(c) for c in cmds)}"
             )
 
         # Otherwise, just summarize the telemetry:

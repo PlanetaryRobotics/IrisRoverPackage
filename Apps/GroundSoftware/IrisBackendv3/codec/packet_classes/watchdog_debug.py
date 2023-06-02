@@ -4,13 +4,14 @@ Watchdog. This packet type doesn't contain any telemetry (for now, should get
 converted to a `EventPayload` eventually) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/08/2022
+@last-updated: 06/01/2023
 """
 from __future__ import annotations
 
 # Activate postponed annotations (for using classes as return type in their own methods)
 from prompt_toolkit import formatted_text
 
+from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
@@ -23,7 +24,7 @@ from IrisBackendv3.codec.settings import ENDIANNESS_CODE
 from IrisBackendv3.codec.logs import logger
 
 
-class WatchdogDebugPacketInterface(Packet[CT]):
+class WatchdogDebugPacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
@@ -34,7 +35,7 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
     the Watchdog.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 05/08/2022
+    @last-updated: 06/01/2023
     """
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
@@ -67,13 +68,6 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
             endianness_code=endianness_code
         )  # passthru
 
-    @classmethod
-    def decode(cls,
-               data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> WatchdogDebugPacket:
-        return cls(raw=data, endianness_code=endianness_code)
-
     def encode(self, **kwargs: Any) -> bytes:
         # There's no encoding to do. It's just raw data.
         if self._raw is None:
@@ -100,8 +94,6 @@ class WatchdogDebugPacket(WatchdogDebugPacketInterface[WatchdogDebugPacketInterf
         """Valid if the packet starts with `b'DEBUG'`."""
         return (
             data[:5].upper() == b'DEBUG'
-            # TODO: Make DL flushes their own thing
-            or data[:5].upper() == b'DL-FL'
         )
 
     def __repr__(self) -> str:

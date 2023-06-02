@@ -25,6 +25,7 @@ from IrisBackendv3.codec.packet_classes.watchdog_hello import WatchdogHelloPacke
 from IrisBackendv3.codec.packet_classes.watchdog_radio_debug import WatchdogRadioDebugPacket
 from IrisBackendv3.codec.packet_classes.watchdog_debug_important import WatchdogDebugImportantPacket
 from IrisBackendv3.codec.packet_classes.watchdog_debug import WatchdogDebugPacket
+from IrisBackendv3.codec.packet_classes.radio_downlink_flush import RadioDownlinkFlushPacket
 
 from typing import List, Optional, Type
 
@@ -65,7 +66,8 @@ def parse_packet(
             WatchdogHelloPacket,
             WatchdogRadioDebugPacket,
             WatchdogDebugImportantPacket,
-            WatchdogDebugPacket
+            WatchdogDebugPacket,
+            RadioDownlinkFlushPacket
         ]
 
     # Codecs which support this packet:

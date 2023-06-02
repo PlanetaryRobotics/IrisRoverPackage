@@ -4,9 +4,11 @@ This is used as a dense and minimally sized way to communicate the most
 important Watchdog statuses during cis-lunar transit.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2022
+@last-updated: 06/01/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
+
+from .gds_packet_event_mixin import GdsPacketEventMixin
 
 from IrisBackendv3.codec.packet_classes.packet import CT
 from IrisBackendv3.codec.packet_classes.custom_payload import CustomPayloadPacket, CPCT
@@ -129,7 +131,7 @@ WCR_PI = WatchdogCommandResponsePacketInterface
 WCR_CP = WCR_PI.CustomPayload
 
 
-class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
+class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP], GdsPacketEventMixin):
     START_FLAG: bytes = b'\x0A'  # Required start flag
     # Specify the `CUSTOM_PAYLOAD_CLASS` used by `CustomPayloadPacket` superclass (weird type signature is used to match the `Optional[Type[CPCT]]` used in the superclass):
     CUSTOM_PAYLOAD_CLASS: Optional[Type[WCR_CP]] = WCR_CP
@@ -155,11 +157,22 @@ class WatchdogCommandResponsePacket(WCR_PI[WCR_PI, WCR_CP]):
         custom_payload = WatchdogCommandResponsePacket.CustomPayload(
             *struct.unpack(endianness_code + '2B', core_data)
         )
-        return WatchdogCommandResponsePacket(
+
+        # Create base packet:
+        base = WatchdogCommandResponsePacket(
             custom_payload=custom_payload,
             raw=data,
             endianness_code=endianness_code
         )
+
+        # Append intrinsic packet event to the payload collection (currently,
+        # just a string of representation of the base packet):
+        cls.append_intrinsic_packet_events(
+            base.payloads,
+            messages=[base.__str__()]
+        )
+
+        return base
 
     def encode(self, **kwargs: Any) -> bytes:
         # TODO (not really a typical use case so not super necessary besides for completeness)

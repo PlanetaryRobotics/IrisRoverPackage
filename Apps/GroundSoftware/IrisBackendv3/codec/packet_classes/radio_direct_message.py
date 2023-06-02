@@ -5,13 +5,14 @@ should get converted to a `EventPayload` or a `TelemetryPayload` containing radi
 activity, etc.) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/26/2022
+@last-updated: 06/01/2023
 """
 from __future__ import annotations
 
 # Activate postponed annotations (for using classes as return type in their own methods)
 from prompt_toolkit import formatted_text
 
+from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
@@ -24,7 +25,7 @@ from IrisBackendv3.codec.settings import ENDIANNESS_CODE
 from IrisBackendv3.codec.logs import logger
 
 
-class RadioDirectMessagePacketInterface(Packet[CT]):
+class RadioDirectMessagePacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
@@ -35,7 +36,7 @@ class RadioDirectMessagePacket(RadioDirectMessagePacketInterface[RadioDirectMess
     the Radio.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 08/26/2022
+    @last-updated: 06/01/2023
     """
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
@@ -67,13 +68,6 @@ class RadioDirectMessagePacket(RadioDirectMessagePacketInterface[RadioDirectMess
             raw=raw,
             endianness_code=endianness_code
         )  # passthru
-
-    @classmethod
-    def decode(cls,
-               data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> RadioDirectMessagePacket:
-        return cls(raw=data, endianness_code=endianness_code)
 
     def encode(self, **kwargs: Any) -> bytes:
         # There's no encoding to do. It's just raw data.

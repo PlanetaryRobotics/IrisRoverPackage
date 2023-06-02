@@ -5,13 +5,14 @@ This packet type doesn't contain any telemetry (for now, should get converted
 to a `EventPayload` eventually) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/01/2023
+@last-updated: 06/01/2023
 """
 from __future__ import annotations
 
 # Activate postponed annotations (for using classes as return type in their own methods)
 from prompt_toolkit import formatted_text
 
+from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
@@ -32,7 +33,7 @@ from IrisBackendv3.codec.exceptions import PacketDecodingException
 FIXED_PREFIX: bytes = b'DEBUGRESET:'
 
 
-class WatchdogResetSpecificAckPacketInterface(Packet[CT]):
+class WatchdogResetSpecificAckPacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
@@ -42,7 +43,7 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
     Creates a data-structure to allow storing and handling a reset specific ack.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 01/01/2023
+    @last-updated: 06/01/2023
     """
     __slots__: List[str] = [
         '_resetId',
@@ -154,13 +155,6 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
             except Exception:
                 return f'NOT-FOUND ({self._resultStatusCode})'
 
-    @classmethod
-    def decode(cls,
-               data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> WatchdogResetSpecificAckPacket:
-        return cls(raw=data, endianness_code=endianness_code)
-
     def encode(self, **kwargs: Any) -> bytes:
         # There's no encoding to do. It's just raw data.
         if self._raw is None:
@@ -197,10 +191,10 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
             colored(f": {self.resetFieldName} -> {self.resetResult}", 'yellow', attrs=['bold']) +
             colored(
                 f", allowing\t "
-                f"(PowerOn: {'✓' if self._allowPowerOn else '𐄂'},\t "
-                f"Rs422Off: {'✓' if self._allowDisableRS422 else '𐄂'},\t "
-                f"Deploy: {'✓' if self._allowDeploy else '𐄂'},\t "
-                f"Undeploy: {'✓' if self._allowUndeploy else '𐄂'}).",
+                f"(PowerOn: {'1' if self._allowPowerOn else '0'},\t "
+                f"Rs422Off: {'1' if self._allowDisableRS422 else '0'},\t "
+                f"Deploy: {'1' if self._allowDeploy else '0'},\t "
+                f"Undeploy: {'1' if self._allowUndeploy else '0'}).",
                 'white'
             )
         )

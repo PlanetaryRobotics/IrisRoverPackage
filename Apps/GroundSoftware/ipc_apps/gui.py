@@ -33,10 +33,10 @@ def run_ipc():
     """Runner process for IPC."""
     # Set up the context for this process:
     context = init_process(log_level='INFO')
-    # Ensure all time series are present and set up correctly:
-    data.init_all_telem_time_series(context, context.STANDARDS)
     # Bring up IPC Manager and run:
     context.ipc_mgr = data.make_ipc_manager(context)
+    # Initialize database storage:
+    data.database_init(context)
     asyncio.run(context.ipc_mgr.run())
 
 

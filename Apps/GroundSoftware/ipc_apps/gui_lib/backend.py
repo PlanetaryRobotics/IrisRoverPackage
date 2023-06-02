@@ -27,8 +27,12 @@ def _get_redis_url() -> str:
 class DatabaseKey(Enum):
     """Registry of all valid Keys to the Database
     (having a registry prevents typos and allows for key changes later)."""
+    # Dataframe summarizing telemetry received:
     TELEM_DF = 'telem_df'
+    # Dataframe summarizing packets received:
     PACKET_DF = 'packet_df'
+    # Unified stream of all events:
+    EVENT_STREAM = 'stream:events_all'
 
 
 class InternalDatabase:

@@ -2,7 +2,7 @@
 Responsible for the Dash App Layout.
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 05/13/2023
+Last Updated: 05/30/2023
 """
 from typing import Tuple, List
 
@@ -18,6 +18,7 @@ from .context import GuiContext
 from .components.telem_table import _TelemTableAIO, make_telem_table_aio
 from .components.packet_table import _PacketTableAIO, make_packet_table_aio
 from .components.time_plot import _TimePlotAIO, make_time_plot_aio
+from .components.events_stream import _EventStreamAIO, make_event_stream_aio
 from . import style
 
 
@@ -27,6 +28,7 @@ class GuiAIO(html.Div):
     telem_table:  _TelemTableAIO
     packet_table: _PacketTableAIO
     time_plots: List[_TimePlotAIO]
+    event_stream: _EventStreamAIO
 
     def __init__(
         self,
@@ -46,6 +48,7 @@ class GuiAIO(html.Div):
             #     default_channels=['Imu_XAcc', 'Imu_YAcc', 'Imu_ZAcc']
             # )
         ]
+        self.event_stream = make_event_stream_aio(context)
 
         # Build layouts for each tab:
         table_tab = dbc.Tab(label='Tables', children=[
@@ -54,6 +57,10 @@ class GuiAIO(html.Div):
             self.packet_table,
             html.Br(),
             self.telem_table
+        ])
+
+        detailed_status_tab = dbc.Tab(label='WD Status', children=[
+            html.Label('Watchdog Detailed Status')
         ])
 
         plots_tab = dbc.Tab(label='Plots', children=[
@@ -75,11 +82,16 @@ class GuiAIO(html.Div):
                 ),
                 dbc.Row([
                     dbc.Col([
-                        dbc.Tabs([table_tab, plots_tab, camera_tab])
-                    ], width=9),
+                        dbc.Tabs([
+                            table_tab,
+                            detailed_status_tab,
+                            plots_tab,
+                            camera_tab
+                        ])
+                    ], width=8),
                     dbc.Col([
-                        html.Label("Event Stream.")
-                    ], width=3)  # 3/12 grid spots
+                        self.event_stream
+                    ], width=4)  # 4/12 grid spots
                 ])
             ],
             style={

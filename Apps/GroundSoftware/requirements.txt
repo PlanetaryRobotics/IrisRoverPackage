@@ -57,3 +57,4 @@ pdoc3
 opencv-python
 psutil
 types-python-dateutil
+ansi2html

@@ -195,7 +195,8 @@ class _TelemTableAIO(html.Div):
     @staticmethod
     def telem_to_json(df: pd.DataFrame) -> str:
         """Converts the given telem_df to json in a standardized way (being
-        careful about datetime conversions, etc)."""
+        careful about datetime conversions, etc).
+        Used for putting a DataFrame into a `dcc.Store`."""
         # Convert name to be "datelike" (per`pd.read_json`):
         df.rename(columns={'Updated': 'Updated_time'}, inplace=True)
         return str(df.to_json(date_format='iso', date_unit='ms'))
@@ -203,7 +204,8 @@ class _TelemTableAIO(html.Div):
     @staticmethod
     def telem_from_json(json_str: str) -> pd.DataFrame:
         """Converts the given json to telem_df in a standardized way (being
-        careful about datetime conversions, etc)."""
+        careful about datetime conversions, etc).
+        Used for retrieving a DataFrame into a `dcc.Store`."""
         df = pd.read_json(json_str, convert_dates=True)
         # Convert from "datelike" name (per`pd.read_json`):
         df.rename(columns={'Updated_time': 'Updated'}, inplace=True)

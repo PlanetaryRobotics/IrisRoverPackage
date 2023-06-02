@@ -5,18 +5,16 @@ database.
 Following pattern from: https://dash.plotly.com/all-in-one-components
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 05/13/2023
+Last Updated: 05/30/2023
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, List, cast, TypedDict, TypeAlias
+from typing import Any, Dict, Tuple, List, TypedDict, TypeAlias
 from datetime import datetime, timedelta
 import dateutil.parser
 from dataclasses import dataclass
 import uuid
 
-import redis
-import pandas as pd
 import plotly.graph_objs as go
 import dash
 from dash import (
@@ -27,8 +25,6 @@ from dash import (
 )
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-
-from IrisBackendv3.utils.console_display import init_packet_log_dataframe
 
 from . import aio
 from ..context import GuiContext
@@ -127,12 +123,12 @@ class _TimePlotAIO(html.Div):
             channels_shown=default_channels,
             # Start with an arbitrary timespan of the last 5 minutes:
             disp_timespan=(
-                data.datetime_to_timestamp(now - timedelta(minutes=5)),
-                data.datetime_to_timestamp(now)
+                data.ts_datetime_to_timestamp(now - timedelta(minutes=5)),
+                data.ts_datetime_to_timestamp(now)
             ),
             loaded_timespan=(
-                data.datetime_to_timestamp(now - timedelta(minutes=5)),
-                data.datetime_to_timestamp(now)
+                data.ts_datetime_to_timestamp(now - timedelta(minutes=5)),
+                data.ts_datetime_to_timestamp(now)
             )
         )
 
@@ -151,7 +147,7 @@ class _TimePlotAIO(html.Div):
             id=self.ids.channel_selector(aio_id),
             style={
                 **style.DROPDOWN_STYLE_MIXIN['style'],
-                'min-width': '100ch'
+                'min-width': '25ch'
             },
             **{
                 'value': plot_cfg.channels_shown,
@@ -165,7 +161,6 @@ class _TimePlotAIO(html.Div):
         # Create a base figure:
         # Timespan is chosen by the x-axis of this plot, so we need to use this
         # to initialize our x-axis range:
-        now = datetime.now()
         self.plot = dcc.Graph(
             id=self.ids.plot(aio_id),
             figure=go.Figure(
@@ -246,7 +241,7 @@ class _TimePlotAIO(html.Div):
                     html.Label(
                         'Telemetry Channels:', **style.LABEL_STYLE_MIXIN),
                     self.channel_selector
-                ]),
+                ], width=9),
                 dbc.Col([
                     self.purge_outside_button,
                     self.purge_outside_button_tooltip
@@ -268,7 +263,7 @@ class _TimePlotAIO(html.Div):
 
 
 def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
-    """Makes a subclass of `_PacketTableAIO` with implemented context-dependent
+    """Makes a subclass of `_TimePlotAIO` with implemented context-dependent
     callbacks."""
     class _TimePlotAIO_w_Callbacks(_TimePlotAIO):
         ids = _TimePlotAIO.ids
@@ -335,70 +330,6 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
                     loaded_timespan_store[0], loaded_timespan_store[1])
             )
 
-        @staticmethod
-        def get_channel_data(
-            full_channel_names: List[str],
-            from_time: datetime | int,
-            to_time: datetime | int,
-            span_if_blank: bool = False
-        ) -> Dict[str, Tuple[List[datetime], List[Any]]]:
-            """Extracts corresponding time and value vectors for channels with
-            the given fully qualified names over the given timespan from the 
-            Time Series Database.
-
-            If there's no data to return, a tuple of empty lists will be
-            returned **UNLESS** `span_if_blank`, then a 2-tuple spanning the
-            start to end window will be returned.
-            """
-            # Make sure time endpoints are timestamps:
-            if not isinstance(from_time, int):
-                from_time = data.datetime_to_timestamp(from_time)
-            if not isinstance(to_time, int):
-                to_time = data.datetime_to_timestamp(to_time)
-
-            # Craft a blank series that spans the requested time (in case we
-            # can't plot, we don't want to change the view frame):
-            blank_series: Tuple[List[datetime], List[Any]]
-            if span_if_blank:
-                blank_series = (
-                    [data.timestamp_to_datetime(from_time),
-                     data.timestamp_to_datetime(to_time)],
-                    [0, 0]
-                )
-            else:
-                blank_series = ([], [])
-
-            if not backend.db_ready(context.inner_db):
-                # Can't get data. Return empty data:
-                return {n: blank_series for n in full_channel_names}
-
-            # Grab all data in the time range for each channel:
-            results: Dict[str, Tuple[List[datetime], List[Any]]] = dict()
-            for full_ch_name in full_channel_names:
-                full_ch_name = cast(str, full_ch_name)
-                module_name, channel_name = full_ch_name.split('_', 1)
-                key = data.channel_to_ts_key(module_name, channel_name)
-                try:
-                    ts = context.inner_db._redis.ts()
-                    val_tuples: List[Tuple[int, Any]] = ts.range(
-                        key, from_time=from_time, to_time=to_time
-                    )
-                except redis.exceptions.ResponseError as e:
-                    context.ipc_app.logger.error(
-                        f"Failed to load data for channel {full_ch_name} -> "
-                        f"{key=} b/c: `{e}`."
-                    )
-                    val_tuples = []
-                # Unzip into a time series and a value series:
-                if len(val_tuples) > 0:
-                    times, vs = [*zip(*val_tuples)]
-                    ds = [data.timestamp_to_datetime(t) for t in times]
-                    results[full_ch_name] = (ds, vs)
-                else:
-                    results[full_ch_name] = blank_series
-
-            return results
-
         # Alias for the `[updateData, traceIndices, [maxPoints]]` form required
         # by `prependData` and `extendData` in `dcc.Graph`:
         GraphUpdate_T: TypeAlias = List[Dict[str, List] | List[int]]
@@ -437,8 +368,8 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
                 x0 = dateutil.parser.parse(relayoutData['xaxis.range[0]'])
                 x1 = dateutil.parser.parse(relayoutData['xaxis.range[1]'])
                 return (
-                    data.datetime_to_timestamp(x0),
-                    data.datetime_to_timestamp(x1)
+                    data.ts_datetime_to_timestamp(x0),
+                    data.ts_datetime_to_timestamp(x1)
                 )
 
             # Data isn't available. Whatever was depending on this probably
@@ -481,7 +412,8 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
             )
 
             # Grab data for each selected channel in the time range:
-            ch_data = _TimePlotAIO_w_Callbacks.get_channel_data(
+            ch_data = data.get_telemetry_channel_data(
+                context,
                 plot_cfg.channels_shown,
                 from_time=plot_cfg.loaded_timespan[0],
                 to_time=plot_cfg.loaded_timespan[1],
@@ -646,7 +578,7 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
             extendData: _TimePlotAIO_w_Callbacks.GraphUpdate_T = [dict(), []]
             new_loaded_timespan: List[int] = [*loaded_timespan]
 
-            now_timestamp = data.datetime_to_timestamp(datetime.now())
+            now_timestamp = data.ts_datetime_to_timestamp(datetime.now())
             # Create a basic plot config object:
             # (this will implicitly validate the inputs too.)
             plot_cfg = _TimePlotAIO_w_Callbacks.plot_config_from_stores(
@@ -658,7 +590,8 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
             # If the display window is now earlier than the loaded data,
             # load new data:
             if plot_cfg.disp_timespan[0] < plot_cfg.loaded_timespan[0]:
-                ch_data = _TimePlotAIO_w_Callbacks.get_channel_data(
+                ch_data = data.get_telemetry_channel_data(
+                    context,
                     plot_cfg.channels_shown,
                     from_time=plot_cfg.disp_timespan[0],
                     to_time=plot_cfg.loaded_timespan[0]
@@ -671,7 +604,8 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
             if keep_live:
                 # If keep_live, load data from the end of the load window to
                 # the present:
-                ch_data = _TimePlotAIO_w_Callbacks.get_channel_data(
+                ch_data = data.get_telemetry_channel_data(
+                    context,
                     plot_cfg.channels_shown,
                     from_time=plot_cfg.loaded_timespan[1],
                     to_time=now_timestamp
@@ -683,7 +617,8 @@ def make_time_plot_aio(context: GuiContext, *args, **kwargs) -> _TimePlotAIO:
             else:
                 # If the display window is now later than the loaded data,
                 # load new data:
-                ch_data = _TimePlotAIO_w_Callbacks.get_channel_data(
+                ch_data = data.get_telemetry_channel_data(
+                    context,
                     plot_cfg.channels_shown,
                     from_time=plot_cfg.loaded_timespan[1],
                     to_time=plot_cfg.disp_timespan[1]

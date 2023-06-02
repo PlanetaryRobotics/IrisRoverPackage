@@ -214,8 +214,16 @@ data:
 ####
 data-image:
 	./run-script.sh scripts/testing/ipc_demo/pcap_xcvr.py \
-		-t 7 -g 0 --no-loop \
-		-f test-data/img_rc9.5.3_sbc4_cam1_field_of_irises_6.7_only_laptop_lighting_dim__12mm_lens_sep__shorted_ferrite.pcap
+		-t 15 -g 0 --no-loop \
+		-f test-data/img_rc9.5.3_em4_flight_lens_pocari_4__v4_cam_A_short_cable__sunlamp_pointed_up.pcap
+#		-f test-data/img_rc9.5.3_em4_flight_lens_pocari_2__v4_cam_A_short_cable.pcap
+#		-f test-data/img_rc9.5.3_v3_test_lens_flight_lens_pocari_2.pcap
+#		-f test-data/img_rc9.5.3_flight_lens_full_good_psu_try2__after_seamless_w_old_lens__no_harness_demate_just_lens_swap.pcap
+#		-f test-data/img_rc9.5.3_flight_lens_mount_but_old_lens__4000_middle_packets.pcap
+# 		-f test-data/img_rc9.5.3_flight_lens_full_good_psu.pcap
+#		-f test-data/img_rc9.5.3_flight_lens_reboot_at_14000_packets.pcap
+# 		-f test-data/img_rc9.5.3_flight_lens_full_good_psu.pcap
+#		-f test-data/img_rc9.5.3_sbc4_cam1_field_of_irises_6.7_only_laptop_lighting_dim__12mm_lens_sep__shorted_ferrite.pcap
 
 ####
 # Run the Iris Console CLI application:

@@ -258,24 +258,80 @@ You're a FSW developer and want to use the legacy single-process `Iris Console` 
     - NOTE: you may have to zoom out a bunch in your CLI for this to work properly.
    - or `make xconsole` / `make xconsole-debug` if you want to open an `xterm` with the appropriate zoom settings.
 
-## 7.2. Running the GDS GUI:
+## 7.3. Running the GDS GUI:
 Runs a low-level developer / diagnostic interface for working with the rover. Mainly designed for use by Flight Software engineers:
 1. Run `make run-infra`
 2. Run `make app-gui`
 3. In a separate terminal window, connect to a data pipeline:
    1. For data from the real rover:
-      1. `make xcvr-rs422` for a RS422+UDP/SLIP transceiver
-      2. `make xcvr-wifi` for a WiFi transceiver
+      1. `make xcvr-slip` for a UDP/SLIP transceiver (for wired RS422 communication with Rover)
+      2. `make xcvr-wifi` for a WiFi transceiver (for wireless communication with Rover)
       3. `make xcvr` to bring up all transceivers in parallel. Any transceivers that can connect to the rover will forward data to it in both directions.
    2. To replay replay pre-made test data:
       1. For infinite generic data: `make data`
       2. For finite data containing image(s): `make data-image`
 
-## 7.3. Testing a new IPC App:
+## 7.4. Testing a new IPC App:
 If you're testing your own new IPC app:
 1. Run `make run-infra`
 2. Run `./run-script.sh ./path/to/your_app.py`.
 3. If you want test rover data to be infinitely played from a recording, open a new terminal and run: `make data`.
+
+
+## 7.5 Minimum Stack for Taking an Image (the hard way):
+### **7.5.1 Collecting data:**
+0. Bring up the `PM1LWAP` Hotspot. Connect a laptop to the hotspot as the "lander" (its ip should be `192.168.10.105`). On a Mac, you'll need to 
+   - Connect to `PM1LWAP`.
+   - Open `Wifi Settings` > `Details` > `TCP/IP`
+   - Set `Configure IPv4` to `DHCP with Manual Address` (plain `Manual is flaky`)
+   - Set the IP to the lander IP (`192.168.10.105`)
+   - Click `Renew DHCP Lease` then `Apply` in the popup then `OK` to close the window.
+1. Start recording all incoming wifi packets using WireShark.
+2. Start listening for packets (either using a `WifiTransceiver` or `Iris Console` (`make console`)).
+3. THEN, with a lander present, power on the rover and wait for it to auto-connect to wifi (once in mission mode).
+4. Take an image (`select-cam-X-wifi` > `take-image-X-wifi`, the non-wifi versions are also acceptable).
+5. Wait.
+   - You'll see a bunch of packets coming in at about 1 every 80ms.
+   - Other data may come in during this time, that's okay.
+   - Once the data rate slows, you're done.
+   - A full image (1944 lines) takes about 24 minutes and 17200 new packets. If you're asking for fewer lines, this will be less.
+6. Note: it's okay for this process to be cut short (either by a crash or even impatience).
+   - You only need > 243 lines (~2200 new packets) for a complete image.
+### **7.5.2 Replaying the data and getting an image:**
+On a computer running the latest GSW (can be the same or different from above).
+
+
+In 3 separate terminals, run (from the `Apps/GroundSoftware` directory):
+1. If any of the following reports port issues, see 7.0.
+2. Run `make run-infra` (this will open several XTerm windows)
+  - **Only need to do this ONCE per machine - this can all stay up in the background.** You only really need to check on it if things stop working.
+  - For this application, it's okay if there's an issue with the `Redis` process. You just need `Proxies` and `DownlinkProcessor`
+3. Run `./run-script.sh ./scripts/testing/ipc_demo/image_builder_demo.py` to build the image from data.
+4. Run `./run-script.sh scripts/testing/ipc_demo/pcap_xcvr.py`
+5. Replay your pcap file collected in the previous section using:
+```
+./run-script.sh ./scripts/testing/ipc_demo/pcap_xcvr.py -t 20 -g 0 --no-loop -f path_to/your_file.pcap
+```
+  - `path_to/your_file.pcap` should be relative to the `Apps/GroundSoftware` directory. It's recommended to put your pcap in the `test-data` or `out` directories, in which case you'd use `test-data/your-file.pcap`.
+  - if it seems like your computer is having trouble keeping up (e.g. if you have enough packets to suggest you got a full image but not all the lines came through, or there are gaps), you can turn down the replay speed by increasing the `-t 20` argument above. This is the gap between replayed packets in milliseconds. Approximately `80` is realtime.
+6. You're done when the `pcap` is done replaying or the `image_builder_demo` says you have all `1944` complete lines (or pretty close - it's very unlikely that all the lines will be complete but it should be > `1930` for a complete image)
+7. To process and export the image:
+   - Click inside the `image_builder_demo` terminal.
+   - Do `Ctrl+C` (`control+C` not `command` on a Mac) - basically send a SIGINT / KeyboardInterrupt
+     - This should show it starting to process your image.
+     - All the outputs will be placed in a new folder inside `out/image_file_decodings`.
+   - Once done, you can kill the `image_builder_demo` by doing `ctrl+.` or `ctrl+\` (`control` not `command` on Mac) to send a `SIGKILL` (or closing the terminal if nothing else).
+8. Understanding your image. There are only 3 files that really matter in this folder:
+   - `your_image_name_id.report.txt`: this is a summary of what the **`image_builder_demo`** script got. This **should** be what the rover sent but, if your PCAP is incomplete or the your computer can't keep up with the rate the PCAP is being replayed, it could be less.
+   - `your_image_name_id.raw.png`: this is what the raw Flash memory looks like on the Rover (as read back by Camera)
+   - `your_image_name_id.interp.png`: this is the high-quality reconstructed image.
+
+9. What to do if it's bad. First, consult the `.raw.png` so you know where the issue actually is (image reconstruction in `interp` image can make it hard to find the root cause):
+  - **All light gray or dark gray**: adjust lighting. Needs to be very dim.
+  - **Lines are shifted**: weirdly, this seems to be an issue of a bad camera cable / poorly seated pins - possibly for V or H sync. Try a different/better cable.
+  - **Lines corrupted / garbage *within* lines**: Likely a bad power supply. Try using a battery or a good bench-top power-supply (not a noisy switch mode adapter) with a sufficient current limit (~120mA peak/spike for 1 camera, no motors)
+  - **Image incomplete**: If the rover didn't finish or crashed, just try again. Crashes aren't that common but could be caused by: overheating, being asked to do something while downlinking, or bad power supply (e.g. noisy switch mode).
+
 
 # 8. Teardown and Cleanup Development Environment
 Run this before reinitializing (in case something broke):

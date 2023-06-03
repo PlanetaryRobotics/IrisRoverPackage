@@ -180,14 +180,14 @@ namespace CubeRover
   {
     // Capture time isn't stored, so just use now as the createTime:
     uint32_t createTime = static_cast<uint32_t>(getTime().get_time_ms());
-    sendImgFromFlash(createTime);
+    sendImgFromFlash(createTime, 0, IMAGE_HEIGHT);
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
   void CameraComponentImpl ::
       Downlink_Grid_cmdHandler(
           const FwOpcodeType opCode,
-          const U32 cmdSeq,           /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
           const bool viaFlash)
   {
     generateDummyImage(viaFlash, DummyImageType::GRID);
@@ -197,7 +197,7 @@ namespace CubeRover
   void CameraComponentImpl ::
       Downlink_Test_Sequence_cmdHandler(
           const FwOpcodeType opCode,
-          const U32 cmdSeq,           /*!< The command sequence number*/
+          const U32 cmdSeq, /*!< The command sequence number*/
           const bool viaFlash)
   {
     generateDummyImage(viaFlash, DummyImageType::SEQUENCE);
@@ -235,7 +235,7 @@ namespace CubeRover
       ;
 
     // send image from flash
-    sendImgFromFlash(createTime);
+    sendImgFromFlash(createTime, 0, IMAGE_HEIGHT);
   }
 
   // CREATE AND SEND DUMMY IMAGE
@@ -315,7 +315,7 @@ namespace CubeRover
     if (viaFlash)
     {
       // read and send whole image from flash
-      sendImgFromFlash(createTime);
+      sendImgFromFlash(createTime, 0, IMAGE_HEIGHT);
     }
 
     // Finished sending Dummy Image
@@ -351,18 +351,22 @@ namespace CubeRover
     }
   }
 
-  // SEND IMAGE FROM FLASH
-  void CameraComponentImpl::sendImgFromFlash(uint32_t createTime)
+  // SEND IMAGE FROM FLASH, reading from `startLine` to `endLine`
+  void CameraComponentImpl::sendImgFromFlash(
+      uint32_t createTime,
+      const uint32_t startLine,
+      const uint32_t endLine)
   {
     S25fl512l::MemAlloc alloc;
     alloc.startAddress = 0;
     alloc.reservedSize = 0;
 
-    for (int i = 0; i < IMAGE_HEIGHT; i++)
+    for (int i = startLine; i < endLine; i++)
     {
+      alloc.startAddress = 6 * PAGE_SIZE * i; // set to correct block
       m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
-      alloc.startAddress = 6 * PAGE_SIZE * i; // jump to next available block
 
+      // NOTE: Still using IMAGE_HEIGHT here (even if we're only sending a subset) because we need to know the total number of lines in the **FULL** FileGroup:
       downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, i, IMAGE_HEIGHT);
     }
 

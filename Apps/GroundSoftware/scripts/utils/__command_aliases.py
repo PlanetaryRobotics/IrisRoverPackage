@@ -980,6 +980,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(camera_num=0, callback_id=0),
         DataPathway.WIRELESS
     ),
+    'take-draft-image-0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=0, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRED
+    ),
+    'take-draft-image-0-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=0, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRELESS
+    ),
     'take-image-1': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -994,11 +1008,18 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(camera_num=1, callback_id=0),
         DataPathway.WIRELESS
     ),
-    'take-image-1-wifi': (
+    'take-draft-image-1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=1, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRED
+    ),
+    'take-draft-image-1-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
-        'Camera_TakeImage',
-        OrderedDict(camera_num=1, callback_id=0),
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=1, start_line=13, end_line=300, callback_id=0),
         DataPathway.WIRELESS
     ),
     'image-dump-wifi': (

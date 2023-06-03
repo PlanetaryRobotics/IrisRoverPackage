@@ -14,6 +14,19 @@
 | | | |callback_id|U16|
                         Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     |
+|Take_Image_Section|161 (0xa1)|Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line).| | |
+| | | |camera_num|U8|
+                        0: Camera 0     1: Camera 1
+                    |
+| | | |startLine|U16|
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	|
+| | | |endLine|U16|
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	|
+| | | |callback_id|U16|
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    |
 |Error|2 (0x2)|Get camera status| | |
 | | | |action|U8|
                         0x00: Clear Error     0xff: Read Error  !! Not sure how this is being used

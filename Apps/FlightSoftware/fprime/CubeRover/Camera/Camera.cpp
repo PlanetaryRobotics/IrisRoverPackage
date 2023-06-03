@@ -65,7 +65,7 @@ namespace CubeRover
   {
     m_numComponentImgsReq++;
     tlmWrite_Cam_ComponentImagesRequested(m_numComponentImgsReq);
-    takeImage(CameraNum, CallbackId);
+    takeImage(CameraNum, CallbackId, 0, IMAGE_HEIGHT);
   }
 
   // ----------------------------------------------------------------------
@@ -90,8 +90,34 @@ namespace CubeRover
   {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
-    takeImage(camera_num, callback_id);
+    takeImage(camera_num, callback_id, 0, IMAGE_HEIGHT);
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+  }
+
+  /* Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line). */
+  void CameraComponentImpl::Take_Image_Section_cmdHandler(
+      FwOpcodeType opCode, /*!< The opcode*/
+      U32 cmdSeq, /*!< The command sequence number*/
+      U8 camera_num,
+      U16 startLine,
+      U16 endLine,
+      U16 callback_id
+  ){
+      m_numGroundImgsReq++;
+      tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
+
+      if(startLine > endLine){
+          this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+      }
+      if((endLine-startLine) <= 1){
+          this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+      }
+      if(startLine > (IMAGE_HEIGHT-1) || endLine > IMAGE_HEIGHT){
+          this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+      }
+
+      takeImage(camera_num, callback_id, startLine, endLine);
+      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
   void CameraComponentImpl ::
@@ -209,7 +235,7 @@ namespace CubeRover
   // ----------------------------------------------------------------------
 
   // TAKE IMAGE
-  void CameraComponentImpl::takeImage(uint8_t camera, uint16_t callbackId)
+  void CameraComponentImpl::takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine)
   {
     // Set the camera and callback IDs
     m_cameraSelect = camera;
@@ -235,7 +261,7 @@ namespace CubeRover
       ;
 
     // send image from flash
-    sendImgFromFlash(createTime, 0, IMAGE_HEIGHT);
+    sendImgFromFlash(createTime, startLine, endLine);
   }
 
   // CREATE AND SEND DUMMY IMAGE
@@ -357,6 +383,10 @@ namespace CubeRover
       const uint32_t startLine,
       const uint32_t endLine)
   {
+      if(startLine > endLine || (endLine-startLine) <= 1 || startLine > (IMAGE_HEIGHT-1) || endLine > IMAGE_HEIGHT){
+          return;
+      }
+
     S25fl512l::MemAlloc alloc;
     alloc.startAddress = 0;
     alloc.reservedSize = 0;

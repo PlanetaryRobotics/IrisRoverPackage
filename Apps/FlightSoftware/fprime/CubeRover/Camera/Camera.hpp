@@ -114,6 +114,24 @@ namespace CubeRover
                                  */
         );
 
+        /* Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line). */
+        void Take_Image_Section_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq, /*!< The command sequence number*/
+            U8 camera_num, /*!<
+                            0: Camera 0     1: Camera 1
+                        */
+            U16 startLine, /*!<
+                            Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                        */
+            U16 endLine, /*!<
+                            Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                        */
+            U16 callback_id /*!<
+                            Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                        */
+        );
+
         //! Implementation for Error command handler
         //! Get camera status
         void Error_cmdHandler(
@@ -213,7 +231,7 @@ namespace CubeRover
         // User Methods
         // ----------------------------------------------------------------------
 
-        void takeImage(uint8_t camera, uint16_t callbackId);
+        void takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine);
         void generateDummyImage(bool viaFlash, DummyImageType type);
         void triggerImageCapture(void);
         void eraseFpgaFlash(void);

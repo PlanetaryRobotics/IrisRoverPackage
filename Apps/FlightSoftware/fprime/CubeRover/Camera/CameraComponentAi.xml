@@ -77,6 +77,33 @@
                 </arg>
              </args>
         </command>
+        <command kind="sync" opcode="0xA1" mnemonic="Take_Image_Section">
+            <comment>
+                Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line).
+            </comment>
+            <args>
+                <arg name="camera_num" type="U8">
+                    <comment>
+                        0: Camera 0     1: Camera 1
+                    </comment>
+                </arg>
+                <arg name="startLine" type="U16">
+                	<comment>
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	</comment>
+                </arg>
+                <arg name="endLine" type="U16">
+                	<comment>
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	</comment>
+                </arg>
+                <arg name="callback_id" type="U16">
+                    <comment>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </comment>
+                </arg>
+             </args>
+        </command>
         <command kind="sync" opcode="0x2" mnemonic="Error">
             <comment>
                 Get camera status

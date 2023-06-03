@@ -39,11 +39,17 @@ def modules_dropdown(
 
     Any extra `kwargs` given are passed straight through to `dcc.Dropdown`.
     """
+    # Isolate the names of just the modules that contain >0 telemetry channels:
+    telem_module_names = [
+        m.name for m in context.STANDARDS.modules.vals
+        if len(m.telemetry) > 0
+    ]
+
     if preselected is None:
-        preselected = context.STANDARDS.modules.names
+        preselected = telem_module_names
     else:
         preselected = [
-            n for n in preselected if n in context.STANDARDS.modules.names
+            n for n in preselected if n in telem_module_names
         ]
     default_kwargs = dict(
         multi=True,
@@ -60,7 +66,7 @@ def modules_dropdown(
                 ),
                 "value": name,
             }
-            for name in sorted(context.STANDARDS.modules.names)
+            for name in sorted(telem_module_names)
         ],
         value=preselected,
         **style.DROPDOWN_STYLE_MIXIN,
@@ -132,8 +138,8 @@ class _TelemTableAIO(html.Div):
             id=self.ids.size_slider(aio_id),
             **{
                 'min': 2,
-                'max': 100,
-                'value': 11,
+                'max': sum(len(m.telemetry) for m in context.STANDARDS.modules.vals),
+                'value': 8,
                 'tooltip': {"placement": "bottom", "always_visible": False},
                 **size_slider_props
             }

@@ -188,6 +188,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         # If this contains only commands just print the command(s):
         cmds = [*self.payloads[CommandPayload]]
         if len(cmds) == len(self.payloads):
+            # Special Commands only signature:
             return (
                 f"ICP["
                 f"#{self.common_packet_header.seq_num}::"
@@ -214,7 +215,13 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
             )
 
         # Append the latest telemetry strings with a new line for each module:
-        out = self.__repr__() + '\n > Latest Telemetry: '
+        out = self.__repr__()
+        if len(cmds) > 0:
+            out += '\n > Commands: '
+            out += '\n \t >> ' + '\n \t >> '.join(str(c) for c in cmds)
+
+        if len(latest) > 0:
+            out += '\n > Latest Telemetry: '
         for module_latest in latest.values():
             out += '\n' + ',\t '.join([f'{p}' for p in module_latest.values()])
 

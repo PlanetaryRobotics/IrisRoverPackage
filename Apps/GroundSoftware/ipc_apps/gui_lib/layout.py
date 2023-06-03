@@ -2,7 +2,7 @@
 Responsible for the Dash App Layout.
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 05/30/2023
+Last Updated: 06/02/2023
 """
 from typing import Tuple, List
 
@@ -19,6 +19,7 @@ from .components.telem_table import _TelemTableAIO, make_telem_table_aio
 from .components.packet_table import _PacketTableAIO, make_packet_table_aio
 from .components.time_plot import _TimePlotAIO, make_time_plot_aio
 from .components.events_stream import _EventStreamAIO, make_event_stream_aio
+from .components.command_line import _CommandLineAIO, make_command_line_aio
 from . import style
 
 
@@ -29,6 +30,7 @@ class GuiAIO(html.Div):
     packet_table: _PacketTableAIO
     time_plots: List[_TimePlotAIO]
     event_stream: _EventStreamAIO
+    command_line: _CommandLineAIO
 
     def __init__(
         self,
@@ -49,6 +51,7 @@ class GuiAIO(html.Div):
             # )
         ]
         self.event_stream = make_event_stream_aio(context)
+        self.command_line = make_command_line_aio(context)
 
         # Build layouts for each tab:
         table_tab = dbc.Tab(label='Tables', children=[
@@ -81,21 +84,38 @@ class GuiAIO(html.Div):
                     href='/static/custom.css'
                 ),
                 dbc.Row([
-                    dbc.Col([
-                        dbc.Tabs([
-                            table_tab,
-                            detailed_status_tab,
-                            plots_tab,
-                            camera_tab
-                        ])
-                    ], width=8),
+                    dbc.Col(
+                        [
+                            dbc.Tabs([
+                                table_tab,
+                                detailed_status_tab,
+                                plots_tab,
+                                camera_tab
+                            ])
+                        ],
+                        width=8,
+                        style={
+                            'minWidth': '60vw',
+                            'minHeight': '20vh',
+                            'maxHeight': '86vh',
+                            'overflowY': 'scroll'
+                        }
+                    ),
                     dbc.Col([
                         self.event_stream
                     ], width=4)  # 4/12 grid spots
+                ]),
+                dbc.Row([
+                    self.command_line
                 ])
             ],
             style={
-                'background-color': style.IrisDerivedColor.BACKGROUND.value
+                'background-color': style.IrisDerivedColor.BACKGROUND.value,
+                'position': 'fixed',
+                'maxWidth': '100vw',
+                'overflowX': 'hidden',
+                'maxHeight': '100vh',
+                'overflowY': 'hidden'
             }
         )
 

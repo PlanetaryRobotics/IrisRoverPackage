@@ -1,4 +1,5 @@
-/* Produced using Ansi2HTMLConverter().produce_headers() from `ansi2html. */
+/* Adapted from a file produced using Ansi2HTMLConverter().produce_headers()
+from `ansi2html. */
 .ansi2html-content {
     display: inline;
     white-space: pre-wrap;
@@ -86,7 +87,8 @@
 }
 
 .ansi34 {
-    color: #0000aa;
+    /* Modified to match CLI measurements*/
+    color: rgb(83, 140, 229);
 }
 
 .inv34 {

@@ -5,11 +5,11 @@ a Redis Database.
 Following pattern from: https://dash.plotly.com/all-in-one-components
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 05/30/2023
+Last Updated: 06/02/2023
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, List, Sequence, cast
+from typing import Any, Final, Dict, Tuple, List, Sequence, cast
 from datetime import datetime, timedelta
 import uuid
 
@@ -30,6 +30,10 @@ from .. import backend
 from .. import data
 from .. import style
 from .. import utils
+
+# Maximum amount of time allowed between event stream refreshes (even if a long
+# fetch is running):
+_STALE_TIME_SEC: Final[float] = 1.0
 
 
 def stream_id_to_time_id(stream_id: str) -> int:
@@ -84,6 +88,7 @@ def event_stream_dataframe_from_entries(
     df = pd.DataFrame(
         (e
          for _, e in event_entries
+         # TODO: Replace with default filter on lvl col data table of '>0' (if possible):
          if 'severity_lvl' in e and str(e['severity_lvl']) != '0'  # safer
          ),
         columns=[
@@ -130,6 +135,14 @@ class _EventStreamAIO(html.Div):
     page_time_slider: dcc.Slider
     interval: dcc.Interval  # frequently queries the latest data from inner_db
 
+    # Store that contains a tuple of the timestamp and interval count when the
+    # last update completed.
+    # Updates will only be allowed to fire if their interval count is
+    # `1+last_update_count` (subsequent interval) or if time-last_update_time
+    # > `_STALE_TIME_SEC` (in case the only allowed interval didn't fire or
+    # complete and we need to get the ball rolling again).
+    interval_last_update: dcc.Store[Tuple[int, int]]  # (timestamp, count)
+
     # STORES (note: each output can only be associated with at most 1 callback,
     # so some datastructures may need to be split among stores)
     # Timestamp for the earliest data allowed to be shown
@@ -150,12 +163,16 @@ class _EventStreamAIO(html.Div):
         page_time_slider = aio.id_generator(
             '_EventStreamAIO', 'page_time_slider')
         interval = aio.id_generator('_EventStreamAIO', 'interval')
+        interval_last_update = aio.id_generator(
+            '_EventStreamAIO', 'interval_last_update')
         timespan_head_store = aio.id_generator(
             '_EventStreamAIO', 'timespan_head_store')
         keep_live_toggle = aio.id_generator(
             '_EventStreamAIO', 'keep_live_toggle')
         time_page_label = aio.id_generator(
             '_EventStreamAIO', 'time_page_label')
+        loading_indicator = aio.id_generator(
+            '_EventStreamAIO', 'loading_indicator')
 
     def __init__(
         self,
@@ -194,13 +211,28 @@ class _EventStreamAIO(html.Div):
 
         table_style = {
             'style_cell_conditional': [
-                {
+                # General Text Alignment:
+                *[{
                     'if': {'column_id': c},
                     'textAlign': 'left'
-                } for c in ['full_name', 'module_name', 'event_name', 'event_html']
+                } for c in ['full_name', 'module_name', 'event_name', 'event_html']],
+                # Special overflow handling for the event_html column:
+                {
+                    'if': {'column_id': 'event_html'},
+                    # force a fixed size...
+                    # (other columns will shrink if necessary)
+                    'minWidth': '36ch',
+                    'width': '36ch',
+                    'maxWidth': '36ch',
+                    # ... then break and wrap text as needed to fit:
+                    'white-space': 'normal',
+                    'word-break': 'break-all',
+                    'height': 'auto'
+                }
             ],
             'style_data': dict(),  # have at least an empty 'style_data'
             'style_table': dict(),  # have at least an empty 'style_table'
+            'style_cell': dict(),  # have at least an empty 'style_cell'
             **style.TABLE_STYLE_MIXIN
         }
         # Take whatever the mixed in `'style_data'`` is and add
@@ -217,7 +249,7 @@ class _EventStreamAIO(html.Div):
             **cast(Dict, table_style['style_table']),
             **cast(Dict, {  # expand a second dict so this can override preceding keys
                 'minHeight': '10vh',
-                'maxHeight': '80vh',
+                'maxHeight': '72vh',
                 'overflowY': 'scroll'
             })
         }
@@ -260,8 +292,6 @@ class _EventStreamAIO(html.Div):
             }
         )
 
-        # Timespan is chosen by the x-axis of this plot, so we need to use this
-        # to initialize our x-axis range:
         self.keep_live_toggle = daq.BooleanSwitch(
             id=self.ids.keep_live_toggle(aio_id),
             label='Live',
@@ -276,6 +306,11 @@ class _EventStreamAIO(html.Div):
                 'n_intervals': 0,
                 **interval_props
             }
+        )
+
+        self.interval_last_update = dcc.Store(
+            id=self.ids.interval_last_update(aio_id),
+            data=(0, 0)
         )
 
         now = datetime.now()
@@ -319,6 +354,7 @@ class _EventStreamAIO(html.Div):
             self.table,
             self.interval,
             self.timespan_head_store,
+            self.interval_last_update
         ])
 
     @staticmethod
@@ -424,10 +460,14 @@ def make_event_stream_aio(context: GuiContext, *args, **kwargs) -> _EventStreamA
         @callback(
             output=dict(
                 table_data=Output(ids.table(MATCH), 'data'),
-                time_page_label=Output(ids.time_page_label(MATCH), 'children')
+                time_page_label=Output(ids.time_page_label(MATCH), 'children'),
+                interval_last_update=Output(
+                    ids.interval_last_update(MATCH), 'data')
             ),
             inputs=dict(
                 n_intervals=Input(ids.interval(MATCH), 'n_intervals'),
+                interval_last_update=Input(
+                    ids.interval_last_update(MATCH), 'data'),
                 page_time_mins=Input(ids.page_time_slider(MATCH), 'value'),
                 page_current=Input(ids.table(MATCH), 'page_current'),
                 time_head=Input(ids.timespan_head_store(MATCH), 'data'),
@@ -441,7 +481,8 @@ def make_event_stream_aio(context: GuiContext, *args, **kwargs) -> _EventStreamA
             time_head: int,
             keep_live: bool,
             filter_query: str,
-            n_intervals: int
+            n_intervals: int,
+            interval_last_update: Tuple[int, int]
         ) -> Dict[str, Any] | dash._callback.NoUpdate:
             """
             Updates the data in the events stream table.
@@ -461,8 +502,19 @@ def make_event_stream_aio(context: GuiContext, *args, **kwargs) -> _EventStreamA
             Updates `page_size` to show so exactly the number of elements
             fetched is the number shown.
             """
+            # Abort if we aren't allowed to do this update:
+            now = datetime.now()
+            last_timestamp, last_count = interval_last_update
+            last_time = datetime.fromtimestamp(last_timestamp)
+            if not (
+                n_intervals == (last_count + 1)  # subsequent fire
+                or (now - last_time).total_seconds() > _STALE_TIME_SEC  # stale
+                or interval_last_update == (0, 0)  # first update
+            ):
+                raise dash.exceptions.PreventUpdate
+
             if not backend.db_ready(context.inner_db):
-                return no_update
+                raise dash.exceptions.PreventUpdate
 
             if page_current == 0:
                 end_time = data.stream_timestamp_to_datetime(time_head)
@@ -493,6 +545,7 @@ def make_event_stream_aio(context: GuiContext, *args, **kwargs) -> _EventStreamA
                     start_time, end_time,
                     always_show_seconds=(not keep_live)
                 ),
+                interval_last_update=(now.timestamp(), n_intervals)
             )
 
     return _EventStreamAIO_w_Callbacks(context, *args, **kwargs)

@@ -2,12 +2,12 @@
 Defines the Transceiver class for reading telemetry from a pcap. Main use case
 is replaying logs from previous testing.
 
-Includes any supporting functions necessary for maintaining serial connection.
+Includes any supporting functions necessary for processing pcap file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/11/2023
+@last-updated: 06/01/2023
 """
-from typing import Any, Optional, Callable, Dict, Deque, List, Union, Type, cast
+from typing import Any, Optional, Dict, List, Union, cast
 
 import attr
 import asyncio
@@ -17,13 +17,9 @@ import logging
 from collections import OrderedDict
 
 from IrisBackendv3.transceiver.transceiver import Transceiver
-from IrisBackendv3.transceiver.endec import Endec, SlipEndec
+from IrisBackendv3.transceiver.endec import Endec
 from IrisBackendv3.transceiver.logs import logger
-from IrisBackendv3.transceiver.exceptions import TransceiverConnectionException, TransceiverDecodingException
 
-from IrisBackendv3.codec.packet_classes.packet import Packet
-from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
-from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.utils.basic import type_guard_argument
 
@@ -197,7 +193,7 @@ class PcapTransceiver(Transceiver):
         fixed_period_ms: float,
         loop: bool = False,
         endecs: Optional[List[Endec]] = None,
-        pathway: DataPathway = DataPathway.WIRED,
+        pathway: DataPathway = DataPathway.WIRELESS,  # most typical mode
         source: DataSource = DataSource.PCAP,
         **kwargs
     ) -> None:
@@ -206,11 +202,15 @@ class PcapTransceiver(Transceiver):
         NOTE: You'll need to supply the appropriate list of `endecs` which were
         used to encode the data that was put into the PCAP.
         """
+        full_kwargs: Dict[str, Any] = {
+            'name': 'pcap',  # allow this to be overridden in kwargs
+            **kwargs  # fwd all other kwargs to parent
+        }
         super().__init__(
             endecs=endecs,
             pathway=pathway,
             source=source,
-            **kwargs  # fwd all other kwargs to parent
+            **full_kwargs
         )
 
         # Validate inputs:

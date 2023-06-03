@@ -2,22 +2,34 @@
 Registry of pre-"built" (pre-specified) Transceivers that can be built given
 just a name (useful for referring to a particular Transceiver build by name in
 a CLI argument).
+
+@author: Connor W. Colombo (CMU)
+@last-updated: 06/01/2023
 """
+
+from enum import Enum
 
 from IrisBackendv3.transceiver.transceiver import Transceiver
 from IrisBackendv3.transceiver.slip_transceiver import SlipTransceiver
+from IrisBackendv3.transceiver.wifi_transceiver import WifiTransceiver
 from IrisBackendv3.transceiver.pcap_transceiver import PcapTransceiver, PcapParseOpts
 
 from IrisBackendv3.transceiver.endec import UnityEndec
 
 
-def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
-    """Builds a pre-specified Transceiver instance based on the name given.
-    Optionally, `kwargs` can be given to override certain default settings of
-    the prebuilt transceiver.
-    """
-    match name.upper():
-        case 'PCAP-GENERIC':
+class PrebuiltTransceiver(Enum):
+    PCAP_GENERIC = 0
+    PCAP_18H = 1
+    PCAP__RC9_5_3__2MIN_IMU = 2
+    IMG_GRID = 10
+    WIFI = 20
+
+
+def build_xcvr(xcvr_spec: PrebuiltTransceiver, **kwargs) -> Transceiver | None:
+    match xcvr_spec:
+        case PrebuiltTransceiver.WIFI:
+            return WifiTransceiver()
+        case PrebuiltTransceiver.PCAP_GENERIC:
             default_kwargs = dict(
                 fixed_period_ms=588,  # avg. period (204 packets in 120s)
                 loop=True,  # loop this to provide unlimited sample telem
@@ -38,7 +50,7 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                 ),
                 **kwargs
             )
-        case 'PCAP-18H':
+        case PrebuiltTransceiver.PCAP_18H:
             default_kwargs = dict(
                 fixed_period_ms=1000,
                 loop=False,
@@ -58,7 +70,7 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                 ),
                 **kwargs
             )
-        case 'PCAP-RC9.5.3-2MIN-IMU':  # 2 Minutes of RC9.5.3 telem w/ IMU movement
+        case PrebuiltTransceiver.PCAP__RC9_5_3__2MIN_IMU:  # 2 Minutes of RC9.5.3 telem w/ IMU movement
             default_kwargs = dict(
                 fixed_period_ms=588,  # avg. period (204 packets in 120s)
                 loop=True,  # loop this to provide unlimited sample telem
@@ -76,7 +88,7 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                 ),
                 **kwargs
             )
-        case 'IMG-GRID-500':
+        case PrebuiltTransceiver.IMG_GRID:
             default_kwargs = dict(
                 fixed_period_ms=200,
                 loop=False,
@@ -106,9 +118,33 @@ def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
                 **kwargs
             )
 
-    # Nothing matched... raise an error:
-    raise ValueError(
-        f"Transceiver {name=} doesn't match any pre-specified Transceiver."
-        f"Check `build_xcvr_by_name` for a list of all pre-specified "
-        f"Transceivers you can use."
-    )
+    return None
+
+
+def build_xcvr_by_name(name: str, **kwargs) -> Transceiver:
+    """Builds a pre-specified Transceiver instance based on the name given.
+    Optionally, `kwargs` can be given to override certain default settings of
+    the prebuilt transceiver.
+    """
+
+    try:
+        xcvr_spec = PrebuiltTransceiver[name]
+    except KeyError:
+        # Nothing matched... raise an error:
+        raise ValueError(
+            f"Transceiver {name=} doesn't match any pre-specified Transceiver."
+            f"Check `PrebuiltTransceiver` for a list of all pre-specified "
+            f"Transceivers you can use."
+        )
+
+    xcvr = build_xcvr(xcvr_spec, **kwargs)
+
+    if xcvr is None:
+        # Nothing was built... raise an error:
+        raise ValueError(
+            f"No transceiver was built for {name=} BUT the name is valid. "
+            f"Perhaps someone added a name to `PrebuiltTransceiver` but "
+            f"forgot to add an implementation to `build_xcvr`?"
+        )
+
+    return xcvr

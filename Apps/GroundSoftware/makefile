@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
+.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
 
 .DEFAULT_GOAL = help
 all: help
@@ -56,6 +56,12 @@ help:
 	@echo "	make port-culler: Kills every process using a GDS IPC port (kills any zombie processes)."
 	@echo " "
 	@echo "	make cloc: Count Lines Of Code (and comments) by language, excluding builds and libraries"
+	@echo " "
+	@echo "	make xcvr-slip: Bring up a UDP/SLIP transceiver (for wired RS422 communication with Rover)."
+	@echo " "
+	@echo "	make xcvr-wifi: Bring up a WIFI transceiver (for wireless communication with Rover)."
+	@echo " "
+	@echo "	make xcvr: Bring up all transceivers in parallel. Any transceivers that can connect to the rover will forward data to it in both directions."
 	@echo " "
 	@echo "	make app-commander: Run the Commander IPC App."
 	@echo " "
@@ -211,6 +217,9 @@ data:
 ####
 # Play a fixed non-looping recording of rover test data from a PCAP into IPC,
 # that starts with downlink of image(s).
+#
+# NOTE: `-t 80` (milliseconds) is approximately accurate to real life image
+# 		downlink (~17700 packets in ~24minutes).
 ####
 data-image:
 	./run-script.sh scripts/testing/ipc_demo/pcap_xcvr.py \
@@ -301,6 +310,33 @@ port-culler:
 ####
 cloc:
 	cloc --exclude-dir=__pycache__,node_modules,.idea,.mypy_cache,.pytest_cache .
+
+
+
+	@echo "	make xcvr-slip: "
+	@echo " "
+	@echo "	make xcvr-wifi: "
+	@echo " "
+	@echo "	make xcvr: "
+	@echo " "
+
+####
+# Bring up a UDP/SLIP transceiver (for wired RS422 communication with Rover):
+####
+xcvr-slip:
+	echo "Not implemented yet."
+
+####
+# Bring up a WIFI transceiver (for wireless communication with Rover):
+####
+xcvr-wifi:
+	./run-script.sh IrisBackendv3/transceiver/ipc_process.py -x WIFI
+
+####
+# Bring up all transceivers in parallel. Any transceivers that can connect to the rover will forward data to it in both directions:
+####
+xcvr:
+	./run-script.sh IrisBackendv3/transceiver/ipc_process.py -x WIFI
 
 ####
 # Run the Commander IPC App:

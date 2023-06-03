@@ -25,10 +25,11 @@ from datetime import datetime
 import scapy.all as scp  # type: ignore # no type hints
 import traceback
 import asyncio
+import atexit
 
 from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.endec import Endec, UnityEndec
-from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException
+from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException, TransceiverConnectionException
 
 from IrisBackendv3.codec.packet import parse_packet
 from IrisBackendv3.codec.packet_classes.packet import Packet
@@ -45,6 +46,8 @@ class Transceiver(ABC):
     of the subclasses can be as simple as possible (just handling how to get
     and send packet bytes.)
     """
+    # String name of this transceiver (for logging purposes):
+    name: str
     # Endec used to encode and decode data using this transceiver:
     endecs: List[Endec]
     # How this data is transmitted received (wired/wireless):
@@ -60,6 +63,7 @@ class Transceiver(ABC):
 
     def __init__(
         self,
+        name: str,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.NONE,
         source: DataSource = DataSource.NONE,
@@ -75,6 +79,7 @@ class Transceiver(ABC):
         order of **DECODING** (where the left-most endec is stripped off first
         when decoding and applied last when encoding.)
         """
+        self.name = name
         # Initialize sequence number counter:
         self.seq_num = 0
         self.log_on_send = log_on_send
@@ -108,6 +113,16 @@ class Transceiver(ABC):
         # Store pathway and source for annotating all payloads:
         self.data_pathway = pathway
         self.data_source = source
+
+        # Register to make sure `__del__` gets called when program exits:
+        # (via interrupt or actual close)
+        atexit.register(self.__del__)
+
+    def __del__(self) -> None:
+        """Override in subclasses to provide custom cleanup behavior.
+        Transceiver base class handles registering this with `atexit`.
+        """
+        logger.notice(f"Cleaning up Transceiver {self.__class__.__name__}.")
 
     def begin(self) -> None:
         """Initialize any special registers, etc. for this transceiver."""
@@ -252,6 +267,18 @@ class Transceiver(ABC):
                         f"{scp.hexdump(bp, dump=True)}\n."
                         f"The TransceiverDecodingException was: `{tde}`."
                     )
+
+        except TransceiverConnectionException as tce:
+            # Log it:
+            trace = '\n'.join(traceback.format_tb(tce.__traceback__))
+            logger.error(
+                f"While attempting to read bytes from Transceiver {self}, "
+                f"a TransceiverConnectionException occurred: `{tce}`. "
+                f"The trace was:\n{trace}."
+            )
+            # Then re-raise to get out of here:
+            raise tce
+
         except Exception as e:
             trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
@@ -267,6 +294,16 @@ class Transceiver(ABC):
         """Asynchronously awaits the next available packet(s) on the transceiver input."""
         try:
             byte_packets = await self._async_downlink_byte_packets()
+        except TransceiverConnectionException as tce:
+            # Log it:
+            trace = '\n'.join(traceback.format_tb(tce.__traceback__))
+            logger.error(
+                f"While attempting to read bytes from Transceiver {self}, "
+                f"a TransceiverConnectionException occurred: `{tce}`. "
+                f"The trace was:\n{trace}."
+            )
+            # Then re-raise to get out of here:
+            raise tce
         except Exception as e:
             trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
@@ -283,6 +320,16 @@ class Transceiver(ABC):
         """Reads all available packets on the transceiver input."""
         try:
             byte_packets = self._downlink_byte_packets()
+        except TransceiverConnectionException as tce:
+            # Log it:
+            trace = '\n'.join(traceback.format_tb(tce.__traceback__))
+            logger.error(
+                f"While attempting to read bytes from Transceiver {self}, "
+                f"a TransceiverConnectionException occurred: `{tce}`. "
+                f"The trace was:\n{trace}."
+            )
+            # Then re-raise to get out of here:
+            raise tce
         except Exception as e:
             trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
@@ -332,7 +379,9 @@ class Transceiver(ABC):
 
         if success and self.log_on_send:
             logger.info(
-                f"`{self.__class__.__name__}` sent: {scp.hexstr(packet_bytes)}"
+                f"`{self.__class__.__name__}` sent: \n"
+                f" \t{packet!s} \n"
+                f"{scp.hexdump(packet_bytes, dump=True)} \n\n"
             )
 
         return success

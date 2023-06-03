@@ -24,7 +24,7 @@ IB3.init_from_latest()
 # Load data:
 xcvrLoggerLevel('NOTICE')
 xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
-    'PCAP-RC9.5.3-2MIN-IMU',
+    'PCAP__RC9_5_3__2MIN_IMU',
     fixed_period_ms=10,  # keep it short so the queue fills up
     log_on_receive=False
 )

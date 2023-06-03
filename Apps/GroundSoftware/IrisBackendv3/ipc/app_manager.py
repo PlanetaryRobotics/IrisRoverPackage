@@ -470,6 +470,11 @@ class SocketSpec(Generic[_HT]):
     # `rx_handler`. Setting this to `True` in that case will flag that as not
     # being a problem. Default: `False`.
     blind_consumer: bool = False
+    # Whether this socket will only be used to publish data
+    # (and no `rx_handler` should be used and no rx tasks (even a
+    # `blind_consumer` task) will be created. This will implicitly ignore
+    # `rx_handler` and `blind_consumer` settings.
+    publish_only: bool = False
 
     def __str__(self) -> str:
         s = ""
@@ -492,7 +497,8 @@ class SocketSpec(Generic[_HT]):
         s += (
             f" with settings: "
             f"bind={self.bind}, "
-            f"blind_consumer={self.blind_consumer}"
+            f"blind_consumer={self.blind_consumer}, "
+            f"publish_only={self.publish_only}"
         )
         return s
 
@@ -674,6 +680,15 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         if sock_name not in self.socket_specs:
             raise KeyError(f"Socket with {sock_name=} not found.")
 
+        if self.socket_specs[sock_name].publish_only:
+            logger.warning(
+                f"Starting a `socket_rx_coro` for a socket ({sock_name=}) "
+                f"that is marked `publish_only`. This coro will immediately "
+                f"return. This is fine but a better approach would be to not "
+                f"attempt to create this coroutine in the first place."
+            )
+            return
+
         blind_consumer = self.socket_specs[sock_name].blind_consumer
         if (
             not blind_consumer
@@ -715,7 +730,8 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         # Create Tasks for inner coros:
         self._tasks.extend(
             asyncio.create_task(self.socket_rx_coro(sock_name), name=sock_name)
-            for sock_name in self.socket_specs.keys()
+            for sock_name, sock_specs in self.socket_specs.items()
+            if not sock_specs.publish_only
         )
         self._core_tasks_spawned = True
 

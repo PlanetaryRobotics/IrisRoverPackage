@@ -156,3 +156,56 @@ TABLE_STYLE_MIXIN: Final[Dict] = {
         }
     ]
 }
+
+# Custom Formatted CSS. Think of this as `custom.css` but for any classes that need to pull data from the Python
+# backend (like standardized colors, etc).
+CUSTOM_FORMATTED_CSS: Final = (f"""
+/** COLOR: **/
+html {{
+    color: {IrisColor.GREY6.value};
+}}
+
+body {{
+    background-color: {IrisColor.GREY6.value};
+}}
+
+/** COMMAND-LINE SELECTORS: **/
+
+/* Applied to selectors in `command_line` (dropdown) when they're not actively
+driving what command is sent BUT were used in getting to the current
+configuration (e.g. we selected premade-alias XYZ, then overrode its default
+settings): */
+.commandLine-selector-overridden .Select-value-label span {{
+    /* important to override any dash defaults */
+    text-decoration: line-through !important;
+}}
+""" + ''.join(
+    f"""
+
+    {x} {{
+        /* important to override any dash defaults */
+        color: {IrisColor.GREY5.value} !important;
+    }}
+    """
+    for x in [
+        # Selector for text inside DCC dropdowns:
+        '.commandLine-selector-inactive .Select-value-label span',
+        # Selector for text inside input fields:
+        'input.commandLine-selector-inactive'
+    ]
+) + ''.join(
+    f"""
+
+    {x} {{
+        /* important to override any dash defaults */
+        color: {IrisColor.BLUE_ACCENT.value} !important;
+    }}
+    """
+    for x in [
+        # Selector for text inside DCC dropdowns:
+        '.commandLine-selector-active .Select-value-label span',
+        # Selector for text inside input fields:
+        'input.commandLine-selector-active'
+    ]
+)
+)

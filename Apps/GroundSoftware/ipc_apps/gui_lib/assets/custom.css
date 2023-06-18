@@ -42,13 +42,8 @@ html {
     font-size: 100%;
 }
 
-/** COLOR: **/
-html {
-    color: #222222;
-}
-
+/** SIZING: **/
 body {
-    background-color: #222222;
     /* No overflow scrolling at top-level:*/
     position: fixed;
     max-width: 100vw;

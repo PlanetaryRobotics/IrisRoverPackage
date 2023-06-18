@@ -2,7 +2,7 @@
 Responsible for the Dash App Layout.
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 06/02/2023
+Last Updated: 06/07/2023
 """
 from typing import Tuple, List
 
@@ -83,31 +83,47 @@ class GuiAIO(html.Div):
                     rel='stylesheet',
                     href='/static/custom.css'
                 ),
-                dbc.Row([
-                    dbc.Col(
-                        [
-                            dbc.Tabs([
-                                table_tab,
-                                detailed_status_tab,
-                                plots_tab,
-                                camera_tab
-                            ])
-                        ],
-                        width=8,
-                        style={
-                            'minWidth': '60vw',
-                            'minHeight': '20vh',
-                            'maxHeight': '86vh',
-                            'overflowY': 'scroll'
-                        }
-                    ),
-                    dbc.Col([
-                        self.event_stream
-                    ], width=4)  # 4/12 grid spots
-                ]),
-                dbc.Row([
-                    self.command_line
-                ])
+                html.Div([
+                    dbc.Row([
+                        dbc.Col(
+                            [
+                                dbc.Tabs([
+                                    table_tab,
+                                    detailed_status_tab,
+                                    plots_tab,
+                                    camera_tab
+                                ])
+                            ],
+                            width=8,
+                            style={
+                                'minWidth': '60vw',
+                                'minHeight': '20vh',
+                                'maxHeight': '86vh',
+                                'overflowY': 'scroll'
+                            }
+                        ),
+                        dbc.Col([
+                            self.event_stream
+                        ], width=4)  # 4/12 grid spots
+                    ], style={
+                        'flex-grow': '1',
+                        'flex-shrink': '1',
+                        'flex-basis': 'auto'
+                    }),
+                    dbc.Row([
+                        self.command_line
+                    ], style={
+                        'margin-top': 'auto',  # pushes this to the end
+                        'flex-grow': '0',
+                        'flex-shrink': '0',
+                        'flex-basis': 'auto'
+                    })
+                ], style={
+                    'display': 'flex',
+                    'flex-direction': 'column',
+                    'justify-content': 'space-between',
+                    'height': '100%'
+                })
             ],
             style={
                 'background-color': style.IrisDerivedColor.BACKGROUND.value,
@@ -118,6 +134,25 @@ class GuiAIO(html.Div):
                 'overflowY': 'hidden'
             }
         )
+
+
+def app_custom_index_template(dash_app: Dash) -> None:
+    """Applies custom modifications to the existing index.html template for
+    Dash.
+    (allows us to do things like patch in a custom CSS <style> section that was
+    generated in the Python backend.)"""
+    idx_string = dash_app.index_string
+    # Add custom formatted CSS wherever the CSS template is placed:
+    idx_string = idx_string.replace(
+        "{%css%}",
+        f"""{{%css%}}
+        <style>
+            {style.CUSTOM_FORMATTED_CSS}
+        </style>
+        """
+    )
+    # Apply the new template:
+    dash_app.index_string = idx_string
 
 
 def build_dash_app(context: GuiContext) -> Tuple[Dash, GuiAIO]:
@@ -148,6 +183,9 @@ def build_dash_app(context: GuiContext) -> Tuple[Dash, GuiAIO]:
         # getcwd is `GroundSoftware` if `./run-script.sh` is called from there.
         static_folder = os.path.join(os.getcwd(), './ipc_apps/gui_lib/assets')
         return send_from_directory(static_folder, path)
+
+    # Apply custom index.html template (to include custom formatted CSS):
+    app_custom_index_template(dash_app)
 
     gui_aio = GuiAIO(context)
     dash_app.layout = gui_aio

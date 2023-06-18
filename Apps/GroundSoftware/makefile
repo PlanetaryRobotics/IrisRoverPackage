@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
+.PHONY = help init update clean shell run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
 
 .DEFAULT_GOAL = help
 all: help
@@ -18,6 +18,8 @@ help:
 	@echo "	make update: Install any new dependencies and update existing dependencies"
 	@echo " "
 	@echo "	make clean: Teardown and Cleanup the Development Environment"
+	@echo " "
+	@echo "	make shell: Makes sure your shell session is set up correctly (correct active python environment, etc)."
 	@echo " "
 	@echo "	make run: Rebuild DataStandards and bring up all core IPC Apps"
 	@echo " "
@@ -125,6 +127,16 @@ clean:
 	pyenv_version="$$(pyenv version-name)"; \
 	if [ $$pyenv_version == "${VENV_NAME}" ]; then yes | pyenv virtualenv-delete ${VENV_NAME}; fi
 	pyenv local system;
+
+
+####
+# Make sure the shell session is set up correctly (correct active python environment, etc)."
+####
+shell:
+	eval "$$(pyenv init -)"; \
+	eval "$$(pyenv virtualenv-init -)"; \
+	eval "$$(pyenv shell ${VENV_NAME})";
+
 
 ####
 # Rebuild DataStandards and bring up all core IPC Apps:

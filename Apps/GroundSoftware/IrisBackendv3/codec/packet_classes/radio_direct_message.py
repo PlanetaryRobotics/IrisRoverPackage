@@ -7,10 +7,8 @@ activity, etc.) and is just printed to the console.
 @author: Connor W. Colombo (CMU)
 @last-updated: 06/01/2023
 """
-from __future__ import annotations
-
 # Activate postponed annotations (for using classes as return type in their own methods)
-from prompt_toolkit import formatted_text
+from __future__ import annotations
 
 from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
@@ -93,7 +91,8 @@ class RadioDirectMessagePacket(RadioDirectMessagePacketInterface[RadioDirectMess
     @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """Valid if the packet starts with b'DEBUG' then `0xE6E7E7E6`.
-        Note the b'DEBUG' prefix is there b/c this is sent through the Hercules then through the Watchdog using the debug messaging system."""
+        Note the b'DEBUG' prefix is there b/c this is sent through the Hercules
+        then through the Watchdog using the debug messaging system."""
         return data[:9].upper() == b'DEBUG\xE6\xE7\xE7\xE6'
 
     def __repr__(self) -> str:

@@ -10,9 +10,6 @@ activity, etc.) and is just printed to the console.
 """
 from __future__ import annotations
 
-# Activate postponed annotations (for using classes as return type in their own methods)
-from prompt_toolkit import formatted_text
-
 from typing import Any, Final, Optional, List
 
 from scapy.utils import hexdump  # type: ignore

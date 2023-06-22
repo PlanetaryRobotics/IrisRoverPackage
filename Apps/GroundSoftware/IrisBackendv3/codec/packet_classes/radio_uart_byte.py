@@ -9,10 +9,8 @@ activity, etc.) and is just printed to the console.
 @author: Connor W. Colombo (CMU)
 @last-updated: 06/01/2023
 """
-from __future__ import annotations
-
 # Activate postponed annotations (for using classes as return type in their own methods)
-from prompt_toolkit import formatted_text
+from __future__ import annotations
 
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT

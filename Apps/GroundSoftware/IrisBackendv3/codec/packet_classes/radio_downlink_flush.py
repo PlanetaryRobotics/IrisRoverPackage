@@ -5,10 +5,8 @@ interface when downlinking large packets.
 @author: Connor W. Colombo (CMU)
 @last-updated: 06/01/2023
 """
-from __future__ import annotations
-
 # Activate postponed annotations (for using classes as return type in their own methods)
-from prompt_toolkit import formatted_text
+from __future__ import annotations
 
 from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
@@ -30,8 +28,8 @@ class RadioDownlinkFlushPacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
 
 class RadioDownlinkFlushPacket(RadioDownlinkFlushPacketInterface[RadioDownlinkFlushPacketInterface]):
     """
-    Creates a data-structure to allow storing and handling a debug string from
-    the Radio (or Hercules' Radio process).
+    `Packet` used to flush the Radio downlink interface when downlinking large
+    packets.
 
     @author: Connor W. Colombo (CMU)
     @last-updated: 06/01/2023

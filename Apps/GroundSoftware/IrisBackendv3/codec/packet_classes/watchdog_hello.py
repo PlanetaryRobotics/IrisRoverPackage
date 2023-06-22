@@ -28,8 +28,8 @@ class WatchdogHelloPacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
 
 class WatchdogHelloPacket(WatchdogHelloPacketInterface[WatchdogHelloPacketInterface]):
     """
-    Creates a data-structure to allow storing and handling a debug string from
-    the Watchdog.
+    Creates a data-structure to allow storing and handling a "Hello" message
+    from the Watchdog.
 
     @author: Connor W. Colombo (CMU)
     @last-updated: 06/01/2023

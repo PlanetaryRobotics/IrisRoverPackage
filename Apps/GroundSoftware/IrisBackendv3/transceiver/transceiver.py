@@ -85,30 +85,32 @@ class Transceiver(ABC):
         self.log_on_send = log_on_send
         self.log_on_receive = log_on_receive
 
-        # Just use `UnityEndec` if none are given:
-        if endecs is None:
-            self.endecs = [UnityEndec()]
-
-        if isinstance(endecs, list):
-            if len(endecs) > 0:
-                self.endecs = endecs
+        # If endecs given, make sure they're valid and use if so:
+        if endecs is not None:
+            if isinstance(endecs, list):
+                if len(endecs) > 0:
+                    self.endecs = endecs
+                else:
+                    logger.error(
+                        f"When initializing `Transceiver` `endecs = {endecs}` "
+                        f"was given as an empty list (len=0). The `endecs` "
+                        "list must have non-zero length. "
+                        "See `Transceiver.__init__` for more information."
+                    )
+                    endecs = None
             else:
                 logger.error(
                     f"When initializing `Transceiver` `endecs = {endecs}` was "
-                    f"given as an empty list (len=0). The `endecs` list must "
-                    "have non-zero length. "
+                    f"given which has type {type(endecs)}. "
+                    "`endecs` must be a list. "
+                    "A `UnityEndec` was used instead. "
                     "See `Transceiver.__init__` for more information."
                 )
                 endecs = None
-        else:
-            logger.error(
-                f"When initializing `Transceiver` `endecs = {endecs}` was "
-                f"given which has type {type(endecs)}. "
-                "`endecs` must be a list. "
-                "A `UnityEndec` was used instead. "
-                "See `Transceiver.__init__` for more information."
-            )
-            endecs = None
+
+        # Just use `UnityEndec` if none (or no valid options) are given:
+        if endecs is None:
+            self.endecs = [UnityEndec()]
 
         # Store pathway and source for annotating all payloads:
         self.data_pathway = pathway
@@ -351,6 +353,21 @@ class Transceiver(ABC):
 
         Returns whether the send was successful.
         """
+        # See if a pathway is specified for this packet already.
+        # If so, bail if it doesn't match this transceiver's pathway:
+        if (
+            packet.pathway != DataPathway.NONE
+            and self.data_pathway != DataPathway.NONE
+            and packet.pathway != self.data_pathway
+        ):
+            logger.warning(
+                f"`{self.__class__.__name__} received but is **NOT** "
+                f"uplinking packet {packet} b/c `{packet.pathway=}`, "
+                f"which isn't compatible with this transceiver's "
+                f"`data_pathway={self.data_pathway}`."
+            )
+            return False
+
         # Add metadata to all the payloads in Packet first (before uplink):
         for payload in packet.payloads.all_payloads:
             payload.pathway = self.data_pathway

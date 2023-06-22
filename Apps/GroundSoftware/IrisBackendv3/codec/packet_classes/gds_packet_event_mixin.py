@@ -20,12 +20,69 @@ from IrisBackendv3.codec.logs import logger
 
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
+import re
+from typing import Match
+
 from ansi2html import Ansi2HTMLConverter
 _ANSI_CONVERTER = Ansi2HTMLConverter()
 
 MSG_ARGUMENT_NAME: Final[str] = 'msg'
 
 GDS_EVT_PT = TypeVar('GDS_EVT_PT', bound='GdsPacketEventPacket')
+
+
+# Pre-compiled pattern used by `format_escaped_bytes`:
+_ESCAPED_STRING_PATTERN: Final = re.compile(r'(\\x[0-9a-fA-F]{2})+')
+
+
+def _format_escaped_bytes_replacer(mo: Match) -> str:
+    """Helper function for `format_escaped_bytes`. Handles formatting each
+    section."""
+    bytes_str = mo.group(0)
+    bytes: List[str] = re.findall(r'\\x[0-9a-fA-F]{2}', bytes_str)
+    formatted_bytes = [b[2:].upper() for b in bytes]
+    return "0x" + ':'.join(formatted_bytes)
+
+
+def format_escaped_bytes(data_str: str) -> str:
+    """
+    This will modify all sections of the string that contain escaped bytes and
+    format those sections as all-caps hex and, if the length of any sequences
+    is greater than 1, a ':' character will used to delimit the boundary
+    between each adjacent bytes. All other parts of the string to remain as
+    they were in place, unmodified.
+
+    Example:
+    format_escaped_bytes('<span>[17B]: b"RADIO: UPL: \\x00\\xa6\\x0e\\x00"</span>')
+    becomes:
+    '<span>[17B]: b"RADIO: UPL: 0x00:A6:0E:00"</span>'
+
+    Note: This only handles escaped byte strings. Python will also convert raw
+    bytes that can be treated as ASCII to ASCII so it's not possible without
+    context to know whether those were supposed to be characters or byte
+    sequences. E.g.: b'RADIO: \x00\xa6\x27\x01' will get treated by python as
+    "RADIO: \x00\xa6'\x01" so, when being run through this function, the ASCII
+    b"'" character will remain and the output will be
+    `'b"RADIO: 0x00:A6\'0x01"'`. There's no way to understand this without
+    context so issues like this must be handled at a higher level (inside the
+    packet to string conversion).
+
+    Rationale:
+    By design, GDS will encode escape sequences in strings as raw bytes
+    (e.g. the 8 character string r'\xBE\xEF' would be encoded as the two
+    byte sequence: b'\xBE\xEF'). **BUT** Any escape sequences present in
+    packet messages that we're converting to event string we want to stay as
+    escape sequences (we want to present these byte sequences as text), so
+    we'll encode them differently.
+
+    Args:
+        data_str (str): The input string containing sections of escaped bytes.
+
+    Returns:
+        str: The input string with escaped byte sequences formatted as
+            described above.
+    """
+    return _ESCAPED_STRING_PATTERN.sub(_format_escaped_bytes_replacer, data_str)
 
 
 def ansi_to_html(msg: str) -> str:
@@ -58,6 +115,15 @@ class GdsPacketEventMixin:
         """
         return cls._PACKET_EVENT_MODULE().events[cls.__name__]
 
+    @staticmethod
+    def encode_msg_str(msg: str, maxlen: int) -> str:
+        """Encodes a message string, converting any ANSI escape codes to HTML
+        and escaping any internal sequences of bytes using
+        `format_escaped_bytes`."""
+        msg_str = ansi_to_html(msg)[:int(maxlen)]
+        msg_str = format_escaped_bytes(msg_str)
+        return msg_str
+
     @classmethod
     def append_intrinsic_packet_events(
         cls,
@@ -84,10 +150,11 @@ class GdsPacketEventMixin:
                 args={
                     # Pass along message, converting any ANSI escape code
                     # formatting into HTML so it can be transmitted:
-                    MSG_ARGUMENT_NAME: ansi_to_html(msg)[:maxlen]
+                    MSG_ARGUMENT_NAME: cls.encode_msg_str(msg, maxlen)
                 },
                 timestamp=rover_timestamp,
-                raw=None  # **don't** pass the raw since that expects FPrime encoding and the Radio uses its own encoding
+                # **don't** pass the raw since we don't know the raw FPrime-encoded form of this event. we'll let that be encoded as needed.
+                raw=None
             )
             for msg in messages
         ])

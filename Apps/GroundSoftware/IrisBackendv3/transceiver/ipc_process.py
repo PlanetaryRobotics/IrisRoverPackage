@@ -4,7 +4,7 @@ sending of commands using (a) transceiver(s) in both the uplink and downlink
 direction simultaneously.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 06/02/2023
+@last-updated: 06/21/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
@@ -144,15 +144,30 @@ class DownlinkCoroutine:
             msg = DownlinkedPacketsMessage(DownlinkedPacketsContent(
                 packets=packets
             ))
+
             # Publish them:
-            await self.manager.send_to(
-                DOWNLINK_SOCK, msg, subtopic_bytes=self.xcvr_tag
-            )
-            app.logger.info(
-                f"({self.xcvr.name}) "
-                f"Published: {msg.content.simple_str()} "
-                f"-> {ipc.Topic.DL_PACKETS}"
-            )
+            try:
+                await self.manager.send_to(
+                    DOWNLINK_SOCK, msg, subtopic_bytes=self.xcvr_tag
+                )
+                app.logger.info(
+                    f"({self.xcvr.name}) "
+                    f"Published: {msg.content.simple_str()} "
+                    f"-> {ipc.Topic.DL_PACKETS}"
+                )
+            except Exception as e:
+                err_msg = (
+                    f"[!DOWNLINK_PIPE_FAILURE!] \t"
+                    f"Failed to publish DownlinkedPacketsMessage `{msg}` "
+                    f"because: `{e!s}`. \n"
+                    f"For archive purposes, contents of all packets:"
+                )
+                for packet in packets:
+                    err_msg += (
+                        f"\n\n{packet!s}\n"
+                        f"\n{scp.hexdump(packet.encode(), dump=True)}\n"
+                    )
+                app.logger.error(err_msg)
 
     def __call__(self) -> Coroutine:
         return self._downlink_coro()
@@ -225,7 +240,7 @@ def make_uplink_handler(
                 # No XCVRs match:
                 app.logger.warning(
                     f"No matching Transceivers. Packet not uplinked. "
-                    f"For archive, packet contents:\n"
+                    f"For archive purposes, packet contents:\n"
                     f"{packet!s}\n"
                     f"\n{scp.hexdump(packet.encode(), dump=True)}\n"
                 )

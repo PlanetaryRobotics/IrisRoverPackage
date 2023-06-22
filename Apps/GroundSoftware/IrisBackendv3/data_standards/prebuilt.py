@@ -1175,6 +1175,9 @@ gds_packets: Module = Module(
     ID=0xCF00,
     commands=NameIdDict(),
     events=NameIdDict(
+        # NOTE: To ensure backwards compatibility, only append to this list
+        # and never reorder or remove (deprecate instead of removing):
+        # Severity levels can be changed freely.
         _packet_classes_to_events([
             ('RadioBgApiPacket', Event.SeverityLevel.ACTIVITY_LO),
             ('RadioDirectMessagePacket', Event.SeverityLevel.ACTIVITY_HI),
@@ -1186,7 +1189,8 @@ gds_packets: Module = Module(
             ('WatchdogHelloPacket', Event.SeverityLevel.COMMAND),
             ('WatchdogRadioDebugPacket', Event.SeverityLevel.ACTIVITY_HI),
             ('WatchdogResetSpecificAckPacket', Event.SeverityLevel.COMMAND),
-            ('RadioDownlinkFlushPacket', Event.SeverityLevel.DIAGNOSTIC)
+            ('RadioDownlinkFlushPacket', Event.SeverityLevel.DIAGNOSTIC),
+            ('HerculesRadioUplinkAckPacket', Event.SeverityLevel.ACTIVITY_LO)
         ])
     ),
     telemetry=NameIdDict()

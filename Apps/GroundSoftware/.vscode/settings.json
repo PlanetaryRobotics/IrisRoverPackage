@@ -120,6 +120,7 @@
         "devs",
         "dgram",
         "digestmod",
+        "dismissable",
         "Disp",
         "distro",
         "docstrings",

@@ -173,12 +173,15 @@ run-infra:
 	make xterm-normal \
 		GEOM="150x10+0+205" \
 		PROG="./run-script.sh ipc_apps/dl_processor.py"
+	make xterm-normal \
+		GEOM="150x10+0+410" \
+		PROG="./run-script.sh ipc_apps/ul_processor.py --no-use-seq-num -l VERBOSE"
 # Bring up a Redis Stack Server
 # (only needed for a subset of apps like GDS-GUI, if you're not using any
 # redis-dependent apps, you won't need redis installed, in which case this will
 # fail which is fine):
 	make xterm-normal \
-		GEOM="150x10+0+410" \
+		GEOM="150x10+0+615" \
 		PROG="redis-stack-server"
 
 ####

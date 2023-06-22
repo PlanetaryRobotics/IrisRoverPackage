@@ -184,7 +184,6 @@ def build_dash_app(context: GuiContext) -> Tuple[Dash, GuiAIO]:
         static_folder = os.path.join(os.getcwd(), './ipc_apps/gui_lib/assets')
         return send_from_directory(static_folder, path)
 
-    # Apply custom index.html template (to include custom formatted CSS):
     app_custom_index_template(dash_app)
 
     gui_aio = GuiAIO(context)

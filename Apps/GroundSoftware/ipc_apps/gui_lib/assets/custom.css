@@ -64,3 +64,8 @@ body {
     border: 1px solid #ccc;
     border-bottom: none;
 }
+
+/* Make sure toasts are always on top: */
+.toast {
+    z-index: 999 !important;
+}

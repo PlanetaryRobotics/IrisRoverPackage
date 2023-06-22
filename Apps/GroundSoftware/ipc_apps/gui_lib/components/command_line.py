@@ -4,7 +4,7 @@ Command Line Component.
 Following pattern from: https://dash.plotly.com/all-in-one-components
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 06/10/2023
+Last Updated: 06/19/2023
 """
 from __future__ import annotations
 
@@ -31,6 +31,9 @@ from IrisBackendv3.transceiver.xcvr_enum import TransceiverEnum
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.metadata import DataPathway
 from IrisBackendv3.codec.payload import CommandPayload
+from IrisBackendv3.ipc.messages import (
+    UplinkPayloadsRequestMessage, UplinkPayloadsRequestContent, UplinkPayloadsPacketSplit
+)
 
 from . import aio
 from ..context import GuiContext
@@ -42,19 +45,25 @@ from ..style import (
 )
 
 
+class _CommandBuildingError(Exception):
+    pass
+
+
 def handle_cmd_error(context: GuiContext, err_msg: str) -> None:
     """Logs an error that occurs while making a command.
     Having a wrapper like this allows for generating a modal popup later if
     desired.
     """
     context.ipc_app.logger.error(err_msg)
+    # Raise a special command error that will be caught at a higher level:
+    raise _CommandBuildingError(err_msg)
 
 
 def build_command(
     context: GuiContext,
     cmd_magic_str: str,
     cmd_full_name: str,
-    args: List[Tuple[str, Any]],
+    args: List[Any],
     target_xcvr_str: str,
     target_pathway_str: str
 ) -> Tuple[CommandPayload | None, TransceiverEnum | None]:
@@ -78,8 +87,8 @@ def build_command(
         # Extract + Validate Command Name:
         cmd_full_name = cmd_full_name.strip()
         try:
-            # Validate command name:
-            standards.global_command_lookup(cmd_full_name)
+            # Validate command name and get command specs:
+            _, cmd_specs = standards.global_command_lookup(cmd_full_name)
         except:
             handle_cmd_error(
                 context,
@@ -88,9 +97,17 @@ def build_command(
             return None, None
 
         # Extract + Validate Arguments:
-        args_dict = OrderedDict(
-            (arg[0].strip(), arg[1].strip())
-            for arg in args
+        if len(args) != len(cmd_specs.args):
+            handle_cmd_error(
+                context,
+                f"Command `{cmd_specs}` expects `{len(cmd_specs.args)}` "
+                f"arguments but `{len(args)}` were given."
+            )
+            return None, None
+        args = [v.strip() if isinstance(v, str) else v for v in args]
+        args_dict: OrderedDict[str, Any] = OrderedDict(
+            (arg_spec.name, arg_val)
+            for arg_spec, arg_val in zip(cmd_specs.args, args)
         )
         # Adjust values as necessary:
         # Cast any non-strings to numbers, remove quotes from any strings:
@@ -172,6 +189,7 @@ def build_command(
             return None, None
 
         return cmd_payload, target_xcvr
+
     except Exception as e:
         handle_cmd_error(
             context,
@@ -202,7 +220,10 @@ def _selector_css_classes(
     Also will append any extra classes given in `extra_classes`
     (or the single extra class given if it's just a string).
     """
-    classes = ['dropUp']  # always make CLI "dropdowns" drop up
+    classes = [
+        'commandLine-selector',
+        'dropUp'  # always make CLI "dropdowns" drop up
+    ]
     if active:
         classes.append('commandLine-selector-active')
     else:
@@ -309,6 +330,7 @@ class _CommandLineAIO(html.Div):
     transceiver_selector: dcc.Dropdown
     pathway_selector: dcc.Dropdown
     send_button: html.Button
+    command_send_toast: dbc.Toast
 
     # This comes from the Dash AIO pattern. Allows for global lookup of
     # subcomponent ids given a parent aio_id. Seems to be necessary for
@@ -327,6 +349,9 @@ class _CommandLineAIO(html.Div):
         pathway_selector = aio.id_generator(
             '_CommandLineAIO', 'pathway_selector')
         send_button = aio.id_generator('_CommandLineAIO', 'send_button')
+        command_send_toast = aio.id_generator(
+            '_CommandLineAIO', 'command_send_toast')
+
         # Base ID for index pattern matching of Arguments:
 
         @staticmethod
@@ -401,6 +426,21 @@ class _CommandLineAIO(html.Div):
         self.send_button = html.Button(
             'Send',
             id=self.ids.send_button(aio_id),
+            className='commandLine-send-button',
+            n_clicks=0
+        )
+
+        self.command_send_toast = dbc.Toast(
+            # Status message of command send will appear here
+            "Nothing to report.",
+            id=self.ids.command_send_toast(aio_id),
+            header="Command Result",
+            is_open=False,
+            dismissable=True,
+            duration=5000,  # ms
+            icon='primary',
+            # Fixed position, hovering over everything:
+            style={"position": "fixed", "top": 75, "right": 10, "width": 500},
         )
 
         # Build layout:
@@ -454,6 +494,7 @@ class _CommandLineAIO(html.Div):
                 ], width='auto', align='center'),
                 dbc.Col([self.send_button], width='auto', align='top')
             ], justify='between', align='center', className="g-1"),
+            self.command_send_toast  # hovers at top. not actually here
         ], style={'background-color': style.IrisColor.GREY5.value})
 
     @staticmethod
@@ -710,6 +751,7 @@ class _CommandLineAIO(html.Div):
             step=step_size,
             autoComplete=False,
             spellCheck=False,
+            name=arg_spec.name,
             placeholder=f"({arg_spec.datatype.name})",
             className=_selector_css_classes(active=True)
         )
@@ -742,7 +784,9 @@ class _CommandLineAIO(html.Div):
 
         return [
             dbc.Col([
-                html.Label(f'{a.name}:', **LABEL_STYLE_MIXIN),
+                html.Label(f'{a.name} ({a.datatype.name}):',
+                           **LABEL_STYLE_MIXIN),
+                html.Br(),
                 cls.argument_to_input(aio_id, i, a, default_value=dv)
             ])
             for i, (a, dv) in enumerate(zip(cmd_spec.args, default_values))
@@ -967,18 +1011,193 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
 
             n_args = len(args)
             return dict(
-                # ! TODO: Broaden `_dropdown_css_classes` to include all arg
-                # ! fields. Keep dropUp for dropUps. Add classes for callback
-                # ! ID fields. (different number/text field styling)? CSS class
-                # ! for both active and inactive inputs.
                 alias_classes=_selector_css_classes(
                     active=alias_active,
                     extra_classes=extra_classes
                 ),
                 command_type_classes=_selector_css_classes(not alias_active),
                 command_name_classes=_selector_css_classes(not alias_active),
-                # ! TODO: (WORKING-HERE): Make this support non-dropdown arg stylings (and make those exist)
                 arg_classes=[_selector_css_classes(not alias_active)] * n_args
+            )
+
+        @callback(
+            output=dict(
+                tst_body=Output(ids.command_send_toast(MATCH), 'children'),
+                tst_header=Output(ids.command_send_toast(MATCH), 'header'),
+                tst_icon=Output(ids.command_send_toast(MATCH), 'icon'),
+                tst_open=Output(ids.command_send_toast(MATCH), 'is_open')
+            ),
+            inputs=dict(
+                n_clicks_send=Input(ids.send_button(MATCH), 'n_clicks')
+            ),
+            state=dict(
+                command_type=State(ids.cmd_type_selector(MATCH), 'value'),
+                command_name=State(ids.command_selector(MATCH), 'value'),
+                args=State(
+                    _CommandLineAIO._argument_full_id(
+                        aio_id=MATCH, arg_index=ALL, uuid=ALL
+                    ),
+                    'value'
+                ),
+                xcvr_target_name=State(
+                    ids.transceiver_selector(MATCH), 'value'),
+                pathway_name=State(ids.pathway_selector(MATCH), 'value')
+            )
+        )
+        def send_command(
+            n_clicks_send: int,
+            command_type: str,
+            command_name: str,
+            args: List[Any],
+            xcvr_target_name: str,
+            pathway_name: str
+
+        ) -> Dict[str, Any]:
+            """Builds and sends a command based on the current command settings.
+
+            Displays status via a Toast.
+            """
+            msg_html: List[Component | str] = []
+            success_so_far: bool = True
+
+            if n_clicks_send == 0:
+                # Page load not a click. Abort.
+                raise dash.exceptions.PreventUpdate
+
+            # Make sure command name is valid if given:
+            # If so, extract command specs:
+            cmd_spec: IB3.data_standards.Command | None = None
+            if command_name is not None:
+                try:
+                    cmd_spec = context.STANDARDS.\
+                        global_command_lookup(command_name)[1]
+                except (TypeError, KeyError) as _:
+                    success_so_far = False
+                    msg_html += [
+                        html.Br(), html.Br(),
+                        f"`{command_name}` isn't a valid command."
+                    ]
+
+            # Make sure all args are present:
+            for val, name in [
+                (command_type, "Command Type"),
+                (command_name, "Command Name"),
+                (xcvr_target_name, "Transceiver Target"),
+                (pathway_name, "Pathway")
+            ]:
+                if val is None:
+                    success_so_far = False
+                    msg_html += [
+                        html.Br(), html.Br(),
+                        f"{name} can't be empty."
+                    ]
+
+            # Make sure all args are present. Error and notify if not:
+            if cmd_spec is not None:
+                if len(args) != len(cmd_spec.args):
+                    success_so_far = False
+                    msg_html += [
+                        html.Br(), html.Br(),
+                        f"Bad number of args given for `{cmd_spec}`. "
+                        f"Expected `{len(cmd_spec.args)}`, got `{len(args)}`."
+                    ]
+                else:
+                    for arg_spec, arg_val in zip(cmd_spec.args, args):
+                        if arg_val is None:
+                            success_so_far = False
+                            msg_html += [
+                                html.Br(), html.Br(),
+                                f"Argument `{arg_spec}` can't be `None`."
+                            ]
+
+            # Build command & validate args:
+            if success_so_far:
+                try:
+                    cmd_payload, xcvr_target = build_command(
+                        context,
+                        cmd_magic_str=command_type,
+                        cmd_full_name=command_name,
+                        args=args,
+                        target_xcvr_str=xcvr_target_name,
+                        target_pathway_str=pathway_name
+                    )
+                    if cmd_payload is None or xcvr_target is None:
+                        # We should never get here but we need to at least check.
+                        success_so_far = False
+                        msg_html = [
+                            f"Failed to build command {command_name} with: ",
+                            html.Br(), html.Br(),
+                            f"{command_type=}, {args=} "
+                            f"-> {xcvr_target_name=}, {pathway_name=}."
+                        ]
+                except _CommandBuildingError as cbe:
+                    success_so_far = False
+                    msg_html = [
+                        f"Failed to build command {command_name} with: ",
+                        html.Br(), html.Br(),
+                        f"{command_type=}, {args=} "
+                        f"-> {xcvr_target_name=}, {pathway_name=} ",
+                        html.Br(), html.Br(),
+                        f"because: {cbe!s}"
+                    ]
+
+            # Attempt to dispatch command to IPC:
+            if success_so_far:
+                # If we're here, we know the types of cmd and xcvr, so assert
+                # their types:
+                cmd_payload = cast(CommandPayload, cmd_payload)
+                xcvr_target = cast(TransceiverEnum, xcvr_target)
+
+                # Create IPC context, connect, send, and close:
+                try:
+                    with IB3.ipc.create_context() as ipc_ctx:
+                        socket = IB3.ipc.create_socket(
+                            ipc_ctx,
+                            IB3.ipc.SocketType.PUBLISHER,
+                            IB3.ipc.Port.TRANSCEIVER_PUB
+                        )
+                        ipc_msg = UplinkPayloadsRequestMessage(
+                            UplinkPayloadsRequestContent(
+                                payloads=[cmd_payload],
+                                split=UplinkPayloadsPacketSplit.INDIVIDUAL,
+                                packet_class=IB3.codec.packet.IrisCommonPacket,
+                                target_xcvr=xcvr_target
+                            )
+                        )
+                        IB3.ipc.send_to(
+                            socket,
+                            ipc_msg,
+                            topic=IB3.ipc.Topic.UL_PAYLOADS,
+                            subtopic=b'gui'
+                        )
+                        socket.close()
+                except Exception as e:
+                    success_so_far = False
+                    msg_html += [
+                        f"Failed to dispatch `{cmd_payload}` via IPC.",
+                        html.Br(), html.Br(),
+                        f"because: {e!s}"
+                    ]
+
+            if success_so_far:
+                msg_html = [
+                    f"{cmd_payload}",
+                    html.Br(), html.Br(),
+                    "Command dispatched to transceiver successfully.",
+                    html.Br(), html.Br(),
+                    "Check transceiver for send success."
+                ]
+
+            # Make sure we don't start with a newline:
+            while isinstance(msg_html[0], html.Br) and len(msg_html) > 0:
+                msg_html = msg_html[1:]
+
+            # Report status via Toast:
+            return dict(
+                tst_body=msg_html,
+                tst_header=html.Span([html.I(command_name), " Status:"]),
+                tst_icon='success' if success_so_far else 'danger',
+                tst_open=True  # open it back up if needed
             )
 
     return _CommandLineAIO_w_Callbacks(context, aliases_table, *args, **kwargs)

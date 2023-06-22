@@ -169,7 +169,28 @@ body {{
     background-color: {IrisColor.GREY6.value};
 }}
 
+/** BUTTON: **/
+
+.commandLine-send-button {{
+    background-color: {IrisColor.GREY3.value}; 
+    color: {IrisColor.BLUE_ACCENT.value}; 
+    border: 1px solid {IrisColor.BLUE_ACCENT.value};
+    border-radius: 4px;
+    height: {(dcc_dropdown_height:='36px')}; /* Matches hardcoded value from DCC dropdown */
+}}
+
+.commandLine-send-button:hover {{
+  background-color: {IrisColor.BLUE_ACCENT.value};
+  color: {IrisDerivedColor.NEAR_WHITE.value};
+}}
+
+
 /** COMMAND-LINE SELECTORS: **/
+
+input.commandLine-selector{{
+    text-align: left !important;
+    height: {dcc_dropdown_height}; /* Matches hardcoded value from DCC dropdown */
+}}
 
 /* Applied to selectors in `command_line` (dropdown) when they're not actively
 driving what command is sent BUT were used in getting to the current

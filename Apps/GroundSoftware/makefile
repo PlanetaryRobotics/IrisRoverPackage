@@ -326,15 +326,6 @@ port-culler:
 cloc:
 	cloc --exclude-dir=__pycache__,node_modules,.idea,.mypy_cache,.pytest_cache .
 
-
-
-	@echo "	make xcvr-slip: "
-	@echo " "
-	@echo "	make xcvr-wifi: "
-	@echo " "
-	@echo "	make xcvr: "
-	@echo " "
-
 ####
 # Bring up a UDP/SLIP transceiver (for wired RS422 communication with Rover):
 ####

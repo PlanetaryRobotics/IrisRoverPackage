@@ -112,6 +112,7 @@
         "debayering",
         "DEBUGBGB",
         "DEBUGBGP",
+        "DEBUGRADIO",
         "DEBUGRESET",
         "deepcopying",
         "deser",

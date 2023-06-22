@@ -46,8 +46,7 @@ if __name__ == "__main__":
             packets = msg.content.packets
         except Exception as e:
             app.logger.error(
-                f"Failed to decode IPC message `{msg}` "
-                f"of `{ipc_payload=}` b/c: `{e}`."
+                f"Failed to decode IPC message of `{ipc_payload=}` b/c: `{e}`."
             )
             # Skip the rest of this loop:
             continue

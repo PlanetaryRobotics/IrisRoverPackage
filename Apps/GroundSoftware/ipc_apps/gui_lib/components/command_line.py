@@ -1221,11 +1221,35 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             while isinstance(msg_html[0], html.Br) and len(msg_html) > 0:
                 msg_html = msg_html[1:]
 
+            # Default icon selection:
+            icon = 'success' if success_so_far else 'danger'
+
+            # Perform a sanity check:
+            # WATCHDOG_COMMAND Magic isn't normally sensible over Wifi (all
+            # Watchdog commands are PROCESSED by Hercules first).
+            if pathway_name == 'WIRELESS' and command_type == 'WATCHDOG_COMMAND':
+                # Maybe this was intentional, but tack on a warning:
+                msg_html += [html.P([
+                    html.Br(), html.Br(),
+                    "Command type is ",
+                    "`", html.Code("WATCHDOG_COMMAND"), "`", " but is being "
+                    "sent via `", html.Code(str(pathway_name)), "` "
+                    "Is this intentional? ",
+                    html.Br(),
+                    "All wireless Watchdog commands must be ",
+                    html.B("processed"), " by Hercules first, ",
+                    html.B([
+                        "so this should probably be a "
+                        "`", html.Code("HERCULES_COMMAND"), "`"
+                    ]), "."
+                ])]
+                icon = 'warning'
+
             # Report status via Toast:
             return dict(
                 tst_body=msg_html,
                 tst_header=html.Span([html.I(command_name), " Status:"]),
-                tst_icon='success' if success_so_far else 'danger',
+                tst_icon=icon,
                 tst_open=True  # open it back up if needed
             )
 

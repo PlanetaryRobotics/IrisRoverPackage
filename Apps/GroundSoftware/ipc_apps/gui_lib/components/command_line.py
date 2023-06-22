@@ -295,7 +295,7 @@ def create_option_dropdown(
 
 
 def create_cli_tooltip(
-    msg: str,
+    msg: str | List,
     target: aio.AioSubId,
     width: str = '20vw'
 ) -> dbc.Tooltip:
@@ -390,6 +390,11 @@ class _CommandLineAIO(html.Div):
                 m.name for m in Magic
                 if 'COMMAND' in m.name.upper() or 'CMD' in m.name.upper()
             ],
+            labels=[
+                m.name if m.name != 'COMMAND' else 'HERCULES_COMMAND'
+                for m in Magic
+                if 'COMMAND' in m.name.upper() or 'CMD' in m.name.upper()
+            ],
             extra_style={x: '25ch' for x in ['minWidth', 'width', 'maxWidth']}
         )
 
@@ -462,10 +467,17 @@ class _CommandLineAIO(html.Div):
                             ),
                             self.cmd_type_selector,
                             create_cli_tooltip(
-                                "Who should PROCESS (interpret) this command FIRST.    \n"
-                                "For data processed FIRST by Watchdog: `WATCHDOG_COMMAND`.    \n"
-                                "For data processed FIRST by Radio: `RADIO_COMMAND`.    \n"
-                                "Otherwise, `COMMAND` (data is PROCESSED by Hercules first).",
+                                [
+                                    "Which Magic to apply. ",
+                                    html.Br(),
+                                    "Who should PROCESS (interpret) this command FIRST. ",
+                                    html.Br(),
+                                    "For data processed FIRST by Watchdog: `WATCHDOG_COMMAND`. ",
+                                    html.Br(),
+                                    "For data processed FIRST by Radio: `RADIO_COMMAND`. ",
+                                    html.Br(),
+                                    "Otherwise, `HERCULES_COMMAND` (`COMMAND`) (data is PROCESSED by Hercules first)."
+                                ],
                                 target=cmd_type_label_id
                             )
                         ], width='auto', align='center'),
@@ -861,8 +873,8 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             )
         )
         def selector_to_selector_updater(
-            alias_name: str,
-            cmd_name: str
+            alias_name: str | None,
+            cmd_name: str | None
         ) -> Dict[str, Any]:
             """Updates selectors (dropdowns, etc) based on selections in other
             selectors.
@@ -875,23 +887,33 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             changes from the alias, thus deleting the default args provided by
             the alias selector)."""
             # Get alias entry from alias name:
-            alias_entry = aliases_table.get_entry(alias_name)
+            if alias_name is None:
+                alias_entry = None
+            else:
+                alias_entry = aliases_table.get_entry(alias_name)
 
             # Determine new args list based on which inputs changed:
             args = _CommandLineAIO_w_Callbacks._argument_mux(
                 ctx, alias_entry, cmd_name
             )
 
-            return dict(
-                command_type=alias_entry.compiled_cmd.magic.name,
-                command_name=alias_entry.compiled_cmd.command.name,
-                args=args
-            )
+            if ctx.args_grouping['alias_name']['triggered'] and alias_entry is not None:
+                return dict(
+                    command_type=alias_entry.compiled_cmd.magic.name,
+                    command_name=alias_entry.compiled_cmd.command.name,
+                    args=args
+                )
+            else:
+                return dict(
+                    command_type=no_update,
+                    command_name=no_update,
+                    args=args
+                )
 
         def _argument_mux(
             ctx: dash._callback_context.CallbackContext,
-            alias_entry: command_aliases.CommandAliasesTable.Entry,
-            cmd_name: str
+            alias_entry: command_aliases.CommandAliasesTable.Entry | None,
+            cmd_name: str | None
         ) -> List[Component] | dash._callback.NoUpdate:
             """
             Returns list of args components based on which selector changed.
@@ -915,6 +937,8 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             aio_id = tid['aio_id']
 
             if ctx.args_grouping['alias_name']['triggered']:
+                if alias_entry is None:
+                    return no_update
                 # Create correctly ordered list of default argument values:
                 # (pulls the command spec (`Command`) from the compiled
                 # `CommandPayload` and uses the order of args from there):
@@ -931,6 +955,8 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             else:
                 # This was triggered by a new command name being triggered:
                 # Find that command spec in the datastandards:
+                if cmd_name is None:
+                    return no_update
                 try:
                     _, cmd = context.STANDARDS.global_command_lookup(cmd_name)
                 except KeyError as _:
@@ -990,30 +1016,33 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             to the alias' specifications (say by changing an arg value), the
             selector will light up (activate) again.
             """
-            alias_entry = aliases_table.get_entry(alias_name)
-            default_arg_values = [
-                alias_entry.compiled_cmd.args[arg_spec.name]
-                for arg_spec in alias_entry.compiled_cmd.command.args
-            ]
+            if alias_name is None:
+                alias_active = False
+            else:
+                alias_entry = aliases_table.get_entry(alias_name)
+                default_arg_values = [
+                    alias_entry.compiled_cmd.args[arg_spec.name]
+                    for arg_spec in alias_entry.compiled_cmd.command.args
+                ]
 
-            # Style the alias selector as active iff all the settings match
-            # what this alias specifies:
-            alias_active = (
-                command_type == alias_entry.compiled_cmd.magic.name
-                and command_name == alias_entry.compiled_cmd.command.name
-                and args == default_arg_values
-            )
+                # Style the alias selector as active iff all the settings match
+                # what this alias specifies:
+                alias_active = (
+                    command_type == alias_entry.compiled_cmd.magic.name
+                    and command_name == alias_entry.compiled_cmd.command.name
+                    and args == default_arg_values
+                )
 
             if alias_active:
-                extra_classes = []
+                alias_extra_classes = []
             else:
-                extra_classes = ['commandLine-selector-overridden']
+                alias_extra_classes = ['commandLine-selector-overridden']
 
             n_args = len(args)
             return dict(
                 alias_classes=_selector_css_classes(
                     active=alias_active,
-                    extra_classes=extra_classes
+                    extra_classes=alias_extra_classes
                 ),
                 command_type_classes=_selector_css_classes(not alias_active),
                 command_name_classes=_selector_css_classes(not alias_active),

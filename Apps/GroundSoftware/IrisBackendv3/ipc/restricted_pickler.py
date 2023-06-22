@@ -245,7 +245,7 @@ class _IrisRestrictedPickler(pickle.Pickler):
 
     @classmethod
     def restricted_dumps(cls, o: Any) -> bytes:
-        """Helper function analogous to pickle.loads()."""
+        """Helper function analogous to pickle.dumps()."""
         f = io.BytesIO()
         cls(f, protocol=_PICKLE_PROTOCOL).dump(o)
         return f.getvalue()

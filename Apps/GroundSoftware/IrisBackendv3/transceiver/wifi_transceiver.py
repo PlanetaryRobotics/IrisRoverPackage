@@ -7,29 +7,20 @@ the PM1LWAP hotspot.
 Includes any supporting functions necessary for maintaining wifi connection.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 06/01/2023
+@last-updated: 06/22/2023
 """
 from __future__ import annotations
 
 from typing import Any, Optional, Callable, Dict, Deque, List, Union, Type, cast, Tuple, TypeAlias, TypeGuard
 
 import socket
-import asyncio
-import threading
-import socketserver
 import scapy.all as scp  # type: ignore
-from time import time
-import logging
-from collections import OrderedDict
 
 from IrisBackendv3.transceiver.transceiver import Transceiver
-from IrisBackendv3.transceiver.endec import Endec, SlipEndec
+from IrisBackendv3.transceiver.endec import Endec
 from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.exceptions import TransceiverConnectionException, TransceiverDecodingException
 
-from IrisBackendv3.codec.packet_classes.packet import Packet
-from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
-from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.utils.basic import type_guard_argument
 
@@ -68,7 +59,7 @@ def coerce_ip(ip: Any) -> IP:
 
 
 def ip_to_str(ip: IP) -> str:
-    return '.'.join(str(x) for x in ip)
+    return '.'.join(str(x) for x in ip[:4])
 
 
 def coerce_addr(addr: _AddrType) -> Tuple[IP, int]:
@@ -87,6 +78,8 @@ class WifiTransceiver(Transceiver):
     # UDP Datagram handlers:
     # Server (handles receiving data from a remote target - the Rover):
     server_endpoint: Endpoint | None
+    # Socket used by the server endpoint:
+    server_socket: socket.socket | None
     # How big the buffer queue for inbound packets should be:
     server_queue_size: int
     # Whether or not to force sending data to the gateway (normally `False`).
@@ -100,7 +93,7 @@ class WifiTransceiver(Transceiver):
         gateway_ip: IP | str = (192, 168, 150, 254),
         lander_ip: IP | str = (192, 168, 10, 105),
         lander_port: int = 43531,
-        inbound_queue_size: int = 100,
+        inbound_queue_size: int = 200,
         gateway_send_force: bool = False,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.WIRELESS,
@@ -138,6 +131,7 @@ class WifiTransceiver(Transceiver):
 
         # Init State:
         self.server_endpoint = None
+        self.server_socket = None
         self.server_queue_size = inbound_queue_size
         self.gateway_send_force = gateway_send_force
 
@@ -178,12 +172,18 @@ class WifiTransceiver(Transceiver):
         """
         logger.notice("Starting inbound WiFi server and binding . . .")
         try:
+            lander_ip_str = ip_to_str(self.lander_ip)
+            self.server_socket = socket.socket(
+                socket.AF_INET, socket.SOCK_DGRAM  # , socket.IPPROTO_UDP
+            )
+            self.server_socket.bind((lander_ip_str, self.lander_port))
             self.server_endpoint = await open_local_endpoint(
-                host=ip_to_str(self.lander_ip),
+                host=lander_ip_str,
                 port=self.lander_port,
                 logger=logger,
                 queue_size=self.server_queue_size,
-                reuse_address=False
+                reuse_address=False,
+                sock=self.server_socket
             )
         except Exception as e:
             raise TransceiverConnectionException(
@@ -259,16 +259,21 @@ class WifiTransceiver(Transceiver):
         if not self.gateway_send_force:
             # Main way of doing this if connected to network on separate
             # machine with lander address:
-            if self.server_endpoint is None:
+            if self.server_endpoint is None or self.server_socket is None:
                 logger.error(
                     "WiFi transceiver can't send packets yet. "
                     "Server endpoint not yet set up."
                 )
                 return False
-            self.server_endpoint.send(packet_bytes, dest_addr)
+            # self.server_endpoint.send(packet_bytes, dest_addr)
+            # sock = self.server_endpoint.transport._sock  # type: ignore
+            # sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # sock.connect((ip_to_str(self.gateway_ip), self.rover_port))
+            self.server_socket.sendto(packet_bytes, dest_addr)
+            # sock.close()
         else:
             # Craft UDP packet (incl. using the correct src_ip, even if that's not our own):
-            full_packet = scp.IP(dst=dest_ip, src=self.lander_ip) / \
+            full_packet = scp.IP(dst=dest_ip, src=ip_to_str(self.lander_ip)) / \
                 scp.UDP(sport=self.lander_port, dport=dest_port) / \
                 scp.Raw(load=packet_bytes)
             full_packet_data = scp.raw(full_packet)

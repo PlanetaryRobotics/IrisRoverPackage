@@ -3,7 +3,7 @@ loggers.
 
 Adapted from `aioudp.py` by `vxgmichel` from 
 `https://gist.github.com/vxgmichel/e47bff34b68adb3cf6bd4845c4bed448`,
-accessed on 06/01/2023.
+accessed on 06/22/2023.
 
 Example:
 
@@ -32,6 +32,7 @@ from typing import Any, Callable, Awaitable, Type, Tuple, TypeAlias, TypeVar, ov
 
 import asyncio
 from asyncio.transports import DatagramTransport
+import socket
 import logging
 
 _AddrType: TypeAlias = Tuple[str | Any, int]  # based on asyncio.protocols
@@ -253,6 +254,7 @@ async def open_datagram_endpoint(
     logger: logging.Logger,
     endpoint_factory: Type[Endpoint] = Endpoint,
     remote=False,
+    sock: socket.socket | None = None,
     **kwargs
 ) -> Endpoint:
     ...
@@ -266,6 +268,7 @@ async def open_datagram_endpoint(
     logger: logging.Logger,
     endpoint_factory: EndpointFactory[_EndpointType],
     remote=False,
+    sock: socket.socket | None = None,
     **kwargs
 ) -> _EndpointType:
     ...
@@ -278,6 +281,7 @@ async def open_datagram_endpoint(
     logger: logging.Logger,
     endpoint_factory: Type[Endpoint] | EndpointFactory[_EndpointType] = Endpoint,
     remote=False,
+    sock: socket.socket | None = None,
     **kwargs
 ) -> Endpoint | _EndpointType:
     """Open and return a datagram endpoint.
@@ -285,14 +289,19 @@ async def open_datagram_endpoint(
     The default endpoint factory is the Endpoint class.
     The endpoint can be made local or remote using the remote argument.
     Extra keyword arguments are forwarded to `loop.create_datagram_endpoint`.
+
+    Will use a premade socket `sock` if specified.
     """
     loop = asyncio.get_event_loop()
     endpoint = endpoint_factory(logger)
-    kwargs['remote_addr' if remote else 'local_addr'] = host, port
     kwargs['protocol_factory'] = lambda: DatagramEndpointProtocol(
         endpoint=endpoint,
         logger=logger
     )
+    if sock is not None:
+        kwargs['sock'] = sock
+    else:
+        kwargs['remote_addr' if remote else 'local_addr'] = host, port
     await loop.create_datagram_endpoint(**kwargs)
     return endpoint
 
@@ -303,12 +312,15 @@ async def open_local_endpoint(
     *,
     logger: logging.Logger,
     queue_size: int | None = None,
+    sock: socket.socket | None = None,
     **kwargs
 ) -> LocalEndpoint:
     """Open and return a local datagram endpoint.
 
     An optional queue size argument can be provided.
     Extra keyword arguments are forwarded to `loop.create_datagram_endpoint`.
+
+    Will use a premade socket `sock` if specified.
     """
     return await open_datagram_endpoint(
         host, port,
@@ -318,6 +330,7 @@ async def open_local_endpoint(
             logger,
             queue_size=queue_size
         ),
+        sock=sock,
         **kwargs
     )
 
@@ -328,12 +341,15 @@ async def open_remote_endpoint(
     *,
     logger: logging.Logger,
     queue_size: int | None = None,
+    sock: socket.socket | None = None,
     **kwargs
 ) -> RemoteEndpoint:
     """Open and return a remote datagram endpoint.
 
     An optional queue size argument can be provided.
     Extra keyword arguments are forwarded to `loop.create_datagram_endpoint`.
+
+    Will use a premade socket `sock` if specified.
     """
     return await open_datagram_endpoint(
         host, port,
@@ -343,6 +359,7 @@ async def open_remote_endpoint(
             logger=logger,
             queue_size=queue_size
         ),
+        sock=sock,
         **kwargs
     )
 

@@ -4,7 +4,7 @@ Command Line Component.
 Following pattern from: https://dash.plotly.com/all-in-one-components
 
 Author: Connor W. Colombo (colombo@cmu.edu)
-Last Updated: 06/19/2023
+Last Updated: 06/21/2023
 """
 from __future__ import annotations
 
@@ -43,6 +43,12 @@ from ..style import (
     DROPDOWN_STYLE_MIXIN,
     LABEL_STYLE_MIXIN
 )
+
+
+# Time in milliseconds that a Toast Popup should be alive for:
+_TOAST_DEFAULT_POPUP_MS: Final = 5000
+# Time in milliseconds to keep a Toast open "infinitely" (for a very long time):
+_TOAST_INF_POPUP_MS: Final = 100 * 365 * 24 * 60 * 60 * 1000
 
 
 class _CommandBuildingError(Exception):
@@ -331,6 +337,8 @@ class _CommandLineAIO(html.Div):
     pathway_selector: dcc.Dropdown
     send_button: html.Button
     command_send_toast: dbc.Toast
+    command_send_toast_content: dbc.Row
+    command_send_toast_pause_button: html.Button
 
     # This comes from the Dash AIO pattern. Allows for global lookup of
     # subcomponent ids given a parent aio_id. Seems to be necessary for
@@ -351,6 +359,10 @@ class _CommandLineAIO(html.Div):
         send_button = aio.id_generator('_CommandLineAIO', 'send_button')
         command_send_toast = aio.id_generator(
             '_CommandLineAIO', 'command_send_toast')
+        command_send_toast_content = aio.id_generator(
+            '_CommandLineAIO', 'command_send_toast_content')
+        command_send_toast_pause_button = aio.id_generator(
+            '_CommandLineAIO', 'command_send_toast_pause_button')
 
         # Base ID for index pattern matching of Arguments:
 
@@ -431,18 +443,33 @@ class _CommandLineAIO(html.Div):
         self.send_button = html.Button(
             'Send',
             id=self.ids.send_button(aio_id),
-            className='commandLine-send-button',
+            className='commandLine-button',
             n_clicks=0
         )
 
         self.command_send_toast = dbc.Toast(
             # Status message of command send will appear here
-            "Nothing to report.",
+            dbc.Col([
+                dbc.Row(
+                    "Nothing to report.",
+                    id=self.ids.command_send_toast_content(aio_id),
+                    align='start',
+                ),
+                dbc.Row(
+                    [html.Button(
+                        "Pause",
+                        id=self.ids.command_send_toast_pause_button(aio_id),
+                        className='commandLine-button',
+                        n_clicks=0
+                    )],
+                    align='center', justify='end'
+                )
+            ]),
             id=self.ids.command_send_toast(aio_id),
             header="Command Result",
             is_open=False,
             dismissable=True,
-            duration=5000,  # ms
+            duration=_TOAST_DEFAULT_POPUP_MS,  # ms
             icon='primary',
             # Fixed position, hovering over everything:
             style={"position": "fixed", "top": 75, "right": 10, "width": 500},
@@ -1051,7 +1078,8 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
 
         @callback(
             output=dict(
-                tst_body=Output(ids.command_send_toast(MATCH), 'children'),
+                tst_body=Output(
+                    ids.command_send_toast_content(MATCH), 'children'),
                 tst_header=Output(ids.command_send_toast(MATCH), 'header'),
                 tst_icon=Output(ids.command_send_toast(MATCH), 'icon'),
                 tst_open=Output(ids.command_send_toast(MATCH), 'is_open')
@@ -1080,7 +1108,6 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
             args: List[Any],
             xcvr_target_name: str,
             pathway_name: str
-
         ) -> Dict[str, Any]:
             """Builds and sends a command based on the current command settings.
 
@@ -1252,5 +1279,29 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
                 tst_icon=icon,
                 tst_open=True  # open it back up if needed
             )
+
+        @callback(
+            output=dict(
+                tst_duration=Output(ids.command_send_toast(MATCH), 'duration'),
+                tst_pause_text=Output(
+                    ids.command_send_toast_pause_button(MATCH), 'children'),
+            ),
+            inputs=Input(
+                ids.command_send_toast_pause_button(MATCH), 'n_clicks')
+        )
+        def toggle_toast_pause(n_clicks: int) -> Dict[str, Any]:
+            """Toggles the pause state of the Toast."""
+            if n_clicks % 2:
+                # Pause it:
+                return dict(
+                    tst_pause_text="Unpause",  # Button text says the reverse
+                    tst_duration=_TOAST_INF_POPUP_MS,
+                )
+            else:
+                # Unpause it:
+                return dict(
+                    tst_pause_text="Pause",
+                    tst_duration=_TOAST_DEFAULT_POPUP_MS,
+                )
 
     return _CommandLineAIO_w_Callbacks(context, aliases_table, *args, **kwargs)

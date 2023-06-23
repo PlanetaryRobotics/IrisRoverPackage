@@ -221,9 +221,9 @@ class _EventStreamAIO(html.Div):
                     'if': {'column_id': 'event_html'},
                     # force a fixed size...
                     # (other columns will shrink if necessary)
-                    'minWidth': '36ch',
-                    'width': '36ch',
-                    'maxWidth': '36ch',
+                    'minWidth': '60ch',
+                    'width': '60ch',
+                    'maxWidth': '60ch',
                     # ... then break and wrap text as needed to fit:
                     'white-space': 'normal',
                     'word-break': 'break-all',

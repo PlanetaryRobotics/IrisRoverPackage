@@ -171,7 +171,7 @@ body {{
 
 /** BUTTON: **/
 
-.commandLine-send-button {{
+.commandLine-button {{
     background-color: {IrisColor.GREY3.value}; 
     color: {IrisColor.BLUE_ACCENT.value}; 
     border: 1px solid {IrisColor.BLUE_ACCENT.value};
@@ -179,7 +179,7 @@ body {{
     height: {(dcc_dropdown_height:='36px')}; /* Matches hardcoded value from DCC dropdown */
 }}
 
-.commandLine-send-button:hover {{
+.commandLine-button:hover {{
   background-color: {IrisColor.BLUE_ACCENT.value};
   color: {IrisDerivedColor.NEAR_WHITE.value};
 }}

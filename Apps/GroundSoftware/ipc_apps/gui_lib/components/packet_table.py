@@ -153,7 +153,6 @@ class _PacketTableAIO(html.Div):
         # Make the index visible (dash_table won't show index):
         df_out.sort_index(ascending=True, inplace=True)  # sort first
         df_out.reset_index(inplace=True)
-        df_out.rename(columns={'index': 'Packet Type'}, inplace=True)
         # Format Columns:
         df_out['Current Dt [s]'] = [
             f"{x:.3f}" for x in df_out['Current Dt [s]']]
@@ -167,6 +166,12 @@ class _PacketTableAIO(html.Div):
             x.isoformat(sep=' ', timespec='milliseconds')[5:]  # trim year
             for x in df_out['Updated']
         ]
+        # Rename columns for display:
+        df_out.rename(columns={
+            'index': 'Packet Type',
+            'Avg. bits/sec': 'Avg. bits/s',
+            'Avg. bits/sec w/CCSDS': 'Avg. bits/s w/CCSDS',
+        }, inplace=True)
         return df_out.fillna('')
 
     @staticmethod

@@ -1,0 +1,355 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+CG_TOOL_ROOT := /home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS
+
+GEN_OPTS__FLAG := 
+GEN_CMDS__FLAG := 
+
+ORDERED_OBJS += \
+"./App/DMA.obj" \
+"./App/Main.obj" \
+"./App/SCI.obj" \
+"./App/SCILIN.obj" \
+"./App/SPI.obj" \
+"./CubeRover/Camera/Camera.obj" \
+"./CubeRover/Camera/CameraComponentAc.obj" \
+"./CubeRover/Camera/S25fl512l.obj" \
+"./CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAc.obj" \
+"./CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAc.obj" \
+"./CubeRover/CubeRoverPorts/IMUData/IMUDataPortAc.obj" \
+"./CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAc.obj" \
+"./CubeRover/CubeRoverPorts/MotorData/MotorDataPortAc.obj" \
+"./CubeRover/CubeRoverPorts/OperationModePortAc.obj" \
+"./CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAc.obj" \
+"./CubeRover/GroundInterface/GroundInterface.obj" \
+"./CubeRover/GroundInterface/GroundInterfaceComponentAc.obj" \
+"./CubeRover/GroundInterface/NamesAndMessages.obj" \
+"./CubeRover/GroundInterface/NamesAndMessagesSender.obj" \
+"./CubeRover/IMU/IMUComponent.obj" \
+"./CubeRover/IMU/IMUComponentAc.obj" \
+"./CubeRover/IMU/adxl312.obj" \
+"./CubeRover/IMU/l3gd20h.obj" \
+"./CubeRover/MotorControl/MotorControlComponent.obj" \
+"./CubeRover/MotorControl/MotorControlComponentAc.obj" \
+"./CubeRover/MotorControl/MotorController_i2c.obj" \
+"./CubeRover/Navigation/NavigationComponent.obj" \
+"./CubeRover/Navigation/NavigationComponentAc.obj" \
+"./CubeRover/NetworkManager/NetworkManager.obj" \
+"./CubeRover/NetworkManager/NetworkManagerComponentAc.obj" \
+"./CubeRover/Top/CubeRoverTopologyAppAc.obj" \
+"./CubeRover/Top/Topology.obj" \
+"./CubeRover/UdpInterface/UdpInterface.obj" \
+"./CubeRover/UdpInterface/UdpInterfaceComponentAc.obj" \
+"./CubeRover/WatchDogInterface/WatchDogInterface.obj" \
+"./CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.obj" \
+"./CubeRover/WatchDogInterface/WatchDogMpsm.obj" \
+"./CubeRover/WatchDogInterface/WatchDogRxTask.obj" \
+"./CubeRover/Wf121/NetworkInterface.obj" \
+"./CubeRover/Wf121/UdpTxCommsStatusManager.obj" \
+"./CubeRover/Wf121/Wf121.obj" \
+"./CubeRover/Wf121/Wf121BgApi.obj" \
+"./CubeRover/Wf121/Wf121BgApiCommands.obj" \
+"./CubeRover/Wf121/Wf121BgApiPassthroughTxTask.obj" \
+"./CubeRover/Wf121/Wf121DirectMessage.obj" \
+"./CubeRover/Wf121/Wf121Parser.obj" \
+"./CubeRover/Wf121/Wf121RxTask.obj" \
+"./CubeRover/Wf121/Wf121SerialInterface.obj" \
+"./CubeRover/Wf121/Wf121UdpTxTask.obj" \
+"./HAL/source/adc.obj" \
+"./HAL/source/crc.obj" \
+"./HAL/source/dabort.obj" \
+"./HAL/source/ecap.obj" \
+"./HAL/source/emac.obj" \
+"./HAL/source/eqep.obj" \
+"./HAL/source/errata_SSWF021_45.obj" \
+"./HAL/source/esm.obj" \
+"./HAL/source/etpwm.obj" \
+"./HAL/source/gio.obj" \
+"./HAL/source/i2c.obj" \
+"./HAL/source/lin.obj" \
+"./HAL/source/mdio.obj" \
+"./HAL/source/mibspi.obj" \
+"./HAL/source/notification.obj" \
+"./HAL/source/os_croutine.obj" \
+"./HAL/source/os_event_groups.obj" \
+"./HAL/source/os_heap.obj" \
+"./HAL/source/os_list.obj" \
+"./HAL/source/os_mpu_wrappers.obj" \
+"./HAL/source/os_port.obj" \
+"./HAL/source/os_portasm.obj" \
+"./HAL/source/os_queue.obj" \
+"./HAL/source/os_tasks.obj" \
+"./HAL/source/os_timer.obj" \
+"./HAL/source/phy_dp83640.obj" \
+"./HAL/source/pinmux.obj" \
+"./HAL/source/rti.obj" \
+"./HAL/source/sci.obj" \
+"./HAL/source/spi.obj" \
+"./HAL/source/sys_core.obj" \
+"./HAL/source/sys_dma.obj" \
+"./HAL/source/sys_intvecs.obj" \
+"./HAL/source/sys_main.obj" \
+"./HAL/source/sys_mpu.obj" \
+"./HAL/source/sys_pcr.obj" \
+"./HAL/source/sys_phantom.obj" \
+"./HAL/source/sys_pmm.obj" \
+"./HAL/source/sys_pmu.obj" \
+"./HAL/source/sys_selftest.obj" \
+"./HAL/source/sys_startup.obj" \
+"./HAL/source/sys_vim.obj" \
+"./HAL/source/system.obj" \
+"../HAL/source/sys_link.cmd" \
+$(GEN_CMDS__FLAG) \
+-lrtsv7R4_T_le_v3D16_eabi.lib \
+-llibUtilsTypes.a \
+-llibSvcHealth.a \
+-llibSvcWatchDog.a \
+-llibDrvFreeRtosSerialDriver.a \
+-llibSvcActiveRateGroup.a \
+-llibDrvBlockDriver.a \
+-llibFwSerializableFile.a \
+-llibFwLog.a \
+-llibFwTlm.a \
+-llibFwTime.a \
+-llibFwTypes.a \
+-llibOs.a \
+-llibSvcActiveLogger.a \
+-llibSvcBufferAccumulator.a \
+-llibDrvSerialDriverPorts.a \
+-llibSvcBufferLogger.a \
+-llibSvcBufferManager.a \
+-llibSvcCmdDispatcher.a \
+-llibSvcCmdSequencer.a \
+-llibSvcCycle.a \
+-llibSvcFatal.a \
+-llibSvcFileManager.a \
+-llibDrvDataTypes.a \
+-llibFwBuffer.a \
+-llibFwCfg.a \
+-llibFwCmd.a \
+-llibFwCom.a \
+-llibFwComFile.a \
+-llibFwComp.a \
+-llibFwObj.a \
+-llibFwPort.a \
+-llibFwPrm.a \
+-llibSvcLinuxTime.a \
+-llibSvcLinuxTimer.a \
+-llibSvcPassiveConsoleTextLogger.a \
+-llibSvcPassiveTextLogger.a \
+-llibSvcPing.a \
+-llibSvcPrmDb.a \
+-llibSvcRateGroupDriver.a \
+-llibSvcSched.a \
+-llibSvcSeq.a \
+-llibSvcTime.a \
+-llibSvcTlmChan.a \
+
+-include ../makefile.init
+
+RM := rm -rf
+RMDIR := rm -rf
+
+# All of the sources participating in the build are defined here
+-include sources.mk
+-include App/subdir_vars.mk
+-include CubeRover/Camera/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/CameraTakePicture/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/FileDownlink/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/IMUData/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/MotorCommand/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/MotorData/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/subdir_vars.mk
+-include CubeRover/CubeRoverPorts/WatchdogResetRequest/subdir_vars.mk
+-include CubeRover/GroundInterface/subdir_vars.mk
+-include CubeRover/IMU/subdir_vars.mk
+-include CubeRover/MotorControl/subdir_vars.mk
+-include CubeRover/Navigation/subdir_vars.mk
+-include CubeRover/NetworkManager/subdir_vars.mk
+-include CubeRover/Top/subdir_vars.mk
+-include CubeRover/UdpInterface/subdir_vars.mk
+-include CubeRover/WatchDogInterface/subdir_vars.mk
+-include CubeRover/Wf121/subdir_vars.mk
+-include HAL/source/subdir_vars.mk
+-include App/subdir_rules.mk
+-include CubeRover/Camera/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/CameraTakePicture/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/FileDownlink/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/IMUData/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/MotorCommand/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/MotorData/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/subdir_rules.mk
+-include CubeRover/CubeRoverPorts/WatchdogResetRequest/subdir_rules.mk
+-include CubeRover/GroundInterface/subdir_rules.mk
+-include CubeRover/IMU/subdir_rules.mk
+-include CubeRover/MotorControl/subdir_rules.mk
+-include CubeRover/Navigation/subdir_rules.mk
+-include CubeRover/NetworkManager/subdir_rules.mk
+-include CubeRover/Top/subdir_rules.mk
+-include CubeRover/UdpInterface/subdir_rules.mk
+-include CubeRover/WatchDogInterface/subdir_rules.mk
+-include CubeRover/Wf121/subdir_rules.mk
+-include HAL/source/subdir_rules.mk
+-include objects.mk
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(strip $(C55_DEPS)),)
+-include $(C55_DEPS)
+endif
+ifneq ($(strip $(C_UPPER_DEPS)),)
+-include $(C_UPPER_DEPS)
+endif
+ifneq ($(strip $(S67_DEPS)),)
+-include $(S67_DEPS)
+endif
+ifneq ($(strip $(S62_DEPS)),)
+-include $(S62_DEPS)
+endif
+ifneq ($(strip $(S_DEPS)),)
+-include $(S_DEPS)
+endif
+ifneq ($(strip $(OPT_DEPS)),)
+-include $(OPT_DEPS)
+endif
+ifneq ($(strip $(C??_DEPS)),)
+-include $(C??_DEPS)
+endif
+ifneq ($(strip $(ASM_UPPER_DEPS)),)
+-include $(ASM_UPPER_DEPS)
+endif
+ifneq ($(strip $(S??_DEPS)),)
+-include $(S??_DEPS)
+endif
+ifneq ($(strip $(C64_DEPS)),)
+-include $(C64_DEPS)
+endif
+ifneq ($(strip $(CXX_DEPS)),)
+-include $(CXX_DEPS)
+endif
+ifneq ($(strip $(S64_DEPS)),)
+-include $(S64_DEPS)
+endif
+ifneq ($(strip $(INO_DEPS)),)
+-include $(INO_DEPS)
+endif
+ifneq ($(strip $(CLA_DEPS)),)
+-include $(CLA_DEPS)
+endif
+ifneq ($(strip $(S55_DEPS)),)
+-include $(S55_DEPS)
+endif
+ifneq ($(strip $(SV7A_DEPS)),)
+-include $(SV7A_DEPS)
+endif
+ifneq ($(strip $(C62_DEPS)),)
+-include $(C62_DEPS)
+endif
+ifneq ($(strip $(C67_DEPS)),)
+-include $(C67_DEPS)
+endif
+ifneq ($(strip $(PDE_DEPS)),)
+-include $(PDE_DEPS)
+endif
+ifneq ($(strip $(K_DEPS)),)
+-include $(K_DEPS)
+endif
+ifneq ($(strip $(C_DEPS)),)
+-include $(C_DEPS)
+endif
+ifneq ($(strip $(CC_DEPS)),)
+-include $(CC_DEPS)
+endif
+ifneq ($(strip $(C++_DEPS)),)
+-include $(C++_DEPS)
+endif
+ifneq ($(strip $(C43_DEPS)),)
+-include $(C43_DEPS)
+endif
+ifneq ($(strip $(S43_DEPS)),)
+-include $(S43_DEPS)
+endif
+ifneq ($(strip $(ASM_DEPS)),)
+-include $(ASM_DEPS)
+endif
+ifneq ($(strip $(S_UPPER_DEPS)),)
+-include $(S_UPPER_DEPS)
+endif
+ifneq ($(strip $(CPP_DEPS)),)
+-include $(CPP_DEPS)
+endif
+ifneq ($(strip $(SA_DEPS)),)
+-include $(SA_DEPS)
+endif
+endif
+
+-include ../makefile.defs
+
+# Add inputs and outputs from these tool invocations to the build variables 
+EXE_OUTPUTS += \
+FlightMCU.out \
+
+EXE_OUTPUTS__QUOTED += \
+"FlightMCU.out" \
+
+BIN_OUTPUTS += \
+FlightMCU.hex \
+
+BIN_OUTPUTS__QUOTED += \
+"FlightMCU.hex" \
+
+
+# All Target
+all:
+	@$(MAKE) --no-print-directory pre-build
+	@$(MAKE) --no-print-directory main-build
+
+# Main-build Target
+main-build: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+	@$(MAKE) --no-print-directory -Onone "FlightMCU.out"
+
+# Tool invocations
+FlightMCU.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+	@echo 'Building target: "$@"'
+	@echo 'Invoking: ARM Linker'
+	"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 -me -Ooff --opt_for_speed=0 -g --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi -z -m"FlightMCU.map" --heap_size=0x4000 --stack_size=0x800 -i"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/lib" -i"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/Libs" -i"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="FlightMCU_linkInfo.xml" --rom_model -o "FlightMCU.out" $(ORDERED_OBJS)
+	@echo 'Finished building target: "$@"'
+	@echo ' '
+	@$(MAKE) --no-print-directory post-build
+
+FlightMCU.hex: $(EXE_OUTPUTS)
+	@echo 'Building files: $(strip $(EXE_OUTPUTS__QUOTED))'
+	@echo 'Invoking: ARM Hex Utility'
+	"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS/bin/armhex"  -o "FlightMCU.hex" $(EXE_OUTPUTS__QUOTED)
+	@echo 'Finished building: $(strip $(EXE_OUTPUTS__QUOTED))'
+	@echo ' '
+	@$(MAKE) --no-print-directory post-build
+
+# Other Targets
+clean:
+	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
+	-$(RM) "App/DMA.obj" "App/Main.obj" "App/SCI.obj" "App/SCILIN.obj" "App/SPI.obj" "CubeRover/Camera/Camera.obj" "CubeRover/Camera/CameraComponentAc.obj" "CubeRover/Camera/S25fl512l.obj" "CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAc.obj" "CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAc.obj" "CubeRover/CubeRoverPorts/IMUData/IMUDataPortAc.obj" "CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAc.obj" "CubeRover/CubeRoverPorts/MotorData/MotorDataPortAc.obj" "CubeRover/CubeRoverPorts/OperationModePortAc.obj" "CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAc.obj" "CubeRover/GroundInterface/GroundInterface.obj" "CubeRover/GroundInterface/GroundInterfaceComponentAc.obj" "CubeRover/GroundInterface/NamesAndMessages.obj" "CubeRover/GroundInterface/NamesAndMessagesSender.obj" "CubeRover/IMU/IMUComponent.obj" "CubeRover/IMU/IMUComponentAc.obj" "CubeRover/IMU/adxl312.obj" "CubeRover/IMU/l3gd20h.obj" "CubeRover/MotorControl/MotorControlComponent.obj" 
+	-$(RM) "CubeRover/MotorControl/MotorControlComponentAc.obj" "CubeRover/MotorControl/MotorController_i2c.obj" "CubeRover/Navigation/NavigationComponent.obj" "CubeRover/Navigation/NavigationComponentAc.obj" "CubeRover/NetworkManager/NetworkManager.obj" "CubeRover/NetworkManager/NetworkManagerComponentAc.obj" "CubeRover/Top/CubeRoverTopologyAppAc.obj" "CubeRover/Top/Topology.obj" "CubeRover/UdpInterface/UdpInterface.obj" "CubeRover/UdpInterface/UdpInterfaceComponentAc.obj" "CubeRover/WatchDogInterface/WatchDogInterface.obj" "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.obj" "CubeRover/WatchDogInterface/WatchDogMpsm.obj" "CubeRover/WatchDogInterface/WatchDogRxTask.obj" "CubeRover/Wf121/NetworkInterface.obj" "CubeRover/Wf121/UdpTxCommsStatusManager.obj" "CubeRover/Wf121/Wf121.obj" "CubeRover/Wf121/Wf121BgApi.obj" "CubeRover/Wf121/Wf121BgApiCommands.obj" "CubeRover/Wf121/Wf121BgApiPassthroughTxTask.obj" "CubeRover/Wf121/Wf121DirectMessage.obj" "CubeRover/Wf121/Wf121Parser.obj" "CubeRover/Wf121/Wf121RxTask.obj" 
+	-$(RM) "CubeRover/Wf121/Wf121SerialInterface.obj" "CubeRover/Wf121/Wf121UdpTxTask.obj" "HAL/source/adc.obj" "HAL/source/crc.obj" "HAL/source/dabort.obj" "HAL/source/ecap.obj" "HAL/source/emac.obj" "HAL/source/eqep.obj" "HAL/source/errata_SSWF021_45.obj" "HAL/source/esm.obj" "HAL/source/etpwm.obj" "HAL/source/gio.obj" "HAL/source/i2c.obj" "HAL/source/lin.obj" "HAL/source/mdio.obj" "HAL/source/mibspi.obj" "HAL/source/notification.obj" "HAL/source/os_croutine.obj" "HAL/source/os_event_groups.obj" "HAL/source/os_heap.obj" "HAL/source/os_list.obj" "HAL/source/os_mpu_wrappers.obj" "HAL/source/os_port.obj" "HAL/source/os_portasm.obj" "HAL/source/os_queue.obj" "HAL/source/os_tasks.obj" "HAL/source/os_timer.obj" "HAL/source/phy_dp83640.obj" "HAL/source/pinmux.obj" "HAL/source/rti.obj" "HAL/source/sci.obj" "HAL/source/spi.obj" "HAL/source/sys_core.obj" "HAL/source/sys_dma.obj" "HAL/source/sys_intvecs.obj" "HAL/source/sys_main.obj" "HAL/source/sys_mpu.obj" "HAL/source/sys_pcr.obj" "HAL/source/sys_phantom.obj" 
+	-$(RM) "HAL/source/sys_pmm.obj" "HAL/source/sys_pmu.obj" "HAL/source/sys_selftest.obj" "HAL/source/sys_startup.obj" "HAL/source/sys_vim.obj" "HAL/source/system.obj" 
+	-$(RM) "App/DMA.d" "App/SCI.d" "App/SCILIN.d" "App/SPI.d" "CubeRover/IMU/adxl312.d" "CubeRover/IMU/l3gd20h.d" "CubeRover/MotorControl/MotorController_i2c.d" "HAL/source/adc.d" "HAL/source/crc.d" "HAL/source/ecap.d" "HAL/source/emac.d" "HAL/source/eqep.d" "HAL/source/errata_SSWF021_45.d" "HAL/source/esm.d" "HAL/source/etpwm.d" "HAL/source/gio.d" "HAL/source/i2c.d" "HAL/source/lin.d" "HAL/source/mdio.d" "HAL/source/mibspi.d" "HAL/source/notification.d" "HAL/source/os_croutine.d" "HAL/source/os_event_groups.d" "HAL/source/os_heap.d" "HAL/source/os_list.d" "HAL/source/os_mpu_wrappers.d" "HAL/source/os_port.d" "HAL/source/os_queue.d" "HAL/source/os_tasks.d" "HAL/source/os_timer.d" "HAL/source/phy_dp83640.d" "HAL/source/pinmux.d" "HAL/source/rti.d" "HAL/source/sci.d" "HAL/source/spi.d" "HAL/source/sys_dma.d" "HAL/source/sys_main.d" "HAL/source/sys_pcr.d" "HAL/source/sys_phantom.d" "HAL/source/sys_pmm.d" "HAL/source/sys_selftest.d" "HAL/source/sys_startup.d" "HAL/source/sys_vim.d" "HAL/source/system.d" 
+	-$(RM) "App/Main.d" "CubeRover/Camera/Camera.d" "CubeRover/Camera/CameraComponentAc.d" "CubeRover/Camera/S25fl512l.d" "CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAc.d" "CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAc.d" "CubeRover/CubeRoverPorts/IMUData/IMUDataPortAc.d" "CubeRover/CubeRoverPorts/MotorCommand/MotorCommandPortAc.d" "CubeRover/CubeRoverPorts/MotorData/MotorDataPortAc.d" "CubeRover/CubeRoverPorts/OperationModePortAc.d" "CubeRover/CubeRoverPorts/WatchdogResetRequest/WatchdogResetRequestPortAc.d" "CubeRover/GroundInterface/GroundInterface.d" "CubeRover/GroundInterface/GroundInterfaceComponentAc.d" "CubeRover/GroundInterface/NamesAndMessages.d" "CubeRover/GroundInterface/NamesAndMessagesSender.d" "CubeRover/IMU/IMUComponent.d" "CubeRover/IMU/IMUComponentAc.d" "CubeRover/MotorControl/MotorControlComponent.d" "CubeRover/MotorControl/MotorControlComponentAc.d" "CubeRover/Navigation/NavigationComponent.d" "CubeRover/Navigation/NavigationComponentAc.d" "CubeRover/NetworkManager/NetworkManager.d" 
+	-$(RM) "CubeRover/NetworkManager/NetworkManagerComponentAc.d" "CubeRover/Top/CubeRoverTopologyAppAc.d" "CubeRover/Top/Topology.d" "CubeRover/UdpInterface/UdpInterface.d" "CubeRover/UdpInterface/UdpInterfaceComponentAc.d" "CubeRover/WatchDogInterface/WatchDogInterface.d" "CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.d" "CubeRover/WatchDogInterface/WatchDogMpsm.d" "CubeRover/WatchDogInterface/WatchDogRxTask.d" "CubeRover/Wf121/NetworkInterface.d" "CubeRover/Wf121/UdpTxCommsStatusManager.d" "CubeRover/Wf121/Wf121.d" "CubeRover/Wf121/Wf121BgApi.d" "CubeRover/Wf121/Wf121BgApiCommands.d" "CubeRover/Wf121/Wf121BgApiPassthroughTxTask.d" "CubeRover/Wf121/Wf121DirectMessage.d" "CubeRover/Wf121/Wf121Parser.d" "CubeRover/Wf121/Wf121RxTask.d" "CubeRover/Wf121/Wf121SerialInterface.d" "CubeRover/Wf121/Wf121UdpTxTask.d" 
+	-$(RM) "HAL/source/dabort.d" "HAL/source/os_portasm.d" "HAL/source/sys_core.d" "HAL/source/sys_intvecs.d" "HAL/source/sys_mpu.d" "HAL/source/sys_pmu.d" 
+	-@echo 'Finished clean'
+	-@echo ' '
+
+pre-build:
+	-/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU/Debug/../prebuild_script.sh
+	-@echo ' '
+
+post-build:
+	-/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU/Debug/../postbuild_script.sh
+	-@echo ' '
+
+.PHONY: all clean dependents
+.SECONDARY:
+
+-include ../makefile.targets
+

@@ -6,7 +6,7 @@ At this level, all IPC interface operations have been abstracted. For the
 low-level IPC interface and implementation, see `wrapper.py`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/10/2023
+@last-updated: 04/23/2023
 
 #! NOTE: Many of the example docstrings in here are out of date. Updating soon.
 
@@ -65,7 +65,7 @@ from IrisBackendv3.ipc.inter_process_message import InterProcessMessage
 from IrisBackendv3.ipc.port import Port
 from IrisBackendv3.ipc.topics_registry import Topic
 from IrisBackendv3.ipc.settings import settings
-from IrisBackendv3.ipc.logging import logger, create_app_logger
+from IrisBackendv3.ipc.logs import logger, create_app_logger
 from IrisBackendv3.ipc.exceptions import UnhandledTopicException, IpcEndAppRequest
 
 # Context Type (sync or async):
@@ -460,7 +460,8 @@ class SocketSpec(Generic[_HT]):
     rx_handler: Optional[_HT] = None
     # Whether or not this socket should be binding the port:
     # (if not given, AppManager chooses
-    # - servers & pubs bind, clients & subs don't)
+    # - generally you shouldn't worry about binding unless you have a specific
+    # need, proxies will take care of binding).
     bind: Optional[bool] = None
     # Whether this should just be treated as a consumer (i.e. ignore any
     # rx_handler and just consume (rx & throw away) data on this
@@ -469,6 +470,11 @@ class SocketSpec(Generic[_HT]):
     # `rx_handler`. Setting this to `True` in that case will flag that as not
     # being a problem. Default: `False`.
     blind_consumer: bool = False
+    # Whether this socket will only be used to publish data
+    # (and no `rx_handler` should be used and no rx tasks (even a
+    # `blind_consumer` task) will be created. This will implicitly ignore
+    # `rx_handler` and `blind_consumer` settings.
+    publish_only: bool = False
 
     def __str__(self) -> str:
         s = ""
@@ -491,7 +497,8 @@ class SocketSpec(Generic[_HT]):
         s += (
             f" with settings: "
             f"bind={self.bind}, "
-            f"blind_consumer={self.blind_consumer}"
+            f"blind_consumer={self.blind_consumer}, "
+            f"publish_only={self.publish_only}"
         )
         return s
 
@@ -541,7 +548,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
     def __del__(self):
         """Close everything on destruction."""
         # Close sockets:
-        print("Closing IPC socket and context . . .")
+        logger.notice("Closing App's IPC socket(s) and context . . .")
         for socket in self.sockets.values():
             socket.close()
         # Close context (waiting for all sockets to close first):
@@ -563,7 +570,7 @@ class IpcAppManager(ABC, Generic[_CT, _ST, _HT]):
 
         # Subscribe to topics if the spec details topics
         # (and we can subscribe):
-        if spec.topics is not None and spec.sock_type == SocketType.SUBSCRIBER:
+        if spec.topics is not None and spec.sock_type._can_subscribe:
             logger.verbose(f'Subscribing `{name}` to: {spec.topics} . . .')
             subscribe(self.sockets[name], spec.topics)
 
@@ -673,6 +680,15 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         if sock_name not in self.socket_specs:
             raise KeyError(f"Socket with {sock_name=} not found.")
 
+        if self.socket_specs[sock_name].publish_only:
+            logger.warning(
+                f"Starting a `socket_rx_coro` for a socket ({sock_name=}) "
+                f"that is marked `publish_only`. This coro will immediately "
+                f"return. This is fine but a better approach would be to not "
+                f"attempt to create this coroutine in the first place."
+            )
+            return
+
         blind_consumer = self.socket_specs[sock_name].blind_consumer
         if (
             not blind_consumer
@@ -714,7 +730,8 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         # Create Tasks for inner coros:
         self._tasks.extend(
             asyncio.create_task(self.socket_rx_coro(sock_name), name=sock_name)
-            for sock_name in self.socket_specs.keys()
+            for sock_name, sock_specs in self.socket_specs.items()
+            if not sock_specs.publish_only
         )
         self._core_tasks_spawned = True
 
@@ -830,18 +847,31 @@ class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
         self,
         sock_name: str,
         msg: InterProcessMessage,
+        topics: Topic | List[Topic] | None = None,
         subtopic_bytes: bytes = b''
     ) -> None:
         """Synchronously sends to the socket with the given name using its
-        assigned topic (or all if no topic is assigned), optionally tagging the
-        message with the given subtopic."""
+        assigned topic(s) (or all topics on the Port if no topic is assigned),
+        unless a specific topic(s) is given, then the message is sent to that
+        topic.
+        The message is optionally tagged with the given subtopic."""
         socket = self.sockets[sock_name]
         specs = self.socket_specs[sock_name]
-        if len(specs.topics) == 0:
-            send_to(socket, msg, subtopic_bytes, None)
-        else:
-            for topic in specs.topics:
+
+        if topics is not None:
+            # Send to given topic(s):
+            if not isinstance(topics, list):
+                topics = [topics]
+            for topic in topics:
                 send_to(socket, msg, subtopic_bytes, topic)
+        else:
+            if len(specs.topics) == 0:
+                # Send to all topics on port:
+                send_to(socket, msg, subtopic_bytes, None)
+            else:
+                # Send to all topics assigned to this socket:
+                for topic in specs.topics:
+                    send_to(socket, msg, subtopic_bytes, topic)
 
     def read(self, sock_name: str) -> IpcPayload:
         """Synchronously reads from the socket with the given name."""
@@ -897,7 +927,7 @@ class IpcAppHelper:
         """
         self.name = name
         # Set the name in IPC settings:
-        settings['app_name'] = "PacketPrinter"
+        settings['app_name'] = name
         # Build the logger:
         logger_build = create_app_logger()
         self.logger, self._setLogLevel, self._setFileLogLevel = logger_build

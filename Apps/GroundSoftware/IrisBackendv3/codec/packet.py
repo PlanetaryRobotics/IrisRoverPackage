@@ -3,7 +3,7 @@ Defines Common Data Required for Packets. Support for Building and Parsing
 Packets.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/05/2023
+@last-updated: 06/22/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 # Since we're instantiating `UnsupportedPacket` here, import it from root to prevent pickle problems:
@@ -25,6 +25,8 @@ from IrisBackendv3.codec.packet_classes.watchdog_hello import WatchdogHelloPacke
 from IrisBackendv3.codec.packet_classes.watchdog_radio_debug import WatchdogRadioDebugPacket
 from IrisBackendv3.codec.packet_classes.watchdog_debug_important import WatchdogDebugImportantPacket
 from IrisBackendv3.codec.packet_classes.watchdog_debug import WatchdogDebugPacket
+from IrisBackendv3.codec.packet_classes.radio_downlink_flush import RadioDownlinkFlushPacket
+from IrisBackendv3.codec.packet_classes.herc_radio_upl_ack import HerculesRadioUplinkAckPacket
 
 from typing import List, Optional, Type
 
@@ -32,7 +34,7 @@ import inspect
 import traceback
 import scapy.all as scp  # type: ignore
 
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 # TODO: Add `__str__` / `__repr__`s
 
@@ -63,9 +65,11 @@ def parse_packet(
             RadioDirectMessagePacket,
             WatchdogResetSpecificAckPacket,
             WatchdogHelloPacket,
+            HerculesRadioUplinkAckPacket,  # subtype of WatchdogRadioDebug
             WatchdogRadioDebugPacket,
             WatchdogDebugImportantPacket,
-            WatchdogDebugPacket
+            WatchdogDebugPacket,
+            RadioDownlinkFlushPacket
         ]
 
     # Codecs which support this packet:

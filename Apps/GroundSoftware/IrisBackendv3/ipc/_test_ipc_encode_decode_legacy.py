@@ -20,7 +20,7 @@ import traceback
 from typing import cast, Final, List
 
 from IrisBackendv3.ipc.messages import DownlinkedPacketsMessage, DownlinkedPacketsContent
-from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logs import logger
 import IrisBackendv3 as IB3
 IB3.init_from_latest()
 
@@ -31,7 +31,7 @@ PERIOD_MS: Final[float] = 1
 def suite_setup(request):
     # Load Test Data:
     request.cls.xcvr = IB3.transceiver.prebuilts.build_xcvr_by_name(
-        'PCAP-18H',
+        'PCAP_18H',
         packetgap=37000,  # skip first 37000 packets (of 37644)
         fixed_period_ms=PERIOD_MS,
         loop=False,

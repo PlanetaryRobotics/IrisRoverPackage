@@ -24,8 +24,8 @@ IMPORTANT_DEBUG_KEYWORDS: Final[List[bytes]] = [
 
 class WatchdogDebugImportantPacket(WatchdogDebugPacket):
     """
-    Creates a data-structure to allow storing and handling a debug string from
-    the Watchdog.
+    Creates a data-structure to allow storing and handling an important debug
+    string from the Watchdog.
 
     @author: Connor W. Colombo (CMU)
     @last-updated: 09/07/2022

@@ -5,7 +5,7 @@ doesn't contain any telemetry but does contain a single EventPayload and is
 just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 06/22/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
@@ -21,7 +21,7 @@ from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 from IrisBackendv3.codec.fsw_data_codec import StringPacker
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 
 class RadioHelloPacketInterface(Packet[CT]):
@@ -31,11 +31,11 @@ class RadioHelloPacketInterface(Packet[CT]):
 
 class RadioHelloPacket(RadioHelloPacketInterface[RadioHelloPacketInterface]):
     """
-    Creates a data-structure to allow storing and handling a debug string from
-    the Radio.
+    Creates a data-structure to allow storing and handling a "Hello" message
+    from the Radio.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 09/14/2022
+    @last-updated: 06/22/2023
     """
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
@@ -93,8 +93,9 @@ class RadioHelloPacket(RadioHelloPacketInterface[RadioHelloPacketInterface]):
                         message=StringPacker.decode_str(data)
                     ),
                     timestamp=0,  # No timestamp information given.
-                    raw=data,
-                    endianness_code=endianness_code
+                    endianness_code=endianness_code,
+                    # **don't** pass the raw since we don't know the raw FPrime-encoded form of this event. we'll let that be encoded as needed.
+                    raw=None
                 )
             ]
         )

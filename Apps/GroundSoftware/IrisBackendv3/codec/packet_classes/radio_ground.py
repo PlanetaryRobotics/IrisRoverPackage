@@ -46,7 +46,7 @@ from IrisBackendv3.codec.fsw_data_codec import (
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, settings
 from IrisBackendv3.codec.exceptions import PacketDecodingException
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 # Fixed header that starts off all Radio-Ground packets:
 RADIO_GROUND_FIXED_HEADER: Final[bytes] = b'RAD:'

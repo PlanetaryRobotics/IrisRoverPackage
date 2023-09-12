@@ -33,8 +33,8 @@ from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 from IrisBackendv3.utils.nameiddict import NameIdDict
 
 from IrisBackendv3.data_standards import DataStandards
-from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
+from IrisBackendv3.data_standards.logs import logger as DsLogger
+from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
@@ -43,7 +43,7 @@ from IrisBackendv3.codec.packet_classes.iris_common import IrisCommonPacket
 from IrisBackendv3.codec.packet_classes.watchdog_tvac_heartbeat import WatchdogTvacHeartbeatPacket
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
-from IrisBackendv3.codec.logging import logger as CodecLogger
+from IrisBackendv3.codec.logs import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
 import seaborn as sns  # type: ignore

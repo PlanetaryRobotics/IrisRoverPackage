@@ -3,11 +3,12 @@ Defines `UnsupportedPacket`, a `Packet` wrapper for unsupported sequences of raw
 bytes.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/15/2022
+@last-updated: 06/01/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
+from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 
 from typing import List, Any, Optional
 
@@ -16,10 +17,10 @@ from scapy.utils import hexdump  # type: ignore
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 
-class UnsupportedPacketInterface(Packet[CT]):
+class UnsupportedPacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
@@ -31,7 +32,7 @@ class UnsupportedPacket(UnsupportedPacketInterface[UnsupportedPacketInterface]):
     normal packets, instead of just throwing the data out.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 04/15/2022
+    @last-updated: 06/01/2023
     """
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
@@ -63,13 +64,6 @@ class UnsupportedPacket(UnsupportedPacketInterface[UnsupportedPacketInterface]):
             raw=raw,
             endianness_code=endianness_code
         )  # passthru
-
-    @classmethod
-    def decode(cls,
-               data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> UnsupportedPacket:
-        return cls(raw=data, endianness_code=endianness_code)
 
     def encode(self, **kwargs: Any) -> bytes:
         # There's no encoding to do. It's just raw data.

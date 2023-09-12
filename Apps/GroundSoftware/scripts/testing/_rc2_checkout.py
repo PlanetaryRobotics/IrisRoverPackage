@@ -1,6 +1,6 @@
 from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
-from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
+from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.transceiver import SlipTransceiver
 from IrisBackendv3.transceiver.endec import IpUdpEndec

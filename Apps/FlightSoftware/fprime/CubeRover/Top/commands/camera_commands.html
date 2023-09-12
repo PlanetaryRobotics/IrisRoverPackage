@@ -71,6 +71,39 @@ html {
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
+			<td rowspan="5">Take_Image_Section</td>
+			<td rowspan="5">4513 (0x11a1)</td>
+			<td rowspan="5">Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line).</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>camera_num</td>
+						<td>U8</td>
+						<td>
+                        0: Camera 0     1: Camera 1
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>startLine</td>
+						<td>U16</td>
+						<td>
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>endLine</td>
+						<td>U16</td>
+						<td>
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>callback_id</td>
+						<td>U16</td>
+						<td>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Error</td>
 			<td rowspan="2">4354 (0x1102)</td>
 			<td rowspan="2">Get camera status</td>
@@ -165,10 +198,43 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="1">Image_Dump</td>
 			<td rowspan="1">4362 (0x110a)</td>
-			<td rowspan="1">TBD</td>
+			<td rowspan="1">Dump (downlink) whatever is stored in the the camera flash rn 
+                without capturing a new image or writing anything to flash 
+                first.</td>
 				<td></td>
 				<td></td>
 				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">Downlink_Grid</td>
+			<td rowspan="2">4363 (0x110b)</td>
+			<td rowspan="2">Downlinks a test grid. If `viaFlash`, grid will be written to
+                flash then read from flash and downlinked. Otherwise, it'll
+                just be downlinked directly.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>viaFlash</td>
+						<td>bool</td>
+						<td>
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">Downlink_Test_Sequence</td>
+			<td rowspan="2">4364 (0x110c)</td>
+			<td rowspan="2">Downlinks a test image where every 4B are an incrementing U32.
+                If `viaFlash`, grid will be written to flash then read from
+                flash and downlinked. Otherwise, it'll just be downlinked
+                directly.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>viaFlash</td>
+						<td>bool</td>
+						<td>
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    </td>
+					</tr>
 		</tr>
 	</tbody>
 </table>

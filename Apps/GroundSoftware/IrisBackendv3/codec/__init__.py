@@ -26,4 +26,4 @@ from IrisBackendv3.codec import packet
 from IrisBackendv3.codec import payload_collection
 from IrisBackendv3.codec import payload
 from IrisBackendv3.codec import settings
-from IrisBackendv3.codec import logging
+from IrisBackendv3.codec import logs

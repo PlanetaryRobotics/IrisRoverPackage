@@ -25,7 +25,7 @@ from typing import Any, Final, ClassVar, Dict, Set
 from types import ModuleType
 
 # from IrisBackendv3.utils.imports import import_package_modules
-from IrisBackendv3.ipc.logging import logger
+from IrisBackendv3.ipc.logs import logger
 
 import IrisBackendv3.transceiver.xcvr_enum
 import IrisBackendv3.codec.packet_classes
@@ -52,6 +52,7 @@ import IrisBackendv3.codec.packet_classes.watchdog_hello
 import IrisBackendv3.codec.packet_classes.watchdog_radio_debug
 import IrisBackendv3.codec.packet_classes.watchdog_debug_important
 import IrisBackendv3.codec.packet_classes.watchdog_debug
+import IrisBackendv3.codec.packet_classes.radio_downlink_flush
 
 # Use the latest supported version of pickle (faster and more performant):
 # (don't worry, pickle handles compat. checking with messages).
@@ -132,7 +133,8 @@ _DEFAULT_APPROVED_IRIS_MODULES: Final[Dict[str, ModuleType]] = {
     **_m(IrisBackendv3.codec.packet_classes.watchdog_hello),
     **_m(IrisBackendv3.codec.packet_classes.watchdog_radio_debug),
     **_m(IrisBackendv3.codec.packet_classes.watchdog_debug_important),
-    **_m(IrisBackendv3.codec.packet_classes.watchdog_debug)
+    **_m(IrisBackendv3.codec.packet_classes.watchdog_debug),
+    **_m(IrisBackendv3.codec.packet_classes.radio_downlink_flush)
 }
 
 
@@ -243,7 +245,7 @@ class _IrisRestrictedPickler(pickle.Pickler):
 
     @classmethod
     def restricted_dumps(cls, o: Any) -> bytes:
-        """Helper function analogous to pickle.loads()."""
+        """Helper function analogous to pickle.dumps()."""
         f = io.BytesIO()
         cls(f, protocol=_PICKLE_PROTOCOL).dump(o)
         return f.getvalue()

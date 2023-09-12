@@ -1,12 +1,15 @@
 """
 Demo of asynchronous subscriber over IPC using an AppManager.
 This demo is designed to be run alongside `ipc_sync_pub.py`.
-This demo uses a reverse topology where the **sub** binds the port and listens
-to 1 or more pubs but can be switched by flipping the `bind` variable in each
-demo.
+
+Run the Transceiver TopicProxy in a separate terminal before running this
+script and keep it running for the duration of this script:
+```
+make proxies
+```
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 04/29/2023
 """
 import asyncio
 from typing import ClassVar
@@ -59,10 +62,9 @@ class Sub(ipc.SocketTopicHandlerAsync['Sub']):
 manager = IB3.ipc.IpcAppManagerAsync(socket_specs={
     'sub': IB3.ipc.SocketSpec(
         sock_type=IB3.ipc.SocketType.SUBSCRIBER,
-        port=IB3.ipc.Port.TRANSCEIVER,
+        port=IB3.ipc.Port.TRANSCEIVER_SUB,
         topics=Sub.TOPICS(),
-        rx_handler=Sub(),
-        bind=True
+        rx_handler=Sub()
     )
 })
 

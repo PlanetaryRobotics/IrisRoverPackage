@@ -8,17 +8,19 @@ A Collection of Basic Utility Functions.
 
 import re
 import string
-from typing import Optional, Type, Dict, Tuple, List, Any, Union
+from typing import Optional, Type, Dict, Tuple, List, Any, Union, TypeVar
 import inspect
+
+_T = TypeVar('_T')
 
 
 def type_guard_argument(
-    arg_type: Union[Type, Tuple[Type, ...]],
+    arg_type: Union[Type[_T], Tuple[Type[_T], ...]],
     arg_name: str,
     arg_val: Any,
     attempt_cast: bool = True,
     calling_function_name: Optional[str] = None
-) -> Any:
+) -> _T:
     """A guard to add to the beginning of a function to make sure one of its
     arguments has one of the allowed types.
 

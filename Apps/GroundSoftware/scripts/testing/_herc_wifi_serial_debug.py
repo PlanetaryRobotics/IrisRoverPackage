@@ -1,6 +1,6 @@
 from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
-from IrisBackendv3.data_standards.logging import (
+from IrisBackendv3.data_standards.logs import (
     logger as DsLogger,
     logger_setConsoleLevel as DsLoggerLevel
 )

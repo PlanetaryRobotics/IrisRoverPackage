@@ -47,8 +47,8 @@ from IrisBackendv3.utils.console_display import (
 
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
-from IrisBackendv3.data_standards.logging import logger as DsLogger
-from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
+from IrisBackendv3.data_standards.logs import logger as DsLogger
+from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, EventPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
@@ -63,7 +63,7 @@ from IrisBackendv3.codec.packet import parse_packet as core_parse_packet
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
-from IrisBackendv3.codec.logging import logger as CodecLogger
+from IrisBackendv3.codec.logs import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
 # Load all console helper function:

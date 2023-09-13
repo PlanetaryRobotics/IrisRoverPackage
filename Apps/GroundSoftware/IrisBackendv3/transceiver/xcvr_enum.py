@@ -11,6 +11,7 @@ from typing import Type
 from .transceiver import Transceiver
 from .pcap_transceiver import PcapTransceiver
 from .slip_transceiver import SlipTransceiver
+from .wifi_transceiver import WifiTransceiver
 from .yamcs_transceiver import YamcsTransceiver
 
 
@@ -24,6 +25,7 @@ class TransceiverEnum(Enum):
 
     PCAP = PcapTransceiver
     SERIAL_SLIP = SlipTransceiver
+    WIFI = WifiTransceiver
     YAMCS = YamcsTransceiver
     # Packets can be uplinked by ANY/ALL Transceivers
     # (XCVRs will make their own decisions based on packet contents, e.g.
@@ -39,3 +41,10 @@ class TransceiverEnum(Enum):
         obj._value_ = val
         obj.transceiver_class = val
         return obj
+
+    def matches(self, xcvr: Transceiver) -> bool:
+        """Checks if the given transceiver matches the one specified by enum
+        instance."""
+        if self.transceiver_class is None:
+            return True  # All are allowed.
+        return isinstance(xcvr, self.transceiver_class)

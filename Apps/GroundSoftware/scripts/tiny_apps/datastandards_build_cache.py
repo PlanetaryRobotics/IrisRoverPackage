@@ -14,7 +14,7 @@ import os.path
 import argparse
 
 from IrisBackendv3 import data_standards
-from IrisBackendv3.data_standards.logging import logger_setConsoleLevel as DsLoggerLevel
+from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
 
 parser = argparse.ArgumentParser(
     description='IRIS Lunar Rover — DataStandards Cache Builder — CLI')

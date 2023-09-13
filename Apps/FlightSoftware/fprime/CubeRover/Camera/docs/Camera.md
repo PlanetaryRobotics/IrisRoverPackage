@@ -14,6 +14,19 @@
 | | | |callback_id|U16|
                         Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                     |
+|Take_Image_Section|161 (0xa1)|Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line).| | |
+| | | |camera_num|U8|
+                        0: Camera 0     1: Camera 1
+                    |
+| | | |startLine|U16|
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	|
+| | | |endLine|U16|
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	|
+| | | |callback_id|U16|
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    |
 |Error|2 (0x2)|Get camera status| | |
 | | | |action|U8|
                         0x00: Clear Error     0xff: Read Error  !! Not sure how this is being used
@@ -43,7 +56,24 @@
 | | | |cameraNum|U8|
                         Camera Number
                     |
-|Image_Dump|10 (0xa)|TBD| | |
+|Image_Dump|10 (0xa)|Dump (downlink) whatever is stored in the the camera flash rn 
+                without capturing a new image or writing anything to flash 
+                first.| | |
+|Downlink_Grid|11 (0xb)|Downlinks a test grid. If `viaFlash`, grid will be written to
+                flash then read from flash and downlinked. Otherwise, it'll
+                just be downlinked directly.| | |
+| | | |viaFlash|bool|
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    |
+|Downlink_Test_Sequence|12 (0xc)|Downlinks a test image where every 4B are an incrementing U32.
+                If `viaFlash`, grid will be written to flash then read from
+                flash and downlinked. Otherwise, it'll just be downlinked
+                directly.| | |
+| | | |viaFlash|bool|
+                    Whether or not to write to flash and read from flash before
+                    downlinking.
+                    |
 
 ## Telemetry Channel List
 

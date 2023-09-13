@@ -347,12 +347,35 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     'reset-fpga': (
         DataPathway.WIRED,
-        # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_ResetSpecific',
         # Change this to whatever you want to reset.
         OrderedDict(reset_value='RESET_FPGA'),
         DataPathway.WIRED
+    ),
+    'reset-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='RESET_FPGA'),
+        DataPathway.WIRELESS
+    ),
+    'power-off-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
+        DataPathway.WIRELESS
+    ),
+    'power-on-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRELESS
     ),
     '3v3-on': (
         DataPathway.WIRED,
@@ -957,6 +980,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(camera_num=0, callback_id=0),
         DataPathway.WIRELESS
     ),
+    'take-draft-image-0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=0, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRED
+    ),
+    'take-draft-image-0-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=0, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRELESS
+    ),
     'take-image-1': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -969,6 +1006,55 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'Camera_TakeImage',
         OrderedDict(camera_num=1, callback_id=0),
+        DataPathway.WIRELESS
+    ),
+    'take-draft-image-1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=1, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRED
+    ),
+    'take-draft-image-1-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImageSection',
+        OrderedDict(camera_num=1, start_line=13, end_line=300, callback_id=0),
+        DataPathway.WIRELESS
+    ),
+    'image-dump-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_ImageDump',
+        OrderedDict(),
+        DataPathway.WIRELESS
+    ),
+    'image-grid-no-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkGrid',
+        OrderedDict(via_flash=False),
+        DataPathway.WIRELESS
+    ),
+    'image-grid-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkGrid',
+        OrderedDict(via_flash=True),
+        DataPathway.WIRELESS
+    ),
+    'image-seq-no-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkTestSequence',
+        OrderedDict(via_flash=False),
+        DataPathway.WIRELESS
+    ),
+    'image-seq-flash-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_DownlinkTestSequence',
+        OrderedDict(via_flash=True),
         DataPathway.WIRELESS
     ),
 

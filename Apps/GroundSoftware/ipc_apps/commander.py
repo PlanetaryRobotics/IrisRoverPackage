@@ -19,7 +19,7 @@ from termcolor import colored
 from enum import Enum as PyEnum
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Final, Callable, ClassVar, Tuple, Dict, List
+from typing import Any, Final, Callable, ClassVar, Tuple, Dict, List, cast
 
 if __name__ == "__main__":
     # very slow (embedded) machines may take a while to import the library,
@@ -52,7 +52,7 @@ parser = argparse.ArgumentParser(description=(
 
 
 def get_opts():
-    parser.add_argument('-n', '--name', type=str, default="TelemetryDisplay",
+    parser.add_argument('-n', '--name', type=str, default="Commander",
                         help=(
                             "Name of this App (can be configured to "
                             "accomplish different goals)."
@@ -112,6 +112,8 @@ class ConsoleState:
             return self.alias_input
         elif self.activity == ConsoleState.Activity.EDITING_COMMAND:
             return self.edited_command
+        else:
+            return self.alias_input
 
     @active_str.setter
     def active_str(self, val: str) -> None:
@@ -297,26 +299,43 @@ def cmd_string_to_command(
         # Extract + Validate Arguments:
         args_str, cmd_str = cmd_str.split(']', 1)
         args = [a.split("=") for a in args_str.split(',')]
-        args_dict = OrderedDict(
+        args_dict: OrderedDict[str, Any] = OrderedDict(
             (arg[0].strip(), arg[1].strip())
             for arg in args
         )
         # Cast any non-strings to numbers, remove quotes from strings:
         for k, v in args_dict.items():
             if (
-                v.startswith("\'") and v.endswith("\'")
-                or v.startswith("\"") and v.endswith("\"")
+                isinstance(v, str)
+                and v[0] == v[-1]
+                and v[0] in [r"'", r'"', r"`"]
             ):
                 # is a string surrounded by quotes. remove quotes
                 args_dict[k] = v[1:-1]
             else:
-                # no quotes equals not a string. has to be a number. Cast:
-                v = float(v)
-                # make it an int if it can be an int:
-                if int(v) == v:
-                    args_dict[k] = int(v)
-                else:
-                    args_dict[k] = v
+                # See if this type can be coerced into a number:
+                n: float | int
+                float_worked: bool = False
+                int_worked: bool = False
+                try:
+                    n = float(v)
+                    float_worked = True
+                    # make it an int if it can be an int:
+                    if int(n) == n:
+                        n = int(n)
+                except ValueError:
+                    float_worked = False
+
+                if not float_worked:
+                    # Try a non-base-10 integer:
+                    try:
+                        n = int(v, 0)
+                        int_worked = True
+                    except ValueError:
+                        int_worked = False
+
+                if float_worked or int_worked:
+                    args_dict[k] = n
 
         # Extract and Validate the target XCVR:
         cmd_str = cmd_str.strip().removeprefix('->').strip()
@@ -483,11 +502,11 @@ def handle_keypress(
             # Generate the default command string and move to editing it:
             top_entry = get_top_command(full_aliases_table, filtered_df)
             if (top_entry is not None
-                        and (
+                and (
                             filtered_df.shape[0] == 1
                             or top_entry.alias == state.alias_input
                         )
-                    ):
+                ):
                 state.edited_command = alias_entry_to_cmd_string(top_entry)
                 state.activity = ConsoleState.Activity.EDITING_COMMAND
         elif state.activity == ConsoleState.Activity.EDITING_COMMAND:
@@ -495,6 +514,7 @@ def handle_keypress(
             success_so_far: bool = True  # success (so far)
             cmd, xcvr = cmd_string_to_command(state, state.edited_command)
             success_so_far &= (cmd is not None and xcvr is not None)
+            cmd, xcvr = cast(CommandPayload, cmd), cast(TransceiverEnum, xcvr)
 
             if success_so_far:
                 success_so_far &= uplink_command_request(
@@ -629,9 +649,8 @@ def main(opts):
     manager = ipc.IpcAppManagerSync(socket_specs={
         PUB_SOCK_NAME: ipc.SocketSpec(
             sock_type=ipc.SocketType.PUBLISHER,
-            port=ipc.Port.TRANSCEIVER,
-            topics=[ipc.Topic.UL_PACKET],
-            bind=False  # XCVR / XCVR AGG will be the one that binds
+            port=ipc.Port.TRANSCEIVER_PUB,
+            topics=[ipc.Topic.UL_PACKET]
         )
     })
 

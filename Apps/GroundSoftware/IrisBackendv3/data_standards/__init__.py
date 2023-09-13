@@ -27,10 +27,10 @@ from .fsw_data_type import *
 
 from .exceptions import *
 
-from IrisBackendv3.data_standards import logging
+from IrisBackendv3.data_standards import logs
 
 # Private imports for use by helper functions:
-from .logging import logger as _logger
+from .logs import logger as _logger
 from .prebuilt import (
     add_to_standards as _add_to_standards,
     ALL_PREBUILT_MODULES as _ALL_PREBUILT_MODULES

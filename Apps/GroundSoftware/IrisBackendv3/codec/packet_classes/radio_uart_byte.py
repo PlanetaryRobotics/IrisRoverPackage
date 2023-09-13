@@ -7,14 +7,13 @@ should get converted to a `EventPayload` or a `TelemetryPayload` containing radi
 activity, etc.) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/26/2022
+@last-updated: 06/01/2023
 """
+# Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
-# Activate postponed annotations (for using classes as return type in their own methods)
-from prompt_toolkit import formatted_text
-
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
+from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 
 from typing import Any, Final, Optional, List
 
@@ -25,7 +24,7 @@ from termcolor import colored
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 # Fixed prefix. All `RadioBgApiPacket`s start with b'DEBUG' then `BGB: `
 # (BGapi Byte). Note the b'DEBUG' prefix is there b/c this is sent through
@@ -33,7 +32,7 @@ from IrisBackendv3.codec.logging import logger
 FIXED_PREFIX: bytes = b'DEBUGBGB: '
 
 
-class RadioUartBytePacketInterface(Packet[CT]):
+class RadioUartBytePacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
@@ -44,7 +43,7 @@ class RadioUartBytePacket(RadioUartBytePacketInterface[RadioUartBytePacketInterf
     the Radio.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 10/26/2022
+    @last-updated: 06/01/2023
     """
     __slots__: List[str] = ['_byte']
 
@@ -96,13 +95,6 @@ class RadioUartBytePacket(RadioUartBytePacketInterface[RadioUartBytePacketInterf
                 f"with data `{hexdump(raw, dump=True)}` because: {e}."
             )
             self._byte = None
-
-    @classmethod
-    def decode(cls,
-               data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> RadioUartBytePacket:
-        return cls(raw=data, endianness_code=endianness_code)
 
     def encode(self, **kwargs: Any) -> bytes:
         # There's no encoding to do. It's just raw data.

@@ -19,7 +19,7 @@ from IrisBackendv3.codec.payload import Payload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.magic import Magic
-from IrisBackendv3.codec.logging import logger as CodecLogger
+from IrisBackendv3.codec.logs import logger as CodecLogger
 from IrisBackendv3.codec.settings import set_codec_standards
 from IrisBackendv3.utils.basic import print_bytearray_hex as printraw
 from IrisBackendv3.codec.packet_classes.packet import Packet

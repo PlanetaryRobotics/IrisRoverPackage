@@ -22,7 +22,7 @@ import json
 from IrisBackendv3.utils import NameIdDict
 from IrisBackendv3.utils.basic import full_dict_spec_check
 
-from .logging import logger
+from .logs import logger
 from .fsw_data_type import FswDataType
 
 

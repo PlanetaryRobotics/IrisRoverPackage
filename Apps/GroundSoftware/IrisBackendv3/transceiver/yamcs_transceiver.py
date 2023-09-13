@@ -20,7 +20,7 @@ import re
 
 from IrisBackendv3.transceiver.transceiver import Transceiver
 from IrisBackendv3.transceiver.endec import Endec, SlipEndec
-from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.exceptions import TransceiverConnectionException, TransceiverDecodingException
 from IrisBackendv3.transceiver.settings import settings
 

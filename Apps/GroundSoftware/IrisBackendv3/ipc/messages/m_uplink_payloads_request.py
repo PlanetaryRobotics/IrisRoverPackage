@@ -4,13 +4,15 @@ requesting that a Transceiver(s) Uplink these Payloads, either as one or
 multiple payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/06/2023
+@last-updated: 06/21/2023
 """
+from __future__ import annotations
+
 import attr
 from enum import Enum
-from typing import List, Type
+from typing import List, Type, Dict
 
-from IrisBackendv3.ipc.inter_process_message import IpmSubclassFactory, MessageContentAttrMixin
+from IrisBackendv3.ipc.inter_process_message import IpmSubclassFactory, MessageContentInterface
 from IrisBackendv3.transceiver.xcvr_enum import TransceiverEnum
 from IrisBackendv3.codec.payload import Payload
 from IrisBackendv3.codec.packet_classes.packet import Packet
@@ -30,7 +32,7 @@ class UplinkPayloadsPacketSplit(Enum):
 
 
 @attr.s(frozen=True, cmp=True, slots=True, auto_attribs=True)
-class UplinkPayloadsRequestContent(MessageContentAttrMixin):
+class UplinkPayloadsRequestContent(MessageContentInterface):
     """
     Defines the Message Content for a Request to a collection of `Payloads` in
     the uplink direction.
@@ -64,6 +66,24 @@ class UplinkPayloadsRequestContent(MessageContentAttrMixin):
             f"{self.packet_class=}, "
             f"{self.target_xcvr=})"
         )
+
+    # Special encoding and decoding to handle members with special class types
+    # (i.e. not in the restricted pickler):
+    def to_dict(self) -> Dict:
+        # Build default:
+        out = attr.asdict(self)
+        # Replace special `UplinkPayloadsPacketSplit` with int:
+        out['split'] = self.split.value
+        return out
+
+    @classmethod
+    def from_dict(
+        cls: Type['UplinkPayloadsRequestContent'],
+        d: Dict
+    ) -> 'UplinkPayloadsRequestContent':
+        # Process special classes:
+        d['split'] = UplinkPayloadsPacketSplit(d['split'])
+        return cls(**d)
 
 
 UplinkPayloadsRequestMessage = IpmSubclassFactory(UplinkPayloadsRequestContent)

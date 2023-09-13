@@ -5,13 +5,12 @@ Radio via Hercules via the Watchdog. This packet type doesn't contain any teleme
 to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/26/2022
+@last-updated: 06/01/2023
 """
+# Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations
 
-# Activate postponed annotations (for using classes as return type in their own methods)
-from prompt_toolkit import formatted_text
-
+from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 
 from typing import List, Any, Optional
@@ -21,10 +20,10 @@ from scapy.utils import hexdump  # type: ignore
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 
 
-class WatchdogRadioDebugPacketInterface(Packet[CT]):
+class WatchdogRadioDebugPacketInterface(GdsPacketEventPacket[GDS_EVT_PT]):
     # empty __slots__ preserves parent class __slots__
     __slots__: List[str] = []
 
@@ -35,7 +34,7 @@ class WatchdogRadioDebugPacket(WatchdogRadioDebugPacketInterface[WatchdogRadioDe
     the Radio (or Hercules' Radio process).
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 08/26/2022
+    @last-updated: 06/01/2023
     """
     __slots__: List[str] = []  # empty __slots__ preserves parent __slots__
 
@@ -67,13 +66,6 @@ class WatchdogRadioDebugPacket(WatchdogRadioDebugPacketInterface[WatchdogRadioDe
             raw=raw,
             endianness_code=endianness_code
         )  # passthru
-
-    @classmethod
-    def decode(cls,
-               data: bytes,
-               endianness_code: str = ENDIANNESS_CODE
-               ) -> WatchdogRadioDebugPacket:
-        return cls(raw=data, endianness_code=endianness_code)
 
     def encode(self, **kwargs: Any) -> bytes:
         # There's no encoding to do. It's just raw data.

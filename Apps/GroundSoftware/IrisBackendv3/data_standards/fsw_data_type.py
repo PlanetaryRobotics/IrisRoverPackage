@@ -100,6 +100,9 @@ class FswDataType(Enum):
     # effectively the same as STRING. A relic from when STRING was considered
     # to be fixed-length):
     VARSTRING_255 = 'H255s', 'char[/*up to*/255]', Category.VARSTRING, str
+    # Vary big strings (for transiting Earth-only information while still
+    # maintaining a cap):
+    VARSTRING_10K = 'H10000s', 'char[/*up to*/10000]', Category.VARSTRING, str
 
     # Special Iris Serializable Type for uplinking arbitrary byte sequences
     # (made forBGAPI Passthrough):

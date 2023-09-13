@@ -6,7 +6,7 @@ parsed by the Watchdog. `IrisCommonPacket` is the current and
 required for backwards compatibility (reading old archived pcaps).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/04/2022
+@last-updated: 06/22/2023
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -26,7 +26,7 @@ from IrisBackendv3.codec.payload import TelemetryPayload, EventPayload, FileBloc
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 from IrisBackendv3.utils.basic import full_dict_spec_check
@@ -51,7 +51,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
     be handled and transformed and only packed into bytes when needed.
 
     @author: Connor W. Colombo (CMU)
-    @last-updated: 03/07/2022
+    @last-updated: 06/22/2023
     """
 
     # TODO: Do these MTUs matter? Should we take them out? (might matter when
@@ -98,6 +98,18 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         @property
         def checksum(self) -> bytes: return self._checksum
 
+        def zero_checksum(self) -> None:
+            """Zeroes out the checksum."""
+            self._checksum = struct.pack(
+                self.endianness_code + self.CHECKSUM_SYM, 0x00)
+
+        def compute_checksum(self, packet_bytes: bytes) -> None:
+            """Computes the checksum of the given packet bytes."""
+            self._checksum = struct.pack(
+                self.endianness_code + self.CHECKSUM_SYM,
+                ~np.uint8(sum(bytearray(packet_bytes)) % 256)
+            )
+
         def __init__(self,
                      seq_num: int,
                      vlp_len: int,
@@ -108,14 +120,14 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
             self._seq_num = seq_num
             self._vlp_len = vlp_len
 
+            super().__init__(raw=raw, endianness_code=endianness_code)
+
+            # Must do this after accepting `endianness_code`:
             if checksum is None:
                 # init as all zeros (before it's computed later):
-                self._checksum = struct.pack(
-                    endianness_code + IrisCommonPacket.CommonPacketHeader.CHECKSUM_SYM, 0x00)
+                self.zero_checksum()
             else:
                 self._checksum = checksum
-
-            super().__init__(raw=raw, endianness_code=endianness_code)
 
         def __str__(self) -> str:
             return f"CPH[{self.seq_num}]: {self.vlp_len}B"
@@ -144,9 +156,8 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
 
         def encode(self, **kwargs: Any) -> bytes:
             """Pack data into a bytes object."""
-
-            sns = IrisCommonPacket.CommonPacketHeader.SEQ_NUM_SYM
-            vls = IrisCommonPacket.CommonPacketHeader.VLP_LEN_SYM
+            sns = self.SEQ_NUM_SYM
+            vls = self.VLP_LEN_SYM
             struct_str = self.endianness_code + ' ' + sns + '' + vls
             cph_head = struct.pack(struct_str, self.seq_num, self.vlp_len)
 
@@ -188,10 +199,12 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         # If this contains only commands just print the command(s):
         cmds = [*self.payloads[CommandPayload]]
         if len(cmds) == len(self.payloads):
+            # Special Commands only signature:
             return (
-                f"LEGACY2020 ICP["
+                f"ICP["
                 f"#{self.common_packet_header.seq_num}::"
-                f"{self.common_packet_header.vlp_len}] > {', '.join(cmds)}"
+                f"{self.common_packet_header.vlp_len}] > "
+                f"{', '.join(str(c) for c in cmds)}"
             )
 
         # Grab the string of the latest value for each unique telemetry channel:
@@ -213,7 +226,13 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
             )
 
         # Append the latest telemetry strings with a new line for each module:
-        out = self.__repr__() + '\n > Latest Telemetry: '
+        out = self.__repr__()
+        if len(cmds) > 0:
+            out += '\n > Commands: '
+            out += '\n \t >> ' + '\n \t >> '.join(str(c) for c in cmds)
+
+        if len(latest) > 0:
+            out += '\n > Latest Telemetry: '
         for module_latest in latest.values():
             out += '\n' + ',\t '.join([f'{p}' for p in module_latest.values()])
 
@@ -371,16 +390,14 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         for payload in self.payloads.all_payloads:
             VLP += payload.magic.encode() + payload.encode()
 
+        self.common_packet_header.zero_checksum()  # zero before recompute
         CPH = self.common_packet_header.encode()
         assert self.common_packet_header.vlp_len == len(VLP)
 
         packet = CPH + VLP
 
         # Compute Checksum over entire packet (with checksum defaulted to 0):
-        self.common_packet_header._checksum = struct.pack(
-            self.endianness_code + IrisCommonPacket.CommonPacketHeader.CHECKSUM_SYM,
-            ~np.uint8(sum(bytearray(packet)) % 256)
-        )
+        self.common_packet_header.compute_checksum(packet)
 
         # Rebuild CPH with checksum:
         CPH = self.common_packet_header.encode()
@@ -390,7 +407,7 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
 
         return packet
 
-    @ classmethod
+    @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.
@@ -550,7 +567,8 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
             return (
                 f"LEGACY2020 ICP["
                 f"#{self.common_packet_header.seq_num}::"
-                f"{self.common_packet_header.vlp_len}] > {', '.join(cmds)}"
+                f"{self.common_packet_header.vlp_len}] > "
+                f"{', '.join(str(c) for c in cmds)}"
             )
 
         # Otherwise, just summarize the telemetry:
@@ -718,7 +736,7 @@ class Legacy2020IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInter
 
         return packet
 
-    @ classmethod
+    @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.

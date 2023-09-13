@@ -23,11 +23,13 @@ from typing import Optional, Awaitable, List, Type
 from abc import ABC, abstractmethod, abstractclassmethod, abstractproperty
 from datetime import datetime
 import scapy.all as scp  # type: ignore # no type hints
+import traceback
 import asyncio
+import atexit
 
-from IrisBackendv3.transceiver.logging import logger
+from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.transceiver.endec import Endec, UnityEndec
-from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException
+from IrisBackendv3.transceiver.exceptions import TransceiverDecodingException, TransceiverConnectionException
 
 from IrisBackendv3.codec.packet import parse_packet
 from IrisBackendv3.codec.packet_classes.packet import Packet
@@ -44,6 +46,8 @@ class Transceiver(ABC):
     of the subclasses can be as simple as possible (just handling how to get
     and send packet bytes.)
     """
+    # String name of this transceiver (for logging purposes):
+    name: str
     # Endec used to encode and decode data using this transceiver:
     endecs: List[Endec]
     # How this data is transmitted received (wired/wireless):
@@ -59,6 +63,7 @@ class Transceiver(ABC):
 
     def __init__(
         self,
+        name: str,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.NONE,
         source: DataSource = DataSource.NONE,
@@ -74,39 +79,52 @@ class Transceiver(ABC):
         order of **DECODING** (where the left-most endec is stripped off first
         when decoding and applied last when encoding.)
         """
+        self.name = name
         # Initialize sequence number counter:
         self.seq_num = 0
         self.log_on_send = log_on_send
         self.log_on_receive = log_on_receive
 
-        # Just use `UnityEndec` if none are given:
-        if endecs is None:
-            self.endecs = [UnityEndec()]
-
-        if isinstance(endecs, list):
-            if len(endecs) > 0:
-                self.endecs = endecs
+        # If endecs given, make sure they're valid and use if so:
+        if endecs is not None:
+            if isinstance(endecs, list):
+                if len(endecs) > 0:
+                    self.endecs = endecs
+                else:
+                    logger.error(
+                        f"When initializing `Transceiver` `endecs = {endecs}` "
+                        f"was given as an empty list (len=0). The `endecs` "
+                        "list must have non-zero length. "
+                        "See `Transceiver.__init__` for more information."
+                    )
+                    endecs = None
             else:
                 logger.error(
                     f"When initializing `Transceiver` `endecs = {endecs}` was "
-                    f"given as an empty list (len=0). The `endecs` list must "
-                    "have non-zero length. "
+                    f"given which has type {type(endecs)}. "
+                    "`endecs` must be a list. "
+                    "A `UnityEndec` was used instead. "
                     "See `Transceiver.__init__` for more information."
                 )
                 endecs = None
-        else:
-            logger.error(
-                f"When initializing `Transceiver` `endecs = {endecs}` was "
-                f"given which has type {type(endecs)}. "
-                "`endecs` must be a list. "
-                "A `UnityEndec` was used instead. "
-                "See `Transceiver.__init__` for more information."
-            )
-            endecs = None
+
+        # Just use `UnityEndec` if none (or no valid options) are given:
+        if endecs is None:
+            self.endecs = [UnityEndec()]
 
         # Store pathway and source for annotating all payloads:
         self.data_pathway = pathway
         self.data_source = source
+
+        # Register to make sure `__del__` gets called when program exits:
+        # (via interrupt or actual close)
+        atexit.register(self.__del__)
+
+    def __del__(self) -> None:
+        """Override in subclasses to provide custom cleanup behavior.
+        Transceiver base class handles registering this with `atexit`.
+        """
+        logger.notice(f"Cleaning up Transceiver {self.__class__.__name__}.")
 
     def begin(self) -> None:
         """Initialize any special registers, etc. for this transceiver."""
@@ -251,10 +269,24 @@ class Transceiver(ABC):
                         f"{scp.hexdump(bp, dump=True)}\n."
                         f"The TransceiverDecodingException was: `{tde}`."
                     )
+
+        except TransceiverConnectionException as tce:
+            # Log it:
+            trace = '\n'.join(traceback.format_tb(tce.__traceback__))
+            logger.error(
+                f"While attempting to read bytes from Transceiver {self}, "
+                f"a TransceiverConnectionException occurred: `{tce}`. "
+                f"The trace was:\n{trace}."
+            )
+            # Then re-raise to get out of here:
+            raise tce
+
         except Exception as e:
+            trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
                 "An otherwise unresolved error occurred during packet "
-                f"processing: {e}"
+                f"processing: {e}. "
+                f"The trace was:\n{trace}."
             )
 
         # Returns all packets successfully retrieved:
@@ -264,10 +296,22 @@ class Transceiver(ABC):
         """Asynchronously awaits the next available packet(s) on the transceiver input."""
         try:
             byte_packets = await self._async_downlink_byte_packets()
+        except TransceiverConnectionException as tce:
+            # Log it:
+            trace = '\n'.join(traceback.format_tb(tce.__traceback__))
+            logger.error(
+                f"While attempting to read bytes from Transceiver {self}, "
+                f"a TransceiverConnectionException occurred: `{tce}`. "
+                f"The trace was:\n{trace}."
+            )
+            # Then re-raise to get out of here:
+            raise tce
         except Exception as e:
+            trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
                 "An otherwise unresolved error occurred during packet "
-                f"streaming: {e}"
+                f"streaming: {e}. "
+                f"The trace was:\n{trace}."
             )
             # Nothing to process, just return empty:
             return []
@@ -278,10 +322,22 @@ class Transceiver(ABC):
         """Reads all available packets on the transceiver input."""
         try:
             byte_packets = self._downlink_byte_packets()
+        except TransceiverConnectionException as tce:
+            # Log it:
+            trace = '\n'.join(traceback.format_tb(tce.__traceback__))
+            logger.error(
+                f"While attempting to read bytes from Transceiver {self}, "
+                f"a TransceiverConnectionException occurred: `{tce}`. "
+                f"The trace was:\n{trace}."
+            )
+            # Then re-raise to get out of here:
+            raise tce
         except Exception as e:
+            trace = '\n'.join(traceback.format_tb(e.__traceback__))
             logger.error(
                 "An otherwise unresolved error occurred during packet "
-                f"streaming: {e}"
+                f"streaming: {e}. "
+                f"The trace was:\n{trace}."
             )
             # Nothing to process, just return empty:
             return []
@@ -297,6 +353,21 @@ class Transceiver(ABC):
 
         Returns whether the send was successful.
         """
+        # See if a pathway is specified for this packet already.
+        # If so, bail if it doesn't match this transceiver's pathway:
+        if (
+            packet.pathway != DataPathway.NONE
+            and self.data_pathway != DataPathway.NONE
+            and packet.pathway != self.data_pathway
+        ):
+            logger.warning(
+                f"`{self.__class__.__name__} received but is **NOT** "
+                f"uplinking packet {packet} b/c `{packet.pathway=}`, "
+                f"which isn't compatible with this transceiver's "
+                f"`data_pathway={self.data_pathway}`."
+            )
+            return False
+
         # Add metadata to all the payloads in Packet first (before uplink):
         for payload in packet.payloads.all_payloads:
             payload.pathway = self.data_pathway
@@ -325,7 +396,9 @@ class Transceiver(ABC):
 
         if success and self.log_on_send:
             logger.info(
-                f"`{self.__class__.__name__}` sent: {scp.hexstr(packet_bytes)}"
+                f"`{self.__class__.__name__}` sent: \n"
+                f" \t{packet!s} \n"
+                f"{scp.hexdump(packet_bytes, dump=True)} \n\n"
             )
 
         return success

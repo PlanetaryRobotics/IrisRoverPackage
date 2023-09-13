@@ -15,7 +15,14 @@ xlsxwriter
 pynput
 multi-await
 plotly
-dash
+pyarrow
+celery
+redis[hiredis]
+types-redis
+dash[diskcache, celery]
+dash_bootstrap_components
+dash_bootstrap_templates
+dash_daq
 panel
 holoviews
 hvplot
@@ -48,3 +55,6 @@ tables
 dill[graph]
 pdoc3
 opencv-python
+psutil
+types-python-dateutil
+ansi2html

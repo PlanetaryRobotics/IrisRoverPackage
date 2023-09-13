@@ -3,22 +3,32 @@ Special prebuilt data standards which exist outside of the FPrime XML (e.g. for
 watchdog heartbeat)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/04/2023
+@last-updated: 06/01/2023
 """
-from typing import Any, Final, Type, Union, List, Tuple, TypeVar
+from typing import Any, Final, Type, Union, List, Tuple, TypeVar, TypeAlias
 from collections import OrderedDict
 
 from IrisBackendv3.utils.nameiddict import NameIdDict
 
+# TODO: Import these and use in `_packet_classes_to_events`. Presently results in circular import and don't have time to resolve rn.
+# from IrisBackendv3.codec import packet
+# from IrisBackendv3.codec.packet_classes.gds_packet_event_mixin import (
+#     GdsPacketEventMixin,
+#     MSG_ARGUMENT_NAME as GDS_PACKET_EVENT_MSG_ARG_NAME
+# )
+
 from .data_standards import DataStandards
 from .module import Module, Command, Event, Argument, TelemetryChannel, EnumItem, BitfieldStruct
 from .fsw_data_type import FswDataType
-from .logging import logger
+from .logs import logger
 
 T = TypeVar('T')
 
 
-def nid_nic_entry(t: Type[Any], ID: int, name: str, *args, **kwargs) -> Tuple[Tuple[int, str], T]:
+_NID_NIC_ENTRY_T: TypeAlias = Tuple[Tuple[int, str], T]
+
+
+def nid_nic_entry(t: Type[Any], ID: int, name: str, *args, **kwargs) -> _NID_NIC_ENTRY_T:
     """
     Makes a tuple which can be used as a name-id-containing `NameIdDict` entry
     where the `name` and `ID` are also parameters of the entry value in addition
@@ -1135,6 +1145,58 @@ peregrine: Module = Module(
     ])
 )
 
+
+def _packet_classes_to_events(
+    specs: List[Tuple[str, Event.SeverityLevel]]
+) -> List[_NID_NIC_ENTRY_T]:
+    """
+    Creates a list of name-id-containing NameIdDict entries specifying 
+    events based on the given packet classes.
+    See `gds_packet_event_mixin` for more details about why this exists.
+    """
+    return [
+        nid_nic_entry(
+            Event, i, c, severity_str=severity.name,
+            format_string="%s",
+            args=[
+                Argument(
+                    'msg',
+                    datatype=FswDataType.VARSTRING_10K
+                )
+            ]
+        )
+        for i, (c, severity) in enumerate(specs)
+    ]
+
+
+# Registry of Packets which, if we receive them, represent an event:
+gds_packets: Module = Module(
+    name="GdsPackets",
+    ID=0xCF00,
+    commands=NameIdDict(),
+    events=NameIdDict(
+        # NOTE: To ensure backwards compatibility, only append to this list
+        # and never reorder or remove (deprecate instead of removing):
+        # Severity levels can be changed freely.
+        _packet_classes_to_events([
+            ('RadioBgApiPacket', Event.SeverityLevel.ACTIVITY_LO),
+            ('RadioDirectMessagePacket', Event.SeverityLevel.ACTIVITY_HI),
+            ('RadioUartBytePacket', Event.SeverityLevel.DIAGNOSTIC),
+            ('UnsupportedPacket', Event.SeverityLevel.DIAGNOSTIC),
+            ('WatchdogCommandResponsePacket', Event.SeverityLevel.COMMAND),
+            ('WatchdogDebugPacket', Event.SeverityLevel.ACTIVITY_LO),
+            ('WatchdogDebugImportantPacket', Event.SeverityLevel.ACTIVITY_HI),
+            ('WatchdogHelloPacket', Event.SeverityLevel.COMMAND),
+            ('WatchdogRadioDebugPacket', Event.SeverityLevel.ACTIVITY_HI),
+            ('WatchdogResetSpecificAckPacket', Event.SeverityLevel.COMMAND),
+            ('RadioDownlinkFlushPacket', Event.SeverityLevel.DIAGNOSTIC),
+            ('HerculesRadioUplinkAckPacket', Event.SeverityLevel.ACTIVITY_LO)
+        ])
+    ),
+    telemetry=NameIdDict()
+)
+
+
 # List of all special pre-built modules:
 ALL_PREBUILT_MODULES: Final[List[Module]] = [
     watchdog_detailed_status_heartbeat,
@@ -1142,5 +1204,6 @@ ALL_PREBUILT_MODULES: Final[List[Module]] = [
     watchdog_heartbeat,
     watchdog_command_response,
     radio_ground,
-    peregrine
+    peregrine,
+    gds_packets
 ]

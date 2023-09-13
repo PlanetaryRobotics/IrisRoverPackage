@@ -19,7 +19,7 @@ from enum import Enum
 
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE
 
-from IrisBackendv3.codec.logging import logger
+from IrisBackendv3.codec.logs import logger
 from IrisBackendv3.codec.exceptions import PacketDecodingException
 
 import struct

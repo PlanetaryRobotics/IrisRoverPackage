@@ -35,6 +35,7 @@ void releaseRadioReset(void);
 void setRadioReset(void);
 void releaseFPGAReset(void);
 void setFPGAReset(void);
+uint8_t toggleFPGAReset(void);
 void fpgaCameraSelectHi(void);
 void fpgaCameraSelectLo(void);
 void releaseMotorsReset(void);

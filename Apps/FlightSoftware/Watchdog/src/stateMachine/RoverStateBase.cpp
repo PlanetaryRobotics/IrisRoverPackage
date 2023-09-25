@@ -1627,11 +1627,23 @@ namespace iris
 
         case WD_CMD_MSGS__RESET_ID__CAM_FPGA_RESET:
             //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
-            setFPGAReset();
+            // TOGGLE the FPGA reset state. Toggling rather than unresetting supports FPGA programming.
+            if(toggleFPGAReset()){
+                // FPGA will be put INTO reset. Log the event:
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
+                DebugComms__tryPrintfToLanderNonblocking("FPGA being RESET\n");
+            } else {
+                // FPGA will be RELEASED from reset. Log the event:
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_UNRESET);
+                DebugComms__tryPrintfToLanderNonblocking("FPGA being UNRESET\n");
+            }
             writeIoExpander = true;
-            // queue up the fpga unreset
-            theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
-            SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
+
+            // Old reset, unreset impl:
+//            setFPGAReset();
+//            // queue up the fpga unreset
+//            theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
+//            SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
             break;
 
         case WD_CMD_MSGS__RESET_ID__CAM_FPGA_POWER_ON:

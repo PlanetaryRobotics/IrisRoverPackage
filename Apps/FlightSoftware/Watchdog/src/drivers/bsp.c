@@ -677,7 +677,7 @@ inline void setRadioReset(void)
 /**
  * @brief      Releases a fpga reset. (HI = NORMAL)
  */
-inline void releaseFPGAReset(void)
+void releaseFPGAReset(void)
 {
     I2C_Sensors__setIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
 
@@ -689,13 +689,27 @@ inline void releaseFPGAReset(void)
 /**
  * @brief      Sets the fpga reset. (LO = RESET)
  */
-inline void setFPGAReset(void)
+void setFPGAReset(void)
 {
     I2C_Sensors__clearIoExpanderPort0OutputBits(I2C_SENSORS__IOE_P0_BIT__N_FPGA_RST);
 
     // Technically this isn't set yet because the I/O expander hasn't been written, but we'll save the state here
     // because calling this means we had the intention of setting this state
     CLEAR_OPSBI_IN_UINT(detailsPtr->m_outputPinBits, OPSBI__FPGA_N_RST);
+}
+
+/**
+ * @brief      Sets the fpga reset to the opposite of its current state. Uses OPSBI for state tracking. Returns true if a reset was triggered. False if an unreset was triggered.
+ */
+uint8_t toggleFPGAReset(void)
+{
+    if(detailsPtr->m_outputPinBits & OPSBI_MASK(OPSBI__FPGA_N_RST)){ // active low. HIGH = not in reset.
+        setFPGAReset();
+        return true;
+    } else {
+        releaseFPGAReset();
+        return false;
+    }
 }
 
 /**

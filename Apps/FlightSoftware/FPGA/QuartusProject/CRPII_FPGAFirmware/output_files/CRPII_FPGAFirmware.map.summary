@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Sat Sep 23 16:21:17 2023
+Quartus Prime Version : 22.1std.2 Build 922 07/20/2023 SC Standard Edition
+Revision Name : CRPII_FPGAFirmware
+Top-level Entity Name : CRPII_FPGAFirmware_Release
+Family : Cyclone 10 LP
+Total logic elements : 964
+    Total combinational functions : 781
+    Dedicated logic registers : 572
+Total registers : 572
+Total pins : 54
+Total virtual pins : 0
+Total memory bits : 32,768
+Embedded Multiplier 9-bit elements : 0
+Total PLLs : 0

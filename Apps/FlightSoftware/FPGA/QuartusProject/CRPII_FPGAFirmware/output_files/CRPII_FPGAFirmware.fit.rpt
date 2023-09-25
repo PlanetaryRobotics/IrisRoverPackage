@@ -1,6 +1,6 @@
 Fitter report for CRPII_FPGAFirmware
-Sat Sep 23 16:21:28 2023
-Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
+Mon Sep 25 14:23:14 2023
+Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
 ---------------------
@@ -10,39 +10,40 @@ Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
   2. Fitter Summary
   3. Fitter Settings
   4. Parallel Compilation
-  5. Incremental Compilation Preservation Summary
-  6. Incremental Compilation Partition Settings
-  7. Incremental Compilation Placement Preservation
-  8. Pin-Out File
-  9. Fitter Resource Usage Summary
- 10. Fitter Partition Statistics
- 11. Input Pins
- 12. Output Pins
- 13. Dual Purpose and Dedicated Pins
- 14. I/O Bank Usage
- 15. All Package Pins
- 16. I/O Assignment Warnings
- 17. Fitter Resource Utilization by Entity
- 18. Delay Chain Summary
- 19. Pad To Core Delay Chain Fanout
- 20. Control Signals
- 21. Global & Other Fast Signals
- 22. Fitter RAM Summary
- 23. Routing Usage Summary
- 24. LAB Logic Elements
- 25. LAB-wide Signals
- 26. LAB Signals Sourced
- 27. LAB Signals Sourced Out
- 28. LAB Distinct Inputs
- 29. I/O Rules Summary
- 30. I/O Rules Details
- 31. I/O Rules Matrix
- 32. Fitter Device Options
- 33. Operating Settings and Conditions
- 34. Estimated Delay Added for Hold Timing Summary
- 35. Estimated Delay Added for Hold Timing Details
- 36. Fitter Messages
- 37. Fitter Suppressed Messages
+  5. Ignored Assignments
+  6. Incremental Compilation Preservation Summary
+  7. Incremental Compilation Partition Settings
+  8. Incremental Compilation Placement Preservation
+  9. Pin-Out File
+ 10. Fitter Resource Usage Summary
+ 11. Fitter Partition Statistics
+ 12. Input Pins
+ 13. Output Pins
+ 14. Dual Purpose and Dedicated Pins
+ 15. I/O Bank Usage
+ 16. All Package Pins
+ 17. I/O Assignment Warnings
+ 18. Fitter Resource Utilization by Entity
+ 19. Delay Chain Summary
+ 20. Pad To Core Delay Chain Fanout
+ 21. Control Signals
+ 22. Global & Other Fast Signals
+ 23. Fitter RAM Summary
+ 24. Routing Usage Summary
+ 25. LAB Logic Elements
+ 26. LAB-wide Signals
+ 27. LAB Signals Sourced
+ 28. LAB Signals Sourced Out
+ 29. LAB Distinct Inputs
+ 30. I/O Rules Summary
+ 31. I/O Rules Details
+ 32. I/O Rules Matrix
+ 33. Fitter Device Options
+ 34. Operating Settings and Conditions
+ 35. Estimated Delay Added for Hold Timing Summary
+ 36. Estimated Delay Added for Hold Timing Details
+ 37. Fitter Messages
+ 38. Fitter Suppressed Messages
 
 
 
@@ -66,26 +67,26 @@ https://fpgasoftware.intel.com/eula.
 
 
 
-+-----------------------------------------------------------------------------------------+
-; Fitter Summary                                                                          ;
-+------------------------------------+----------------------------------------------------+
-; Fitter Status                      ; Successful - Sat Sep 23 16:21:28 2023              ;
-; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Standard Edition ;
-; Revision Name                      ; CRPII_FPGAFirmware                                 ;
-; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                         ;
-; Family                             ; Cyclone 10 LP                                      ;
-; Device                             ; 10CL025YU256I7G                                    ;
-; Timing Models                      ; Final                                              ;
-; Total logic elements               ; 948 / 24,624 ( 4 % )                               ;
-;     Total combinational functions  ; 785 / 24,624 ( 3 % )                               ;
-;     Dedicated logic registers      ; 572 / 24,624 ( 2 % )                               ;
-; Total registers                    ; 572                                                ;
-; Total pins                         ; 54 / 151 ( 36 % )                                  ;
-; Total virtual pins                 ; 0                                                  ;
-; Total memory bits                  ; 32,768 / 608,256 ( 5 % )                           ;
-; Embedded Multiplier 9-bit elements ; 0 / 132 ( 0 % )                                    ;
-; Total PLLs                         ; 0 / 4 ( 0 % )                                      ;
-+------------------------------------+----------------------------------------------------+
++-------------------------------------------------------------------------------------+
+; Fitter Summary                                                                      ;
++------------------------------------+------------------------------------------------+
+; Fitter Status                      ; Successful - Mon Sep 25 14:23:14 2023          ;
+; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
+; Revision Name                      ; CRPII_FPGAFirmware                             ;
+; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                     ;
+; Family                             ; Cyclone 10 LP                                  ;
+; Device                             ; 10CL025YU256I7G                                ;
+; Timing Models                      ; Final                                          ;
+; Total logic elements               ; 948 / 24,624 ( 4 % )                           ;
+;     Total combinational functions  ; 785 / 24,624 ( 3 % )                           ;
+;     Dedicated logic registers      ; 572 / 24,624 ( 2 % )                           ;
+; Total registers                    ; 572                                            ;
+; Total pins                         ; 54 / 151 ( 36 % )                              ;
+; Total virtual pins                 ; 0                                              ;
+; Total memory bits                  ; 32,768 / 608,256 ( 5 % )                       ;
+; Embedded Multiplier 9-bit elements ; 0 / 132 ( 0 % )                                ;
+; Total PLLs                         ; 0 / 4 ( 0 % )                                  ;
++------------------------------------+------------------------------------------------+
 
 
 +----------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -156,15 +157,25 @@ https://fpgasoftware.intel.com/eula.
 ; Number detected on machine ; 8           ;
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
-; Average used               ; 1.13        ;
+; Average used               ; 1.14        ;
 ; Maximum used               ; 4           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   4.4%      ;
-;     Processor 3            ;   4.4%      ;
-;     Processor 4            ;   4.4%      ;
+;     Processor 2            ;   4.6%      ;
+;     Processor 3            ;   4.6%      ;
+;     Processor 4            ;   4.6%      ;
 +----------------------------+-------------+
+
+
++---------------------------------------------------------------------------------------------------------------+
+; Ignored Assignments                                                                                           ;
++--------------+----------------------------+--------------+-------------------+---------------+----------------+
+; Name         ; Ignored Entity             ; Ignored From ; Ignored To        ; Ignored Value ; Ignored Source ;
++--------------+----------------------------+--------------+-------------------+---------------+----------------+
+; I/O Standard ; CRPII_FPGAFirmware_Release ;              ; camera_1_pixel_in ; 3.3-V LVTTL   ; QSF Assignment ;
+; I/O Standard ; CRPII_FPGAFirmware_Release ;              ; camera_2_pixel_in ; 3.3-V LVTTL   ; QSF Assignment ;
++--------------+----------------------------+--------------+-------------------+---------------+----------------+
 
 
 +---------------------------------------------------------------------------------------------------+
@@ -205,7 +216,7 @@ https://fpgasoftware.intel.com/eula.
 +--------------+
 ; Pin-Out File ;
 +--------------+
-The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.pin.
+The pin-out file can be found in /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.pin.
 
 
 +------------------------------------------------------------------------+
@@ -337,36 +348,36 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 +-----------------------+-------+----------+--------------+--------------+--------------+-----------------------+--------------------+--------+----------------+---------------+-----------------+----------+--------------+--------------+---------------------------+----------------------+-----------+
 ; Name                  ; Pin # ; I/O Bank ; X coordinate ; Y coordinate ; Z coordinate ; Combinational Fan-Out ; Registered Fan-Out ; Global ; Input Register ; Power Up High ; PCI I/O Enabled ; Bus Hold ; Weak Pull Up ; I/O Standard ; Termination Control Block ; Location assigned by ; Slew Rate ;
 +-----------------------+-------+----------+--------------+--------------+--------------+-----------------------+--------------------+--------+----------------+---------------+-----------------+----------+--------------+--------------+---------------------------+----------------------+-----------+
-; camera_1_FV           ; C9    ; 7        ; 31           ; 34           ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_LV           ; A10   ; 7        ; 34           ; 34           ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_clock  ; D9    ; 7        ; 31           ; 34           ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[0]  ; B5    ; 8        ; 11           ; 34           ; 0            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[10] ; E9    ; 7        ; 29           ; 34           ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[11] ; C8    ; 8        ; 23           ; 34           ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[1]  ; A3    ; 8        ; 7            ; 34           ; 14           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[2]  ; D6    ; 8        ; 9            ; 34           ; 7            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[3]  ; A4    ; 8        ; 9            ; 34           ; 21           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[4]  ; E6    ; 8        ; 14           ; 34           ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[5]  ; B6    ; 8        ; 16           ; 34           ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[6]  ; D8    ; 8        ; 23           ; 34           ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[7]  ; B7    ; 8        ; 18           ; 34           ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[8]  ; A6    ; 8        ; 16           ; 34           ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_1_pixel_in[9]  ; A7    ; 8        ; 20           ; 34           ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_FV           ; R4    ; 3        ; 5            ; 0            ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_LV           ; T3    ; 3        ; 1            ; 0            ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_clock  ; T4    ; 3        ; 5            ; 0            ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[0]  ; P8    ; 3        ; 25           ; 0            ; 14           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[10] ; R5    ; 3        ; 14           ; 0            ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[11] ; N5    ; 3        ; 5            ; 0            ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[1]  ; M8    ; 3        ; 20           ; 0            ; 7            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[2]  ; N8    ; 3        ; 20           ; 0            ; 0            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[3]  ; T7    ; 3        ; 18           ; 0            ; 21           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[4]  ; R7    ; 3        ; 16           ; 0            ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[5]  ; M6    ; 3        ; 7            ; 0            ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[6]  ; T6    ; 3        ; 14           ; 0            ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[7]  ; N6    ; 3        ; 5            ; 0            ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[8]  ; T5    ; 3        ; 14           ; 0            ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
-; camera_2_pixel_in[9]  ; R6    ; 3        ; 14           ; 0            ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
+; camera_1_FV           ; C9    ; 7        ; 31           ; 34           ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_LV           ; A10   ; 7        ; 34           ; 34           ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_clock  ; D9    ; 7        ; 31           ; 34           ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[0]  ; B5    ; 8        ; 11           ; 34           ; 0            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[10] ; E9    ; 7        ; 29           ; 34           ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[11] ; C8    ; 8        ; 23           ; 34           ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[1]  ; A3    ; 8        ; 7            ; 34           ; 14           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[2]  ; D6    ; 8        ; 9            ; 34           ; 7            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[3]  ; A4    ; 8        ; 9            ; 34           ; 21           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[4]  ; E6    ; 8        ; 14           ; 34           ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[5]  ; B6    ; 8        ; 16           ; 34           ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[6]  ; D8    ; 8        ; 23           ; 34           ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[7]  ; B7    ; 8        ; 18           ; 34           ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[8]  ; A6    ; 8        ; 16           ; 34           ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_1_pixel_in[9]  ; A7    ; 8        ; 20           ; 34           ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_FV           ; R4    ; 3        ; 5            ; 0            ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_LV           ; T3    ; 3        ; 1            ; 0            ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_clock  ; T4    ; 3        ; 5            ; 0            ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[0]  ; P8    ; 3        ; 25           ; 0            ; 14           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[10] ; R5    ; 3        ; 14           ; 0            ; 21           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[11] ; N5    ; 3        ; 5            ; 0            ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[1]  ; M8    ; 3        ; 20           ; 0            ; 7            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[2]  ; N8    ; 3        ; 20           ; 0            ; 0            ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[3]  ; T7    ; 3        ; 18           ; 0            ; 21           ; 0                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[4]  ; R7    ; 3        ; 16           ; 0            ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[5]  ; M6    ; 3        ; 7            ; 0            ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[6]  ; T6    ; 3        ; 14           ; 0            ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[7]  ; N6    ; 3        ; 5            ; 0            ; 0            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[8]  ; T5    ; 3        ; 14           ; 0            ; 14           ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
+; camera_2_pixel_in[9]  ; R6    ; 3        ; 14           ; 0            ; 7            ; 1                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVTTL  ; --                        ; User                 ; no        ;
 ; camera_select         ; L4    ; 2        ; 0            ; 6            ; 14           ; 11                    ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
 ; clk                   ; E1    ; 1        ; 0            ; 16           ; 7            ; 219                   ; 0                  ; yes    ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
 ; flash_SO              ; D1    ; 1        ; 0            ; 25           ; 7            ; 2                     ; 0                  ; no     ; no             ; no            ; yes             ; no       ; Off          ; 3.3-V LVCMOS ; --                        ; User                 ; no        ;
@@ -384,12 +395,12 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; LED0                           ; L2    ; 2        ; 0            ; 11           ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
 ; LED1                           ; N1    ; 2        ; 0            ; 7            ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
 ; LED2                           ; K1    ; 2        ; 0            ; 12           ; 7            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
-; camera_1_reset_bar             ; B10   ; 7        ; 34           ; 34           ; 14           ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
-; camera_1_standby_bar           ; E11   ; 7        ; 45           ; 34           ; 7            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
-; camera_1_trigger               ; A11   ; 7        ; 40           ; 34           ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
-; camera_2_reset_bar             ; R3    ; 3        ; 1            ; 0            ; 7            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
-; camera_2_standby_bar           ; P3    ; 3        ; 1            ; 0            ; 14           ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
-; camera_2_trigger               ; T2    ; 3        ; 3            ; 0            ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
+; camera_1_reset_bar             ; B10   ; 7        ; 34           ; 34           ; 14           ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVTTL  ; 8mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
+; camera_1_standby_bar           ; E11   ; 7        ; 45           ; 34           ; 7            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVTTL  ; 8mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
+; camera_1_trigger               ; A11   ; 7        ; 40           ; 34           ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVTTL  ; 8mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
+; camera_2_reset_bar             ; R3    ; 3        ; 1            ; 0            ; 7            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVTTL  ; 8mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
+; camera_2_standby_bar           ; P3    ; 3        ; 1            ; 0            ; 14           ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVTTL  ; 8mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
+; camera_2_trigger               ; T2    ; 3        ; 3            ; 0            ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVTTL  ; 8mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
 ; flash_CS1                      ; C2    ; 1        ; 0            ; 27           ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
 ; flash_CS2                      ; C3    ; 8        ; 1            ; 34           ; 0            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
 ; flash_HOLD                     ; A2    ; 8        ; 7            ; 34           ; 7            ; no              ; no                     ; no            ; 2         ; no              ; no         ; no            ; no       ; Off          ; 3.3-V LVCMOS ; 2mA              ; Off         ; --                        ; no                         ; no                          ; User                 ; -                    ; -                   ;
@@ -448,15 +459,15 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 +----------+------------+----------+-----------------------------------------------------------+--------+--------------+---------+------------+-----------------+----------+--------------+
 ; A1       ;            ; 8        ; VCCIO8                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
 ; A2       ; 238        ; 8        ; flash_HOLD                                                ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; A3       ; 239        ; 8        ; camera_1_pixel_in[1]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; A4       ; 236        ; 8        ; camera_1_pixel_in[3]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; A3       ; 239        ; 8        ; camera_1_pixel_in[1]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; A4       ; 236        ; 8        ; camera_1_pixel_in[3]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; A5       ; 232        ; 8        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
-; A6       ; 225        ; 8        ; camera_1_pixel_in[8]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; A7       ; 220        ; 8        ; camera_1_pixel_in[9]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; A6       ; 225        ; 8        ; camera_1_pixel_in[8]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; A7       ; 220        ; 8        ; camera_1_pixel_in[9]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; A8       ; 211        ; 8        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; A9       ; 209        ; 7        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
-; A10      ; 198        ; 7        ; camera_1_LV                                               ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; A11      ; 188        ; 7        ; camera_1_trigger                                          ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; A10      ; 198        ; 7        ; camera_1_LV                                               ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; A11      ; 188        ; 7        ; camera_1_trigger                                          ; output ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; A12      ; 186        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; A13      ; 179        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; A14      ; 181        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
@@ -466,12 +477,12 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; B2       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; B3       ; 242        ; 8        ; flash_SI                                                  ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; B4       ; 237        ; 8        ; flash_SCK                                                 ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; B5       ; 233        ; 8        ; camera_1_pixel_in[0]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; B6       ; 226        ; 8        ; camera_1_pixel_in[5]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; B7       ; 221        ; 8        ; camera_1_pixel_in[7]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; B5       ; 233        ; 8        ; camera_1_pixel_in[0]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; B6       ; 226        ; 8        ; camera_1_pixel_in[5]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; B7       ; 221        ; 8        ; camera_1_pixel_in[7]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; B8       ; 212        ; 8        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; B9       ; 210        ; 7        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
-; B10      ; 199        ; 7        ; camera_1_reset_bar                                        ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; B10      ; 199        ; 7        ; camera_1_reset_bar                                        ; output ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; B11      ; 189        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; B12      ; 187        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; B13      ; 180        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
@@ -485,8 +496,8 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; C5       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; C6       ; 224        ; 8        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; C7       ;            ; 8        ; VCCIO8                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
-; C8       ; 215        ; 8        ; camera_1_pixel_in[11]                                     ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; C9       ; 200        ; 7        ; camera_1_FV                                               ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; C8       ; 215        ; 8        ; camera_1_pixel_in[11]                                     ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; C9       ; 200        ; 7        ; camera_1_FV                                               ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; C10      ;            ; 7        ; VCCIO7                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
 ; C11      ; 190        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; C12      ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
@@ -499,10 +510,10 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; D3       ; 246        ; 8        ; flash_WP                                                  ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; D4       ;            ;          ; VCCD_PLL3                                                 ; power  ;              ; 1.2V    ; --         ;                 ; --       ; --           ;
 ; D5       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
-; D6       ; 234        ; 8        ; camera_1_pixel_in[2]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; D6       ; 234        ; 8        ; camera_1_pixel_in[2]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; D7       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
-; D8       ; 216        ; 8        ; camera_1_pixel_in[6]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; D9       ; 201        ; 7        ; camera_1_pixel_clock                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; D8       ; 216        ; 8        ; camera_1_pixel_in[6]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; D9       ; 201        ; 7        ; camera_1_pixel_clock                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; D10      ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; D11      ; 177        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; D12      ; 178        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
@@ -515,12 +526,12 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; E3       ;            ; 1        ; VCCIO1                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
 ; E4       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; E5       ;            ;          ; GNDA3                                                     ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
-; E6       ; 231        ; 8        ; camera_1_pixel_in[4]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; E6       ; 231        ; 8        ; camera_1_pixel_in[4]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; E7       ; 227        ; 8        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; E8       ; 218        ; 8        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
-; E9       ; 205        ; 7        ; camera_1_pixel_in[10]                                     ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; E9       ; 205        ; 7        ; camera_1_pixel_in[10]                                     ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; E10      ; 184        ; 7        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
-; E11      ; 183        ; 7        ; camera_1_standby_bar                                      ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; E11      ; 183        ; 7        ; camera_1_standby_bar                                      ; output ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; E12      ;            ;          ; GNDA2                                                     ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; E13      ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; E14      ;            ; 6        ; VCCIO6                                                    ; power  ;              ; 2.5V    ; --         ;                 ; --       ; --           ;
@@ -628,9 +639,9 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; M3       ;            ; 2        ; VCCIO2                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
 ; M4       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; M5       ;            ;          ; GNDA1                                                     ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
-; M6       ; 64         ; 3        ; camera_2_pixel_in[5]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; M6       ; 64         ; 3        ; camera_2_pixel_in[5]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; M7       ; 68         ; 3        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
-; M8       ; 81         ; 3        ; camera_2_pixel_in[1]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; M8       ; 81         ; 3        ; camera_2_pixel_in[1]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; M9       ;            ;          ; VCCINT                                                    ; power  ;              ; 1.2V    ; --         ;                 ; --       ; --           ;
 ; M10      ; 111        ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; M11      ;            ;          ; VCCINT                                                    ; power  ;              ; 1.2V    ; --         ;                 ; --       ; --           ;
@@ -643,10 +654,10 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; N2       ; 43         ; 2        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Row I/O    ;                 ; no       ; On           ;
 ; N3       ; 52         ; 3        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; N4       ;            ;          ; VCCD_PLL1                                                 ; power  ;              ; 1.2V    ; --         ;                 ; --       ; --           ;
-; N5       ; 62         ; 3        ; camera_2_pixel_in[11]                                     ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; N6       ; 63         ; 3        ; camera_2_pixel_in[7]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; N5       ; 62         ; 3        ; camera_2_pixel_in[11]                                     ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; N6       ; 63         ; 3        ; camera_2_pixel_in[7]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; N7       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
-; N8       ; 82         ; 3        ; camera_2_pixel_in[2]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; N8       ; 82         ; 3        ; camera_2_pixel_in[2]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; N9       ; 93         ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; N10      ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; N11      ; 112        ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
@@ -657,12 +668,12 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; N16      ; 132        ; 5        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Row I/O    ;                 ; no       ; On           ;
 ; P1       ; 51         ; 2        ; flash_SPI_controller_indicator                            ; output ; 3.3-V LVCMOS ;         ; Row I/O    ; Y               ; no       ; Off          ;
 ; P2       ; 50         ; 2        ; hercules_SS                                               ; input  ; 3.3-V LVCMOS ;         ; Row I/O    ; Y               ; no       ; Off          ;
-; P3       ; 53         ; 3        ; camera_2_standby_bar                                      ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; P3       ; 53         ; 3        ; camera_2_standby_bar                                      ; output ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; P4       ;            ; 3        ; VCCIO3                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
 ; P5       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; P6       ; 67         ; 3        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; P7       ;            ; 3        ; VCCIO3                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
-; P8       ; 85         ; 3        ; camera_2_pixel_in[0]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; P8       ; 85         ; 3        ; camera_2_pixel_in[0]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; P9       ; 105        ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
 ; P10      ;            ; 4        ; VCCIO4                                                    ; power  ;              ; 2.5V    ; --         ;                 ; --       ; --           ;
 ; P11      ; 106        ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
@@ -673,11 +684,11 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; P16      ; 128        ; 5        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Row I/O    ;                 ; no       ; On           ;
 ; R1       ; 49         ; 2        ; hercules_SCK                                              ; input  ; 3.3-V LVCMOS ;         ; Row I/O    ; Y               ; no       ; Off          ;
 ; R2       ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
-; R3       ; 54         ; 3        ; camera_2_reset_bar                                        ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; R4       ; 60         ; 3        ; camera_2_FV                                               ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; R5       ; 71         ; 3        ; camera_2_pixel_in[10]                                     ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; R6       ; 73         ; 3        ; camera_2_pixel_in[9]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; R7       ; 76         ; 3        ; camera_2_pixel_in[4]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; R3       ; 54         ; 3        ; camera_2_reset_bar                                        ; output ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; R4       ; 60         ; 3        ; camera_2_FV                                               ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; R5       ; 71         ; 3        ; camera_2_pixel_in[10]                                     ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; R6       ; 73         ; 3        ; camera_2_pixel_in[9]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; R7       ; 76         ; 3        ; camera_2_pixel_in[4]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; R8       ; 86         ; 3        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; R9       ; 88         ; 4        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; R10      ; 96         ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
@@ -688,12 +699,12 @@ The pin-out file can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_
 ; R15      ;            ;          ; GND                                                       ; gnd    ;              ;         ; --         ;                 ; --       ; --           ;
 ; R16      ; 129        ; 5        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Row I/O    ;                 ; no       ; On           ;
 ; T1       ;            ; 3        ; VCCIO3                                                    ; power  ;              ; 3.3V    ; --         ;                 ; --       ; --           ;
-; T2       ; 59         ; 3        ; camera_2_trigger                                          ; output ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; T3       ; 55         ; 3        ; camera_2_LV                                               ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; T4       ; 61         ; 3        ; camera_2_pixel_clock                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; T5       ; 72         ; 3        ; camera_2_pixel_in[8]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; T6       ; 74         ; 3        ; camera_2_pixel_in[6]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
-; T7       ; 77         ; 3        ; camera_2_pixel_in[3]                                      ; input  ; 3.3-V LVCMOS ;         ; Column I/O ; Y               ; no       ; Off          ;
+; T2       ; 59         ; 3        ; camera_2_trigger                                          ; output ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; T3       ; 55         ; 3        ; camera_2_LV                                               ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; T4       ; 61         ; 3        ; camera_2_pixel_clock                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; T5       ; 72         ; 3        ; camera_2_pixel_in[8]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; T6       ; 74         ; 3        ; camera_2_pixel_in[6]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
+; T7       ; 77         ; 3        ; camera_2_pixel_in[3]                                      ; input  ; 3.3-V LVTTL  ;         ; Column I/O ; Y               ; no       ; Off          ;
 ; T8       ; 87         ; 3        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; T9       ; 89         ; 4        ; GND+                                                      ;        ;              ;         ; Column I/O ;                 ; --       ; --           ;
 ; T10      ; 97         ; 4        ; RESERVED_INPUT_WITH_WEAK_PULLUP                           ;        ;              ;         ; Column I/O ;                 ; no       ; On           ;
@@ -1482,6 +1493,7 @@ Info (119006): Selected device 10CL025YU256I7G for design "CRPII_FPGAFirmware"
 Info (21077): Low junction temperature is -40 degrees C
 Info (21077): High junction temperature is 100 degrees C
 Info (171003): Fitter is performing an Auto Fit compilation, which may decrease Fitter effort to reduce compilation time
+Warning (292013): Feature LogicLock is only available with a valid subscription license. You can purchase a software subscription to gain full access to this feature.
 Info (176444): Device migration not selected. If you intend to use device migration later, you may need to change the pin assignments as they may be incompatible with other devices
     Info (176445): Device 10CL006YU256A7G is compatible
     Info (176445): Device 10CL006YU256I7G is compatible
@@ -1508,67 +1520,67 @@ Info (332144): No user constrained base clocks found in the design
 Info (332143): No user constrained clock uncertainty found in the design. Calling "derive_clock_uncertainty"
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
 Info (332130): Timing requirements not specified -- quality metrics such as performance may be sacrificed to reduce compilation time.
-Info (176353): Automatically promoted node clk~input (placed in PIN E1 (CLK1, DIFFCLK_0n)) File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 6
+Info (176353): Automatically promoted node clk~input (placed in PIN E1 (CLK1, DIFFCLK_0n)) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 6
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G2
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_enable File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 62
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
-        Info (176357): Destination node done_waiting_for_fresh_frame File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 68
-Info (176353): Automatically promoted node hercules_SCK~input (placed in PIN R1 (CDPCLK1)) File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 9
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_enable File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 62
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
+        Info (176357): Destination node done_waiting_for_fresh_frame File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 68
+Info (176353): Automatically promoted node hercules_SCK~input (placed in PIN R1 (CDPCLK1)) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 9
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G4
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node flash_SCK~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 19
-Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 66
+        Info (176357): Destination node flash_SCK~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 19
+Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 66
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 66
-Info (176353): Automatically promoted node selected_camera_pixel_clock  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 93
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 66
+Info (176353): Automatically promoted node selected_camera_pixel_clock  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 93
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
-Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 57
-    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
-    Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node flash_SCK~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 19
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[3] File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[2] File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[1] File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[0] File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 57
-Info (176353): Automatically promoted node PP3_wrote_one_line  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 367
+Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 57
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node Selector137~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 376
-Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 21
+        Info (176357): Destination node flash_SCK~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 19
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[3] File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[2] File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[1] File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|nbit[0] File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 207
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 57
+Info (176353): Automatically promoted node PP3_wrote_one_line  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 367
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~2 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|reset_READ_ID_get_bytes_counter~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 149
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~5 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag~14 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag~25 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag~44 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector31~5 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector17~3 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node Selector137~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 376
+Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 21
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
+    Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~2 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|reset_READ_ID_get_bytes_counter~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 149
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector30~6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag~14 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag~25 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_multi_cycle_flag~44 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 58
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector31~5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector17~3 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
         Info (176358): Non-global destination nodes limited to 10 nodes
-Info (176353): Automatically promoted node PP3  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 232
+Info (176353): Automatically promoted node PP3  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 232
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector16~6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector11~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
-Info (176353): Automatically promoted node selected_camera_LV  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 95
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector16~6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector11~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 395
+Info (176353): Automatically promoted node selected_camera_LV  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 95
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|valid_wrreq~0 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_fmf1.tdf Line: 67
-        Info (176357): Destination node FIFO_write_enable File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 63
-Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|Selector7~0  File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 99
+        Info (176357): Destination node FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|valid_wrreq~0 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_fmf1.tdf Line: 67
+        Info (176357): Destination node FIFO_write_enable File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 63
+Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|Selector7~0  File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 99
     Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
     Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
-        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 66
+        Info (176357): Destination node S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 66
 Info (176233): Starting register packing
 Info (176235): Finished register packing
     Extra Info (176219): No registers were packed into other blocks
-Info (171121): Fitter preparation operations ending: elapsed time is 00:00:01
+Info (171121): Fitter preparation operations ending: elapsed time is 00:00:02
 Info (14896): Fitter has disabled Advanced Physical Optimization because it is not supported for the current family.
 Info (170189): Fitter placement preparation operations beginning
 Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:00
@@ -1581,60 +1593,61 @@ Info (170195): Router estimated average interconnect usage is 1% of the availabl
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
 Info (170194): Fitter routing operations ending: elapsed time is 00:00:03
-Info (11888): Total time spent on timing analysis during the Fitter is 0.89 seconds.
+Info (11888): Total time spent on timing analysis during the Fitter is 0.95 seconds.
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
 Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:01
+Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
 Warning (169177): 36 pins must meet Intel FPGA requirements for 3.3-, 3.0-, and 2.5-V interfaces. For more information, refer to AN 447: Interfacing Cyclone 10 LP Devices with 3.3/3.0/2.5-V LVTTL/LVCMOS I/O Systems.
-    Info (169178): Pin camera_1_pixel_in[0] uses I/O standard 3.3-V LVCMOS at B5 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_1_pixel_in[1] uses I/O standard 3.3-V LVCMOS at A3 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_1_pixel_in[2] uses I/O standard 3.3-V LVCMOS at D6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_1_pixel_in[3] uses I/O standard 3.3-V LVCMOS at A4 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[0] uses I/O standard 3.3-V LVCMOS at P8 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_2_pixel_in[1] uses I/O standard 3.3-V LVCMOS at M8 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_2_pixel_in[2] uses I/O standard 3.3-V LVCMOS at N8 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_2_pixel_in[3] uses I/O standard 3.3-V LVCMOS at T7 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin flash_SO uses I/O standard 3.3-V LVCMOS at D1 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 23
-    Info (169178): Pin hercules_SCK uses I/O standard 3.3-V LVCMOS at R1 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 9
-    Info (169178): Pin hercules_SS uses I/O standard 3.3-V LVCMOS at P2 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 10
-    Info (169178): Pin hercules_MOSI uses I/O standard 3.3-V LVCMOS at K2 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 11
-    Info (169178): Pin clk uses I/O standard 3.3-V LVCMOS at E1 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 6
-    Info (169178): Pin camera_2_pixel_clock uses I/O standard 3.3-V LVCMOS at T4 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 42
-    Info (169178): Pin camera_1_pixel_clock uses I/O standard 3.3-V LVCMOS at D9 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 33
-    Info (169178): Pin camera_select uses I/O standard 3.3-V LVCMOS at L4 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 28
-    Info (169178): Pin camera_2_LV uses I/O standard 3.3-V LVCMOS at T3 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 44
-    Info (169178): Pin camera_1_LV uses I/O standard 3.3-V LVCMOS at A10 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 35
-    Info (169178): Pin camera_2_FV uses I/O standard 3.3-V LVCMOS at R4 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 43
-    Info (169178): Pin camera_1_FV uses I/O standard 3.3-V LVCMOS at C9 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 34
-    Info (169178): Pin camera_1_pixel_in[11] uses I/O standard 3.3-V LVCMOS at C8 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[11] uses I/O standard 3.3-V LVCMOS at N5 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[10] uses I/O standard 3.3-V LVCMOS at E9 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[10] uses I/O standard 3.3-V LVCMOS at R5 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[9] uses I/O standard 3.3-V LVCMOS at A7 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[9] uses I/O standard 3.3-V LVCMOS at R6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[8] uses I/O standard 3.3-V LVCMOS at A6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[8] uses I/O standard 3.3-V LVCMOS at T5 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[7] uses I/O standard 3.3-V LVCMOS at B7 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[7] uses I/O standard 3.3-V LVCMOS at N6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[6] uses I/O standard 3.3-V LVCMOS at D8 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[6] uses I/O standard 3.3-V LVCMOS at T6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[5] uses I/O standard 3.3-V LVCMOS at B6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[5] uses I/O standard 3.3-V LVCMOS at M6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-    Info (169178): Pin camera_1_pixel_in[4] uses I/O standard 3.3-V LVCMOS at E6 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
-    Info (169178): Pin camera_2_pixel_in[4] uses I/O standard 3.3-V LVCMOS at R7 File: /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-Info (144001): Generated suppressed messages file /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.fit.smsg
-Info: Quartus Prime Fitter was successful. 0 errors, 5 warnings
+    Info (169178): Pin camera_1_pixel_in[0] uses I/O standard 3.3-V LVTTL at B5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_1_pixel_in[1] uses I/O standard 3.3-V LVTTL at A3 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_1_pixel_in[2] uses I/O standard 3.3-V LVTTL at D6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_1_pixel_in[3] uses I/O standard 3.3-V LVTTL at A4 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[0] uses I/O standard 3.3-V LVTTL at P8 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_2_pixel_in[1] uses I/O standard 3.3-V LVTTL at M8 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_2_pixel_in[2] uses I/O standard 3.3-V LVTTL at N8 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_2_pixel_in[3] uses I/O standard 3.3-V LVTTL at T7 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin flash_SO uses I/O standard 3.3-V LVCMOS at D1 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 23
+    Info (169178): Pin hercules_SCK uses I/O standard 3.3-V LVCMOS at R1 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 9
+    Info (169178): Pin hercules_SS uses I/O standard 3.3-V LVCMOS at P2 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 10
+    Info (169178): Pin hercules_MOSI uses I/O standard 3.3-V LVCMOS at K2 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 11
+    Info (169178): Pin clk uses I/O standard 3.3-V LVCMOS at E1 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 6
+    Info (169178): Pin camera_2_pixel_clock uses I/O standard 3.3-V LVTTL at T4 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 42
+    Info (169178): Pin camera_1_pixel_clock uses I/O standard 3.3-V LVTTL at D9 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 33
+    Info (169178): Pin camera_select uses I/O standard 3.3-V LVCMOS at L4 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 28
+    Info (169178): Pin camera_2_LV uses I/O standard 3.3-V LVTTL at T3 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 44
+    Info (169178): Pin camera_1_LV uses I/O standard 3.3-V LVTTL at A10 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 35
+    Info (169178): Pin camera_2_FV uses I/O standard 3.3-V LVTTL at R4 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 43
+    Info (169178): Pin camera_1_FV uses I/O standard 3.3-V LVTTL at C9 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 34
+    Info (169178): Pin camera_1_pixel_in[11] uses I/O standard 3.3-V LVTTL at C8 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[11] uses I/O standard 3.3-V LVTTL at N5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[10] uses I/O standard 3.3-V LVTTL at E9 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[10] uses I/O standard 3.3-V LVTTL at R5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[9] uses I/O standard 3.3-V LVTTL at A7 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[9] uses I/O standard 3.3-V LVTTL at R6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[8] uses I/O standard 3.3-V LVTTL at A6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[8] uses I/O standard 3.3-V LVTTL at T5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[7] uses I/O standard 3.3-V LVTTL at B7 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[7] uses I/O standard 3.3-V LVTTL at N6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[6] uses I/O standard 3.3-V LVTTL at D8 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[6] uses I/O standard 3.3-V LVTTL at T6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[5] uses I/O standard 3.3-V LVTTL at B6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[5] uses I/O standard 3.3-V LVTTL at M6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+    Info (169178): Pin camera_1_pixel_in[4] uses I/O standard 3.3-V LVTTL at E6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+    Info (169178): Pin camera_2_pixel_in[4] uses I/O standard 3.3-V LVTTL at R7 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
+Info (144001): Generated suppressed messages file /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.fit.smsg
+Info: Quartus Prime Fitter was successful. 0 errors, 7 warnings
     Info: Peak virtual memory: 952 megabytes
-    Info: Processing ended: Sat Sep 23 16:21:29 2023
+    Info: Processing ended: Mon Sep 25 14:23:14 2023
     Info: Elapsed time: 00:00:11
-    Info: Total CPU time (on all processors): 00:00:16
+    Info: Total CPU time (on all processors): 00:00:18
 
 
 +----------------------------+
 ; Fitter Suppressed Messages ;
 +----------------------------+
-The suppressed messages can be found in /home/iris/Downloads/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.fit.smsg.
+The suppressed messages can be found in /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.fit.smsg.
 
 

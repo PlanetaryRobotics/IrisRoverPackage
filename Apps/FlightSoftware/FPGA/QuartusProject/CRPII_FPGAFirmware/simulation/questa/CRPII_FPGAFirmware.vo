@@ -15,9 +15,9 @@
 
 // VENDOR "Altera"
 // PROGRAM "Quartus Prime"
-// VERSION "Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition"
+// VERSION "Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition"
 
-// DATE "09/23/2023 16:21:36"
+// DATE "09/25/2023 14:23:23"
 
 // 
 // Device: Altera 10CL025YU256I7G Package UFBGA256
@@ -105,20 +105,20 @@ output 	LED2;
 // flash_SI	=>  Location: PIN_B3,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
 // flash_WP	=>  Location: PIN_D3,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
 // flash_HOLD	=>  Location: PIN_A2,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_1_reset_bar	=>  Location: PIN_B10,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_1_standby_bar	=>  Location: PIN_E11,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_1_trigger	=>  Location: PIN_A11,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_1_pixel_in[0]	=>  Location: PIN_B5,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[1]	=>  Location: PIN_A3,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[2]	=>  Location: PIN_D6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[3]	=>  Location: PIN_A4,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_reset_bar	=>  Location: PIN_R3,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_2_standby_bar	=>  Location: PIN_P3,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_2_trigger	=>  Location: PIN_T2,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
-// camera_2_pixel_in[0]	=>  Location: PIN_P8,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[1]	=>  Location: PIN_M8,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[2]	=>  Location: PIN_N8,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[3]	=>  Location: PIN_T7,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
+// camera_1_reset_bar	=>  Location: PIN_B10,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// camera_1_standby_bar	=>  Location: PIN_E11,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// camera_1_trigger	=>  Location: PIN_A11,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// camera_1_pixel_in[0]	=>  Location: PIN_B5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[1]	=>  Location: PIN_A3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[2]	=>  Location: PIN_D6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[3]	=>  Location: PIN_A4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_reset_bar	=>  Location: PIN_R3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// camera_2_standby_bar	=>  Location: PIN_P3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// camera_2_trigger	=>  Location: PIN_T2,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: 8mA
+// camera_2_pixel_in[0]	=>  Location: PIN_P8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[1]	=>  Location: PIN_M8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[2]	=>  Location: PIN_N8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[3]	=>  Location: PIN_T7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
 // LED0	=>  Location: PIN_L2,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
 // LED1	=>  Location: PIN_N1,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
 // LED2	=>  Location: PIN_K1,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: 2mA
@@ -127,29 +127,29 @@ output 	LED2;
 // hercules_SS	=>  Location: PIN_P2,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
 // hercules_MOSI	=>  Location: PIN_K2,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
 // clk	=>  Location: PIN_E1,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_clock	=>  Location: PIN_T4,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_clock	=>  Location: PIN_D9,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
+// camera_2_pixel_clock	=>  Location: PIN_T4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_clock	=>  Location: PIN_D9,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
 // camera_select	=>  Location: PIN_L4,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_LV	=>  Location: PIN_T3,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_LV	=>  Location: PIN_A10,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_FV	=>  Location: PIN_R4,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_FV	=>  Location: PIN_C9,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[11]	=>  Location: PIN_C8,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[11]	=>  Location: PIN_N5,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[10]	=>  Location: PIN_E9,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[10]	=>  Location: PIN_R5,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[9]	=>  Location: PIN_A7,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[9]	=>  Location: PIN_R6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[8]	=>  Location: PIN_A6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[8]	=>  Location: PIN_T5,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[7]	=>  Location: PIN_B7,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[7]	=>  Location: PIN_N6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[6]	=>  Location: PIN_D8,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[6]	=>  Location: PIN_T6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[5]	=>  Location: PIN_B6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[5]	=>  Location: PIN_M6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_1_pixel_in[4]	=>  Location: PIN_E6,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
-// camera_2_pixel_in[4]	=>  Location: PIN_R7,	 I/O Standard: 3.3-V LVCMOS,	 Current Strength: Default
+// camera_2_LV	=>  Location: PIN_T3,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_LV	=>  Location: PIN_A10,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_FV	=>  Location: PIN_R4,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_FV	=>  Location: PIN_C9,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[11]	=>  Location: PIN_C8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[11]	=>  Location: PIN_N5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[10]	=>  Location: PIN_E9,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[10]	=>  Location: PIN_R5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[9]	=>  Location: PIN_A7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[9]	=>  Location: PIN_R6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[8]	=>  Location: PIN_A6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[8]	=>  Location: PIN_T5,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[7]	=>  Location: PIN_B7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[7]	=>  Location: PIN_N6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[6]	=>  Location: PIN_D8,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[6]	=>  Location: PIN_T6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[5]	=>  Location: PIN_B6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[5]	=>  Location: PIN_M6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_1_pixel_in[4]	=>  Location: PIN_E6,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
+// camera_2_pixel_in[4]	=>  Location: PIN_R7,	 I/O Standard: 3.3-V LVTTL,	 Current Strength: Default
 
 
 wire gnd;

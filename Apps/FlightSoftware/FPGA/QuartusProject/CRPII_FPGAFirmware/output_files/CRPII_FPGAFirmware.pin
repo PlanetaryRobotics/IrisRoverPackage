@@ -64,22 +64,22 @@
  -- Pin directions (input, output or bidir) are based on device operating in user mode.
  ---------------------------------------------------------------------------------
 
-Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
+Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 CHIP  "CRPII_FPGAFirmware"  ASSIGNED TO AN: 10CL025YU256I7G
 
 Pin Name/Usage               : Location  : Dir.   : I/O Standard      : Voltage : I/O Bank  : User Assignment
 -------------------------------------------------------------------------------------------------------------
 VCCIO8                       : A1        : power  :                   : 3.3V    : 8         :                
 flash_HOLD                   : A2        : output : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_in[1]         : A3        : input  : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_in[3]         : A4        : input  : 3.3-V LVCMOS      :         : 8         : Y              
+camera_1_pixel_in[1]         : A3        : input  : 3.3-V LVTTL       :         : 8         : Y              
+camera_1_pixel_in[3]         : A4        : input  : 3.3-V LVTTL       :         : 8         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : A5        :        :                   :         : 8         :                
-camera_1_pixel_in[8]         : A6        : input  : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_in[9]         : A7        : input  : 3.3-V LVCMOS      :         : 8         : Y              
+camera_1_pixel_in[8]         : A6        : input  : 3.3-V LVTTL       :         : 8         : Y              
+camera_1_pixel_in[9]         : A7        : input  : 3.3-V LVTTL       :         : 8         : Y              
 GND+                         : A8        :        :                   :         : 8         :                
 GND+                         : A9        :        :                   :         : 7         :                
-camera_1_LV                  : A10       : input  : 3.3-V LVCMOS      :         : 7         : Y              
-camera_1_trigger             : A11       : output : 3.3-V LVCMOS      :         : 7         : Y              
+camera_1_LV                  : A10       : input  : 3.3-V LVTTL       :         : 7         : Y              
+camera_1_trigger             : A11       : output : 3.3-V LVTTL       :         : 7         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : A12       :        :                   :         : 7         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : A13       :        :                   :         : 7         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : A14       :        :                   :         : 7         :                
@@ -89,12 +89,12 @@ flash_reset                  : B1        : output : 3.3-V LVCMOS      :         
 GND                          : B2        : gnd    :                   :         :           :                
 flash_SI                     : B3        : output : 3.3-V LVCMOS      :         : 8         : Y              
 flash_SCK                    : B4        : output : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_in[0]         : B5        : input  : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_in[5]         : B6        : input  : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_in[7]         : B7        : input  : 3.3-V LVCMOS      :         : 8         : Y              
+camera_1_pixel_in[0]         : B5        : input  : 3.3-V LVTTL       :         : 8         : Y              
+camera_1_pixel_in[5]         : B6        : input  : 3.3-V LVTTL       :         : 8         : Y              
+camera_1_pixel_in[7]         : B7        : input  : 3.3-V LVTTL       :         : 8         : Y              
 GND+                         : B8        :        :                   :         : 8         :                
 GND+                         : B9        :        :                   :         : 7         :                
-camera_1_reset_bar           : B10       : output : 3.3-V LVCMOS      :         : 7         : Y              
+camera_1_reset_bar           : B10       : output : 3.3-V LVTTL       :         : 7         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : B11       :        :                   :         : 7         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : B12       :        :                   :         : 7         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : B13       :        :                   :         : 7         :                
@@ -108,8 +108,8 @@ VCCIO8                       : C4        : power  :                   : 3.3V    
 GND                          : C5        : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : C6        :        :                   :         : 8         :                
 VCCIO8                       : C7        : power  :                   : 3.3V    : 8         :                
-camera_1_pixel_in[11]        : C8        : input  : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_FV                  : C9        : input  : 3.3-V LVCMOS      :         : 7         : Y              
+camera_1_pixel_in[11]        : C8        : input  : 3.3-V LVTTL       :         : 8         : Y              
+camera_1_FV                  : C9        : input  : 3.3-V LVTTL       :         : 7         : Y              
 VCCIO7                       : C10       : power  :                   : 3.3V    : 7         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : C11       :        :                   :         : 7         :                
 GND                          : C12       : gnd    :                   :         :           :                
@@ -122,10 +122,10 @@ flash_SO                     : D1        : input  : 3.3-V LVCMOS      :         
 flash_WP                     : D3        : output : 3.3-V LVCMOS      :         : 8         : Y              
 VCCD_PLL3                    : D4        : power  :                   : 1.2V    :           :                
 GND                          : D5        : gnd    :                   :         :           :                
-camera_1_pixel_in[2]         : D6        : input  : 3.3-V LVCMOS      :         : 8         : Y              
+camera_1_pixel_in[2]         : D6        : input  : 3.3-V LVTTL       :         : 8         : Y              
 GND                          : D7        : gnd    :                   :         :           :                
-camera_1_pixel_in[6]         : D8        : input  : 3.3-V LVCMOS      :         : 8         : Y              
-camera_1_pixel_clock         : D9        : input  : 3.3-V LVCMOS      :         : 7         : Y              
+camera_1_pixel_in[6]         : D8        : input  : 3.3-V LVTTL       :         : 8         : Y              
+camera_1_pixel_clock         : D9        : input  : 3.3-V LVTTL       :         : 7         : Y              
 GND                          : D10       : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : D11       :        :                   :         : 7         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : D12       :        :                   :         : 7         :                
@@ -138,12 +138,12 @@ GND+                         : E2        :        :                   :         
 VCCIO1                       : E3        : power  :                   : 3.3V    : 1         :                
 GND                          : E4        : gnd    :                   :         :           :                
 GNDA3                        : E5        : gnd    :                   :         :           :                
-camera_1_pixel_in[4]         : E6        : input  : 3.3-V LVCMOS      :         : 8         : Y              
+camera_1_pixel_in[4]         : E6        : input  : 3.3-V LVTTL       :         : 8         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : E7        :        :                   :         : 8         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : E8        :        :                   :         : 8         :                
-camera_1_pixel_in[10]        : E9        : input  : 3.3-V LVCMOS      :         : 7         : Y              
+camera_1_pixel_in[10]        : E9        : input  : 3.3-V LVTTL       :         : 7         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : E10       :        :                   :         : 7         :                
-camera_1_standby_bar         : E11       : output : 3.3-V LVCMOS      :         : 7         : Y              
+camera_1_standby_bar         : E11       : output : 3.3-V LVTTL       :         : 7         : Y              
 GNDA2                        : E12       : gnd    :                   :         :           :                
 GND                          : E13       : gnd    :                   :         :           :                
 VCCIO6                       : E14       : power  :                   : 2.5V    : 6         :                
@@ -250,9 +250,9 @@ GND+                         : M2        :        :                   :         
 VCCIO2                       : M3        : power  :                   : 3.3V    : 2         :                
 GND                          : M4        : gnd    :                   :         :           :                
 GNDA1                        : M5        : gnd    :                   :         :           :                
-camera_2_pixel_in[5]         : M6        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_pixel_in[5]         : M6        : input  : 3.3-V LVTTL       :         : 3         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : M7        :        :                   :         : 3         :                
-camera_2_pixel_in[1]         : M8        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_pixel_in[1]         : M8        : input  : 3.3-V LVTTL       :         : 3         : Y              
 VCCINT                       : M9        : power  :                   : 1.2V    :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : M10       :        :                   :         : 4         :                
 VCCINT                       : M11       : power  :                   : 1.2V    :           :                
@@ -265,10 +265,10 @@ LED1                         : N1        : output : 3.3-V LVCMOS      :         
 RESERVED_INPUT_WITH_WEAK_PULLUP : N2        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : N3        :        :                   :         : 3         :                
 VCCD_PLL1                    : N4        : power  :                   : 1.2V    :           :                
-camera_2_pixel_in[11]        : N5        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[7]         : N6        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_pixel_in[11]        : N5        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[7]         : N6        : input  : 3.3-V LVTTL       :         : 3         : Y              
 GND                          : N7        : gnd    :                   :         :           :                
-camera_2_pixel_in[2]         : N8        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_pixel_in[2]         : N8        : input  : 3.3-V LVTTL       :         : 3         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : N9        :        :                   :         : 4         :                
 GND                          : N10       : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : N11       :        :                   :         : 4         :                
@@ -279,12 +279,12 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : N15       :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : N16       :        :                   :         : 5         :                
 flash_SPI_controller_indicator : P1        : output : 3.3-V LVCMOS      :         : 2         : Y              
 hercules_SS                  : P2        : input  : 3.3-V LVCMOS      :         : 2         : Y              
-camera_2_standby_bar         : P3        : output : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_standby_bar         : P3        : output : 3.3-V LVTTL       :         : 3         : Y              
 VCCIO3                       : P4        : power  :                   : 3.3V    : 3         :                
 GND                          : P5        : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : P6        :        :                   :         : 3         :                
 VCCIO3                       : P7        : power  :                   : 3.3V    : 3         :                
-camera_2_pixel_in[0]         : P8        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_pixel_in[0]         : P8        : input  : 3.3-V LVTTL       :         : 3         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : P9        :        :                   :         : 4         :                
 VCCIO4                       : P10       : power  :                   : 2.5V    : 4         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : P11       :        :                   :         : 4         :                
@@ -295,11 +295,11 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : P15       :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : P16       :        :                   :         : 5         :                
 hercules_SCK                 : R1        : input  : 3.3-V LVCMOS      :         : 2         : Y              
 GND                          : R2        : gnd    :                   :         :           :                
-camera_2_reset_bar           : R3        : output : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_FV                  : R4        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[10]        : R5        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[9]         : R6        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[4]         : R7        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_reset_bar           : R3        : output : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_FV                  : R4        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[10]        : R5        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[9]         : R6        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[4]         : R7        : input  : 3.3-V LVTTL       :         : 3         : Y              
 GND+                         : R8        :        :                   :         : 3         :                
 GND+                         : R9        :        :                   :         : 4         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : R10       :        :                   :         : 4         :                
@@ -310,12 +310,12 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : R14       :        :                   :      
 GND                          : R15       : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : R16       :        :                   :         : 5         :                
 VCCIO3                       : T1        : power  :                   : 3.3V    : 3         :                
-camera_2_trigger             : T2        : output : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_LV                  : T3        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_clock         : T4        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[8]         : T5        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[6]         : T6        : input  : 3.3-V LVCMOS      :         : 3         : Y              
-camera_2_pixel_in[3]         : T7        : input  : 3.3-V LVCMOS      :         : 3         : Y              
+camera_2_trigger             : T2        : output : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_LV                  : T3        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_clock         : T4        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[8]         : T5        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[6]         : T6        : input  : 3.3-V LVTTL       :         : 3         : Y              
+camera_2_pixel_in[3]         : T7        : input  : 3.3-V LVTTL       :         : 3         : Y              
 GND+                         : T8        :        :                   :         : 3         :                
 GND+                         : T9        :        :                   :         : 4         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : T10       :        :                   :         : 4         :                

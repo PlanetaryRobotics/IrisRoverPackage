@@ -287,7 +287,7 @@ If you're testing your own new IPC app:
    - Set the IP to the lander IP (`192.168.10.105`)
    - Click `Renew DHCP Lease` then `Apply` in the popup then `OK` to close the window.
 1. Start recording all incoming wifi packets using WireShark.
-2. Start listening for packets (either using a `WifiTransceiver` or `Iris Console` (`make console`)).
+2. Start listening for packets (either using a `WifiTransceiver` (`make xcvr-wifi`) or `Iris Console` (`make console`)).
 3. THEN, with a lander present, power on the rover and wait for it to auto-connect to wifi (once in mission mode).
 4. Take an image (`select-cam-X-wifi` > `take-image-X-wifi`, the non-wifi versions are also acceptable).
 5. Wait.

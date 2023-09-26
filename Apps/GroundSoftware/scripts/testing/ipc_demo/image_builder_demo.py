@@ -15,7 +15,7 @@ PCAP using a PcapTransceiver:
 ```
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/17/2023
+@last-updated: 09/26/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -653,7 +653,9 @@ class Image:
         self,
         pad_byte: bytes = b'\x00',  # Easier to see with 0x00 than 0xAA or 0xFF
         interpolate_unknown: bool = True,
-        interactive_plot_result: bool = False
+        interactive_plot_result: bool = False,
+        fg_idx_min: int | None = None,
+        fg_idx_max: int | None = None
     ) -> np.ndarray:
         """Builds an interim version of the Image as a numpy array from interim
         data (a possibly incomplete dataset). This is designed to act as visual
@@ -662,6 +664,10 @@ class Image:
         If `interpolate_unknown`, any cells where no valid data exists will be
         interpolated from adjacent cells (otherwise, just `pad_byte` will be
         used).
+
+        If fg_idx of a line is outside of the inclusive bounds [fg_idx_min,
+        fg_idx_max], it'll be ignored (useful for turning one full image of 7
+        frames into 7 images).
 
         TODO: Figure out how to update this when we move to partial image
         downlinks (crops and sub/downsampling) with file slice summary logs.
@@ -682,6 +688,10 @@ class Image:
         # NOTE: The mask is automatically updated based on cells used.
         line_data: bytes
         for fg_idx, line in self.lines_in_progress.items():
+            if fg_idx_min is not None and fg_idx < fg_idx_min:
+                continue
+            if fg_idx_max is not None and fg_idx > fg_idx_max:
+                continue
             img_idx = self.fg_to_img_line_idx(fg_idx)
             if img_idx is None:
                 # Skip. Don't add this line to the image (it's out-of-bounds):

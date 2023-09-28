@@ -1,5 +1,5 @@
 Analysis & Synthesis report for CRPII_FPGAFirmware
-Thu Sep 28 18:13:49 2023
+Thu Sep 28 18:20:47 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -28,14 +28,14 @@ Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
  20. Inverted Register Statistics
  21. Multiplexer Restructuring Statistics (Restructuring Performed)
  22. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component
- 23. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated
- 24. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_2p6:rdptr_g1p
- 25. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_u6c:wrptr_g1p
- 26. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram
- 27. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp
- 28. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14
- 29. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp
- 30. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22
+ 23. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated
+ 24. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p
+ 25. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_u6c:wrptr_g1p
+ 26. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram
+ 27. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp
+ 28. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5
+ 29. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp
+ 30. Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8
  31. Parameter Settings for User Entity Instance: Top-level Entity: |CRPII_FPGAFirmware_Release
  32. Parameter Settings for User Entity Instance: PLL:PLL|altpll:altpll_component
  33. Parameter Settings for User Entity Instance: S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem
@@ -77,15 +77,15 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                        ;
 +------------------------------------+------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Thu Sep 28 18:13:49 2023          ;
+; Analysis & Synthesis Status        ; Successful - Thu Sep 28 18:20:47 2023          ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
 ; Revision Name                      ; CRPII_FPGAFirmware                             ;
 ; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                     ;
 ; Family                             ; Cyclone 10 LP                                  ;
-; Total logic elements               ; 1,202                                          ;
-;     Total combinational functions  ; 845                                            ;
-;     Dedicated logic registers      ; 769                                            ;
-; Total registers                    ; 769                                            ;
+; Total logic elements               ; 1,018                                          ;
+;     Total combinational functions  ; 821                                            ;
+;     Dedicated logic registers      ; 605                                            ;
+; Total registers                    ; 605                                            ;
 ; Total pins                         ; 54                                             ;
 ; Total virtual pins                 ; 0                                              ;
 ; Total memory bits                  ; 262,144                                        ;
@@ -227,19 +227,18 @@ https://fpgasoftware.intel.com/eula.
 ; alt_sync_fifo.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/alt_sync_fifo.inc                                                                                                     ;         ;
 ; lpm_compare.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/lpm_compare.inc                                                                                                       ;         ;
 ; altsyncram_fifo.inc                                               ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/altsyncram_fifo.inc                                                                                                   ;         ;
-; db/dcfifo_9of1.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf                                                ;         ;
+; db/dcfifo_flf1.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf                                                ;         ;
 ; db/a_graycounter_2p6.tdf                                          ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_2p6.tdf                                          ;         ;
 ; db/a_graycounter_u6c.tdf                                          ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_u6c.tdf                                          ;         ;
 ; db/altsyncram_g421.tdf                                            ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf                                            ;         ;
 ; db/decode_687.tdf                                                 ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/decode_687.tdf                                                 ;         ;
 ; db/decode_vj6.tdf                                                 ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/decode_vj6.tdf                                                 ;         ;
 ; db/mux_m28.tdf                                                    ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/mux_m28.tdf                                                    ;         ;
-; db/alt_synch_pipe_4bl.tdf                                         ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_4bl.tdf                                         ;         ;
-; db/dffpipe_l09.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_l09.tdf                                                ;         ;
-; db/alt_synch_pipe_5bl.tdf                                         ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_5bl.tdf                                         ;         ;
-; db/dffpipe_m09.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_m09.tdf                                                ;         ;
-; db/cmpr_766.tdf                                                   ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/cmpr_766.tdf                                                   ;         ;
-; db/mux_c28.tdf                                                    ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/mux_c28.tdf                                                    ;         ;
+; db/alt_synch_pipe_val.tdf                                         ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_val.tdf                                         ;         ;
+; db/dffpipe_g09.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_g09.tdf                                                ;         ;
+; db/alt_synch_pipe_0bl.tdf                                         ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_0bl.tdf                                         ;         ;
+; db/dffpipe_h09.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_h09.tdf                                                ;         ;
+; db/cmpr_m76.tdf                                                   ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/cmpr_m76.tdf                                                   ;         ;
 +-------------------------------------------------------------------+-----------------+------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------+
 
 
@@ -248,20 +247,20 @@ https://fpgasoftware.intel.com/eula.
 +---------------------------------------------+-----------------------------------------------------------------------------+
 ; Resource                                    ; Usage                                                                       ;
 +---------------------------------------------+-----------------------------------------------------------------------------+
-; Estimated Total logic elements              ; 1,202                                                                       ;
+; Estimated Total logic elements              ; 1,018                                                                       ;
 ;                                             ;                                                                             ;
-; Total combinational functions               ; 845                                                                         ;
+; Total combinational functions               ; 821                                                                         ;
 ; Logic element usage by number of LUT inputs ;                                                                             ;
-;     -- 4 input functions                    ; 422                                                                         ;
-;     -- 3 input functions                    ; 144                                                                         ;
-;     -- <=2 input functions                  ; 279                                                                         ;
+;     -- 4 input functions                    ; 401                                                                         ;
+;     -- 3 input functions                    ; 140                                                                         ;
+;     -- <=2 input functions                  ; 280                                                                         ;
 ;                                             ;                                                                             ;
 ; Logic elements by mode                      ;                                                                             ;
-;     -- normal mode                          ; 655                                                                         ;
+;     -- normal mode                          ; 631                                                                         ;
 ;     -- arithmetic mode                      ; 190                                                                         ;
 ;                                             ;                                                                             ;
-; Total registers                             ; 769                                                                         ;
-;     -- Dedicated logic registers            ; 769                                                                         ;
+; Total registers                             ; 605                                                                         ;
+;     -- Dedicated logic registers            ; 605                                                                         ;
 ;     -- I/O registers                        ; 0                                                                           ;
 ;                                             ;                                                                             ;
 ; I/O pins                                    ; 54                                                                          ;
@@ -270,9 +269,9 @@ https://fpgasoftware.intel.com/eula.
 ; Embedded Multiplier 9-bit elements          ; 0                                                                           ;
 ;                                             ;                                                                             ;
 ; Maximum fan-out node                        ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done ;
-; Maximum fan-out                             ; 348                                                                         ;
-; Total fan-out                               ; 5836                                                                        ;
-; Average fan-out                             ; 3.33                                                                        ;
+; Maximum fan-out                             ; 266                                                                         ;
+; Total fan-out                               ; 5414                                                                        ;
+; Average fan-out                             ; 3.46                                                                        ;
 +---------------------------------------------+-----------------------------------------------------------------------------+
 
 
@@ -281,24 +280,22 @@ https://fpgasoftware.intel.com/eula.
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
 ; Compilation Hierarchy Node                                   ; Combinational ALUTs ; Dedicated Logic Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                            ; Entity Name                                   ; Library Name ;
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
-; |CRPII_FPGAFirmware_Release                                  ; 845 (322)           ; 769 (209)                 ; 262144      ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                    ; CRPII_FPGAFirmware_Release                    ; work         ;
-;    |FIFO:CAM_FIFO|                                           ; 140 (0)             ; 324 (0)                   ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO                                                                                                      ; FIFO                                          ; work         ;
-;       |dcfifo:dcfifo_component|                              ; 140 (0)             ; 324 (0)                   ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component                                                                              ; dcfifo                                        ; work         ;
-;          |dcfifo_9of1:auto_generated|                        ; 140 (5)             ; 324 (52)                  ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated                                                   ; dcfifo_9of1                                   ; work         ;
-;             |a_graycounter_2p6:rdptr_g1p|                    ; 33 (33)             ; 21 (21)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_2p6:rdptr_g1p                       ; a_graycounter_2p6                             ; work         ;
-;             |a_graycounter_u6c:wrptr_g1p|                    ; 31 (31)             ; 21 (21)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_u6c:wrptr_g1p                       ; a_graycounter_u6c                             ; work         ;
-;             |alt_synch_pipe_4bl:rs_dgwp|                     ; 0 (0)               ; 112 (0)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp                        ; alt_synch_pipe_4bl                            ; work         ;
-;                |dffpipe_l09:dffpipe14|                       ; 0 (0)               ; 112 (112)                 ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14  ; dffpipe_l09                                   ; work         ;
-;             |alt_synch_pipe_5bl:ws_dgrp|                     ; 0 (0)               ; 112 (0)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp                        ; alt_synch_pipe_5bl                            ; work         ;
-;                |dffpipe_m09:dffpipe22|                       ; 0 (0)               ; 112 (112)                 ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22  ; dffpipe_m09                                   ; work         ;
-;             |altsyncram_g421:fifo_ram|                       ; 27 (3)              ; 6 (6)                     ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram                          ; altsyncram_g421                               ; work         ;
-;                |decode_687:decode12|                         ; 4 (4)               ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|decode_687:decode12      ; decode_687                                    ; work         ;
-;                |decode_vj6:rden_decode_b|                    ; 4 (4)               ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|decode_vj6:rden_decode_b ; decode_vj6                                    ; work         ;
-;                |mux_m28:mux13|                               ; 16 (16)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|mux_m28:mux13            ; mux_m28                                       ; work         ;
-;             |mux_c28:rdemp_eq_comp_lsb_mux|                  ; 11 (11)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|mux_c28:rdemp_eq_comp_lsb_mux                     ; mux_c28                                       ; work         ;
-;             |mux_c28:rdemp_eq_comp_msb_mux|                  ; 11 (11)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|mux_c28:rdemp_eq_comp_msb_mux                     ; mux_c28                                       ; work         ;
-;             |mux_c28:wrfull_eq_comp_lsb_mux|                 ; 11 (11)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|mux_c28:wrfull_eq_comp_lsb_mux                    ; mux_c28                                       ; work         ;
-;             |mux_c28:wrfull_eq_comp_msb_mux|                 ; 11 (11)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|mux_c28:wrfull_eq_comp_msb_mux                    ; mux_c28                                       ; work         ;
+; |CRPII_FPGAFirmware_Release                                  ; 821 (322)           ; 605 (209)                 ; 262144      ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                    ; CRPII_FPGAFirmware_Release                    ; work         ;
+;    |FIFO:CAM_FIFO|                                           ; 116 (0)             ; 160 (0)                   ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO                                                                                                      ; FIFO                                          ; work         ;
+;       |dcfifo:dcfifo_component|                              ; 116 (0)             ; 160 (0)                   ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component                                                                              ; dcfifo                                        ; work         ;
+;          |dcfifo_flf1:auto_generated|                        ; 116 (5)             ; 160 (48)                  ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated                                                   ; dcfifo_flf1                                   ; work         ;
+;             |a_graycounter_2p6:rdptr_g1p|                    ; 33 (33)             ; 21 (21)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p                       ; a_graycounter_2p6                             ; work         ;
+;             |a_graycounter_u6c:wrptr_g1p|                    ; 31 (31)             ; 21 (21)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_u6c:wrptr_g1p                       ; a_graycounter_u6c                             ; work         ;
+;             |alt_synch_pipe_0bl:ws_dgrp|                     ; 0 (0)               ; 32 (0)                    ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp                        ; alt_synch_pipe_0bl                            ; work         ;
+;                |dffpipe_h09:dffpipe8|                        ; 0 (0)               ; 32 (32)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8   ; dffpipe_h09                                   ; work         ;
+;             |alt_synch_pipe_val:rs_dgwp|                     ; 0 (0)               ; 32 (0)                    ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp                        ; alt_synch_pipe_val                            ; work         ;
+;                |dffpipe_g09:dffpipe5|                        ; 0 (0)               ; 32 (32)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5   ; dffpipe_g09                                   ; work         ;
+;             |altsyncram_g421:fifo_ram|                       ; 27 (3)              ; 6 (6)                     ; 262144      ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram                          ; altsyncram_g421                               ; work         ;
+;                |decode_687:decode12|                         ; 4 (4)               ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|decode_687:decode12      ; decode_687                                    ; work         ;
+;                |decode_vj6:rden_decode_b|                    ; 4 (4)               ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|decode_vj6:rden_decode_b ; decode_vj6                                    ; work         ;
+;                |mux_m28:mux13|                               ; 16 (16)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|mux_m28:mux13            ; mux_m28                                       ; work         ;
+;             |cmpr_m76:rdempty_eq_comp|                       ; 10 (10)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|cmpr_m76:rdempty_eq_comp                          ; cmpr_m76                                      ; work         ;
+;             |cmpr_m76:wrfull_eq_comp|                        ; 10 (10)             ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|cmpr_m76:wrfull_eq_comp                           ; cmpr_m76                                      ; work         ;
 ;    |S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem| ; 377 (341)           ; 217 (194)                 ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem                                                            ; S70FL01GS_Flash_Memory_Interface_address_swap ; work         ;
 ;       |spi_master:MAS|                                       ; 36 (36)             ; 23 (23)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS                                             ; spi_master                                    ; work         ;
 ;    |spi_slave:hercules_SPI_listener|                         ; 6 (6)               ; 19 (19)                   ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|spi_slave:hercules_SPI_listener                                                                                    ; spi_slave                                     ; work         ;
@@ -311,7 +308,7 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 +------------------------------------------------------------------------------------------------------+------+------------------+--------------+--------------+--------------+--------------+--------+------+
 ; Name                                                                                                 ; Type ; Mode             ; Port A Depth ; Port A Width ; Port B Depth ; Port B Width ; Size   ; MIF  ;
 +------------------------------------------------------------------------------------------------------+------+------------------+--------------+--------------+--------------+--------------+--------+------+
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|ALTSYNCRAM ; AUTO ; Simple Dual Port ; 32768        ; 8            ; 32768        ; 8            ; 262144 ; None ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|ALTSYNCRAM ; AUTO ; Simple Dual Port ; 32768        ; 8            ; 32768        ; 8            ; 262144 ; None ;
 +------------------------------------------------------------------------------------------------------+------+------------------+--------------+--------------+--------------+--------------+--------+------+
 
 
@@ -457,241 +454,77 @@ Encoding Type:  One-Hot
 +-------------------------+--------------------+--------------------+--------------------------------------------------------------+
 
 
-+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-; Registers Protected by Synthesis                                                                                                                                                                                                              ;
-+-------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
-; Register Name                                                                                                                 ; Protected by Synthesis Attribute or Preserve Register Assignment ; Not to be Touched by Netlist Optimizations ;
-+-------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|wrfull_eq_comp_lsb_mux_reg                                   ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|wrfull_eq_comp_msb_mux_reg                                   ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|rdemp_eq_comp_lsb_aeb                                        ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|rdemp_eq_comp_msb_aeb                                        ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe29a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe21a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe28a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe20a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe27a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe19a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe26a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe18a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe25a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe17a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe24a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe16a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22|dffe23a[9]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[6]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[7]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[4]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[5]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[2]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[3]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[0]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[1]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[14] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[15] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[12] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[13] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[10] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[11] ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[8]  ; yes                                                              ; yes                                        ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14|dffe15a[9]  ; yes                                                              ; yes                                        ;
-; Total number of protected registers is 228                                                                                    ;                                                                  ;                                            ;
-+-------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Registers Protected by Synthesis                                                                                                                                                                                                             ;
++------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
+; Register Name                                                                                                                ; Protected by Synthesis Attribute or Preserve Register Assignment ; Not to be Touched by Netlist Optimizations ;
++------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[14] ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[15] ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[12] ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[13] ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[10] ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[11] ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[8]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[9]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[6]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[7]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[4]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[5]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[2]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[3]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[0]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe10a[1]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[14]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[15]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[12]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[13]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[10]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[11]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[8]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[9]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[6]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[7]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[4]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[5]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[2]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[3]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[0]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe7a[1]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[14]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[15]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[12]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[13]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[10]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[11]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[8]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[9]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[6]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[7]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[4]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[5]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[2]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[3]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[0]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8|dffe9a[1]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[14]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[15]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[12]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[13]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[10]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[11]  ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[8]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[9]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[6]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[7]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[4]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[5]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[2]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[3]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[0]   ; yes                                                              ; yes                                        ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5|dffe6a[1]   ; yes                                                              ; yes                                        ;
+; Total number of protected registers is 64                                                                                    ;                                                                  ;                                            ;
++------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
 
 
 +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -786,7 +619,7 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +----------------------------------------------+-------+
 ; Statistic                                    ; Value ;
 +----------------------------------------------+-------+
-; Total registers                              ; 769   ;
+; Total registers                              ; 605   ;
 ; Number of registers using Synchronous Clear  ; 32    ;
 ; Number of registers using Synchronous Load   ; 4     ;
 ; Number of registers using Asynchronous Clear ; 207   ;
@@ -802,15 +635,13 @@ Note: All latches listed above may not be present at the end of synthesis due to
 ; Inverted Register                                                                                       ; Fan out ;
 +---------------------------------------------------------------------------------------------------------+---------+
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK                              ; 16      ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|rdemp_eq_comp_lsb_aeb                  ; 2       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|rdemp_eq_comp_msb_aeb                  ; 2       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_2p6:rdptr_g1p|counter5a0 ; 9       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_u6c:wrptr_g1p|counter8a0 ; 7       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_2p6:rdptr_g1p|parity6    ; 5       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_u6c:wrptr_g1p|parity9    ; 4       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p|counter5a0 ; 7       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_u6c:wrptr_g1p|counter8a0 ; 7       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p|parity6    ; 4       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_u6c:wrptr_g1p|parity9    ; 5       ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|rreg[0]                          ; 2       ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|rreg[1]                          ; 1       ;
-; Total number of inverted registers = 9                                                                  ;         ;
+; Total number of inverted registers = 7                                                                  ;         ;
 +---------------------------------------------------------------------------------------------------------+---------+
 
 
@@ -820,16 +651,16 @@ Note: All latches listed above may not be present at the end of synthesis due to
 ; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+-----------------------------------------------------------------------------------------------------------+
 ; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|output_data[0]        ;
-; 7:1                ; 32 bits   ; 128 LEs       ; 32 LEs               ; 96 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[10]                                                              ;
-; 10:1               ; 19 bits   ; 114 LEs       ; 19 LEs               ; 95 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[23]                                                                   ;
-; 10:1               ; 4 bits    ; 24 LEs        ; 8 LEs                ; 16 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[9]                                                                    ;
-; 30:1               ; 5 bits    ; 100 LEs       ; 50 LEs               ; 50 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[5] ;
-; 30:1               ; 9 bits    ; 180 LEs       ; 45 LEs               ; 135 LEs                ; No         ; |CRPII_FPGAFirmware_Release|Selector3                                                                     ;
+; 7:1                ; 32 bits   ; 128 LEs       ; 32 LEs               ; 96 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[12]                                                              ;
+; 10:1               ; 19 bits   ; 114 LEs       ; 19 LEs               ; 95 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[27]                                                                   ;
+; 10:1               ; 4 bits    ; 24 LEs        ; 8 LEs                ; 16 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[26]                                                                   ;
+; 30:1               ; 5 bits    ; 100 LEs       ; 50 LEs               ; 50 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[6] ;
+; 30:1               ; 9 bits    ; 180 LEs       ; 45 LEs               ; 135 LEs                ; No         ; |CRPII_FPGAFirmware_Release|Selector11                                                                    ;
 ; 31:1               ; 2 bits    ; 40 LEs        ; 6 LEs                ; 34 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector6                                                                     ;
-; 31:1               ; 2 bits    ; 40 LEs        ; 6 LEs                ; 34 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector18                                                                    ;
+; 31:1               ; 2 bits    ; 40 LEs        ; 6 LEs                ; 34 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector9                                                                     ;
 ; 31:1               ; 2 bits    ; 40 LEs        ; 4 LEs                ; 36 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector15                                                                    ;
 ; 32:1               ; 2 bits    ; 42 LEs        ; 8 LEs                ; 34 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector10                                                                    ;
-; 31:1               ; 17 bits   ; 340 LEs       ; 187 LEs              ; 153 LEs                ; No         ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector1             ;
+; 31:1               ; 17 bits   ; 340 LEs       ; 187 LEs              ; 153 LEs                ; No         ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector12            ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+-----------------------------------------------------------------------------------------------------------+
 
 
@@ -842,35 +673,21 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +---------------------------------+-------+------+-------------+
 
 
-+----------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated            ;
-+---------------------------------------+------------------------+------+----------------------------+
-; Assignment                            ; Value                  ; From ; To                         ;
-+---------------------------------------+------------------------+------+----------------------------+
-; AUTO_SHIFT_REGISTER_RECOGNITION       ; OFF                    ; -    ; -                          ;
-; REMOVE_DUPLICATE_REGISTERS            ; OFF                    ; -    ; -                          ;
-; SYNCHRONIZER_IDENTIFICATION           ; OFF                    ; -    ; -                          ;
-; SYNCHRONIZATION_REGISTER_CHAIN_LENGTH ; 8                      ; -    ; -                          ;
-; SYNCHRONIZER_IDENTIFICATION           ; FORCED_IF_ASYNCHRONOUS ; -    ; rdemp_eq_comp_lsb_aeb      ;
-; PRESERVE_REGISTER                     ; ON                     ; -    ; rdemp_eq_comp_lsb_aeb      ;
-; POWER_UP_LEVEL                        ; HIGH                   ; -    ; rdemp_eq_comp_lsb_aeb      ;
-; SYNCHRONIZER_IDENTIFICATION           ; FORCED_IF_ASYNCHRONOUS ; -    ; rdemp_eq_comp_msb_aeb      ;
-; PRESERVE_REGISTER                     ; ON                     ; -    ; rdemp_eq_comp_msb_aeb      ;
-; POWER_UP_LEVEL                        ; HIGH                   ; -    ; rdemp_eq_comp_msb_aeb      ;
-; SYNCHRONIZER_IDENTIFICATION           ; FORCED_IF_ASYNCHRONOUS ; -    ; rs_dgwp_reg                ;
-; PRESERVE_REGISTER                     ; ON                     ; -    ; rs_dgwp_reg                ;
-; SYNCHRONIZER_IDENTIFICATION           ; FORCED_IF_ASYNCHRONOUS ; -    ; wrfull_eq_comp_lsb_mux_reg ;
-; PRESERVE_REGISTER                     ; ON                     ; -    ; wrfull_eq_comp_lsb_mux_reg ;
-; SYNCHRONIZER_IDENTIFICATION           ; FORCED_IF_ASYNCHRONOUS ; -    ; wrfull_eq_comp_msb_mux_reg ;
-; PRESERVE_REGISTER                     ; ON                     ; -    ; wrfull_eq_comp_msb_mux_reg ;
-; POWER_UP_LEVEL                        ; LOW                    ; -    ; wrptr_g                    ;
-; SYNCHRONIZER_IDENTIFICATION           ; FORCED_IF_ASYNCHRONOUS ; -    ; ws_dgrp_reg                ;
-; PRESERVE_REGISTER                     ; ON                     ; -    ; ws_dgrp_reg                ;
-+---------------------------------------+------------------------+------+----------------------------+
++-----------------------------------------------------------------------------------------+
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated ;
++---------------------------------------+-------+------+----------------------------------+
+; Assignment                            ; Value ; From ; To                               ;
++---------------------------------------+-------+------+----------------------------------+
+; AUTO_SHIFT_REGISTER_RECOGNITION       ; OFF   ; -    ; -                                ;
+; REMOVE_DUPLICATE_REGISTERS            ; OFF   ; -    ; -                                ;
+; SYNCHRONIZER_IDENTIFICATION           ; OFF   ; -    ; -                                ;
+; SYNCHRONIZATION_REGISTER_CHAIN_LENGTH ; 2     ; -    ; -                                ;
+; POWER_UP_LEVEL                        ; LOW   ; -    ; wrptr_g                          ;
++---------------------------------------+-------+------+----------------------------------+
 
 
 +---------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_2p6:rdptr_g1p ;
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p ;
 +----------------+-------+------+-------------------------------------------------------------------------------------+
 ; Assignment     ; Value ; From ; To                                                                                  ;
 +----------------+-------+------+-------------------------------------------------------------------------------------+
@@ -880,7 +697,7 @@ Note: All latches listed above may not be present at the end of synthesis due to
 
 
 +---------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_u6c:wrptr_g1p ;
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_u6c:wrptr_g1p ;
 +----------------+-------+------+-------------------------------------------------------------------------------------+
 ; Assignment     ; Value ; From ; To                                                                                  ;
 +----------------+-------+------+-------------------------------------------------------------------------------------+
@@ -890,7 +707,7 @@ Note: All latches listed above may not be present at the end of synthesis due to
 
 
 +------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram ;
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram ;
 +---------------------------------+--------------------+------+----------------------------------------------------+
 ; Assignment                      ; Value              ; From ; To                                                 ;
 +---------------------------------+--------------------+------+----------------------------------------------------+
@@ -899,7 +716,7 @@ Note: All latches listed above may not be present at the end of synthesis due to
 
 
 +--------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp ;
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp ;
 +-----------------------------+------------------------+------+------------------------------------------------------+
 ; Assignment                  ; Value                  ; From ; To                                                   ;
 +-----------------------------+------------------------+------+------------------------------------------------------+
@@ -911,17 +728,17 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +-----------------------------+------------------------+------+------------------------------------------------------+
 
 
-+------------------------------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14 ;
-+---------------------------------+-------+------+-----------------------------------------------------------------------------------------+
-; Assignment                      ; Value ; From ; To                                                                                      ;
-+---------------------------------+-------+------+-----------------------------------------------------------------------------------------+
-; AUTO_SHIFT_REGISTER_RECOGNITION ; OFF   ; -    ; -                                                                                       ;
-+---------------------------------+-------+------+-----------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------------------------------------------------------+
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5 ;
++---------------------------------+-------+------+----------------------------------------------------------------------------------------+
+; Assignment                      ; Value ; From ; To                                                                                     ;
++---------------------------------+-------+------+----------------------------------------------------------------------------------------+
+; AUTO_SHIFT_REGISTER_RECOGNITION ; OFF   ; -    ; -                                                                                      ;
++---------------------------------+-------+------+----------------------------------------------------------------------------------------+
 
 
 +--------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp ;
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp ;
 +-----------------------------+------------------------+------+------------------------------------------------------+
 ; Assignment                  ; Value                  ; From ; To                                                   ;
 +-----------------------------+------------------------+------+------------------------------------------------------+
@@ -933,13 +750,13 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +-----------------------------+------------------------+------+------------------------------------------------------+
 
 
-+------------------------------------------------------------------------------------------------------------------------------------------+
-; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22 ;
-+---------------------------------+-------+------+-----------------------------------------------------------------------------------------+
-; Assignment                      ; Value ; From ; To                                                                                      ;
-+---------------------------------+-------+------+-----------------------------------------------------------------------------------------+
-; AUTO_SHIFT_REGISTER_RECOGNITION ; OFF   ; -    ; -                                                                                       ;
-+---------------------------------+-------+------+-----------------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------------------------------------------------------+
+; Source assignments for FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8 ;
++---------------------------------+-------+------+----------------------------------------------------------------------------------------+
+; Assignment                      ; Value ; From ; To                                                                                     ;
++---------------------------------+-------+------+----------------------------------------------------------------------------------------+
+; AUTO_SHIFT_REGISTER_RECOGNITION ; OFF   ; -    ; -                                                                                      ;
++---------------------------------+-------+------+----------------------------------------------------------------------------------------+
 
 
 +--------------------------------------------------------------------------------------------+
@@ -1426,15 +1243,15 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; ENABLE_ECC              ; FALSE         ; Untyped                                  ;
 ; DELAY_RDUSEDW           ; 1             ; Untyped                                  ;
 ; DELAY_WRUSEDW           ; 1             ; Untyped                                  ;
-; RDSYNC_DELAYPIPE        ; 10            ; Signed Integer                           ;
-; WRSYNC_DELAYPIPE        ; 10            ; Signed Integer                           ;
+; RDSYNC_DELAYPIPE        ; 4             ; Signed Integer                           ;
+; WRSYNC_DELAYPIPE        ; 4             ; Signed Integer                           ;
 ; CLOCKS_ARE_SYNCHRONIZED ; FALSE         ; Untyped                                  ;
 ; MAXIMIZE_SPEED          ; 5             ; Untyped                                  ;
 ; DEVICE_FAMILY           ; Cyclone 10 LP ; Untyped                                  ;
 ; ADD_USEDW_MSB_BIT       ; OFF           ; Untyped                                  ;
 ; WRITE_ACLR_SYNCH        ; OFF           ; Untyped                                  ;
 ; READ_ACLR_SYNCH         ; OFF           ; Untyped                                  ;
-; CBXI_PARAMETER          ; dcfifo_9of1   ; Untyped                                  ;
+; CBXI_PARAMETER          ; dcfifo_flf1   ; Untyped                                  ;
 +-------------------------+---------------+------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
@@ -1532,28 +1349,28 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; Type                  ; Count                       ;
 +-----------------------+-----------------------------+
 ; boundary_port         ; 54                          ;
-; cycloneiii_ff         ; 769                         ;
+; cycloneiii_ff         ; 605                         ;
 ;     CLR               ; 65                          ;
 ;     ENA               ; 142                         ;
 ;     ENA CLR           ; 142                         ;
 ;     ENA SCLR          ; 32                          ;
 ;     ENA SLD           ; 2                           ;
 ;     SLD               ; 2                           ;
-;     plain             ; 384                         ;
-; cycloneiii_lcell_comb ; 847                         ;
+;     plain             ; 220                         ;
+; cycloneiii_lcell_comb ; 823                         ;
 ;     arith             ; 190                         ;
 ;         2 data inputs ; 182                         ;
 ;         3 data inputs ; 8                           ;
-;     normal            ; 657                         ;
+;     normal            ; 633                         ;
 ;         0 data inputs ; 2                           ;
 ;         1 data inputs ; 29                          ;
-;         2 data inputs ; 68                          ;
-;         3 data inputs ; 136                         ;
-;         4 data inputs ; 422                         ;
+;         2 data inputs ; 69                          ;
+;         3 data inputs ; 132                         ;
+;         4 data inputs ; 401                         ;
 ; cycloneiii_ram_block  ; 32                          ;
 ;                       ;                             ;
 ; Max LUT depth         ; 9.00                        ;
-; Average LUT depth     ; 3.23                        ;
+; Average LUT depth     ; 3.79                        ;
 +-----------------------+-----------------------------+
 
 
@@ -1572,7 +1389,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
-    Info: Processing started: Thu Sep 28 18:13:39 2023
+    Info: Processing started: Thu Sep 28 18:20:37 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
@@ -1732,49 +1549,46 @@ Info (12133): Instantiated megafunction "FIFO:CAM_FIFO|dcfifo:dcfifo_component" 
     Info (12134): Parameter "lpm_width" = "8"
     Info (12134): Parameter "lpm_widthu" = "15"
     Info (12134): Parameter "overflow_checking" = "ON"
-    Info (12134): Parameter "rdsync_delaypipe" = "10"
+    Info (12134): Parameter "rdsync_delaypipe" = "4"
     Info (12134): Parameter "underflow_checking" = "ON"
     Info (12134): Parameter "use_eab" = "ON"
-    Info (12134): Parameter "wrsync_delaypipe" = "10"
-Info (12021): Found 1 design units, including 1 entities, in source file db/dcfifo_9of1.tdf
-    Info (12023): Found entity 1: dcfifo_9of1 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 39
-Info (12128): Elaborating entity "dcfifo_9of1" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated" File: /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/dcfifo.tdf Line: 191
+    Info (12134): Parameter "wrsync_delaypipe" = "4"
+Info (12021): Found 1 design units, including 1 entities, in source file db/dcfifo_flf1.tdf
+    Info (12023): Found entity 1: dcfifo_flf1 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 37
+Info (12128): Elaborating entity "dcfifo_flf1" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated" File: /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/dcfifo.tdf Line: 191
 Info (12021): Found 1 design units, including 1 entities, in source file db/a_graycounter_2p6.tdf
     Info (12023): Found entity 1: a_graycounter_2p6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_2p6.tdf Line: 25
-Info (12128): Elaborating entity "a_graycounter_2p6" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_2p6:rdptr_g1p" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 51
+Info (12128): Elaborating entity "a_graycounter_2p6" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 49
 Info (12021): Found 1 design units, including 1 entities, in source file db/a_graycounter_u6c.tdf
     Info (12023): Found entity 1: a_graycounter_u6c File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_u6c.tdf Line: 25
-Info (12128): Elaborating entity "a_graycounter_u6c" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|a_graycounter_u6c:wrptr_g1p" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 52
+Info (12128): Elaborating entity "a_graycounter_u6c" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_u6c:wrptr_g1p" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 50
 Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_g421.tdf
     Info (12023): Found entity 1: altsyncram_g421 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 34
-Info (12128): Elaborating entity "altsyncram_g421" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 53
+Info (12128): Elaborating entity "altsyncram_g421" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 51
 Info (12021): Found 1 design units, including 1 entities, in source file db/decode_687.tdf
     Info (12023): Found entity 1: decode_687 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/decode_687.tdf Line: 23
-Info (12128): Elaborating entity "decode_687" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|decode_687:decode12" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 49
+Info (12128): Elaborating entity "decode_687" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|decode_687:decode12" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 49
 Info (12021): Found 1 design units, including 1 entities, in source file db/decode_vj6.tdf
     Info (12023): Found entity 1: decode_vj6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/decode_vj6.tdf Line: 23
-Info (12128): Elaborating entity "decode_vj6" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|decode_vj6:rden_decode_b" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 50
+Info (12128): Elaborating entity "decode_vj6" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|decode_vj6:rden_decode_b" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 50
 Info (12021): Found 1 design units, including 1 entities, in source file db/mux_m28.tdf
     Info (12023): Found entity 1: mux_m28 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/mux_m28.tdf Line: 23
-Info (12128): Elaborating entity "mux_m28" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|altsyncram_g421:fifo_ram|mux_m28:mux13" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 52
-Info (12021): Found 1 design units, including 1 entities, in source file db/alt_synch_pipe_4bl.tdf
-    Info (12023): Found entity 1: alt_synch_pipe_4bl File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_4bl.tdf Line: 27
-Info (12128): Elaborating entity "alt_synch_pipe_4bl" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 72
-Info (12021): Found 1 design units, including 1 entities, in source file db/dffpipe_l09.tdf
-    Info (12023): Found entity 1: dffpipe_l09 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_l09.tdf Line: 25
-Info (12128): Elaborating entity "dffpipe_l09" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_4bl:rs_dgwp|dffpipe_l09:dffpipe14" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_4bl.tdf Line: 34
-Info (12021): Found 1 design units, including 1 entities, in source file db/alt_synch_pipe_5bl.tdf
-    Info (12023): Found entity 1: alt_synch_pipe_5bl File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_5bl.tdf Line: 27
-Info (12128): Elaborating entity "alt_synch_pipe_5bl" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 73
-Info (12021): Found 1 design units, including 1 entities, in source file db/dffpipe_m09.tdf
-    Info (12023): Found entity 1: dffpipe_m09 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_m09.tdf Line: 25
-Info (12128): Elaborating entity "dffpipe_m09" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|alt_synch_pipe_5bl:ws_dgrp|dffpipe_m09:dffpipe22" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_5bl.tdf Line: 34
-Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr_766.tdf
-    Info (12023): Found entity 1: cmpr_766 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/cmpr_766.tdf Line: 23
-Info (12128): Elaborating entity "cmpr_766" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|cmpr_766:rdempty_eq_comp1_lsb" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 74
-Info (12021): Found 1 design units, including 1 entities, in source file db/mux_c28.tdf
-    Info (12023): Found entity 1: mux_c28 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/mux_c28.tdf Line: 23
-Info (12128): Elaborating entity "mux_c28" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_9of1:auto_generated|mux_c28:rdemp_eq_comp_lsb_mux" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_9of1.tdf Line: 82
+Info (12128): Elaborating entity "mux_m28" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|altsyncram_g421:fifo_ram|mux_m28:mux13" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/altsyncram_g421.tdf Line: 52
+Info (12021): Found 1 design units, including 1 entities, in source file db/alt_synch_pipe_val.tdf
+    Info (12023): Found entity 1: alt_synch_pipe_val File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_val.tdf Line: 27
+Info (12128): Elaborating entity "alt_synch_pipe_val" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 58
+Info (12021): Found 1 design units, including 1 entities, in source file db/dffpipe_g09.tdf
+    Info (12023): Found entity 1: dffpipe_g09 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_g09.tdf Line: 25
+Info (12128): Elaborating entity "dffpipe_g09" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_val:rs_dgwp|dffpipe_g09:dffpipe5" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_val.tdf Line: 34
+Info (12021): Found 1 design units, including 1 entities, in source file db/alt_synch_pipe_0bl.tdf
+    Info (12023): Found entity 1: alt_synch_pipe_0bl File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_0bl.tdf Line: 27
+Info (12128): Elaborating entity "alt_synch_pipe_0bl" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 59
+Info (12021): Found 1 design units, including 1 entities, in source file db/dffpipe_h09.tdf
+    Info (12023): Found entity 1: dffpipe_h09 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dffpipe_h09.tdf Line: 25
+Info (12128): Elaborating entity "dffpipe_h09" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|alt_synch_pipe_0bl:ws_dgrp|dffpipe_h09:dffpipe8" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/alt_synch_pipe_0bl.tdf Line: 34
+Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr_m76.tdf
+    Info (12023): Found entity 1: cmpr_m76 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/cmpr_m76.tdf Line: 23
+Info (12128): Elaborating entity "cmpr_m76" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|cmpr_m76:rdempty_eq_comp" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 60
 Warning (14284): Synthesized away the following node(s):
     Warning (14285): Synthesized away the following PLL node(s):
         Warning (14320): Synthesized away node "PLL:PLL|altpll:altpll_component|PLL_altpll:auto_generated|wire_pll1_clk[0]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/PLL_altpll.v Line: 93
@@ -1808,15 +1622,15 @@ Warning (21074): Design contains 8 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "camera_2_pixel_in[1]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
     Warning (15610): No output dependent on input pin "camera_2_pixel_in[2]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
     Warning (15610): No output dependent on input pin "camera_2_pixel_in[3]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-Info (21057): Implemented 1296 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 1112 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 36 input pins
     Info (21059): Implemented 18 output pins
-    Info (21061): Implemented 1210 logic cells
+    Info (21061): Implemented 1026 logic cells
     Info (21064): Implemented 32 RAM segments
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 76 warnings
-    Info: Peak virtual memory: 444 megabytes
-    Info: Processing ended: Thu Sep 28 18:13:49 2023
+    Info: Peak virtual memory: 445 megabytes
+    Info: Processing ended: Thu Sep 28 18:20:47 2023
     Info: Elapsed time: 00:00:10
-    Info: Total CPU time (on all processors): 00:00:24
+    Info: Total CPU time (on all processors): 00:00:23
 
 

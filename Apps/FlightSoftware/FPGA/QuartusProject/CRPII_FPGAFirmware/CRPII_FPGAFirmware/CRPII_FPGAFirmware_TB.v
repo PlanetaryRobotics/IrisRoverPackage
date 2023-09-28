@@ -174,9 +174,7 @@ initial begin
 
   hercules_spi_master_enable = 1'b0;
 
-
   #100000 $stop;
-
 end
 
 
@@ -188,7 +186,6 @@ parameter PIXEL_CLOCK_PERIOD = 166; // ~6MHz clock - 167000ps period
 parameter real PIXEL_CLOCK_DUTY_CYCLE = 0.5;
 
 initial begin
-
   repeat(5000) begin
     pixel_clock = 1'b0;
     #(PIXEL_CLOCK_PERIOD-(PIXEL_CLOCK_PERIOD*PIXEL_CLOCK_DUTY_CYCLE));

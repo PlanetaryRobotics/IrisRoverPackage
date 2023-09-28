@@ -64,7 +64,7 @@ module CRPII_FPGAFirmware_Release(
 
   reg capturing_camera_frames = 1'b0;
 
-  reg waiting_for_fresh_frame = 1'b0;
+  reg waiting_for_fresh_frame = 1'b0; // Appears to be unused
   reg done_waiting_for_fresh_frame = 1'b0;
 
 
@@ -204,6 +204,9 @@ module CRPII_FPGAFirmware_Release(
     end
   end
 
+
+
+
   // assign LED0 = ~pll_is_locked;
 
   PLL PLL(
@@ -212,6 +215,7 @@ module CRPII_FPGAFirmware_Release(
     .c0(pll_clock),
     .locked(pll_is_locked)
   );
+
 
 
 
@@ -276,8 +280,6 @@ module CRPII_FPGAFirmware_Release(
 
     .debug_out(debug_out)
   );
-
-
 
 
 
@@ -368,7 +370,6 @@ module CRPII_FPGAFirmware_Release(
 
   // State Machine
   always @(posedge clk) begin
-
 
     next_state=current_state;
 
@@ -474,15 +475,11 @@ module CRPII_FPGAFirmware_Release(
           done_waiting_for_fresh_frame = 1'b0;
         end
 
-
       end
-
-
 
 
       // Make sure any previous commands are finished
       flash_RDSR1_wait: begin
-
         if (wait_counter == 32'h00000100) begin
           next_state = flash_RDSR1;
           wait_counter = 0;
@@ -492,9 +489,9 @@ module CRPII_FPGAFirmware_Release(
         end
       end
 
+
       // Trigger read of status register 1
       flash_RDSR1: begin
-
         if(flash_RDSR1_done) begin
           flash_RDSR1_response = output_data;
 
@@ -507,9 +504,9 @@ module CRPII_FPGAFirmware_Release(
         end
       end
 
+
       // RDSR1 until SR1[0] (Write in progress bit) is equal to 0
       flash_RDSR1_check_WIP: begin
-
         // Deassert previous state's done reset flag
         reset_flash_RDSR1_done = 1'b0;
 
@@ -517,13 +514,11 @@ module CRPII_FPGAFirmware_Release(
           next_state = wait_for_new_camera_FV;
         else
           next_state = flash_RDSR1_wait;
-
       end
 
 
       // We need to wait for a FV assertion to get the start of an image
       wait_for_new_camera_FV: begin
-
         LED1 = 1'b0; // On
 
         reset_lines_of_interleave_phase = 1'b0;
@@ -537,14 +532,11 @@ module CRPII_FPGAFirmware_Release(
           // Image start address in flash
           address = 32'h00000000;
         end
-
       end
 
 
       flash_WREN_wait: begin
-
         LED1 = 1'b1; // Off
-
 
         // Deassert previous state's done reset flag
         // reset_flash_READ3_done = 1'b0;
@@ -562,9 +554,9 @@ module CRPII_FPGAFirmware_Release(
         end
       end
 
+
       // Trigger read of status register 1
       flash_WREN: begin
-
         LED2 = 1'b0; // On
 
         // LED1 = 1'b1; // Off
@@ -580,11 +572,10 @@ module CRPII_FPGAFirmware_Release(
         end
       end
 
+
       // Verify WREN
       flash_WREN_RDSR1_wait: begin
-
         LED2 = 1'b1; // Off
-
 
         // Deassert previous state's done reset flag
         reset_flash_WREN_done = 1'b0;
@@ -598,10 +589,9 @@ module CRPII_FPGAFirmware_Release(
         end
       end
 
+
       // Trigger read of status register 1
       flash_WREN_RDSR1: begin
-
-
         if(flash_WREN_RDSR1_done) begin
           flash_WREN_RDSR1_response = output_data;
 
@@ -629,8 +619,6 @@ module CRPII_FPGAFirmware_Release(
       end
 
 
-
-
       flash_PP3_wait: begin
 
         // LED2 = 1'b0; // On
@@ -644,10 +632,10 @@ module CRPII_FPGAFirmware_Release(
         //   end
         // end
 
-        if(FIFO_bytes_written_counter > 12'd0)
-          LED2 = 1'b0; // On
-        else
-          LED2 = 1'b1; // Off
+        // if(FIFO_bytes_written_counter > 12'd0)
+        //   LED2 = 1'b0; // On
+        // else
+        //   LED2 = 1'b1; // Off
 
         // Wait for full FIFO
         if(PP3_command_counter == 0) begin
@@ -677,7 +665,6 @@ module CRPII_FPGAFirmware_Release(
 
       // Trigger page program
       flash_PP3: begin
-
         // Deassert previous state's counter reset flag
         // reset_FIFO_bytes_written_counter = 1'b0;
 
@@ -723,11 +710,10 @@ module CRPII_FPGAFirmware_Release(
 
 
       flash_PP3_RDSR1_wait: begin
-
         // Deassert previous state's done reset flag
         reset_flash_PP3_done = 1'b0;
 
-        // Deassert previous state's SPI cyc;e counter reset flag
+        // Deassert previous state's SPI cycle counter reset flag
         reset_PP3_command_SPI_cycle_counter = 1'b0;
 
         reset_PP3_FIFO_read_req = 1'b0;
@@ -740,6 +726,7 @@ module CRPII_FPGAFirmware_Release(
           wait_counter = wait_counter + 1;
         end
       end
+
 
       // Trigger read of status register 1
       flash_PP3_RDSR1: begin
@@ -756,9 +743,9 @@ module CRPII_FPGAFirmware_Release(
         end
       end
 
+
       // RDSR1 until SR1[0] (Write in progress bit) is equal to 0
       flash_PP3_RDSR1_check: begin
-
         // Deassert previous state's done reset flag
         reset_flash_PP3_RDSR1_done = 1'b0;
 
@@ -766,7 +753,6 @@ module CRPII_FPGAFirmware_Release(
           next_state = flash_PP3_repeat_for_next_page_or_exit;
         else
           next_state = flash_PP3_RDSR1_wait;
-
       end
 
 
@@ -795,7 +781,6 @@ module CRPII_FPGAFirmware_Release(
 
           PP3_wrote_one_line = 1'b1;
           // address = address + 32'h00000200;
-
         end
 
         // Otherwise we need another page write to flash
@@ -804,7 +789,6 @@ module CRPII_FPGAFirmware_Release(
 
           // Increment 512 bytes, the max length of PP3 data
           address = address + 32'h00000200;
-
         end
 
       end
@@ -836,18 +820,21 @@ module CRPII_FPGAFirmware_Release(
           //  - Add 8 lines to the line start address to find the next 8th line
           // address = address - 32'h0000A00 + 32'h00006000;
           // address = address + 32'h0000200;
+          //
+          // ^ THIS assumes we handle interleaving here. Seems it was decided
+          // to just stream data into the flash and let Ground handle
+          // reconstruction. More versatile anyway.
+          // Instead, just keep writing more pages:
           address = address + 32'h00000200;
-
-
         end
 
       end
+
 
       // Repeating writes to interleave 8 images
       flash_PP3_repeat_for_next_frame_or_exit: begin
 
         interleave_phase = interleave_phase + 1;
-
 
         reset_lines_of_interleave_phase = 1'b0;
 
@@ -857,7 +844,6 @@ module CRPII_FPGAFirmware_Release(
         // if(interleave_phase == phase_0) begin
           next_state = idle;
           interleave_phase = phase_0;
-
         end
 
         // Otherwise we need another line for this interleaving phase
@@ -867,12 +853,13 @@ module CRPII_FPGAFirmware_Release(
           // interleave_phase = interleave_phase + 1;
 
           address = address + 32'h00000200;
-
         end
 
       end
 
 
+      //################
+      // UNUSED STATES
 
 
       //
@@ -1028,12 +1015,6 @@ module CRPII_FPGAFirmware_Release(
       // end
 
 
-
-
-      //################
-      // UNUSED STATES
-
-
       flash_READ_ID_wait: begin
 
         // Deassert previuos state's done reset flag
@@ -1106,9 +1087,6 @@ module CRPII_FPGAFirmware_Release(
       end
 
 
-
-
-
       default: begin
 
         next_state = reset_state;
@@ -1119,12 +1097,11 @@ module CRPII_FPGAFirmware_Release(
 
   end
 
+
   // State transition @ NEGEDGE clk
   always@(negedge clk) begin
       current_state <= next_state;
-
   end
-
 
 
   // READ_ID Done
@@ -1149,6 +1126,7 @@ module CRPII_FPGAFirmware_Release(
         flash_WREN_done = 1'b1;
     end
   end
+
 
   // WREN RDSR1 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_WREN_RDSR1_done) begin
@@ -1214,7 +1192,6 @@ module CRPII_FPGAFirmware_Release(
   // end
 
 
-
   // PP3 RDSR1 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_PP3_RDSR1_done) begin
     if(reset_flash_PP3_RDSR1_done) begin
@@ -1225,7 +1202,6 @@ module CRPII_FPGAFirmware_Release(
         flash_PP3_RDSR1_done = 1'b1;
     end
   end
-
 
 
   // PP4 Done
@@ -1252,10 +1228,7 @@ module CRPII_FPGAFirmware_Release(
 
 
 
-
-
-
-
+//* CAMERA CONTROL LOGIC:
 
 
   parameter phase_0 = 4'd0;
@@ -1272,19 +1245,14 @@ module CRPII_FPGAFirmware_Release(
 
   reg [3:0] line_counter = 4'd0;
 
-
   reg [7:0] lines_of_frame_counter = 8'd0;
-
 
   reg [7:0] lines_of_interleave_phase = 8'd0;
   reg reset_lines_of_interleave_phase = 1'b0;
 
-
-
   wire [7:0] byte_to_flash;
 
   // Camera pixel FIFO
-
 
   // assign pixel_is_valid = ! FIFO_is_empty && rx_Valid_out;
   // assign FIFO_read_req = ! FIFO_is_empty && rx_Valid_out ;
@@ -1304,27 +1272,8 @@ module CRPII_FPGAFirmware_Release(
   );
 
 
-  // always@(posedge camera_1_LV) begin
-  //
-  //   if(capturing_camera_frames) begin
-  //
-  //     if(done_waiting_for_fresh_frame) begin
-  //
-  //       if (line_counter == 4'd7)
-  //         line_counter = 0;
-  //       else
-  //         line_counter = line_counter + 1;
-  //
-  //     end
-  //
-  //   end
-  //
-  //   else
-  //     line_counter = 0;
-  //
-  // end
 
-
+  //* FRAME LINE COUNTER:
   always@(posedge selected_camera_LV or negedge selected_camera_FV) begin
 
     if(!selected_camera_FV) begin
@@ -1333,8 +1282,8 @@ module CRPII_FPGAFirmware_Release(
     else
       lines_of_frame_counter = lines_of_frame_counter + 1;
 
-
   end
+
 
 
   always@(posedge PP3_wrote_one_line or posedge reset_lines_of_interleave_phase) begin
@@ -1345,9 +1294,7 @@ module CRPII_FPGAFirmware_Release(
     else
       lines_of_interleave_phase = lines_of_interleave_phase + 1;
 
-
   end
-
 
 
 
@@ -1361,15 +1308,17 @@ module CRPII_FPGAFirmware_Release(
       FIFO_bytes_written_counter = 0;
 
     else begin
-
         if(FIFO_write_enable)
       // if(selected_camera_LV && capturing_camera_frames && done_waiting_for_fresh_frame && (line_counter == interleave_phase))
         FIFO_bytes_written_counter = FIFO_bytes_written_counter + 1;
-
     end
 
   end
 
+
+
+  // NOTE: `line_counter` appears to be unused in favor of `lines_of_frame_counter`
+  // ...also this only counts to 7... seems like it was used for interleave
   always@(posedge selected_camera_LV) begin
     if(capturing_camera_frames && done_waiting_for_fresh_frame) begin
       if (line_counter == 4'd7)
@@ -1380,6 +1329,8 @@ module CRPII_FPGAFirmware_Release(
     else
       line_counter = 4'd0;
   end
+
+
 
   always@(selected_camera_LV) begin
     if(selected_camera_LV) begin
@@ -1396,7 +1347,6 @@ module CRPII_FPGAFirmware_Release(
     else
       FIFO_write_enable = 1'b0;
   end
-
 
 
 
@@ -1419,11 +1369,8 @@ module CRPII_FPGAFirmware_Release(
 
     if(reset_PP3_command_counter)
       PP3_command_counter = 0;
-
     else begin
-
       PP3_command_counter = PP3_command_counter + 1;
-
     end
 
   end
@@ -1435,7 +1382,6 @@ module CRPII_FPGAFirmware_Release(
 
     if(reset_PP3_FIFO_read_req)
       FIFO_read_req = 1'b0;
-
     else begin
       if(current_state == flash_PP3 && PP3_command_SPI_cycle_counter >= 3) begin
         FIFO_read_req = 1'b1;
@@ -1446,6 +1392,7 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
+
   reg reset_PP3_command_SPI_cycle_counter = 1'b0;
   reg [9:0] PP3_command_SPI_cycle_counter = 10'd0; // Max PP3 SPI cycles = 516 = 1 instruction byte + 3 address + 512 data bytes
 
@@ -1453,18 +1400,12 @@ module CRPII_FPGAFirmware_Release(
 
     if(reset_PP3_command_SPI_cycle_counter)
       PP3_command_SPI_cycle_counter = 0;
-
     else begin
-
       if(current_state == flash_PP3)
         PP3_command_SPI_cycle_counter = PP3_command_SPI_cycle_counter + 1;
-
     end
 
   end
-
-
-
 
 
 
@@ -1494,12 +1435,9 @@ module CRPII_FPGAFirmware_Release(
 
     if(reset_PP4_command_SPI_cycle_counter)
       PP4_command_SPI_cycle_counter = 0;
-
     else begin
-
       if(current_state == flash_PP4)
         PP4_command_SPI_cycle_counter = PP4_command_SPI_cycle_counter + 1;
-
     end
 
   end
@@ -1514,8 +1452,6 @@ module CRPII_FPGAFirmware_Release(
   //       new_camera_FV = 1'b1;
   //   end
   // end
-
-
 
 
   // always@(negedge camera_1_pixel_clock or posedge reset_new_camera_FV) begin
@@ -1551,10 +1487,6 @@ module CRPII_FPGAFirmware_Release(
   //       new_camera_LV = 1'b1;
   //   end
   // end
-
-
-
-
 
 
 

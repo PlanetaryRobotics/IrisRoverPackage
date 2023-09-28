@@ -1,5 +1,5 @@
 EDA Netlist Writer report for CRPII_FPGAFirmware
-Thu Sep 28 17:21:50 2023
+Thu Sep 28 18:14:11 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -37,7 +37,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------+
 ; EDA Netlist Writer Summary                                        ;
 +---------------------------+---------------------------------------+
-; EDA Netlist Writer Status ; Successful - Thu Sep 28 17:21:50 2023 ;
+; EDA Netlist Writer Status ; Successful - Thu Sep 28 18:14:11 2023 ;
 ; Revision Name             ; CRPII_FPGAFirmware                    ;
 ; Top-level Entity Name     ; CRPII_FPGAFirmware_Release            ;
 ; Family                    ; Cyclone 10 LP                         ;
@@ -81,14 +81,14 @@ https://fpgasoftware.intel.com/eula.
 Info: *******************************************************************
 Info: Running Quartus Prime EDA Netlist Writer
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
-    Info: Processing started: Thu Sep 28 17:21:50 2023
+    Info: Processing started: Thu Sep 28 18:14:10 2023
 Info: Command: quartus_eda --read_settings_files=off --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (204019): Generated file CRPII_FPGAFirmware.vo in folder "/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/simulation/questa/" for EDA simulation tool
 Info: Quartus Prime EDA Netlist Writer was successful. 0 errors, 1 warning
-    Info: Peak virtual memory: 641 megabytes
-    Info: Processing ended: Thu Sep 28 17:21:50 2023
-    Info: Elapsed time: 00:00:00
-    Info: Total CPU time (on all processors): 00:00:00
+    Info: Peak virtual memory: 631 megabytes
+    Info: Processing ended: Thu Sep 28 18:14:11 2023
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
 
 

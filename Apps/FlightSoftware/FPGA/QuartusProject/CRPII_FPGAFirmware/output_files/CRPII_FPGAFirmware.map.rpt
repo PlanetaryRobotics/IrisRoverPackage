@@ -1,5 +1,5 @@
 Analysis & Synthesis report for CRPII_FPGAFirmware
-Thu Sep 28 16:47:40 2023
+Thu Sep 28 17:04:31 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -77,13 +77,13 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                        ;
 +------------------------------------+------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Thu Sep 28 16:47:40 2023          ;
+; Analysis & Synthesis Status        ; Successful - Thu Sep 28 17:04:31 2023          ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
 ; Revision Name                      ; CRPII_FPGAFirmware                             ;
 ; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                     ;
 ; Family                             ; Cyclone 10 LP                                  ;
-; Total logic elements               ; 964                                            ;
-;     Total combinational functions  ; 781                                            ;
+; Total logic elements               ; 960                                            ;
+;     Total combinational functions  ; 777                                            ;
 ;     Dedicated logic registers      ; 572                                            ;
 ; Total registers                    ; 572                                            ;
 ; Total pins                         ; 54                                             ;
@@ -243,16 +243,16 @@ https://fpgasoftware.intel.com/eula.
 +---------------------------------------------+-----------------------------------------------------------------------------+
 ; Resource                                    ; Usage                                                                       ;
 +---------------------------------------------+-----------------------------------------------------------------------------+
-; Estimated Total logic elements              ; 964                                                                         ;
+; Estimated Total logic elements              ; 960                                                                         ;
 ;                                             ;                                                                             ;
-; Total combinational functions               ; 781                                                                         ;
+; Total combinational functions               ; 777                                                                         ;
 ; Logic element usage by number of LUT inputs ;                                                                             ;
-;     -- 4 input functions                    ; 367                                                                         ;
-;     -- 3 input functions                    ; 135                                                                         ;
-;     -- <=2 input functions                  ; 279                                                                         ;
+;     -- 4 input functions                    ; 362                                                                         ;
+;     -- 3 input functions                    ; 137                                                                         ;
+;     -- <=2 input functions                  ; 278                                                                         ;
 ;                                             ;                                                                             ;
 ; Logic elements by mode                      ;                                                                             ;
-;     -- normal mode                          ; 591                                                                         ;
+;     -- normal mode                          ; 587                                                                         ;
 ;     -- arithmetic mode                      ; 190                                                                         ;
 ;                                             ;                                                                             ;
 ; Total registers                             ; 572                                                                         ;
@@ -266,7 +266,7 @@ https://fpgasoftware.intel.com/eula.
 ;                                             ;                                                                             ;
 ; Maximum fan-out node                        ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done ;
 ; Maximum fan-out                             ; 224                                                                         ;
-; Total fan-out                               ; 4393                                                                        ;
+; Total fan-out                               ; 4377                                                                        ;
 ; Average fan-out                             ; 2.99                                                                        ;
 +---------------------------------------------+-----------------------------------------------------------------------------+
 
@@ -276,7 +276,7 @@ https://fpgasoftware.intel.com/eula.
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
 ; Compilation Hierarchy Node                                   ; Combinational ALUTs ; Dedicated Logic Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                           ; Entity Name                                   ; Library Name ;
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
-; |CRPII_FPGAFirmware_Release                                  ; 781 (324)           ; 572 (209)                 ; 32768       ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                   ; CRPII_FPGAFirmware_Release                    ; work         ;
+; |CRPII_FPGAFirmware_Release                                  ; 777 (320)           ; 572 (209)                 ; 32768       ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                   ; CRPII_FPGAFirmware_Release                    ; work         ;
 ;    |FIFO:CAM_FIFO|                                           ; 74 (0)              ; 127 (0)                   ; 32768       ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO                                                                                                     ; FIFO                                          ; work         ;
 ;       |dcfifo:dcfifo_component|                              ; 74 (0)              ; 127 (0)                   ; 32768       ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component                                                                             ; dcfifo                                        ; work         ;
 ;          |dcfifo_fmf1:auto_generated|                        ; 74 (7)              ; 127 (39)                  ; 32768       ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated                                                  ; dcfifo_fmf1                                   ; work         ;
@@ -514,8 +514,8 @@ Encoding Type:  One-Hot
 ; Latch Name                                                                              ; Latch Enable Signal                                                                       ; Free of Timing Hazards ;
 +-----------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------+------------------------+
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SS               ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle ; yes                    ;
-; FIFO_write_enable                                                                       ; always16                                                                                  ; yes                    ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done             ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|Selector8          ; yes                    ;
+; FIFO_write_enable                                                                       ; always16                                                                                  ; yes                    ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|received_data[0] ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|Selector7          ; yes                    ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|received_data[1] ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|Selector7          ; yes                    ;
 ; Number of user-specified and inferred latches = 5                                       ;                                                                                           ;                        ;
@@ -616,9 +616,9 @@ Note: All latches listed above may not be present at the end of synthesis due to
 ; Inverted Register                                                                                       ; Fan out ;
 +---------------------------------------------------------------------------------------------------------+---------+
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK                              ; 16      ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|a_graycounter_vo6:rdptr_g1p|counter5a0 ; 7       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|a_graycounter_vo6:rdptr_g1p|counter5a0 ; 8       ;
 ; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|a_graycounter_r6c:wrptr_g1p|counter8a0 ; 7       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|a_graycounter_vo6:rdptr_g1p|parity6    ; 4       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|a_graycounter_vo6:rdptr_g1p|parity6    ; 5       ;
 ; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_fmf1:auto_generated|a_graycounter_r6c:wrptr_g1p|parity9    ; 5       ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|rreg[0]                          ; 2       ;
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|rreg[1]                          ; 1       ;
@@ -632,7 +632,7 @@ Note: All latches listed above may not be present at the end of synthesis due to
 ; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+-----------------------------------------------------------------------------------------------------------+
 ; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|output_data[1]        ;
-; 7:1                ; 32 bits   ; 128 LEs       ; 32 LEs               ; 96 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[19]                                                              ;
+; 7:1                ; 32 bits   ; 128 LEs       ; 32 LEs               ; 96 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[17]                                                              ;
 ; 10:1               ; 19 bits   ; 114 LEs       ; 19 LEs               ; 95 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[24]                                                                   ;
 ; 10:1               ; 4 bits    ; 24 LEs        ; 8 LEs                ; 16 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[26]                                                                   ;
 ; 30:1               ; 5 bits    ; 100 LEs       ; 50 LEs               ; 50 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[5] ;
@@ -1338,20 +1338,20 @@ Note: In order to hide this table in the UI and the text report file, please set
 ;     ENA SLD           ; 2                           ;
 ;     SLD               ; 2                           ;
 ;     plain             ; 197                         ;
-; cycloneiii_lcell_comb ; 783                         ;
+; cycloneiii_lcell_comb ; 779                         ;
 ;     arith             ; 190                         ;
 ;         2 data inputs ; 182                         ;
 ;         3 data inputs ; 8                           ;
-;     normal            ; 593                         ;
+;     normal            ; 589                         ;
 ;         0 data inputs ; 2                           ;
 ;         1 data inputs ; 29                          ;
-;         2 data inputs ; 68                          ;
-;         3 data inputs ; 127                         ;
-;         4 data inputs ; 367                         ;
+;         2 data inputs ; 67                          ;
+;         3 data inputs ; 129                         ;
+;         4 data inputs ; 362                         ;
 ; cycloneiii_ram_block  ; 8                           ;
 ;                       ;                             ;
 ; Max LUT depth         ; 8.00                        ;
-; Average LUT depth     ; 3.76                        ;
+; Average LUT depth     ; 3.74                        ;
 +-----------------------+-----------------------------+
 
 
@@ -1360,7 +1360,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+--------------+
 ; Partition Name ; Elapsed Time ;
 +----------------+--------------+
-; Top            ; 00:00:02     ;
+; Top            ; 00:00:01     ;
 +----------------+--------------+
 
 
@@ -1370,7 +1370,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
-    Info: Processing started: Thu Sep 28 16:47:30 2023
+    Info: Processing started: Thu Sep 28 17:04:21 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
@@ -1392,37 +1392,37 @@ Info (12127): Elaborating entity "CRPII_FPGAFirmware_Release" for the top level 
 Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(67): object "waiting_for_fresh_frame" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 67
 Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(117): object "FPGA_MISO" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 117
 Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(152): object "latest_hercules_SPI_listener_rx_data" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 152
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(225): object "configure_flash" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 225
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(226): object "read_BAR" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 226
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(235): object "write_flash" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 235
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(354): object "flash_PP4_done" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 354
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(357): object "flash_PP4_RDSR1_done" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 357
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(359): object "flash_PP4_RDSR1_response" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 359
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(364): object "new_camera_LV" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 364
-Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(365): object "reset_new_camera_LV" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 365
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(229): object "configure_flash" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 229
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(230): object "read_BAR" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 230
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(239): object "write_flash" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 239
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(356): object "flash_PP4_done" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 356
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(359): object "flash_PP4_RDSR1_done" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 359
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(361): object "flash_PP4_RDSR1_response" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 361
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(366): object "new_camera_LV" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 366
+Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(367): object "reset_new_camera_LV" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 367
 Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(194): truncated value with size 32 to match size of target (24) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 194
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(404): truncated value with size 32 to match size of target (24) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 404
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(849): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 849
-Info (10264): Verilog HDL Case Statement information at CRPII_FPGAFirmware_Release.v(376): all case item expressions in this case statement are onehot File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 376
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1334): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1334
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1346): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1346
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1367): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1367
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1378): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1378
-Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1386): variable "capturing_camera_frames" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1386
-Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1386): variable "done_waiting_for_fresh_frame" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1386
-Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1389): variable "lines_of_frame_counter" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1389
-Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1389): variable "interleave_phase" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1389
-Warning (10240): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1384): inferring latch(es) for variable "FIFO_write_enable", which holds its previous value in one or more paths through the always construct File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1384
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1425): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1425
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1460): truncated value with size 32 to match size of target (10) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1460
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1483): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1483
-Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1501): truncated value with size 32 to match size of target (10) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1501
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(405): truncated value with size 32 to match size of target (24) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 405
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(837): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 837
+Info (10264): Verilog HDL Case Statement information at CRPII_FPGAFirmware_Release.v(377): all case item expressions in this case statement are onehot File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 377
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1283): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1283
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1295): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1295
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1313): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1313
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1327): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1327
+Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1337): variable "capturing_camera_frames" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1337
+Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1337): variable "done_waiting_for_fresh_frame" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1337
+Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1340): variable "lines_of_frame_counter" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1340
+Warning (10235): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1340): variable "interleave_phase" is read inside the Always Construct but isn't in the Always Construct's Event Control File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1340
+Warning (10240): Verilog HDL Always Construct warning at CRPII_FPGAFirmware_Release.v(1335): inferring latch(es) for variable "FIFO_write_enable", which holds its previous value in one or more paths through the always construct File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1335
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1373): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1373
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1405): truncated value with size 32 to match size of target (10) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1405
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1424): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1424
+Warning (10230): Verilog HDL assignment warning at CRPII_FPGAFirmware_Release.v(1440): truncated value with size 32 to match size of target (10) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1440
 Warning (10034): Output port "camera_1_trigger" at CRPII_FPGAFirmware_Release.v(32) has no driver File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 32
 Warning (10034): Output port "camera_2_trigger" at CRPII_FPGAFirmware_Release.v(41) has no driver File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 41
-Info (10041): Inferred latch for "FIFO_write_enable" at CRPII_FPGAFirmware_Release.v(1397) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1397
+Info (10041): Inferred latch for "FIFO_write_enable" at CRPII_FPGAFirmware_Release.v(1348) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1348
 Info (12128): Elaborating entity "spi_slave" for hierarchy "spi_slave:hercules_SPI_listener" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 168
 Warning (10230): Verilog HDL assignment warning at spi_slave.v(72): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_slave.v Line: 72
-Info (12128): Elaborating entity "PLL" for hierarchy "PLL:PLL" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 214
+Info (12128): Elaborating entity "PLL" for hierarchy "PLL:PLL" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 217
 Info (12128): Elaborating entity "altpll" for hierarchy "PLL:PLL|altpll:altpll_component" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/PLL/PLL.v Line: 104
 Info (12130): Elaborated megafunction instantiation "PLL:PLL|altpll:altpll_component" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/PLL/PLL.v Line: 104
 Info (12133): Instantiated megafunction "PLL:PLL|altpll:altpll_component" with the following parameter: File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/PLL/PLL.v Line: 104
@@ -1484,7 +1484,7 @@ Info (12133): Instantiated megafunction "PLL:PLL|altpll:altpll_component" with t
 Info (12021): Found 1 design units, including 1 entities, in source file db/PLL_altpll.v
     Info (12023): Found entity 1: PLL_altpll File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/PLL_altpll.v Line: 31
 Info (12128): Elaborating entity "PLL_altpll" for hierarchy "PLL:PLL|altpll:altpll_component|PLL_altpll:auto_generated" File: /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/altpll.tdf Line: 898
-Info (12128): Elaborating entity "S70FL01GS_Flash_Memory_Interface_address_swap" for hierarchy "S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 278
+Info (12128): Elaborating entity "S70FL01GS_Flash_Memory_Interface_address_swap" for hierarchy "S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 282
 Warning (10036): Verilog HDL or VHDL warning at S70FL01GS_Flash_Memory_Interface_address_swap.v(91): object "READ4_command" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 91
 Warning (10036): Verilog HDL or VHDL warning at S70FL01GS_Flash_Memory_Interface_address_swap.v(93): object "BRRD_command" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 93
 Warning (10036): Verilog HDL or VHDL warning at S70FL01GS_Flash_Memory_Interface_address_swap.v(94): object "BRWR_command" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 94
@@ -1519,7 +1519,7 @@ Info (10041): Inferred latch for "mid[1]" at spi_master.v(92) File: /home/iris/D
 Info (10041): Inferred latch for "mid[2]" at spi_master.v(92) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 92
 Info (10041): Inferred latch for "mid[3]" at spi_master.v(92) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 92
 Info (10041): Inferred latch for "mid[4]" at spi_master.v(92) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v Line: 92
-Info (12128): Elaborating entity "FIFO" for hierarchy "FIFO:CAM_FIFO" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1304
+Info (12128): Elaborating entity "FIFO" for hierarchy "FIFO:CAM_FIFO" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 1272
 Info (12128): Elaborating entity "dcfifo" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/FIFO/FIFO.v Line: 80
 Info (12130): Elaborated megafunction instantiation "FIFO:CAM_FIFO|dcfifo:dcfifo_component" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/FIFO/FIFO.v Line: 80
 Info (12133): Instantiated megafunction "FIFO:CAM_FIFO|dcfifo:dcfifo_component" with the following parameter: File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/FIFO/FIFO.v Line: 80
@@ -1594,15 +1594,15 @@ Warning (21074): Design contains 8 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "camera_2_pixel_in[1]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
     Warning (15610): No output dependent on input pin "camera_2_pixel_in[2]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
     Warning (15610): No output dependent on input pin "camera_2_pixel_in[3]" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
-Info (21057): Implemented 1035 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 1029 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 36 input pins
     Info (21059): Implemented 18 output pins
-    Info (21061): Implemented 973 logic cells
+    Info (21061): Implemented 967 logic cells
     Info (21064): Implemented 8 RAM segments
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 76 warnings
-    Info: Peak virtual memory: 445 megabytes
-    Info: Processing ended: Thu Sep 28 16:47:40 2023
+    Info: Peak virtual memory: 444 megabytes
+    Info: Processing ended: Thu Sep 28 17:04:31 2023
     Info: Elapsed time: 00:00:10
-    Info: Total CPU time (on all processors): 00:00:22
+    Info: Total CPU time (on all processors): 00:00:23
 
 

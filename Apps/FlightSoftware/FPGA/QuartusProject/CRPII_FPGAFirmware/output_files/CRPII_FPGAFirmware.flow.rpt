@@ -1,5 +1,5 @@
 Flow report for CRPII_FPGAFirmware
-Thu Sep 28 16:47:59 2023
+Thu Sep 28 17:04:33 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
 
 
@@ -41,15 +41,15 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------------------------------------------------------+
 ; Flow Summary                                                                        ;
 +------------------------------------+------------------------------------------------+
-; Flow Status                        ; Successful - Thu Sep 28 16:47:59 2023          ;
+; Flow Status                        ; Flow Failed - Thu Sep 28 17:04:33 2023         ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
 ; Revision Name                      ; CRPII_FPGAFirmware                             ;
 ; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                     ;
 ; Family                             ; Cyclone 10 LP                                  ;
 ; Device                             ; 10CL025YU256I7G                                ;
 ; Timing Models                      ; Final                                          ;
-; Total logic elements               ; 948 / 24,624 ( 4 % )                           ;
-;     Total combinational functions  ; 785 / 24,624 ( 3 % )                           ;
+; Total logic elements               ; 961 / 24,624 ( 4 % )                           ;
+;     Total combinational functions  ; 778 / 24,624 ( 3 % )                           ;
 ;     Dedicated logic registers      ; 572 / 24,624 ( 2 % )                           ;
 ; Total registers                    ; 572                                            ;
 ; Total pins                         ; 54 / 151 ( 36 % )                              ;
@@ -65,7 +65,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 09/28/2023 16:47:30 ;
+; Start date & time ; 09/28/2023 17:04:21 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; CRPII_FPGAFirmware  ;
 +-------------------+---------------------+
@@ -76,7 +76,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------+----------------------------------------+--------------------+----------------------------+-----------------------------------+
 ; Assignment Name                     ; Value                                  ; Default Value      ; Entity Name                ; Section Id                        ;
 +-------------------------------------+----------------------------------------+--------------------+----------------------------+-----------------------------------+
-; COMPILER_SIGNATURE_ID               ; 154027290306549.169593405012038        ; --                 ; --                         ; --                                ;
+; COMPILER_SIGNATURE_ID               ; 154027290306549.169593506116060        ; --                 ; --                         ; --                                ;
 ; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --                 ; --                         ; eda_board_design_timing           ;
 ; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --                 ; --                         ; eda_board_design_boundary_scan    ;
 ; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --                 ; --                         ; eda_board_design_signal_integrity ;
@@ -105,12 +105,9 @@ https://fpgasoftware.intel.com/eula.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:00:09     ; 1.0                     ; 430 MB              ; 00:00:22                           ;
-; Fitter               ; 00:00:12     ; 1.1                     ; 951 MB              ; 00:00:17                           ;
-; Assembler            ; 00:00:01     ; 1.0                     ; 390 MB              ; 00:00:01                           ;
-; Timing Analyzer      ; 00:00:03     ; 1.1                     ; 503 MB              ; 00:00:03                           ;
-; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 628 MB              ; 00:00:00                           ;
-; Total                ; 00:00:26     ; --                      ; --                  ; 00:00:43                           ;
+; Analysis & Synthesis ; 00:00:10     ; 1.0                     ; 429 MB              ; 00:00:22                           ;
+; Fitter               ; 00:00:02     ; 1.0                     ; 416 MB              ; 00:00:01                           ;
+; Total                ; 00:00:12     ; --                      ; --                  ; 00:00:23                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -121,9 +118,6 @@ https://fpgasoftware.intel.com/eula.
 +----------------------+------------------+----------------+------------+----------------+
 ; Analysis & Synthesis ; pm1lwap          ; Ubuntu 18.04.5 ; 18         ; x86_64         ;
 ; Fitter               ; pm1lwap          ; Ubuntu 18.04.5 ; 18         ; x86_64         ;
-; Assembler            ; pm1lwap          ; Ubuntu 18.04.5 ; 18         ; x86_64         ;
-; Timing Analyzer      ; pm1lwap          ; Ubuntu 18.04.5 ; 18         ; x86_64         ;
-; EDA Netlist Writer   ; pm1lwap          ; Ubuntu 18.04.5 ; 18         ; x86_64         ;
 +----------------------+------------------+----------------+------------+----------------+
 
 
@@ -132,9 +126,6 @@ https://fpgasoftware.intel.com/eula.
 ------------
 quartus_map --read_settings_files=on --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 quartus_fit --read_settings_files=off --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
-quartus_asm --read_settings_files=off --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
-quartus_sta CRPII_FPGAFirmware -c CRPII_FPGAFirmware
-quartus_eda --read_settings_files=off --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 
 
 

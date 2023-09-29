@@ -1,6 +1,6 @@
 Fitter report for CRPII_FPGAFirmware
-Thu Sep 28 18:21:00 2023
-Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
+Fri Sep 29 10:32:49 2023
+Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
 
 
 ---------------------
@@ -66,26 +66,26 @@ https://fpgasoftware.intel.com/eula.
 
 
 
-+-------------------------------------------------------------------------------------+
-; Fitter Summary                                                                      ;
-+------------------------------------+------------------------------------------------+
-; Fitter Status                      ; Successful - Thu Sep 28 18:21:00 2023          ;
-; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
-; Revision Name                      ; CRPII_FPGAFirmware                             ;
-; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                     ;
-; Family                             ; Cyclone 10 LP                                  ;
-; Device                             ; 10CL025YU256I7G                                ;
-; Timing Models                      ; Final                                          ;
-; Total logic elements               ; 998 / 24,624 ( 4 % )                           ;
-;     Total combinational functions  ; 825 / 24,624 ( 3 % )                           ;
-;     Dedicated logic registers      ; 605 / 24,624 ( 2 % )                           ;
-; Total registers                    ; 605                                            ;
-; Total pins                         ; 54 / 151 ( 36 % )                              ;
-; Total virtual pins                 ; 0                                              ;
-; Total memory bits                  ; 262,144 / 608,256 ( 43 % )                     ;
-; Embedded Multiplier 9-bit elements ; 0 / 132 ( 0 % )                                ;
-; Total PLLs                         ; 0 / 4 ( 0 % )                                  ;
-+------------------------------------+------------------------------------------------+
++-----------------------------------------------------------------------------------------+
+; Fitter Summary                                                                          ;
++------------------------------------+----------------------------------------------------+
+; Fitter Status                      ; Successful - Fri Sep 29 10:32:49 2023              ;
+; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Standard Edition ;
+; Revision Name                      ; CRPII_FPGAFirmware                                 ;
+; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                         ;
+; Family                             ; Cyclone 10 LP                                      ;
+; Device                             ; 10CL025YU256I7G                                    ;
+; Timing Models                      ; Final                                              ;
+; Total logic elements               ; 998 / 24,624 ( 4 % )                               ;
+;     Total combinational functions  ; 825 / 24,624 ( 3 % )                               ;
+;     Dedicated logic registers      ; 605 / 24,624 ( 2 % )                               ;
+; Total registers                    ; 605                                                ;
+; Total pins                         ; 54 / 151 ( 36 % )                                  ;
+; Total virtual pins                 ; 0                                                  ;
+; Total memory bits                  ; 262,144 / 608,256 ( 43 % )                         ;
+; Embedded Multiplier 9-bit elements ; 0 / 132 ( 0 % )                                    ;
+; Total PLLs                         ; 0 / 4 ( 0 % )                                      ;
++------------------------------------+----------------------------------------------------+
 
 
 +----------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -161,9 +161,9 @@ https://fpgasoftware.intel.com/eula.
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   5.4%      ;
-;     Processor 3            ;   5.4%      ;
-;     Processor 4            ;   5.4%      ;
+;     Processor 2            ;   5.3%      ;
+;     Processor 3            ;   5.2%      ;
+;     Processor 4            ;   5.2%      ;
 +----------------------------+-------------+
 
 
@@ -1487,7 +1487,6 @@ Info (119006): Selected device 10CL025YU256I7G for design "CRPII_FPGAFirmware"
 Info (21077): Low junction temperature is -40 degrees C
 Info (21077): High junction temperature is 100 degrees C
 Info (171003): Fitter is performing an Auto Fit compilation, which may decrease Fitter effort to reduce compilation time
-Warning (292013): Feature LogicLock is only available with a valid subscription license. You can purchase a software subscription to gain full access to this feature.
 Info (176444): Device migration not selected. If you intend to use device migration later, you may need to change the pin assignments as they may be incompatible with other devices
     Info (176445): Device 10CL006YU256A7G is compatible
     Info (176445): Device 10CL006YU256I7G is compatible
@@ -1574,7 +1573,7 @@ Info (176353): Automatically promoted node S70FL01GS_Flash_Memory_Interface_addr
 Info (176233): Starting register packing
 Info (176235): Finished register packing
     Extra Info (176219): No registers were packed into other blocks
-Info (171121): Fitter preparation operations ending: elapsed time is 00:00:01
+Info (171121): Fitter preparation operations ending: elapsed time is 00:00:02
 Info (14896): Fitter has disabled Advanced Physical Optimization because it is not supported for the current family.
 Info (170189): Fitter placement preparation operations beginning
 Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:00
@@ -1587,12 +1586,12 @@ Info (170195): Router estimated average interconnect usage is 2% of the availabl
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
 Info (170194): Fitter routing operations ending: elapsed time is 00:00:03
-Info (11888): Total time spent on timing analysis during the Fitter is 1.20 seconds.
+Info (11888): Total time spent on timing analysis during the Fitter is 1.24 seconds.
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
-Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:01
+Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:02
 Warning (169177): 36 pins must meet Intel FPGA requirements for 3.3-, 3.0-, and 2.5-V interfaces. For more information, refer to AN 447: Interfacing Cyclone 10 LP Devices with 3.3/3.0/2.5-V LVTTL/LVCMOS I/O Systems.
     Info (169178): Pin camera_1_pixel_in[0] uses I/O standard 3.3-V LVTTL at B5 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
     Info (169178): Pin camera_1_pixel_in[1] uses I/O standard 3.3-V LVTTL at A3 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
@@ -1631,10 +1630,10 @@ Warning (169177): 36 pins must meet Intel FPGA requirements for 3.3-, 3.0-, and 
     Info (169178): Pin camera_1_pixel_in[4] uses I/O standard 3.3-V LVTTL at E6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
     Info (169178): Pin camera_2_pixel_in[4] uses I/O standard 3.3-V LVTTL at R7 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
 Info (144001): Generated suppressed messages file /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.fit.smsg
-Info: Quartus Prime Fitter was successful. 0 errors, 6 warnings
-    Info: Peak virtual memory: 956 megabytes
-    Info: Processing ended: Thu Sep 28 18:21:00 2023
-    Info: Elapsed time: 00:00:12
+Info: Quartus Prime Fitter was successful. 0 errors, 5 warnings
+    Info: Peak virtual memory: 968 megabytes
+    Info: Processing ended: Fri Sep 29 10:32:50 2023
+    Info: Elapsed time: 00:00:13
     Info: Total CPU time (on all processors): 00:00:20
 
 

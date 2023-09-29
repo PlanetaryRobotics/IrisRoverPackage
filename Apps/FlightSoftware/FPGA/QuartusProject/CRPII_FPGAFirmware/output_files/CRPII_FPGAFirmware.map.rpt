@@ -1,6 +1,6 @@
 Analysis & Synthesis report for CRPII_FPGAFirmware
-Thu Sep 28 18:20:47 2023
-Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
+Fri Sep 29 10:32:35 2023
+Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
 
 
 ---------------------
@@ -74,24 +74,24 @@ https://fpgasoftware.intel.com/eula.
 
 
 
-+-------------------------------------------------------------------------------------+
-; Analysis & Synthesis Summary                                                        ;
-+------------------------------------+------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Thu Sep 28 18:20:47 2023          ;
-; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Lite Edition ;
-; Revision Name                      ; CRPII_FPGAFirmware                             ;
-; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                     ;
-; Family                             ; Cyclone 10 LP                                  ;
-; Total logic elements               ; 1,018                                          ;
-;     Total combinational functions  ; 821                                            ;
-;     Dedicated logic registers      ; 605                                            ;
-; Total registers                    ; 605                                            ;
-; Total pins                         ; 54                                             ;
-; Total virtual pins                 ; 0                                              ;
-; Total memory bits                  ; 262,144                                        ;
-; Embedded Multiplier 9-bit elements ; 0                                              ;
-; Total PLLs                         ; 0                                              ;
-+------------------------------------+------------------------------------------------+
++-----------------------------------------------------------------------------------------+
+; Analysis & Synthesis Summary                                                            ;
++------------------------------------+----------------------------------------------------+
+; Analysis & Synthesis Status        ; Successful - Fri Sep 29 10:32:35 2023              ;
+; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Standard Edition ;
+; Revision Name                      ; CRPII_FPGAFirmware                                 ;
+; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                         ;
+; Family                             ; Cyclone 10 LP                                      ;
+; Total logic elements               ; 1,018                                              ;
+;     Total combinational functions  ; 821                                                ;
+;     Dedicated logic registers      ; 605                                                ;
+; Total registers                    ; 605                                                ;
+; Total pins                         ; 54                                                 ;
+; Total virtual pins                 ; 0                                                  ;
+; Total memory bits                  ; 262,144                                            ;
+; Embedded Multiplier 9-bit elements ; 0                                                  ;
+; Total PLLs                         ; 0                                                  ;
++------------------------------------+----------------------------------------------------+
 
 
 +--------------------------------------------------------------------------------------------------------------------+
@@ -210,23 +210,23 @@ https://fpgasoftware.intel.com/eula.
 ; FIFO/FIFO.v                                                       ; yes             ; User Wizard-Generated File   ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/FIFO/FIFO.v                                                       ;         ;
 ; PLL/PLL.v                                                         ; yes             ; User Wizard-Generated File   ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/PLL/PLL.v                                                         ;         ;
 ; SPI/spi_master.v                                                  ; yes             ; User Verilog HDL File        ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_master.v                                                  ;         ;
-; altpll.tdf                                                        ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/altpll.tdf                                                                                                            ;         ;
-; aglobal221.inc                                                    ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/aglobal221.inc                                                                                                        ;         ;
-; stratix_pll.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/stratix_pll.inc                                                                                                       ;         ;
-; stratixii_pll.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/stratixii_pll.inc                                                                                                     ;         ;
-; cycloneii_pll.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/cycloneii_pll.inc                                                                                                     ;         ;
+; altpll.tdf                                                        ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/altpll.tdf                                                                                                                 ;         ;
+; aglobal221.inc                                                    ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/aglobal221.inc                                                                                                             ;         ;
+; stratix_pll.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/stratix_pll.inc                                                                                                            ;         ;
+; stratixii_pll.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/stratixii_pll.inc                                                                                                          ;         ;
+; cycloneii_pll.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/cycloneii_pll.inc                                                                                                          ;         ;
 ; db/PLL_altpll.v                                                   ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/PLL_altpll.v                                                   ;         ;
-; dcfifo.tdf                                                        ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/dcfifo.tdf                                                                                                            ;         ;
-; lpm_counter.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/lpm_counter.inc                                                                                                       ;         ;
-; lpm_add_sub.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/lpm_add_sub.inc                                                                                                       ;         ;
-; altdpram.inc                                                      ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/altdpram.inc                                                                                                          ;         ;
-; a_graycounter.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/a_graycounter.inc                                                                                                     ;         ;
-; a_fefifo.inc                                                      ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/a_fefifo.inc                                                                                                          ;         ;
-; a_gray2bin.inc                                                    ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/a_gray2bin.inc                                                                                                        ;         ;
-; dffpipe.inc                                                       ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/dffpipe.inc                                                                                                           ;         ;
-; alt_sync_fifo.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/alt_sync_fifo.inc                                                                                                     ;         ;
-; lpm_compare.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/lpm_compare.inc                                                                                                       ;         ;
-; altsyncram_fifo.inc                                               ; yes             ; Megafunction                 ; /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/altsyncram_fifo.inc                                                                                                   ;         ;
+; dcfifo.tdf                                                        ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/dcfifo.tdf                                                                                                                 ;         ;
+; lpm_counter.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/lpm_counter.inc                                                                                                            ;         ;
+; lpm_add_sub.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/lpm_add_sub.inc                                                                                                            ;         ;
+; altdpram.inc                                                      ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/altdpram.inc                                                                                                               ;         ;
+; a_graycounter.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/a_graycounter.inc                                                                                                          ;         ;
+; a_fefifo.inc                                                      ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/a_fefifo.inc                                                                                                               ;         ;
+; a_gray2bin.inc                                                    ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/a_gray2bin.inc                                                                                                             ;         ;
+; dffpipe.inc                                                       ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/dffpipe.inc                                                                                                                ;         ;
+; alt_sync_fifo.inc                                                 ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/alt_sync_fifo.inc                                                                                                          ;         ;
+; lpm_compare.inc                                                   ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/lpm_compare.inc                                                                                                            ;         ;
+; altsyncram_fifo.inc                                               ; yes             ; Megafunction                 ; /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/altsyncram_fifo.inc                                                                                                        ;         ;
 ; db/dcfifo_flf1.tdf                                                ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf                                                ;         ;
 ; db/a_graycounter_2p6.tdf                                          ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_2p6.tdf                                          ;         ;
 ; db/a_graycounter_u6c.tdf                                          ; yes             ; Auto-Generated Megafunction  ; /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_u6c.tdf                                          ;         ;
@@ -1388,8 +1388,8 @@ Note: In order to hide this table in the UI and the text report file, please set
 +-------------------------------+
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
-    Info: Version 22.1std.2 Build 922 07/20/2023 SC Lite Edition
-    Info: Processing started: Thu Sep 28 18:20:37 2023
+    Info: Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
+    Info: Processing started: Fri Sep 29 10:32:25 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
@@ -1502,7 +1502,7 @@ Info (12133): Instantiated megafunction "PLL:PLL|altpll:altpll_component" with t
     Info (12134): Parameter "width_clock" = "5"
 Info (12021): Found 1 design units, including 1 entities, in source file db/PLL_altpll.v
     Info (12023): Found entity 1: PLL_altpll File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/PLL_altpll.v Line: 31
-Info (12128): Elaborating entity "PLL_altpll" for hierarchy "PLL:PLL|altpll:altpll_component|PLL_altpll:auto_generated" File: /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/altpll.tdf Line: 898
+Info (12128): Elaborating entity "PLL_altpll" for hierarchy "PLL:PLL|altpll:altpll_component|PLL_altpll:auto_generated" File: /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/altpll.tdf Line: 898
 Info (12128): Elaborating entity "S70FL01GS_Flash_Memory_Interface_address_swap" for hierarchy "S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 282
 Warning (10036): Verilog HDL or VHDL warning at S70FL01GS_Flash_Memory_Interface_address_swap.v(91): object "READ4_command" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 91
 Warning (10036): Verilog HDL or VHDL warning at S70FL01GS_Flash_Memory_Interface_address_swap.v(93): object "BRRD_command" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v Line: 93
@@ -1555,7 +1555,7 @@ Info (12133): Instantiated megafunction "FIFO:CAM_FIFO|dcfifo:dcfifo_component" 
     Info (12134): Parameter "wrsync_delaypipe" = "4"
 Info (12021): Found 1 design units, including 1 entities, in source file db/dcfifo_flf1.tdf
     Info (12023): Found entity 1: dcfifo_flf1 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 37
-Info (12128): Elaborating entity "dcfifo_flf1" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated" File: /home/iris/intelFPGA_lite/22.1std/quartus/libraries/megafunctions/dcfifo.tdf Line: 191
+Info (12128): Elaborating entity "dcfifo_flf1" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated" File: /home/iris/intelFPGA/22.1std/quartus/libraries/megafunctions/dcfifo.tdf Line: 191
 Info (12021): Found 1 design units, including 1 entities, in source file db/a_graycounter_2p6.tdf
     Info (12023): Found entity 1: a_graycounter_2p6 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/a_graycounter_2p6.tdf Line: 25
 Info (12128): Elaborating entity "a_graycounter_2p6" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_flf1:auto_generated|a_graycounter_2p6:rdptr_g1p" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_flf1.tdf Line: 49
@@ -1628,9 +1628,9 @@ Info (21057): Implemented 1112 device resources after synthesis - the final reso
     Info (21061): Implemented 1026 logic cells
     Info (21064): Implemented 32 RAM segments
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 76 warnings
-    Info: Peak virtual memory: 445 megabytes
-    Info: Processing ended: Thu Sep 28 18:20:47 2023
+    Info: Peak virtual memory: 441 megabytes
+    Info: Processing ended: Fri Sep 29 10:32:35 2023
     Info: Elapsed time: 00:00:10
-    Info: Total CPU time (on all processors): 00:00:23
+    Info: Total CPU time (on all processors): 00:00:24
 
 

@@ -6,6 +6,12 @@
 // with immunity to signal noise and phase shifts on the incoming parallel bus.
 // Also designed with some protections against SEU in mind.
 
+// The core philosophy to the following implementation is that we care VERY much
+// about getting every pixel without corruption and getting it in the right
+// order, even with very noisy input signals.
+// We care close to zero about how long it takes to capture (within reason) and
+// also zero about motion blur (our environment is assumed to be static).
+
 // TODO: Check for FIFO full and don't advance internal state (which pixels and
 // lines are done) until we've actually written the data. (check for almost_full too?)
 
@@ -13,9 +19,10 @@ module CameraSensorInterface
 #(
     // * Config Variables:
     parameter integer SYNC_STAGES = 'd10, // Number of input synchronization stages    
-    parameter integer PIX_SAMPLING_DELAY = 'd3, // Number of system clocks to wait after PIX_CLK falls before sampling the pixel data (if you want this to be 0, you need to remove the associated delay stage - setting this to 0 won't work).
+    parameter integer PIX_SAMPLING_DELAY = 'd2, // Number of system clocks to wait after PIX_CLK falls before sampling the pixel data (if you want this to be 0, you need to remove the associated delay stage - setting this to 0 won't work).
     parameter integer VALID_LINE_SIZE = 12'd2592, // Number of valid pixels in a line of a frame
     parameter integer LINES_IN_FRAME = 12'd1944, // Number of lines in each full frame
+    parameter integer STATE_TIMEOUT_MINUTES = 5; // Max number of minutes we can stay in a state before timing out and resetting
 
     // Number of frames to interleave into each image (bigger = more relief for
     // Flash FSM & more frames in "video", smaller = less motion blur and
@@ -25,24 +32,41 @@ module CameraSensorInterface
     parameter integer N_INTERLEAVED_FRAMES = 12'd8;
 )
 (
+    input wire clk,  // FPGA system clock
     // Signals from camera sensor:
-    input wire clk,
-    input wire FV,
-    input wire LV,
-    input wire PIXCLK,
-    input wire [11:0] PIXDATA,
-    input wire FIFO_WR_REQ  // Signal used to enter data into the FIFO,
+    // Camera 1 Interface
+    output reg  camera_1_reset_bar,
+    input wire camera_1_pixel_clock,
+    input wire camera_1_FV,
+    input wire camera_1_LV,
+    input wire [11:0] camera_1_pixel_in,
+
+    // Camera 2 Interface
+    output reg  camera_2_reset_bar,
+    input wire camera_2_pixel_clock,
+    input wire camera_2_FV,
+    input wire camera_2_LV,
+    input wire [11:0] camera_2_pixel_in,
 
     // Context information:
+    input wire desired_camera_idx;  // 1'b0 for Camera 1, 1'b1 for Camera 2
     input wire [7:0] imaging_mode,
 
     // I/O control & status signals:
-    input wire request_image,
-    output wire image_started,
-    output wire image_finished
+    input wire request_image,   // Outside agent would like us to take an image as soon as possible
+    output wire image_started,  // We've now started taking that image
+    output wire image_finished  // That image is done
     
-    // Data to be saved into the FIFO (pixel data or header info)
-    output wire [7:0] data_for_fifo; 
+    // `data_for_fifo`: Data to be saved into the FIFO (pixel data or header info)
+    output wire [7:0] data_for_fifo;
+    // `sample_pixel_pulse`: Pulse goes high when it's time to sample a pixel
+    // from `data_for_fifo`
+    output wire sample_pixel_pulse;
+    // `keep_pixel`: Whether the pixel data should be stored in the FIFO
+    // (i.e. is it valid data). Stays high as long as we're in a valid region
+    // of the image.
+    // Wired to `wr_req` of FIFO.
+    output wire keep_pixel;
 );
 
 // Count clocks since last FIFO entry
@@ -165,14 +189,21 @@ reg pix_sample_delay_pipe [0:PIX_SAMPLING_DELAY-1];
 // Sample Pixel Pulse: a 1 sys-clock long pulse
 // NOTE: this is just the FIFO write-clock, i.e. is now when we would sample a
 // pixel, not *should* we sample this pixel - that's FIFO write-enable: `keep_pixel`.
-wire sample_pixels_pulse = pix_sample_delay_pipe[PIX_SAMPLING_DELAY-1];
+assign sample_pixel_pulse = pix_sample_delay_pipe[PIX_SAMPLING_DELAY-1];
 integer j;
 always @(posedge clk) begin
     // Trigger a reading the pixels PIX_SAMPLING_DELAY system clocks after
     // pixel clock falls (give them time to finish transitioning -
     // accounts for any phase differences built up).
-    // Data will stick around for about 8 clocks before transitioning so we can
+    // Data will stick around for about 8 sys clocks before transitioning so we can
     // safely make this a few wide.
+    // NOTE: HOWEVER, we'll only have 4 sys clocks after PIXCLK falls guaranteed
+    // before the data starts to transitions. Fewer if there's negative phase
+    // shift (though there would have to be 20ns of negative shift for it to
+    // matter 0 - the max amount spec'd at the sensor side (tPD) is 3.9ns when
+    // PIXCLK is at its default 96MHz).
+    // NOTE: Data transitions at PIXCLK rise, so there's already some delay
+    // baked in.
     pix_sample_delay_pipe[0] <= s_pixclk_fell;
     for(j=0; j<PIX_SAMPLING_DELAY; j++) begin
         pix_sample_delay_pipe[j] <= pix_sample_delay_pipe[j-1];
@@ -189,9 +220,9 @@ wire line_complete = ~line_active;
 // Starts at 0 (*before* we've sampled any pixels).
 // Counts up to `VALID_LINE_SIZE` (*after* we've sampled the last pixel in the line)
 // Thus:
-//  - before and during `sample_pixels_pulse`, this serves as the vector index
+//  - before and during `sample_pixel_pulse`, this serves as the vector index
 //    of the pixel being sampled.
-//  - after `sample_pixels_pulse`, this serves as a count of the number of
+//  - after `sample_pixel_pulse`, this serves as a count of the number of
 //    pixels we've pushed into the FIFO.
 
 reg [11:0] pixels_elapsed_in_line = 0;
@@ -203,7 +234,7 @@ always @(posedge clk) begin
         if(pixels_elapsed_in_line >= VALID_LINE_SIZE) begin  // >= not == to help recover from SEU
             line_active = 1'b0; // immediate
             pixels_elapsed_in_line <= 12'b0; // reset the count
-        end else if(sample_pixels_pulse) begin
+        end else if(sample_pixel_pulse) begin
             // Set this using a "non-blocking" assignment so the value doesn't take
             // place until the next sys-clock (since we won't have actually sampled
             // it until then).
@@ -223,10 +254,23 @@ end
 // LINE'S COMPLETION (more time to execute the logic and be sure about the inc)
 reg [11:0] line_in_frame = 12'b0; // What line number are we in the frame (0-idx)
 reg [11:0] prev_line_in_frame = 12'b0; // What was the last line in the frame (0-idx). Typ. l_i_f-1, except when we start and when we wrap around.
-wire in_blanking_region = sync_PIXDATA[11:0] == 12'b0;
 reg line_counter_can_be_incremented = 1'b0;
 reg line_counter_incremented_at_end = 1'b0; // 1 sys-clock pulse letting observers know we just incremented the line_counter (at the end of a line)
-reg frame_ended_pulse = 1'b0; // 1 sys-clock wide pulse telling observers the last line of the current frame is definitely done. 
+reg frame_ended_pulse = 1'b0; // 1 sys-clock wide pulse telling observers the last line of the current frame is definitely done. +
+wire in_blanking_region = sync_PIXDATA[11:0] == 12'b0;
+// `out_of_frame`: Logic to check that we're DEFINITELY outside of a frame
+// (in the inter-frame blanking interval)
+// -- based on inputs only, not state tracking (pixel counts, etc):
+// This signal has much higher susceptability to noise in exchange fo
+// much higher certainty that if we see it, we're out of frame. Given that this
+// state should be active for at least 50 consecutive PIXCLKs and we need it to
+// be active for 1 sys clock to trigger `out_of_frame` checks, this is an
+// acceptable and ideal trade-off.
+wire out_of_frame = (
+    !sync_FV // FV is low
+    && !sync_LV // LV is low
+    && in_blanking_region
+);
 always @(posedge clk) begin
     // NOTE: `line_complete` is involved in the following checks in order to 
     // prevent the line number from being incremented until we've read a full
@@ -270,9 +314,7 @@ always @(posedge clk) begin
     // (this is a long period rel. to sys clk and we don't need to act fast on
     // it so its okay to have a lot of combinatorial logic involved):
     if(
-        !sync_FV // FV is low
-        && !sync_LV // LV is low
-        && in_blanking_region
+        out_of_frame     // all inputs show that we're in an inter-frame blanking interval
         && line_complete // we've read all the data we need to read so it's okay to change this
     ) begin
         prev_line_in_frame = line_in_frame;
@@ -458,26 +500,201 @@ ImageMetadataMux imageMetadataMux(
 );
 
 
-// * TRANSACTION FINITE STATE MACHINE *
-// TRANSACTION FSM STATES (one-hot values):
-localparam WAITING_FOR_COMMAND          = 4'h0; // Idle. No longer streaming bits into the FIFO.
-localparam COMMANDED_WAITING_FOR_FRAME  = 4'h2; // We've been told to take a picture and are waiting for the start of the next frame to begin
-localparam STREAMING_IMAGE              = 4'h4; // Loading bits into the FIFO actively.
-reg [3:0] capture_state = WAITING_FOR_COMMAND;
-reg [3:0] capture_state_prev = WAITING_FOR_COMMAND; // Capture state on the last clk cycle
-wire streaming_started_pulse = (capture_state == STREAMING_IMAGE) && (capture_state_prev != STREAMING_IMAGE);  // 1 sys-clk pulse telling observers that the streaming just started
-wire not_streaming = (capture_state != STREAMING_IMAGE);
-// TODO: Watch out for pulse weirdness on camera switchover.
-// -- make sure that doesn't happen while this is operating and make sure this
-// won't be processing signals for a couple pulses after (maybe add a new CAM_SWITCHOVER state?)
-
+// * VALID PIXEL CHECK *
 // Keep Pixel: should we be sampling this pixel. Stays high as long as we're
 // inside a valid line.
 // NOTE: this is the bit to check when `sample_pixel_pulse` goes high telling
 // us if we should keep this pixel (i.e. the FIFO write-enable)
-// - line_num == target_line_to_sample  (<< make this a sample 2, skip 14 pattern so we can preserve bayering?)
-// - line_active
-// - SHOULD WE BE SAMPLING RN? (cap_frames)
+assign keep_pixel = (
+    line_active                                                 // Are we in a line?
+    && (line_in_frame == target_interleaved_line_to_sample)     // Is it the right line for the current interleave pos?
+    && actively_streaming                                       // Should we be saving data rn at all?
+);
+
+
+
+// *********************************************
+// * TRANSACTION FINITE STATE MACHINE **********
+// *********************************************
+// Controls state of image capture and transactions with outside agents who
+// want us to take an image.
+// Built according to Intel Quartus' standards for an FSM in Verilog-2001,
+// to help with automatic state machine recognition.
+
+// * TRANSACTION FSM STATES *
+localparam BOOT                                 = 4'd0,
+           IDLE                                 = 4'd1,
+           SWITCHING_CAM__RST                   = 4'd2,
+           SWITCHING_CAM__POST_SWITCHOVER_WAIT  = 4'd3,
+           SWITCHING_CAM__UNRST                 = 4'd4,
+           SWITCHING_CAM__WAIT_FOR_FRAME_START  = 4'd5,
+           SWITCHING_CAM__WAIT_FOR_FRAME_END    = 4'd6,
+           COMMANDED__WAITING_FOR_FRAME_END     = 4'd7,
+           COMMANDED__WAITING_FOR_FRAME_START   = 4'd8,
+           STREAMING_IMAGE                      = 4'd9;
+// Declare the state register to be "safe" to implement
+// a safe state machine that can recover gracefully from
+// an illegal state (by returning to the reset state).
+(* syn_encoding = "safe" *) reg [3:0] capture_state = BOOT;
+reg [3:0] capture_state_prev = BOOT; // Capture state on the last clk cycle
+reg [3:0] capture_state_next = BOOT; // Capture state to transition to on the next cycle
+
+// * State Timer *
+reg [36:0] state_timer = 37'b0; // 37b counter, capable of counting up to 30 minutes (9e10 cycles at 50MHz), way longer than any state should take.
+localparam integer ONE_SECOND = 37'd50_000_000; // Num. cycles in a second (used in a lot of places)
+localparam integer STATE_TIMEOUT_MAX_CYCLES = ONE_SECOND * 37'd60 * STATE_TIMEOUT_MINUTES;
+
+// * State Transitioner & Timer *
+always @(posedge clk) begin
+    if(capture_state != capture_state_next) begin
+        state_timer = 37'b0;  // immediately reset timer, then update state:
+        // Advance to next state:
+        capture_state_prev <= capture_state;
+        capture_state <= capture_state_next;
+    end else if(state_timer > STATE_TIMEOUT_MAX_CYCLES) begin
+        // If we've stayed in a state for WAY longer than should be the case,
+        // we need to just yeet back to BOOT and start over.
+        // This is the final line of defense against hangups.
+        state_timer = 37'b0;  // immediately reset timer, then update state:
+        // Set everything back to the way it was at the beginning:
+        capture_state_prev <= BOOT;
+        capture_state <= BOOT;
+        capture_state_next <= BOOT;
+    end else begin
+        state_timer <= state_timer + 37'b1;
+    end
+end
+
+
+// * Derived Camera Signals (MUX) *
+reg no_camera_selected = 1'b1; // Whether any cameras have been selected (properly, through the FSM)
+reg selected_camera_idx = 1'b0; // Which camera is currently selected ('b0 for Cam 1, 'b1 for Cam 2)
+// MUX'd input signals from sensors (assigned to no sensor if we have nothing selected):
+wire        FV          = no_camera_selected ? 1'b0             : (selected_camera_idx ? camera_2_FV : camera_1_FV);
+wire        LV          = no_camera_selected ? 1'b0             : (selected_camera_idx ? camera_2_LV : camera_1_LV);
+wire        PIXCLK      = no_camera_selected ? 1'b0             : (selected_camera_idx ? camera_2_pixel_clock : camera_1_pixel_clock);
+wire [11:0] PIXDATA     = no_camera_selected ? {8'hCC, 4'b0}    : (selected_camera_idx ? camera_2_pixel_in : camera_1_pixel_in);  // Put fixed hex in upper 8 bits (where we read). Not 0 just so we can debug if something goes weird
+
+
+// * State Machine Transition Logic*
+// State machine logic impl. as combo per Intel recommendation for Quartus
+// auto-detection.
+reg camera_selection_in_progress = 1'b0; // Flag to let observers know that the camera is actively being switched and to not track any transitions the camera signals may be doing.
+always @(*) begin
+    case (capture_state)
+        BOOT: begin
+            // Hold both cameras in reset (active-low):
+            camera_1_reset_bar = 1'b0;
+            camera_2_reset_bar = 1'b0;
+            no_camera_selected = 1'b1;
+            if(state_timer > ONE_SECOND) begin
+                // Things have had time to settle. Moving on to IDLE state.
+                // Not unresetting the cameras here b/c we do that through
+                // special states so we can control when it happens and react
+                // to it
+                capture_state_next = IDLE;
+            end
+        end
+        IDLE: begin
+            // Idle. Not doing anything, incl. streaming bits into the FIFO.
+            if(no_camera_selected || (selected_camera_idx != desired_camera_idx)) begin
+                // No camera selected (properly) yet or we need to change that.
+                // Only allowing this to happen in the idle state so we don't
+                // switch cameras while imaging.
+                camera_selection_in_progress = 1'b1;
+                capture_state_next = SWITCHING_CAM__RST;
+            end else if(request_image) begin
+                capture_state_next = COMMANDED__WAITING_FOR_FRAME_END;
+            end
+        end
+        SWITCHING_CAM__RST: begin
+            // Hold both cameras in reset for at least 1s (active-low):
+            camera_1_reset_bar = 1'b0;
+            camera_2_reset_bar = 1'b0;
+            no_camera_selected = 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
+            if(state_timer > ONE_SECOND) begin
+                // Perform the switch only after we've been in rst for a while,
+                // so switchover doesn't happen with the cameras active.
+                selected_camera_idx = desired_camera_idx;
+                no_camera_selected = 1'b0; // we've now selected a camera
+                capture_state_next = SWITCHING_CAM__POST_SWITCHOVER_WAIT;
+            end
+        end
+        SWITCHING_CAM__POST_SWITCHOVER_WAIT: begin
+            // Wait here a bit, doing nothing, after the MUX switch before unresetting:
+            // (makes sure the switchover completes while neither cam is active)
+            if(state_timer > ONE_SECOND) begin
+                capture_state_next = SWITCHING_CAM__UNRST;
+            end
+        end
+        SWITCHING_CAM__UNRST: begin
+            // Unreset JUST THE SELECTED CAMERA (active-low).
+            // Leave the other off for power saving.
+            if(selected_camera_idx == 1'b1) begin
+                camera_2_reset_bar = 1'b1;
+            end else begin
+                camera_1_reset_bar = 1'b1;
+            end
+
+            // Wait a sec for things to start and stabilize
+            // (longer than needed but that's fine).
+            if(state_timer > ONE_SECOND) begin
+                capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_START;
+            end
+        end
+        SWITCHING_CAM__WAIT_FOR_FRAME_START: begin
+            // Let 1 frame elapse after camera is unreset before letting any 
+            // state trackers start and make sure everything comes up during
+            // an inter-frame boundary.
+            // So, first we must wait for a frame start trigger...
+            if(sync_FV) begin
+                capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_END;
+            end
+        end
+        SWITCHING_CAM__WAIT_FOR_FRAME_END: begin
+            // ... then we wait for the next inter-frame boundary.
+            if(out_of_frame) begin
+                camera_selection_in_progress = 1'b0;  // ! TODO: (WORKING-HERE) Make this use (incl. in pixel counters (& line?)). Then (strongly) reconsider switching to arch where STREAMING starts at start of blanking interval (more clearance).
+                capture_state_next = IDLE;
+            end
+        end
+        COMMANDED__WAITING_FOR_FRAME_END: begin
+            // We've been told to take a picture and are waiting for the start
+            // of the *next* frame to begin.
+            // So, first we need to wait to be out of a frame (in case we're
+            // currently in one):
+            if(out_of_frame) begin
+                capture_state_next = COMMANDED__WAITING_FOR_FRAME_START;
+            end
+        end
+        COMMANDED__WAITING_FOR_FRAME_START: begin
+            // We've been told to take a picture and are waiting for the start
+            // of the next frame to begin. We're now outside of a frame, so
+            // when FV is asserted next, we'll be in one.
+            if(sync_FV) // if we're in a frame
+            // TODO: DO WE ACTUALLY CARE ABOUT STARTING IN FRAME START OR JUST AFTER FRAME END...
+        end
+        STREAMING_IMAGE: begin
+            // Actively streaming bits into the FIFO.
+            // TODO
+        end
+        default: begin
+            capture_state_next = BOOT;
+        end
+    endcase
+end
+
+
+// * Flags for Key States & State Transitions *
+wire streaming_started_pulse = (capture_state == STREAMING_IMAGE) && (capture_state_prev != STREAMING_IMAGE);  // 1 sys-clk pulse telling observers that the streaming just started
+wire not_streaming = (capture_state != STREAMING_IMAGE);
+wire actively_streaming = (capture_state == STREAMING_IMAGE);
+
+// TODO: reset all counts etc to boot default during this state (switchover is complete, cams are coming out of reset, ignore any on-boot power-up weirdness and don't start trying to figure out what the camera is doing until after this)
+// TODO: Make sure state catch will work no matter where we come up
+wire cameras_being_unreset = (capture_state == SWITCHING_CAM__UNRST);
+
+
 
 
 
@@ -486,8 +703,6 @@ wire not_streaming = (capture_state != STREAMING_IMAGE);
 // - Can we be loading pixels now:
 // - LOAD DATA INTO FIFO
 // - COMPOSITE IMAGE COMPLETE
-// - DATA TO LOAD INTO FIFO (with header check)
-//          -- should we make the header marker be color in bayer? (or at least a column of it)
 
 
 

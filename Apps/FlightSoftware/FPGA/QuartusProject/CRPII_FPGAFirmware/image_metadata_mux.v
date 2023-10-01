@@ -5,12 +5,12 @@
 //    reconstruction in the event of corruption (and a gradient to make sure it
 //    searchable in case of line feed bugs).
 //
-// Rationale:
+// Description & Rationale:
 // The base case is that it's just the processed pixel data, however we'll
 // co-opt the first pixels of every line for metadata as well as the first row
 // of each interleaved frame.
 //
-// We *overwrite* the first few columns for line metadata instead of just
+// We *overwrite* the first few columns with line metadata instead of just
 // increasing the line length and appending that data because the rest of the
 // FSW pipeline (specifically, the flash interactions) are designed for line
 // lengths of 2592. Since all of this rework is very late stage, minimizing

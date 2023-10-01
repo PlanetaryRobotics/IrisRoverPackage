@@ -29,11 +29,6 @@
 // A nice side effect of these metadata sections is they'll act as known-good
 // test patterns embedded in the image.
 module ImageMetadataMux
-# (
-    parameter integer FW_VER_MAJ = 8'd11,
-    parameter integer FW_VER_MIN = 8'd0,
-    parameter integer FW_VER_PATCH = 8'd0
-)
 (
     input [7:0] pixel_data,
     output [7:0] data_to_save,  // data to be saved into the FIFO (pixel data or header info)
@@ -44,6 +39,10 @@ module ImageMetadataMux
     input [7:0] interleaved_frame_number, // what is the index of the interleaved frame in the current image
     input [7:0] imaging_mode
 );
+    // Grab version info:
+    wire [7:0] FW_VER_MAJ, FW_VER_MIN, FW_VER_PATCH;
+    IrisFpgaFwVersion fw_version(.major(FW_VER_MAJ), .minor(FW_VER_MIN), .patch(FW_VER_PATCH));
+
     // Initialize all the fixed text in the header (X) is just a placeholder at
     // indices that'll get filled in later.
     localparam integer FIXED_HEADER_TEXT_LEN = 'd84; // num bytes in fixed header

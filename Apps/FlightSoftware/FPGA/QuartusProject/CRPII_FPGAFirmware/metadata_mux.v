@@ -1,6 +1,33 @@
-// MUX to replace first line of an interleaved image frame with metadata
-// (and a gradient to make it clearly intentional and unnatural):
-// TODO: INCL CAMERA IMAGING MODE
+//  MUX to determine what data actually enters the FIFO. This:
+//  - Replaces first line of an interleaved image frame with metadata (and a
+//    gradient to make it clearly intentional and unnatural)
+//  - Replaces the start of each line with metadata about that line to help with
+//    reconstruction in the event of corruption (and a gradient to make sure it
+//    searchable in case of line feed bugs).
+//
+// Rationale:
+// The base case is that it's just the processed pixel data, however we'll
+// co-opt the first pixels of every line for metadata as well as the first row
+// of each interleaved frame.
+//
+// We *overwrite* the first few columns for line metadata instead of just
+// increasing the line length and appending that data because the rest of the
+// FSW pipeline (specifically, the flash interactions) are designed for line
+// lengths of 2592. Since all of this rework is very late stage, minimizing
+// additional changes is a plus.
+// This line metadata serves two purposes:
+// 1. Provide metadata about where that line comes from.
+// 2. Allow GSW to scan for known pattern in the image data to brute-force
+// detect the start of line data in the case of corruption (which we have seen).
+//
+// We also replace the first row of *each interleaved frame* in the image with
+// file metadata since Hercules may only choose to downlink one frame of data
+// and we need to make sure we still get the header. As above, that behavior
+// could be changed so we always grab a metadata line whenever grabbing an
+// image but, for now, we need to mimize external changes.
+//
+// A nice side effect of these metadata sections is they'll act as known-good
+// test patterns embedded in the image.
 module ImageMetadataMux
 # (
     parameter integer FW_VER_MAJ = 8'd11,

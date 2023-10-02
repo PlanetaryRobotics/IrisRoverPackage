@@ -11,6 +11,8 @@
 // order, even with very noisy input signals.
 // We care close to zero about how long it takes to capture (within reason) and
 // also zero about motion blur (our environment is assumed to be static).
+// So, all key input signals are tracked statefully and cross-referenced so we
+// can be as sure as possible about staying in a state or transitioning.
 
 // TODO: Check for FIFO full and don't advance internal state (which pixels and
 // lines are done) until we've actually written the data. (check for almost_full too?)
@@ -33,6 +35,7 @@ module CameraSensorInterface
 )
 (
     input wire clk,  // FPGA system clock
+    
     // Signals from camera sensor:
     // Camera 1 Interface
     output reg  camera_1_reset_bar,
@@ -211,9 +214,18 @@ always @(posedge clk) begin
 end
 
 
+
+// ***************************
+// * FRAME TRACKING **********
+// ***************************
+// Tracks our position in a frame statefully.
+// This data is used by the later Frame Processing section but not directly
+// involved in command & control loop.
+
+
 // * LINE LOGIC & PIXEL COUNTER *
 // Track line state (treat it as a tiny FSM instead of just combinatorial logic):
-reg line_active = 0; // does the pixel data represent data inside a line
+reg line_active = 1'b0; // does the pixel data represent data inside a line
 wire line_complete = ~line_active;
 // `pixels_elapsed_in_line`: how many pixels have could we *sampled* in this
 // line since it started (ignoring whether we're actually sampling this line)
@@ -225,9 +237,16 @@ wire line_complete = ~line_active;
 //  - after `sample_pixel_pulse`, this serves as a count of the number of
 //    pixels we've pushed into the FIFO.
 
-reg [11:0] pixels_elapsed_in_line = 0;
+reg [11:0] pixels_elapsed_in_line = 12'b0;
 always @(posedge clk) begin
-    if (line_active) begin
+    if(camera_selection_in_progress) begin
+        // Input signals may be changing over between cameras. We can't trust
+        // edges we may observe. When we come out of this we'll be in a new
+        // inter-frame blanking interval.
+        // For now, just hold states and counts in reset:
+        pixels_elapsed_in_line <= 12'b0;
+        line_active <= 1'b0;
+    end else if (line_active) begin
         // Don't transition out of a line until the appropriate number of
         // pixels have elapsed (this helps ensure we always write a full line
         // of consecutive pixels):
@@ -277,49 +296,64 @@ always @(posedge clk) begin
     // line's worth of pixels into the FIFO (meaning we won't suddenly jump
     // lines)
 
+    // Pulse resets:
     if(line_counter_incremented_at_end == 1'b1) begin
         // only let this persist for 1 sys-clock
         line_counter_incremented_at_end <= 1'b0;
-    end
-
-    // Increment the count on the line END during the blanking interval
-    // because there are other signals we can cross check to make sure this
-    // isn't errant. Also gives us more time to execute the increment logic
-    // (the duration of the blanking interval).
-    if( // Line is over when:
-        !sync_LV // LV is low
-        && line_complete // line is no longer active (we've read enough pixels)
-        && in_blanking_region // all of the data bits are 0 (we're in blanking)
-        && line_counter_can_be_incremented // make sure this only happens once
-    ) begin
-        line_counter_can_be_incremented = 1'b0;
-    
-        prev_line_in_frame = line_in_frame;
-        line_in_frame = line_in_frame + 12'b1;
-
-        line_counter_incremented_at_end <= 1'b1; // trigger this after increment
-    end
-
-    if(line_active) begin
-        // Now that we're back in a line, allow the line counter to be
-        // incremented again once we're out:
-        line_counter_can_be_incremented = 1'b1;
     end
 
     if(frame_ended_pulse == 1'b1) begin
         frame_ended_pulse <= 1'b0;
     end
 
-    // Only reset during the blanking region between frames:
-    // (this is a long period rel. to sys clk and we don't need to act fast on
-    // it so its okay to have a lot of combinatorial logic involved):
-    if(
-        out_of_frame     // all inputs show that we're in an inter-frame blanking interval
-        && line_complete // we've read all the data we need to read so it's okay to change this
-    ) begin
-        prev_line_in_frame = line_in_frame;
-        line_in_frame = 12'b0;
-        frame_ended_pulse <= 1'b1; // send after resetting counts
+    // Actual camera-input-dependent logic:
+    if(camera_selection_in_progress) begin
+        // Input signals may be changing over between cameras. We can't trust
+        // edges we may observe. When we come out of this we'll be in a new
+        // inter-frame blanking interval.
+        // For now, just hold states and counts in reset:
+        line_in_frame <= 12'b0;
+        prev_line_in_frame <= 12'b0;
+        line_counter_can_be_incremented <= 1'b0;
+        line_counter_incremented_at_end <= 1'b0;
+        frame_ended_pulse <= 1'b0;
+    end else begin
+
+        // Increment the count on the line END during the blanking interval
+        // because there are other signals we can cross check to make sure this
+        // isn't errant. Also gives us more time to execute the increment logic
+        // (the duration of the blanking interval).
+        if( // Line is over when:
+            !sync_LV // LV is low
+            && line_complete // line is no longer active (we've read enough pixels)
+            && in_blanking_region // all of the data bits are 0 (we're in blanking)
+            && line_counter_can_be_incremented // make sure this only happens once
+        ) begin
+            line_counter_can_be_incremented = 1'b0;
+        
+            prev_line_in_frame = line_in_frame;
+            line_in_frame = line_in_frame + 12'b1;
+
+            line_counter_incremented_at_end <= 1'b1; // trigger this after increment
+        end
+
+        if(line_active) begin  // NB: line_complete = ~line_active
+            // Now that we're back in a line, allow the line counter to be
+            // incremented again once we're out:
+            line_counter_can_be_incremented = 1'b1;
+        end
+
+        // Only reset during the blanking region between frames:
+        // (this is a long period rel. to sys clk and we don't need to act fast on
+        // it so its okay to have a lot of combinatorial logic involved):
+        if(
+            out_of_frame     // all inputs show that we're in an inter-frame blanking interval
+            && line_complete // we've read all the data we need to read so it's okay to change this
+        ) begin
+            prev_line_in_frame = line_in_frame;
+            line_in_frame = 12'b0;
+            frame_ended_pulse <= 1'b1; // send after resetting counts
+        end
     end
 end
 
@@ -530,17 +564,20 @@ localparam BOOT                                 = 4'd0,
            SWITCHING_CAM__WAIT_FOR_FRAME_START  = 4'd5,
            SWITCHING_CAM__WAIT_FOR_FRAME_END    = 4'd6,
            COMMANDED__WAITING_FOR_FRAME_END     = 4'd7,
-           COMMANDED__WAITING_FOR_FRAME_START   = 4'd8,
-           STREAMING_IMAGE                      = 4'd9;
+           STREAMING_IMAGE                      = 4'd8;
 // Declare the state register to be "safe" to implement
 // a safe state machine that can recover gracefully from
 // an illegal state (by returning to the reset state).
 (* syn_encoding = "safe" *) reg [3:0] capture_state = BOOT;
-reg [3:0] capture_state_prev = BOOT; // Capture state on the last clk cycle
+reg [3:0] capture_state_prev_clk = BOOT; // Capture state on the last clk cycle
 reg [3:0] capture_state_next = BOOT; // Capture state to transition to on the next cycle
 
+// * Flags for Key States & State Transitions *
+wire not_streaming = (capture_state != STREAMING_IMAGE);
+wire actively_streaming = (capture_state == STREAMING_IMAGE);
+
 // * State Timer *
-reg [36:0] state_timer = 37'b0; // 37b counter, capable of counting up to 30 minutes (9e10 cycles at 50MHz), way longer than any state should take.
+reg [36:0] state_timer = 37'b0; // 37b counter of how long we've been in the current state, capable of counting up to 30 minutes (9e10 cycles at 50MHz), way longer than any state should take.
 localparam integer ONE_SECOND = 37'd50_000_000; // Num. cycles in a second (used in a lot of places)
 localparam integer STATE_TIMEOUT_MAX_CYCLES = ONE_SECOND * 37'd60 * STATE_TIMEOUT_MINUTES;
 
@@ -549,20 +586,15 @@ always @(posedge clk) begin
     if(capture_state != capture_state_next) begin
         state_timer = 37'b0;  // immediately reset timer, then update state:
         // Advance to next state:
-        capture_state_prev <= capture_state;
         capture_state <= capture_state_next;
-    end else if(state_timer > STATE_TIMEOUT_MAX_CYCLES) begin
-        // If we've stayed in a state for WAY longer than should be the case,
-        // we need to just yeet back to BOOT and start over.
-        // This is the final line of defense against hangups.
-        state_timer = 37'b0;  // immediately reset timer, then update state:
-        // Set everything back to the way it was at the beginning:
-        capture_state_prev <= BOOT;
-        capture_state <= BOOT;
-        capture_state_next <= BOOT;
     end else begin
         state_timer <= state_timer + 37'b1;
     end
+
+    // Always update `capture_state_prev_clk` b/c, by definition,
+    // it's always supposed to be a 1 clk-cycle shadow (1-FF shift reg) of
+    // `capture_state`:
+    capture_state_prev_clk <= capture_state; // note this is in parallel w/ the above
 end
 
 
@@ -581,118 +613,118 @@ wire [11:0] PIXDATA     = no_camera_selected ? {8'hCC, 4'b0}    : (selected_came
 // auto-detection.
 reg camera_selection_in_progress = 1'b0; // Flag to let observers know that the camera is actively being switched and to not track any transitions the camera signals may be doing.
 always @(*) begin
-    case (capture_state)
-        BOOT: begin
-            // Hold both cameras in reset (active-low):
-            camera_1_reset_bar = 1'b0;
-            camera_2_reset_bar = 1'b0;
-            no_camera_selected = 1'b1;
-            if(state_timer > ONE_SECOND) begin
-                // Things have had time to settle. Moving on to IDLE state.
-                // Not unresetting the cameras here b/c we do that through
-                // special states so we can control when it happens and react
-                // to it
-                capture_state_next = IDLE;
+    if(state_timer > STATE_TIMEOUT_MAX_CYCLES) begin
+        // If we've stayed in a state for WAY longer than should be the case,
+        // we need to just yeet back to BOOT and start over.
+        // This is the final line of defense against hangups.
+        capture_state_next = BOOT;
+    end else begin
+        case (capture_state)
+            BOOT: begin
+                // Hold both cameras in reset (active-low):
+                camera_1_reset_bar = 1'b0;
+                camera_2_reset_bar = 1'b0;
+                no_camera_selected = 1'b1;
+                if(state_timer > ONE_SECOND) begin
+                    // Things have had time to settle. Moving on to IDLE state.
+                    // Not unresetting the cameras here b/c we do that through
+                    // special states so we can control when it happens and react
+                    // to it
+                    capture_state_next = IDLE;
+                end
             end
-        end
-        IDLE: begin
-            // Idle. Not doing anything, incl. streaming bits into the FIFO.
-            if(no_camera_selected || (selected_camera_idx != desired_camera_idx)) begin
-                // No camera selected (properly) yet or we need to change that.
-                // Only allowing this to happen in the idle state so we don't
-                // switch cameras while imaging.
-                camera_selection_in_progress = 1'b1;
-                capture_state_next = SWITCHING_CAM__RST;
-            end else if(request_image) begin
-                capture_state_next = COMMANDED__WAITING_FOR_FRAME_END;
+            IDLE: begin
+                // Idle. Not doing anything, incl. streaming bits into the FIFO.
+                if(no_camera_selected || (selected_camera_idx != desired_camera_idx)) begin
+                    // No camera selected (properly) yet or we need to change that.
+                    // Only allowing this to happen in the idle state so we don't
+                    // switch cameras while imaging.
+                    camera_selection_in_progress = 1'b1;
+                    capture_state_next = SWITCHING_CAM__RST;
+                end else if(request_image) begin
+                    capture_state_next = COMMANDED__WAITING_FOR_FRAME_END;
+                end
             end
-        end
-        SWITCHING_CAM__RST: begin
-            // Hold both cameras in reset for at least 1s (active-low):
-            camera_1_reset_bar = 1'b0;
-            camera_2_reset_bar = 1'b0;
-            no_camera_selected = 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
-            if(state_timer > ONE_SECOND) begin
-                // Perform the switch only after we've been in rst for a while,
-                // so switchover doesn't happen with the cameras active.
-                selected_camera_idx = desired_camera_idx;
-                no_camera_selected = 1'b0; // we've now selected a camera
-                capture_state_next = SWITCHING_CAM__POST_SWITCHOVER_WAIT;
+            SWITCHING_CAM__RST: begin
+                // Hold both cameras in reset for at least 1s (active-low):
+                camera_1_reset_bar = 1'b0;
+                camera_2_reset_bar = 1'b0;
+                no_camera_selected = 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
+                if(state_timer > ONE_SECOND) begin
+                    // Perform the switch only after we've been in rst for a while,
+                    // so switchover doesn't happen with the cameras active.
+                    selected_camera_idx = desired_camera_idx;
+                    no_camera_selected = 1'b0; // we've now selected a camera
+                    capture_state_next = SWITCHING_CAM__POST_SWITCHOVER_WAIT;
+                end
             end
-        end
-        SWITCHING_CAM__POST_SWITCHOVER_WAIT: begin
-            // Wait here a bit, doing nothing, after the MUX switch before unresetting:
-            // (makes sure the switchover completes while neither cam is active)
-            if(state_timer > ONE_SECOND) begin
-                capture_state_next = SWITCHING_CAM__UNRST;
+            SWITCHING_CAM__POST_SWITCHOVER_WAIT: begin
+                // Wait here a bit, doing nothing, after the MUX switch before unresetting:
+                // (makes sure the switchover completes while neither cam is active)
+                if(state_timer > ONE_SECOND) begin
+                    capture_state_next = SWITCHING_CAM__UNRST;
+                end
             end
-        end
-        SWITCHING_CAM__UNRST: begin
-            // Unreset JUST THE SELECTED CAMERA (active-low).
-            // Leave the other off for power saving.
-            if(selected_camera_idx == 1'b1) begin
-                camera_2_reset_bar = 1'b1;
-            end else begin
-                camera_1_reset_bar = 1'b1;
-            end
+            SWITCHING_CAM__UNRST: begin
+                // Unreset JUST THE SELECTED CAMERA (active-low).
+                // Leave the other off for power saving.
+                if(selected_camera_idx == 1'b1) begin
+                    camera_2_reset_bar = 1'b1;
+                end else begin
+                    camera_1_reset_bar = 1'b1;
+                end
 
-            // Wait a sec for things to start and stabilize
-            // (longer than needed but that's fine).
-            if(state_timer > ONE_SECOND) begin
-                capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_START;
+                // Wait a sec for things to start and stabilize
+                // (longer than needed but that's fine).
+                if(state_timer > ONE_SECOND) begin
+                    capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_START;
+                end
             end
-        end
-        SWITCHING_CAM__WAIT_FOR_FRAME_START: begin
-            // Let 1 frame elapse after camera is unreset before letting any 
-            // state trackers start and make sure everything comes up during
-            // an inter-frame boundary.
-            // So, first we must wait for a frame start trigger...
-            if(sync_FV) begin
-                capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_END;
+            SWITCHING_CAM__WAIT_FOR_FRAME_START: begin
+                // Let 1 frame elapse after camera is unreset before letting any 
+                // state trackers start and make sure everything comes up during
+                // an inter-frame boundary.
+                // So, first we must wait for a frame start trigger...
+                if(sync_FV) begin
+                    capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_END;
+                end
             end
-        end
-        SWITCHING_CAM__WAIT_FOR_FRAME_END: begin
-            // ... then we wait for the next inter-frame boundary.
-            if(out_of_frame) begin
-                camera_selection_in_progress = 1'b0;  // ! TODO: (WORKING-HERE) Make this use (incl. in pixel counters (& line?)). Then (strongly) reconsider switching to arch where STREAMING starts at start of blanking interval (more clearance).
-                capture_state_next = IDLE;
+            SWITCHING_CAM__WAIT_FOR_FRAME_END: begin
+                // ... then we wait for the next inter-frame boundary.
+                if(out_of_frame) begin
+                    camera_selection_in_progress = 1'b0;
+                    capture_state_next = IDLE;
+                end
             end
-        end
-        COMMANDED__WAITING_FOR_FRAME_END: begin
-            // We've been told to take a picture and are waiting for the start
-            // of the *next* frame to begin.
-            // So, first we need to wait to be out of a frame (in case we're
-            // currently in one):
-            if(out_of_frame) begin
-                capture_state_next = COMMANDED__WAITING_FOR_FRAME_START;
+            COMMANDED__WAITING_FOR_FRAME_END: begin
+                // We've been told to take a picture.
+                // Before we start streaming pixels, we need two things:
+                // - to make sure we don't start capturing in the middle of a frame
+                // - for the frame processing circuits to come online during an
+                //   inter-frame blanking interval (so they have some delay to set
+                //   up and catch the start transition) are waiting for the start
+                //   of the *next* frame to begin.
+                // So, all we need to do is wait until we're definitely in an
+                // inter-frame blanking interval and we can proceed.
+                if(out_of_frame) begin
+                    capture_state_next = STREAMING_IMAGE;
+                end
             end
-        end
-        COMMANDED__WAITING_FOR_FRAME_START: begin
-            // We've been told to take a picture and are waiting for the start
-            // of the next frame to begin. We're now outside of a frame, so
-            // when FV is asserted next, we'll be in one.
-            if(sync_FV) // if we're in a frame
-            // TODO: DO WE ACTUALLY CARE ABOUT STARTING IN FRAME START OR JUST AFTER FRAME END...
-        end
-        STREAMING_IMAGE: begin
-            // Actively streaming bits into the FIFO.
-            // TODO
-        end
-        default: begin
-            capture_state_next = BOOT;
-        end
-    endcase
+            STREAMING_IMAGE: begin
+                // Actively streaming bits into the FIFO.
+                // This continues until the Frame Processing circuits tell us we've
+                // captured all the lines we need for all of our interleaved frames:
+                if(all_interleaved_frames_complete) begin
+                    capture_state_next = IDLE;
+                end
+            end
+            default: begin
+                // Shouldn't be here. Reboot circuit:
+                capture_state_next = BOOT;
+            end
+        endcase
+    end
 end
-
-
-// * Flags for Key States & State Transitions *
-wire streaming_started_pulse = (capture_state == STREAMING_IMAGE) && (capture_state_prev != STREAMING_IMAGE);  // 1 sys-clk pulse telling observers that the streaming just started
-wire not_streaming = (capture_state != STREAMING_IMAGE);
-wire actively_streaming = (capture_state == STREAMING_IMAGE);
-
-// TODO: reset all counts etc to boot default during this state (switchover is complete, cams are coming out of reset, ignore any on-boot power-up weirdness and don't start trying to figure out what the camera is doing until after this)
-// TODO: Make sure state catch will work no matter where we come up
-wire cameras_being_unreset = (capture_state == SWITCHING_CAM__UNRST);
 
 
 
@@ -708,12 +740,6 @@ wire cameras_being_unreset = (capture_state == SWITCHING_CAM__UNRST);
 
 load_pixels = line_complete
 // what's the next line number we need. If we missed it in this frame somehow, just get it in the next frame (this is okay b/c we're assuming a static scene)
-
-// Line complete:
-- LV is low
-- AND pixels in line >= 2592
-
-// 
 
 
 // Perform logical checks on FV and LV (LV must be at least X )

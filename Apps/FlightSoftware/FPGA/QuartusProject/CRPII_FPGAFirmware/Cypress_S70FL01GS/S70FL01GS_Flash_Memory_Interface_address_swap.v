@@ -33,6 +33,8 @@ module S70FL01GS_Flash_Memory_Interface_address_swap(
 
   input [31:0] address,
   input [31:0] num_bytes,
+  // How many PP3 bytes have been written in the current PP3 transaction:
+  output [9:0] PP3_send_bytes_counter; // (shouldn't ever exceed 512B <- max size of a page for PP3. Added extra MSB for safety.)
 
   input [7:0] input_data,
   output reg [7:0] output_data,
@@ -294,9 +296,9 @@ reg reset_PP3_send_address_counter = 1'b0;
 reg [2:0] PP3_send_address_counter = 3'd0;
 
 reg reset_PP3_send_bytes_counter = 1'b0;
-reg [31:0] PP3_send_bytes_counter = 32'd0;
-
-reg [7:0] PP3_write_data= 8'd0;
+initial begin
+  PP3_send_bytes_counter = 10'd0;
+end
 
 // PP3_instruction_was_sent
 always@(posedge spi_master_done) begin
@@ -323,12 +325,11 @@ end
 always@(posedge spi_master_done or posedge reset_PP3_send_bytes_counter) begin
   // Reset counter
   if (reset_PP3_send_bytes_counter) begin
-    PP3_send_bytes_counter = 0;
+    PP3_send_bytes_counter = 10'd0;
   end
   // Increment counter in correct state
   else if(current_state == PP3_send_bytes) begin
-    PP3_write_data = input_data;
-    PP3_send_bytes_counter = PP3_send_bytes_counter + 1;
+    PP3_send_bytes_counter = PP3_send_bytes_counter + 10'd1;
   end
 end
 
@@ -759,12 +760,11 @@ always @(posedge clk) begin
       // Deassert previous state's counter reset
       reset_PP3_send_address_counter = 1'b0;
 
-      // Blank SPI master transmission data
-      spi_master_command = 8'h00;
+      // // Blank SPI master transmission data
+      // spi_master_command = 8'h00;
 
-      // SPI trnasmission reflect input_data
-      spi_master_command = PP3_write_data;
-
+      // SPI transmission reflect input_data
+      spi_master_command = input_data; // xfer the input data immediately every clk
 
       // Move to next state when done
       if(flash_mem_interface_done) begin
@@ -772,14 +772,14 @@ always @(posedge clk) begin
       end
 
       // Last byte received, disable SPI master, reset counter, and start done pulse
-      else if(PP3_send_bytes_counter == num_bytes) begin
+      else if(PP3_send_bytes_counter == num_bytes[9:0]) begin
         flash_mem_interface_done = 1'b1;
         reset_PP3_send_bytes_counter = 1;
         spi_master_enable = 1'b0;
       end
 
       // Second to last byte, inform SPI master of last SPI cycle
-      else if(PP3_send_bytes_counter == num_bytes-1) begin
+      else if(PP3_send_bytes_counter == (num_bytes[9:0]-10'd1)) begin
         spi_master_multi_cycle_flag = 1'b0;
       end
 

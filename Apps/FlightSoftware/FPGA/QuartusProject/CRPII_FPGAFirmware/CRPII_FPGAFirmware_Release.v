@@ -61,16 +61,6 @@ module CRPII_FPGAFirmware_Release(
 
 
 
-  wire FIFO_is_empty;
-  wire FIFO_is_full;
-
-  reg capturing_camera_frames = 1'b0;
-
-  reg waiting_for_fresh_frame = 1'b0; // Appears to be unused
-  reg done_waiting_for_fresh_frame = 1'b0;
-
-
-
   // Debug
   // assign camera_2_port_pin_2 = camera_1_pixel_clock;
   // assign camera_2_port_pin_4 = flash_CS1;
@@ -82,30 +72,12 @@ module CRPII_FPGAFirmware_Release(
   // assign camera_2_port_pin_8 = camera_1_LV;
   // assign camera_2_port_pin_10 = new_camera_FV;
 
-
   // assign camera_2_port_pin_8 = pll_is_locked;
   // assign camera_2_port_pin_10 = pll_clock;
 
-  // Ensure camera is not in standby
+  // Ensure cameras are not in standby:
   assign camera_1_standby_bar = 1'b1;
   assign camera_2_standby_bar = 1'b1;
-
-
-
-  wire selected_camera_pixel_clock;
-  wire selected_camera_FV;
-  wire selected_camera_LV;
-  wire [11:0] selected_camera_pixel_in;
-
-  // Mux for selecting the correct camera inputs
-  //    Camera 1 - camera_select = 1
-  //    Camera 2 - camera_select = 0
-
-  // Deprecated & Disconnected:
-  assign selected_camera_pixel_clock    = camera_select ? camera_1_pixel_clock  : camera_2_pixel_clock;
-  assign selected_camera_FV             = camera_select ? camera_1_FV           : camera_2_FV;
-  assign selected_camera_LV             = camera_select ? camera_1_LV           : camera_2_LV;
-  assign selected_camera_pixel_in       = camera_select ? camera_1_pixel_in     : camera_2_pixel_in;
 
   // Connect to Camera Interface:
   wire request_image = 1'b0; // input to `CameraSensorInterface`
@@ -170,8 +142,6 @@ module CRPII_FPGAFirmware_Release(
   assign FPGA_MISO      = flash_SPI_controller ? flash_SO : 1'b0;
 
 
-
-
   // Hercules SPI Slave Listener Interface
   //  - Attaches to Hercules SPI interface lines and listens for camera triggers only
 
@@ -196,14 +166,6 @@ module CRPII_FPGAFirmware_Release(
     .done(hercules_SPI_listener_done),
     .rdata(hercules_SPI_listener_rx_data)
   );
-
-  // always@(posedge hercules_SPI_listener_done) begin
-  //
-  //
-  //
-  // end
-
-
 
 
 
@@ -234,9 +196,6 @@ module CRPII_FPGAFirmware_Release(
     end
   end
 
-
-
-
   // assign LED0 = ~pll_is_locked;
 
   PLL PLL(
@@ -256,9 +215,6 @@ module CRPII_FPGAFirmware_Release(
   wire flash_mem_interface_spi_cycle_done;
   wire flash_mem_interface_output_valid;
 
-  reg configure_flash = 1'b0;
-  reg read_BAR = 1'b0;
-
   reg READ_ID = 1'b0;
   reg READ3 = 1'b0;
   reg WREN = 1'b0;
@@ -266,15 +222,10 @@ module CRPII_FPGAFirmware_Release(
   reg PP3 = 1'b0;
   reg PP4 = 1'b0;
 
-  reg write_flash = 1'b0;
-
   reg [31:0] address = 32'd0;
-  // reg [7:0] input_data;
   wire [7:0] output_data;
   reg [31:0] num_bytes = 32'd0;
   reg [9:0] PP3_send_bytes_counter__current_page;
-
-  reg [7:0] latest_output_data;
 
   wire debug_out;
 
@@ -352,7 +303,6 @@ module CRPII_FPGAFirmware_Release(
   reg reset_flash_RDSR1_done = 1'b0;
   reg [7:0] flash_RDSR1_response = 8'd0;
 
-
   reg flash_READ3_done = 1'b0;
   reg reset_flash_READ3_done = 1'b0;
 
@@ -363,12 +313,7 @@ module CRPII_FPGAFirmware_Release(
   reg reset_flash_PP3_RDSR1_done = 1'b0;
   reg [7:0] flash_PP3_RDSR1_response = 8'd0;
 
-  reg [7:0] flash_PP4_RDSR1_response = 8'd0;
-
-  reg new_camera_LV = 1'b0;
-  reg reset_new_camera_LV = 1'b0;
-
-  // State Machine
+  // Flash State Machine:
   always @(posedge clk) begin
 
     next_state=current_state;
@@ -440,9 +385,6 @@ module CRPII_FPGAFirmware_Release(
           // Hold Hercules SPI listener interface in reset
           hercules_SPI_listener_reset = 1'b0;
 
-          // keep this 0 always since we're deprecating the old camera control circuit:
-          capturing_camera_frames = 1'b0;
-
         end
 
         // Otherwise, hercules controls flash memory
@@ -453,9 +395,6 @@ module CRPII_FPGAFirmware_Release(
 
           // Take Hercules SPI listener interface out of reset
           hercules_SPI_listener_reset = 1'b1;
-
-          capturing_camera_frames = 1'b0;
-          done_waiting_for_fresh_frame = 1'b0;
         end
 
       end
@@ -828,9 +767,13 @@ module CRPII_FPGAFirmware_Release(
   wire [7:0] data_for_fifo;  // output from `CameraSensorInterface`
   wire sample_pixel_pulse;   // output from `CameraSensorInterface`
   wire keep_pixel;           // output from `CameraSensorInterface`
+  // FIFO Control & Response:
+  wire FIFO_is_empty;
+  wire FIFO_is_full;
   reg FIFO_read_ack = 1'b0;  // Acknowledge that Flash has read the current byte and show-ahead should present the next one.
   // Number of bytes available on the read side of the FIFO:
   reg [15:0] FIFO_read_bytes_avail;
+
   FIFO CAM_FIFO
   (
     	.data( data_for_fifo[7:0] ),

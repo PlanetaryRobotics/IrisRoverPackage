@@ -63,7 +63,6 @@ module CRPII_FPGAFirmware_Release(
 
   wire FIFO_is_empty;
   wire FIFO_is_full;
-  reg FIFO_write_enable = 1'b0;
 
   reg capturing_camera_frames = 1'b0;
 
@@ -371,13 +370,8 @@ module CRPII_FPGAFirmware_Release(
   reg reset_flash_PP4_RDSR1_done = 1'b0;
   reg [7:0] flash_PP4_RDSR1_response = 8'd0;
 
-  reg new_camera_FV = 1'b0;
-  reg reset_new_camera_FV = 1'b0;
-
   reg new_camera_LV = 1'b0;
   reg reset_new_camera_LV = 1'b0;
-
-  reg PP3_wrote_one_line = 1'b0;
 
   // State Machine
   always @(posedge clk) begin
@@ -440,10 +434,6 @@ module CRPII_FPGAFirmware_Release(
 
         // Previous state reset of counter reset
         reset_PP3_command_counter = 1'b0;
-
-        reset_FIFO_bytes_written_counter = 1'b0;
-
-        reset_lines_of_interleave_phase = 1'b0;
 
         // Wait for take picture trigger
         if(hercules_SPI_listener_rx_data == hercules_take_picture_command) begin
@@ -519,8 +509,6 @@ module CRPII_FPGAFirmware_Release(
       wait_for_start_of_image_streaming: begin
         // Waiting for the CameraSensorInterface to start streaming bytes into
         // the FIFO:
-        reset_lines_of_interleave_phase = 1'b0;
-
         if (image_started) begin
           next_state = flash_WREN_wait;
           
@@ -835,29 +823,6 @@ module CRPII_FPGAFirmware_Release(
 
 
 
-//* CAMERA CONTROL LOGIC:
-
-
-  parameter phase_0 = 4'd0;
-  parameter phase_1 = 4'd1;
-  parameter phase_2 = 4'd2;
-  parameter phase_3 = 4'd3;
-  parameter phase_4 = 4'd4;
-  parameter phase_5 = 4'd5;
-  parameter phase_6 = 4'd6;
-  parameter phase_7 = 4'd7;
-
-
-  reg [3:0] interleave_phase = phase_0;
-
-  reg [3:0] line_counter = 4'd0;
-
-  reg [7:0] lines_of_frame_counter = 8'd0;
-
-  reg [7:0] lines_of_interleave_phase = 8'd0;
-  reg reset_lines_of_interleave_phase = 1'b0;
-
-
   // * Camera pixel FIFO
   wire [7:0] byte_to_flash;  // byte to write to Flash from FIFO
   wire request_image = 1'b0; // input to `CameraSensorInterface`
@@ -884,96 +849,6 @@ module CRPII_FPGAFirmware_Release(
       .rdusedw(FIFO_read_bytes_avail)
   );
 
-
-  // * DEPRECATED (& disconnected) CAMERA LOGIC *:
-
-
-  //* FRAME LINE COUNTER:
-  always@(posedge selected_camera_LV or negedge selected_camera_FV) begin
-
-    if(!selected_camera_FV) begin
-      lines_of_frame_counter = 0;
-    end
-    else
-      lines_of_frame_counter = lines_of_frame_counter + 1;
-
-  end
-
-
-
-  always@(posedge PP3_wrote_one_line or posedge reset_lines_of_interleave_phase) begin
-
-    if(reset_lines_of_interleave_phase) begin
-      lines_of_interleave_phase = 0;
-    end
-    else
-      lines_of_interleave_phase = lines_of_interleave_phase + 1;
-
-  end
-
-
-
-  // Max 512 bytes - matching max page program size for flash
-  reg reset_FIFO_bytes_written_counter = 1'b0;
-  reg [11:0] FIFO_bytes_written_counter = 12'd0;
-
-  always@(negedge selected_camera_pixel_clock or posedge reset_FIFO_bytes_written_counter) begin
-
-    if(reset_FIFO_bytes_written_counter)
-      FIFO_bytes_written_counter = 0;
-
-    else begin
-        if(FIFO_write_enable)
-      // if(selected_camera_LV && capturing_camera_frames && done_waiting_for_fresh_frame && (line_counter == interleave_phase))
-        FIFO_bytes_written_counter = FIFO_bytes_written_counter + 1;
-    end
-
-  end
-
-
-
-  // NOTE: `line_counter` appears to be unused in favor of `lines_of_frame_counter`
-  // ...also this only counts to 7... seems like it was used for interleave
-  always@(posedge selected_camera_LV) begin
-    if(capturing_camera_frames && done_waiting_for_fresh_frame) begin
-      if (line_counter == 4'd7)
-        line_counter = 4'd0;
-      else
-        line_counter = line_counter + 1;
-    end
-    else
-      line_counter = 4'd0;
-  end
-
-
-
-  always@(selected_camera_LV) begin
-    if(selected_camera_LV) begin
-      if(capturing_camera_frames && done_waiting_for_fresh_frame) begin
-
-        // if (line_counter == interleave_phase)
-        if ((lines_of_frame_counter - interleave_phase - 1) % 8 == 0)
-          FIFO_write_enable = 1'b1;
-        else
-          FIFO_write_enable = 1'b0;
-
-      end
-    end
-    else
-      FIFO_write_enable = 1'b0;
-  end
-
-
-
-  always@(posedge selected_camera_FV or posedge reset_new_camera_FV) begin
-    if(reset_new_camera_FV) begin
-      new_camera_FV = 1'b0;
-    end
-    else begin
-      if(current_state == wait_for_start_of_image_streaming)
-        new_camera_FV = 1'b1;
-    end
-  end
 
 
   // * PP3 Command Counter:

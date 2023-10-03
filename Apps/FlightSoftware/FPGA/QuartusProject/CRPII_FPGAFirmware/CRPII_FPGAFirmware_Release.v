@@ -31,7 +31,7 @@ module CRPII_FPGAFirmware_Release(
   // Camera select - from Hercules
   input wire camera_select,                 // Selects the camera to use (FPGA Pin L4)
   // Camera 1 Interface
-  output reg  camera_1_reset_bar,           // Camera reset     (FPGA Pin B10)
+  output wire camera_1_reset_bar,           // Camera reset     (FPGA Pin B10)
   output wire camera_1_standby_bar,         // Standby          (FPGA Pin E11)
   output wire camera_1_trigger,             // Trigger          (FPGA Pin A11)
   input wire camera_1_pixel_clock,          // Pixel clock      (FPGA Pin D9)
@@ -40,7 +40,7 @@ module CRPII_FPGAFirmware_Release(
   input wire [11:0] camera_1_pixel_in,      // Pixel data
 
   // Camera 2 Interface
-  output reg  camera_2_reset_bar,           // Camera reset     (FPGA Pin R3)
+  output wire camera_2_reset_bar,           // Camera reset     (FPGA Pin R3)
   output wire camera_2_standby_bar,         // Standby          (FPGA Pin P3)
   output wire camera_2_trigger,             // Trigger          (FPGA Pin T2)
   input wire camera_2_pixel_clock,          // Pixel clock      (FPGA Pin T4)
@@ -59,7 +59,12 @@ module CRPII_FPGAFirmware_Release(
   // output wire camera_2_port_pin_10           // (FPGA Pin R6)
 );
 
-
+	initial begin
+		// Give the debug "LED" reg lines a default value:
+		// (These are just for sim. They're NC on SBC Rev I)
+		LED1 = 1'b0;
+		LED2 = 1'b0;
+	end
 
   // Debug
   // assign camera_2_port_pin_2 = camera_1_pixel_clock;
@@ -78,9 +83,13 @@ module CRPII_FPGAFirmware_Release(
   // Ensure cameras are not in standby:
   assign camera_1_standby_bar = 1'b1;
   assign camera_2_standby_bar = 1'b1;
+  // Hold TRIGGER low for both cameras to keep it from floating
+  // (should be doing nothing since we're in continuous mode):
+  assign camera_1_trigger = 1'b0;
+  assign camera_2_trigger = 1'b0;
 
   // Connect to Camera Interface:
-  wire request_image = 1'b0; // input to `CameraSensorInterface`
+  reg request_image = 1'b0;  // input to `CameraSensorInterface`
   wire image_started;        // output from `CameraSensorInterface`
   wire image_finished;       // output from `CameraSensorInterface`
   wire [7:0] data_for_fifo;  // output from `CameraSensorInterface`
@@ -149,8 +158,6 @@ module CRPII_FPGAFirmware_Release(
   wire hercules_SPI_listener_done;
   wire [7:0] hercules_SPI_listener_rx_data;
 
-  reg [7:0] latest_hercules_SPI_listener_rx_data = 8'h00;
-
   // Arbitrary value that is NOT a listed command for flash memory interface
   reg [7:0] hercules_take_picture_command = 8'hFF;
 
@@ -186,7 +193,7 @@ module CRPII_FPGAFirmware_Release(
   reg [31:0] address = 32'd0;
   wire [7:0] output_data;
   reg [31:0] num_bytes = 32'd0;
-  reg [9:0] PP3_send_bytes_counter__current_page;
+  wire [9:0] PP3_send_bytes_counter__current_page;
 
   wire debug_out;
 
@@ -298,7 +305,7 @@ module CRPII_FPGAFirmware_Release(
         // Reset
         else begin
           // Increment counter
-          powerup_reset_counter = powerup_reset_counter + 1;
+          powerup_reset_counter = powerup_reset_counter + 24'b1;
 
           // Hold Hercules SPI listener interface in reset
           hercules_SPI_listener_reset = 1'b0;
@@ -313,6 +320,9 @@ module CRPII_FPGAFirmware_Release(
       // IDLE
       idle: begin
 
+		  // Make sure we're not requesting an image rn:
+		  request_image = 1'b0;
+			
         // // Wait time
         // if (wait_counter == 32'h00100000) begin
         //   next_state = flash_RDSR1_wait;
@@ -384,10 +394,14 @@ module CRPII_FPGAFirmware_Release(
         // Deassert previous state's done reset flag
         reset_flash_RDSR1_done = 1'b0;
 
-        if(flash_RDSR1_response[0] == 1'b0)
+        if(flash_RDSR1_response[0] == 1'b0) begin
+		    // Request CameraSensorInterface to start streaming an image:
+			 request_image = 1'b1;
+			 // Then wait for that streaming to start:
           next_state = wait_for_start_of_image_streaming;
-        else
+        end else begin
           next_state = flash_RDSR1_wait;
+		  end
       end
 
 
@@ -409,6 +423,14 @@ module CRPII_FPGAFirmware_Release(
         // (when we come here from `check_image_status`):
         reset_PP3_command_counter = 1'b0;
 
+		  // Deassert image request from previous state since
+		  // we know the image has started streaming if we're here.
+		  // Need to do this early since we need to make sure it's
+		  // off when CameraSensorInterface's Transaction FSM
+		  // returns to IDLE (otherwise, we'd immediately request
+		  // a new image).
+		  request_image = 1'b0;
+		  
         if (wait_counter == 32'h00000000) begin
           next_state = flash_WREN;
           wait_counter = 0;
@@ -678,9 +700,9 @@ module CRPII_FPGAFirmware_Release(
   reg [3:0] PP3_command_counter = 4'd0;
   always@(posedge PP3 or posedge reset_PP3_command_counter) begin
     if(reset_PP3_command_counter)
-      PP3_command_counter = 0;
+      PP3_command_counter = 4'b0;
     else begin
-      PP3_command_counter = PP3_command_counter + 1;
+      PP3_command_counter = PP3_command_counter + 4'b1;
     end
   end
 
@@ -690,8 +712,8 @@ module CRPII_FPGAFirmware_Release(
   // Tell FIFO this so show-ahead can bring forward the next byte ASAP (delay
   // is 1 rdclk).
   reg [9:0] PP3_send_bytes_counter__current_page__prev_clk = 1'b0;
-  wire PP3_spi_cycle_completed_pulse = flash_mem_interface_spi_cycle_done & ~flash_mem_interface_spi_cycle_done__prev_clk;  // 1 sys-clk pulse saying we just completed a SPI cycle
-  wire FIFO_read_ack = PP3_spi_cycle_completed_pulse;
+  wire PP3_wrote_1_byte = (PP3_send_bytes_counter__current_page > PP3_send_bytes_counter__current_page__prev_clk);  // 1 sys-clk pulse saying we just finished writing another byte to flash
+  wire FIFO_read_ack = PP3_wrote_1_byte;
   always @(posedge clk) begin
     // Keep track of state change every sys-clk:
     PP3_send_bytes_counter__current_page__prev_clk <= PP3_send_bytes_counter__current_page;
@@ -701,18 +723,10 @@ module CRPII_FPGAFirmware_Release(
 
   // * Camera pixel FIFO
   wire [7:0] byte_to_flash;  // byte to write to Flash from FIFO
-  wire request_image = 1'b0; // input to `CameraSensorInterface`
-  wire image_started;        // output from `CameraSensorInterface`
-  wire image_finished;       // output from `CameraSensorInterface`
-  wire [7:0] data_for_fifo;  // output from `CameraSensorInterface`
-  wire sample_pixel_pulse;   // output from `CameraSensorInterface`
-  wire keep_pixel;           // output from `CameraSensorInterface`
   // FIFO Control & Response:
   wire FIFO_is_empty;
   wire FIFO_is_full;
-  reg FIFO_read_ack = 1'b0;  // Acknowledge that Flash has read the current byte and show-ahead should present the next one.
-  // Number of bytes available on the read side of the FIFO:
-  reg [15:0] FIFO_read_bytes_avail;
+  wire [15:0] FIFO_read_bytes_avail;
 
   FIFO CAM_FIFO
   (

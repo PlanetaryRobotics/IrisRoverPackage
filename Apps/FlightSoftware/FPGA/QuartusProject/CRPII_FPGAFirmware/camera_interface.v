@@ -27,14 +27,14 @@ module CameraSensorInterface
     parameter integer PIX_SAMPLING_DELAY = 'd2, // Number of system clocks to wait after PIX_CLK falls before sampling the pixel data (if you want this to be 0, you need to remove the associated delay stage - setting this to 0 won't work).
     parameter integer VALID_LINE_SIZE = 12'd2592, // Number of valid pixels in a line of a frame
     parameter integer LINES_IN_FRAME = 12'd1944, // Number of lines in each full frame
-    parameter integer STATE_TIMEOUT_MINUTES = 5; // Max number of minutes we can stay in a state before timing out and resetting
+    parameter integer STATE_TIMEOUT_MINUTES = 5, // Max number of minutes we can stay in a state before timing out and resetting
 
     // Number of frames to interleave into each image (bigger = more relief for
     // Flash FSM & more frames in "video", smaller = less motion blur and
     // faster image capture time). Needs to be at least 1.
     // Max 32 (max for bits in `interleaved_frame_index`).
     // To perform correctly, it should be a factor of `LINES_IN_FRAME`.
-    parameter integer N_INTERLEAVED_FRAMES = 12'd8;
+    parameter integer N_INTERLEAVED_FRAMES = 12'd8
 )
 (
     input wire clk,  // FPGA system clock
@@ -55,25 +55,25 @@ module CameraSensorInterface
     input wire [11:0] camera_2_pixel_in,
 
     // Context information:
-    input wire desired_camera_idx;  // 1'b0 for Camera 1, 1'b1 for Camera 2
+    input wire desired_camera_idx,  // 1'b0 for Camera 1, 1'b1 for Camera 2
     input wire [7:0] imaging_mode,
 
     // I/O control & status signals:
     input wire  request_image,  // Outside agent would like us to take an image as soon as possible
     output wire image_started,  // We've now started taking that image
-    output wire image_finished  // That image is done
+    output wire image_finished,  // That image is done
 
     // FIFO Interface:
     // `data_for_fifo`: Data to be saved into the FIFO (pixel data or header info)
-    output wire [7:0] data_for_fifo;
+    output wire [7:0] data_for_fifo,
     // `sample_pixel_pulse`: Pulse goes high when it's time to sample a pixel
     // from `data_for_fifo`
-    output wire sample_pixel_pulse;
+    output wire sample_pixel_pulse,
     // `keep_pixel`: Whether the pixel data should be stored in the FIFO
     // (i.e. is it valid data). Stays high as long as we're in a valid region
     // of the image.
     // Wired to `wr_req` of FIFO.
-    output wire keep_pixel;
+    output wire keep_pixel
 );
 
 // *****************************
@@ -108,7 +108,7 @@ always @(posedge clk) begin
     // Concatenate all of our signals on a single bus so they're all handled together:
     // ** If changing this, MAKE SURE THE INDICES IDX_PIXCLK, IDX_FV, and IDX_LV match where you put data in this bus:
     sync[0] <= {PIXCLK, FV, LV, PIXDATA[11:0]};
-    for(i = 1; i<=SYNC_STAGES; i++) begin
+    for(i = 1; i<=SYNC_STAGES; i=i+1) begin
         sync[i] <= sync[i-1];
     end
 
@@ -183,7 +183,7 @@ always @(posedge clk) begin
     // NOTE: Data transitions at PIXCLK rise, so there's already some delay
     // baked in.
     pix_sample_delay_pipe[0] <= s_pixclk_fell;
-    for(j=0; j<PIX_SAMPLING_DELAY; j++) begin
+    for(j=1; j<PIX_SAMPLING_DELAY; j=j+1) begin
         pix_sample_delay_pipe[j] <= pix_sample_delay_pipe[j-1];
     end
 end
@@ -404,7 +404,7 @@ always @(posedge clk) begin
                 // Start the target line back at the beginning
                 // (skipping 2 lines for each interleaved frame to preserve
                 // bayering):
-                target_interleaved_line_to_sample__input[0] = 12'b2 * interleaved_frame_index;
+                target_interleaved_line_to_sample__input[0] = 12'd2 * interleaved_frame_index;
                 target_interleaved_line_to_sample__input[1] = target_interleaved_line_to_sample__input[0];
                 target_interleaved_line_to_sample__input[2] = target_interleaved_line_to_sample__input[0];
             end
@@ -557,8 +557,8 @@ assign image_finished = not_streaming;
 
 // * State Timer *
 reg [36:0] state_timer = 37'b0; // 37b counter of how long we've been in the current state, capable of counting up to 30 minutes (9e10 cycles at 50MHz), way longer than any state should take.
-localparam integer ONE_SECOND = 37'd50_000_000; // Num. cycles in a second (used in a lot of places)
-localparam integer STATE_TIMEOUT_MAX_CYCLES = ONE_SECOND * 37'd60 * STATE_TIMEOUT_MINUTES;
+localparam ONE_SECOND = 37'd50_000_000; // Num. cycles in a second (used in a lot of places)
+localparam STATE_TIMEOUT_MAX_CYCLES = ONE_SECOND * 37'd60 * STATE_TIMEOUT_MINUTES;
 
 // * State Transitioner & Timer *
 always @(posedge clk) begin

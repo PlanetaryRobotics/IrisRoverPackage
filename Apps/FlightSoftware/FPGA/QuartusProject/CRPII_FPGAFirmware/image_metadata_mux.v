@@ -97,7 +97,7 @@ module ImageMetadataMux
     // 00 serves as a placeholder for where we're inserting data.
     localparam integer FIXED_LINE_HEADER_LEN = 'd15;
     localparam integer FIXED_LINE_HEADER_MAX_IDX = FIXED_LINE_HEADER_LEN * 'd8 - 'd1; // index of final bit in fixed line header
-    reg [FIXED_LINE_HEADER_LEN*8-1:0] FIXED_LINE_HEADER = 'h11_22_33_00_55_66_77_00_99_AA_BB_00_DD_EE_FF;
+    reg [FIXED_LINE_HEADER_LEN*8-1:0] FIXED_LINE_HEADER = 120'h11_22_33_00_55_66_77_00_99_AA_BB_00_DD_EE_FF;
     // Indices to replace text with some other value:
     localparam integer IDX_LINE__FRAME_NUM = 'h3;
     localparam integer IDX_LINE__FRAME_LINE_NUM = 'h7;

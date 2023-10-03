@@ -6,5 +6,6 @@ FIFO	FIFO_inst (
 	.wrreq ( wrreq_sig ),
 	.q ( q_sig ),
 	.rdempty ( rdempty_sig ),
-	.wrfull ( wrfull_sig )
+	.wrfull ( wrfull_sig ),
+	.wrusedw ( wrusedw_sig )
 	);

@@ -67,6 +67,13 @@ https://fpgasoftware.intel.com/eula.
 		(line (pt 176 56)(pt 160 56))
 	)
 	(port
+		(pt 176 88)
+		(output)
+		(text "wrusedw[15..0]" (rect 0 0 87 13)(font "Arial" (font_size 8)))
+		(text "wrusedw[15..0]" (rect 72 82 146 94)(font "Arial" (font_size 8)))
+		(line (pt 176 88)(pt 160 88)(line_width 3))
+	)
+	(port
 		(pt 176 112)
 		(output)
 		(text "q[7..0]" (rect 0 0 36 13)(font "Arial" (font_size 8)))

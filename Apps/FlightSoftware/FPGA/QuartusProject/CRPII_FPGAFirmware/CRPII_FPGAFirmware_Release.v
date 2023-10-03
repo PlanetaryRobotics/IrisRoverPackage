@@ -315,9 +315,7 @@ module CRPII_FPGAFirmware_Release(
   );
 
 
-
-
-  // FSM States
+  // Flash FSM States
 
   reg [4:0] current_state, next_state;
 
@@ -338,31 +336,11 @@ module CRPII_FPGAFirmware_Release(
   parameter flash_PP3_RDSR1                         = 5'd16;
   parameter flash_PP3_RDSR1_check                   = 5'd17;
   parameter check_image_status                      = 5'd31;
-  // Deprecated states:
-  parameter flash_READ_ID_wait                      = 5'd2;
-  parameter flash_READ_ID                           = 5'd3;
-  parameter flash_READ3_wait                        = 5'd11;
-  parameter flash_READ3                             = 5'd12;
-  parameter wait_for_new_camera_LV                  = 5'd19;
-  parameter wait_to_switchover_flash_control        = 5'd20;
-  parameter flash_PP3_check_FIFO                    = 5'd21;
-  parameter flash_PP3_repeat_for_next_page_or_exit  = 5'd23;
-  parameter flash_PP4_wait                          = 5'd24;
-  parameter flash_PP4                               = 5'd25;
-  parameter flash_PP4_RDSR1_wait                    = 5'd26;
-  parameter flash_PP4_RDSR1                         = 5'd27;
-  parameter flash_PP4_RDSR1_check                   = 5'd28;
-  parameter flash_PP4_repeat_or_exit                = 5'd29;
-  parameter flash_PP3_repeat_for_next_line_or_exit  = 5'd30;
-  parameter flash_PP3_repeat_for_next_frame_or_exit = 5'd31;
 
 
   reg [23:0] powerup_reset_counter = 24'd0;
 
   reg [31:0] wait_counter = 32'd0;
-
-  reg flash_READ_ID_done = 1'b0;
-  reg reset_flash_READ_ID_done = 1'b0;
 
   reg flash_WREN_done = 1'b0;
   reg reset_flash_WREN_done = 1'b0;
@@ -451,7 +429,7 @@ module CRPII_FPGAFirmware_Release(
 
         // // Wait time
         // if (wait_counter == 32'h00100000) begin
-        //   next_state = flash_READ_ID_wait;
+        //   next_state = flash_RDSR1_wait;
         //   wait_counter = 0;
         // end
         // else begin
@@ -462,9 +440,6 @@ module CRPII_FPGAFirmware_Release(
 
         // Previous state reset of counter reset
         reset_PP3_command_counter = 1'b0;
-
-        // Previous state reset of counter reset
-        reset_PP4_command_counter = 1'b0;
 
         reset_FIFO_bytes_written_counter = 1'b0;
 
@@ -741,6 +716,7 @@ module CRPII_FPGAFirmware_Release(
           // See if we need to reset anything:
           if(PP3_command_counter == 6) begin
             // Just finished all the pages in a "line" (2592B section),
+            // (5 512B pages + 32B in the 6th page)
             // reset the counter:
             reset_PP3_command_counter = 1'b1;
           end
@@ -748,239 +724,8 @@ module CRPII_FPGAFirmware_Release(
       end
 
 
-      //################
-      // UNUSED STATES
-
-
-      //
-      // flash_PP4_wait: begin
-      //
-      //   // Wait for full FIFO
-      //   if(PP4_command_counter == 0) begin
-      //     if (FIFO_bytes_written_counter == 12'd2592) begin
-      //       next_state = flash_PP4;
-      //       num_bytes = 32'd512;
-      //
-      //       // Image start address
-      //       address = 32'h01000000;
-      //
-      //     end
-      //   end
-      //
-      //   else begin
-      //       next_state = flash_PP4;
-      //
-      //       if(PP4_command_counter == 5)
-      //           num_bytes = 32'd32;
-      //       else
-      //           num_bytes = 32'd512;
-      //
-      //   end
-      // end
-      //
-      //
-      // // Trigger page program
-      // flash_PP4: begin
-      //
-      //   // Deassert previous state's counter reset flag
-      //   // reset_FIFO_bytes_written_counter = 1'b0;
-      //
-      //   // LED1 = 1'b1; // Off
-      //   // LED2 = 1'b0; // On
-      //
-      //   if(flash_PP4_done) begin
-      //     reset_flash_PP4_done = 1'b1;
-      //     reset_PP4_command_SPI_cycle_counter = 1'b1;
-      //
-      //     PP4 = 1'b0;
-      //     address = address + 32'h00000200;
-      //     // num_bytes = 32'd0;
-      //
-      //     FIFO_read_req = 1'b0;
-      //     input_data = 8'h11;
-      //
-      //     next_state = flash_PP4_RDSR1_wait;
-      //   end
-      //   else begin
-      //     PP4 = 1'b1;
-      //     // address = 32'h00040000;
-      //     // num_bytes = 32'd512;
-      //
-      //
-      //     // TODO
-      //     // Write data not valid until PP4 instruction and 3 byte address have been sent
-      //     //    Input data should be ready on the 4th clock
-      //     // if(PP4_command_SPI_cycle_counter >= 4) begin
-      //     //   FIFO_read_req = 1'b1;
-      //     //   input_data = byte_to_flash; //FIFO_is_empty ? 8'h11 : byte_to_flash;
-      //     // end
-      //     // else
-      //     //   FIFO_read_req = 1'b0;
-      //
-      //     // input_data = input_data + 1;
-      //
-      //   end
-      // end
-      //
-      //
-      // flash_PP4_RDSR1_wait: begin
-      //
-      //   // Deassert previous state's done reset flag
-      //   reset_flash_PP4_done = 1'b0;
-      //
-      //   // Deassert previous state's SPI cyc;e counter reset flag
-      //   reset_PP4_command_SPI_cycle_counter = 1'b0;
-      //
-      //   if (wait_counter == 32'h00000000) begin
-      //     next_state = flash_PP4_RDSR1;
-      //     wait_counter = 0;
-      //   end
-      //   else begin
-      //     wait_counter = wait_counter + 1;
-      //   end
-      // end
-      //
-      // // Trigger read of status register 1
-      // flash_PP4_RDSR1: begin
-      //
-      //   if(flash_PP4_RDSR1_done) begin
-      //     flash_PP4_RDSR1_response = output_data;
-      //
-      //     reset_flash_PP4_RDSR1_done = 1'b1;
-      //     RDSR1 = 1'b0;
-      //     next_state = flash_PP4_RDSR1_check;
-      //   end
-      //   else begin
-      //     RDSR1 = 1'b1;
-      //   end
-      // end
-      //
-      // // RDSR1 until SR1[0] (Write in progress bit) is equal to 0
-      // flash_PP4_RDSR1_check: begin
-      //
-      //   // Deassert previous state's done reset flag
-      //   reset_flash_PP4_RDSR1_done = 1'b0;
-      //
-      //   if(flash_PP4_RDSR1_response[0] == 1'b0)
-      //     next_state = flash_PP4_repeat_or_exit;
-      //   else
-      //     next_state = flash_PP4_RDSR1_wait;
-      //
-      // end
-      //
-      //
-      // // // Write data to flash from FIFO as long as its not empty
-      // // flash_PP4_check_FIFO: begin
-      // //
-      // //   if(FIFO_is_empty) begin
-      // //     next_state = idle;
-      // //
-      // //     // address = 32'h00000000;
-      // //
-      // //   end
-      // //   else
-      // //     next_state = flash_WREN_wait;
-      // //
-      // // end
-      //
-      // // Write data to flash from FIFO as long as its not empty
-      // flash_PP4_repeat_or_exit: begin
-      //
-      //   // if(PP4_command_counter == 6) begin
-      //   if(PP4_command_counter == 2) begin
-      //     next_state = idle;
-      //     // address = 32'h00000000;
-      //
-      //     reset_PP4_command_counter = 1'b1;
-      //
-      //     reset_FIFO_bytes_written_counter = 1'b1;
-      //
-      //
-      //   end
-      //
-      //   // Otherwise we need another write to flash
-      //   else
-      //     next_state = flash_WREN_wait;
-      //
-      // end
-
-
-      flash_READ_ID_wait: begin
-
-        // Deassert previuos state's done reset flag
-        // reset_flash_WREN_done = 1'b0;
-
-        // if (wait_counter > 32'b01011001011010000010111100000000) begin
-        if (wait_counter == 32'h00000800) begin
-          next_state = flash_READ_ID;
-          wait_counter = 0;
-        end
-        else begin
-          wait_counter = wait_counter + 1;
-        end
-      end
-
-
-      // Trigger read of flash ID
-      flash_READ_ID: begin
-
-        // LED1 = 1'b0; // On
-        // LED2 = 1'b1; // Off
-
-        if(flash_READ_ID_done) begin
-          reset_flash_READ_ID_done = 1'b1;
-          READ_ID = 1'b0;
-          next_state = flash_WREN_wait;
-        end
-        else begin
-          READ_ID = 1'b1;
-          // next_state = flash_READ_ID;
-        end
-      end
-
-
-
-      flash_READ3_wait: begin
-
-        // Deassert previuos state's done reset flag
-        reset_flash_READ_ID_done = 1'b0;
-
-        if (wait_counter == 32'h00000100) begin
-          next_state = flash_READ3;
-          wait_counter = 0;
-        end
-        else begin
-          wait_counter = wait_counter + 1;
-        end
-      end
-
-
-      // Trigger read of status register 1
-      flash_READ3: begin
-
-        // LED1 = 1'b1; // Off
-        // LED2 = 1'b0; // On
-
-        if(flash_READ3_done) begin
-          reset_flash_READ3_done = 1'b1;
-          READ3 = 1'b0;
-          address = 32'h00000000;
-          num_bytes = 32'h00000000;
-
-          next_state = idle;
-        end
-        else begin
-          READ3 = 1'b1;
-          address = 32'h04030201;
-          num_bytes = 32'd512;
-        end
-      end
-
-
       default: begin
-
         next_state = reset_state;
-
       end
 
     endcase
@@ -991,18 +736,6 @@ module CRPII_FPGAFirmware_Release(
   // State transition @ NEGEDGE clk
   always@(negedge clk) begin
       current_state <= next_state;
-  end
-
-
-  // READ_ID Done
-  always@(posedge flash_mem_interface_done or posedge reset_flash_READ_ID_done) begin
-    if(reset_flash_READ_ID_done) begin
-      flash_READ_ID_done = 1'b0;
-    end
-    else begin
-      if(current_state == flash_READ_ID)
-        flash_READ_ID_done = 1'b1;
-    end
   end
 
 
@@ -1243,18 +976,15 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-
+  // * PP3 Command Counter:
   reg reset_PP3_command_counter = 1'b0;
   reg [3:0] PP3_command_counter = 4'd0;
-
   always@(posedge PP3 or posedge reset_PP3_command_counter) begin
-
     if(reset_PP3_command_counter)
       PP3_command_counter = 0;
     else begin
       PP3_command_counter = PP3_command_counter + 1;
     end
-
   end
 
 
@@ -1270,40 +1000,5 @@ module CRPII_FPGAFirmware_Release(
     PP3_send_bytes_counter__current_page__prev_clk <= PP3_send_bytes_counter__current_page;
   end
 
-
-
-  reg reset_PP4_command_counter = 1'b0;
-  reg [3:0] PP4_command_counter = 4'd0;
-
-  always@(posedge PP4 or posedge reset_PP4_command_counter) begin
-
-    if(reset_PP4_command_counter)
-      PP4_command_counter = 0;
-
-    else begin
-
-      // if(current_state == flash_PP4)
-      PP4_command_counter = PP4_command_counter + 1;
-
-    end
-
-  end
-
-
-
-
-  reg reset_PP4_command_SPI_cycle_counter = 1'b0;
-  reg [9:0] PP4_command_SPI_cycle_counter = 10'd0;
-
-  always@(posedge flash_mem_interface_spi_cycle_done or posedge reset_PP4_command_SPI_cycle_counter) begin
-
-    if(reset_PP4_command_SPI_cycle_counter)
-      PP4_command_SPI_cycle_counter = 0;
-    else begin
-      if(current_state == flash_PP4)
-        PP4_command_SPI_cycle_counter = PP4_command_SPI_cycle_counter + 1;
-    end
-
-  end
 
 endmodule

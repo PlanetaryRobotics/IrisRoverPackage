@@ -1,5 +1,5 @@
 Analysis & Synthesis report for CRPII_FPGAFirmware
-Tue Oct  3 18:16:55 2023
+Tue Oct  3 19:19:03 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
 
 
@@ -90,13 +90,13 @@ https://fpgasoftware.intel.com/eula.
 +-----------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                            ;
 +------------------------------------+----------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Tue Oct  3 18:16:55 2023              ;
+; Analysis & Synthesis Status        ; Successful - Tue Oct  3 19:19:03 2023              ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Standard Edition ;
 ; Revision Name                      ; CRPII_FPGAFirmware                                 ;
 ; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                         ;
 ; Family                             ; Cyclone 10 LP                                      ;
-; Total logic elements               ; 1,485                                              ;
-;     Total combinational functions  ; 1,263                                              ;
+; Total logic elements               ; 1,486                                              ;
+;     Total combinational functions  ; 1,264                                              ;
 ;     Dedicated logic registers      ; 740                                                ;
 ; Total registers                    ; 740                                                ;
 ; Total pins                         ; 54                                                 ;
@@ -268,16 +268,16 @@ https://fpgasoftware.intel.com/eula.
 +---------------------------------------------+-----------+
 ; Resource                                    ; Usage     ;
 +---------------------------------------------+-----------+
-; Estimated Total logic elements              ; 1,485     ;
+; Estimated Total logic elements              ; 1,486     ;
 ;                                             ;           ;
-; Total combinational functions               ; 1263      ;
+; Total combinational functions               ; 1264      ;
 ; Logic element usage by number of LUT inputs ;           ;
-;     -- 4 input functions                    ; 688       ;
+;     -- 4 input functions                    ; 692       ;
 ;     -- 3 input functions                    ; 208       ;
-;     -- <=2 input functions                  ; 367       ;
+;     -- <=2 input functions                  ; 364       ;
 ;                                             ;           ;
 ; Logic elements by mode                      ;           ;
-;     -- normal mode                          ; 988       ;
+;     -- normal mode                          ; 989       ;
 ;     -- arithmetic mode                      ; 275       ;
 ;                                             ;           ;
 ; Total registers                             ; 740       ;
@@ -291,7 +291,7 @@ https://fpgasoftware.intel.com/eula.
 ;                                             ;           ;
 ; Maximum fan-out node                        ; clk~input ;
 ; Maximum fan-out                             ; 641       ;
-; Total fan-out                               ; 7316      ;
+; Total fan-out                               ; 7326      ;
 ; Average fan-out                             ; 3.39      ;
 +---------------------------------------------+-----------+
 
@@ -301,9 +301,9 @@ https://fpgasoftware.intel.com/eula.
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
 ; Compilation Hierarchy Node                                   ; Combinational ALUTs ; Dedicated Logic Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                                    ; Entity Name                                   ; Library Name ;
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
-; |CRPII_FPGAFirmware_Release                                  ; 1263 (230)          ; 740 (151)                 ; 262294      ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                            ; CRPII_FPGAFirmware_Release                    ; work         ;
-;    |CameraSensorInterface:cameraInterface|                   ; 508 (338)           ; 188 (184)                 ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface                                                                                      ; CameraSensorInterface                         ; work         ;
-;       |ImageMetadataMux:imageMetadataMux|                    ; 160 (160)           ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux                                                    ; ImageMetadataMux                              ; work         ;
+; |CRPII_FPGAFirmware_Release                                  ; 1264 (229)          ; 740 (151)                 ; 262294      ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                            ; CRPII_FPGAFirmware_Release                    ; work         ;
+;    |CameraSensorInterface:cameraInterface|                   ; 510 (335)           ; 188 (184)                 ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface                                                                                      ; CameraSensorInterface                         ; work         ;
+;       |ImageMetadataMux:imageMetadataMux|                    ; 165 (165)           ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux                                                    ; ImageMetadataMux                              ; work         ;
 ;       |altshift_taps:sync_rtl_0|                             ; 10 (0)              ; 4 (0)                     ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|altshift_taps:sync_rtl_0                                                             ; altshift_taps                                 ; work         ;
 ;          |shift_taps_k7m:auto_generated|                     ; 10 (0)              ; 4 (0)                     ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|altshift_taps:sync_rtl_0|shift_taps_k7m:auto_generated                               ; shift_taps_k7m                                ; work         ;
 ;             |altsyncram_pg81:altsyncram2|                    ; 0 (0)               ; 0 (0)                     ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|altshift_taps:sync_rtl_0|shift_taps_k7m:auto_generated|altsyncram_pg81:altsyncram2   ; altsyncram_pg81                               ; work         ;
@@ -533,9 +533,9 @@ Encoding Type: Safe One-Hot
 +-------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
 ; Register Name                                                                                                                 ; Protected by Synthesis Attribute or Preserve Register Assignment ; Not to be Touched by Netlist Optimizations ;
 +-------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------+--------------------------------------------+
+; CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST                                                        ; no                                                               ; yes                                        ;
 ; CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__UNRST                                                      ; no                                                               ; yes                                        ;
 ; CameraSensorInterface:cameraInterface|capture_state.BOOT                                                                      ; no                                                               ; yes                                        ;
-; CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST                                                        ; no                                                               ; yes                                        ;
 ; CameraSensorInterface:cameraInterface|capture_state.STREAMING_IMAGE                                                           ; no                                                               ; yes                                        ;
 ; CameraSensorInterface:cameraInterface|capture_state.COMMANDED__WAITING_FOR_FRAME_END                                          ; no                                                               ; yes                                        ;
 ; CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__WAIT_FOR_FRAME_END                                         ; no                                                               ; yes                                        ;
@@ -775,8 +775,8 @@ Note: All latches listed above may not be present at the end of synthesis due to
 ; Inverted Register                                                                                       ; Fan out ;
 +---------------------------------------------------------------------------------------------------------+---------+
 ; S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK                              ; 16      ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|rdemp_eq_comp_msb_aeb                  ; 7       ;
-; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|rdemp_eq_comp_lsb_aeb                  ; 6       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|rdemp_eq_comp_lsb_aeb                  ; 5       ;
+; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|rdemp_eq_comp_msb_aeb                  ; 5       ;
 ; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|a_graycounter_2p6:rdptr_g1p|counter5a0 ; 8       ;
 ; CameraSensorInterface:cameraInterface|no_camera_selected                                                ; 19      ;
 ; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|a_graycounter_u6c:wrptr_g1p|counter8a0 ; 7       ;
@@ -803,19 +803,19 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------------------------------------------------------------------------------+
 ; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                        ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------------------------------------------------------------------------------+
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|interleaved_frame_index[0]                      ;
-; 3:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_frame[10]                               ;
-; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|frame_number[4]                                 ;
-; 4:1                ; 12 bits   ; 24 LEs        ; 24 LEs               ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|prev_line_in_frame[1]                           ;
-; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_interleaved_frame[11]                   ;
-; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|pixels_elapsed_in_line[4]                       ;
-; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|output_data[1]                ;
-; 5:1                ; 23 bits   ; 69 LEs        ; 23 LEs               ; 46 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[25]                                                                           ;
-; 7:1                ; 2 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][2]  ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|interleaved_frame_index[4]                      ;
+; 3:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_frame[8]                                ;
+; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|frame_number[5]                                 ;
+; 4:1                ; 12 bits   ; 24 LEs        ; 24 LEs               ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|prev_line_in_frame[0]                           ;
+; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_interleaved_frame[7]                    ;
+; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|pixels_elapsed_in_line[10]                      ;
+; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|output_data[0]                ;
+; 5:1                ; 23 bits   ; 69 LEs        ; 23 LEs               ; 46 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[22]                                                                           ;
+; 7:1                ; 2 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][1]  ;
 ; 7:1                ; 6 bits    ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][11] ;
 ; 7:1                ; 3 bits    ; 12 LEs        ; 9 LEs                ; 3 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][5]  ;
 ; 5:1                ; 32 bits   ; 96 LEs        ; 32 LEs               ; 64 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[21]                                                                      ;
-; 36:1               ; 5 bits    ; 120 LEs       ; 50 LEs               ; 70 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[4]         ;
+; 36:1               ; 5 bits    ; 120 LEs       ; 50 LEs               ; 70 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[7]         ;
 ; 3:1                ; 15 bits   ; 30 LEs        ; 30 LEs               ; 0 LEs                  ; No         ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|PIXDATA[1]                                      ;
 ; 12:1               ; 4 bits    ; 32 LEs        ; 16 LEs               ; 16 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|capture_state_next                              ;
 ; 23:1               ; 5 bits    ; 75 LEs        ; 20 LEs               ; 55 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector8                                                                             ;
@@ -1030,7 +1030,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+----------+-----------------------------------------------------------------------------------------------------------------------+
 ; FW_VER_MAJ     ; 00001011 ; Unsigned Binary                                                                                                       ;
 ; FW_VER_MIN     ; 00000000 ; Unsigned Binary                                                                                                       ;
-; FW_VER_PATCH   ; 00000000 ; Unsigned Binary                                                                                                       ;
+; FW_VER_PATCH   ; 00000001 ; Unsigned Binary                                                                                                       ;
 +----------------+----------+-----------------------------------------------------------------------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
@@ -1231,20 +1231,20 @@ Note: In order to hide this table in the UI and the text report file, please set
 ;     SCLR              ; 41                          ;
 ;     SLD               ; 1                           ;
 ;     plain             ; 349                         ;
-; cycloneiii_lcell_comb ; 1265                        ;
+; cycloneiii_lcell_comb ; 1266                        ;
 ;     arith             ; 275                         ;
 ;         2 data inputs ; 246                         ;
 ;         3 data inputs ; 29                          ;
-;     normal            ; 990                         ;
+;     normal            ; 991                         ;
 ;         0 data inputs ; 3                           ;
 ;         1 data inputs ; 31                          ;
-;         2 data inputs ; 89                          ;
+;         2 data inputs ; 86                          ;
 ;         3 data inputs ; 179                         ;
-;         4 data inputs ; 688                         ;
+;         4 data inputs ; 692                         ;
 ; cycloneiii_ram_block  ; 47                          ;
 ;                       ;                             ;
-; Max LUT depth         ; 9.40                        ;
-; Average LUT depth     ; 4.25                        ;
+; Max LUT depth         ; 10.00                       ;
+; Average LUT depth     ; 4.28                        ;
 +-----------------------+-----------------------------+
 
 
@@ -1253,7 +1253,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+--------------+
 ; Partition Name ; Elapsed Time ;
 +----------------+--------------+
-; Top            ; 00:00:04     ;
+; Top            ; 00:00:03     ;
 +----------------+--------------+
 
 
@@ -1263,7 +1263,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
-    Info: Processing started: Tue Oct  3 18:16:42 2023
+    Info: Processing started: Tue Oct  3 19:18:51 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
@@ -1289,6 +1289,8 @@ Info (12021): Found 1 design units, including 1 entities, in source file camera_
     Info (12023): Found entity 1: CameraSensorInterface File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 23
 Info (12127): Elaborating entity "CRPII_FPGAFirmware_Release" for the top level hierarchy
 Warning (10036): Verilog HDL or VHDL warning at CRPII_FPGAFirmware_Release.v(128): object "FPGA_MISO" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 128
+Warning (10034): Output port "camera_1_trigger" at CRPII_FPGAFirmware_Release.v(36) has no driver File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 36
+Warning (10034): Output port "camera_2_trigger" at CRPII_FPGAFirmware_Release.v(45) has no driver File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 45
 Info (12128): Elaborating entity "CameraSensorInterface" for hierarchy "CameraSensorInterface:cameraInterface" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 122
 Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(146): object "sync_posedge" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 146
 Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(147): object "sync_negedge" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 147
@@ -1442,16 +1444,16 @@ Info (17049): 46 registers lost all their fanouts during netlist optimizations.
 Info (144001): Generated suppressed messages file /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.map.smsg
 Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
-Info (21057): Implemented 1609 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 1610 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 36 input pins
     Info (21059): Implemented 18 output pins
-    Info (21061): Implemented 1508 logic cells
+    Info (21061): Implemented 1509 logic cells
     Info (21064): Implemented 47 RAM segments
-Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 41 warnings
-    Info: Peak virtual memory: 449 megabytes
-    Info: Processing ended: Tue Oct  3 18:16:55 2023
-    Info: Elapsed time: 00:00:13
-    Info: Total CPU time (on all processors): 00:00:25
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 43 warnings
+    Info: Peak virtual memory: 450 megabytes
+    Info: Processing ended: Tue Oct  3 19:19:03 2023
+    Info: Elapsed time: 00:00:12
+    Info: Total CPU time (on all processors): 00:00:24
 
 
 +------------------------------------------+

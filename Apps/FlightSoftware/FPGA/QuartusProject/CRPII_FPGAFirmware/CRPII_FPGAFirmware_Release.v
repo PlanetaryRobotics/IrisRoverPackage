@@ -85,8 +85,8 @@ module CRPII_FPGAFirmware_Release(
   assign camera_2_standby_bar = 1'b1;
   // Hold TRIGGER low for both cameras to keep it from floating
   // (should be doing nothing since we're in continuous mode):
-  assign camera_1_trigger = 1'b0;
-  assign camera_2_trigger = 1'b0;
+  // assign camera_1_trigger = 1'b0;
+  // assign camera_2_trigger = 1'b0;
 
   // Connect to Camera Interface:
   reg request_image = 1'b0;  // input to `CameraSensorInterface`

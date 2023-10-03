@@ -623,8 +623,8 @@ always @(posedge clk) begin
             end
             SWITCHING_CAM__RST: begin
                 // Hold both cameras in reset for at least 1s (active-low):
-                camera_1_reset_bar = 1'b0;
-                camera_2_reset_bar = 1'b0;
+                camera_1_reset_bar = 1'b1;
+                camera_2_reset_bar = 1'b1;
                 no_camera_selected = 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
                 if(state_timer > ONE_SECOND) begin
                     // Perform the switch only after we've been in rst for a while,

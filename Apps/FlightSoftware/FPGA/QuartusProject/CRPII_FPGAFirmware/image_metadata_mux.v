@@ -62,7 +62,7 @@ module ImageMetadataMux
     // (the start of each interleaved frame always corresponds with an even line in sensor-space).
     //
     // Side benefit of this approach is it lets us look for issues in the pixel counting process.
-    wire [7:0] gradient = pixel_index_in_line[0] ? pixel_index_in_line[7:0] : 0;
+    wire [7:0] gradient = pixel_index_in_line[0] ? pixel_index_in_line[7:0] : 8'b0;
 
     reg [7:0] header_byte;
     always @(*) begin // combinatorial logic

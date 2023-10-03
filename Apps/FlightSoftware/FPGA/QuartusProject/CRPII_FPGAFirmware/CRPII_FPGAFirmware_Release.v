@@ -169,44 +169,6 @@ module CRPII_FPGAFirmware_Release(
 
 
 
-  // PLL - Doubles system frequency
-  //   For a little bit of a clock boost
-  reg PLL_reset = 1'b1; // Initialized to active reset
-  wire pll_is_locked;
-  wire pll_clock;
-
-  reg PLL_in_powerup_reset = 1'b1; // Start in reset
-  reg [23:0] PLL_powerup_reset_counter = 24'd0;
-
-  always@(posedge clk) begin
-    if (PLL_in_powerup_reset) begin
-
-      // Reset active
-      PLL_reset = 1'b1;
-      PLL_powerup_reset_counter = PLL_powerup_reset_counter + 1;
-
-      if (PLL_powerup_reset_counter == 24'hFFFFFF) begin
-        PLL_in_powerup_reset = 1'b0;
-      end
-    end
-
-    else begin
-      // Deactivate reset
-      PLL_reset = 1'b0;
-    end
-  end
-
-  // assign LED0 = ~pll_is_locked;
-
-  PLL PLL(
-    .areset(PLL_reset),
-    .inclk0(clk),
-    .c0(pll_clock),
-    .locked(pll_is_locked)
-  );
-
-
-
   // Resets initialized to active reset condition
   reg flash_interface_reset = 1'b0;
 
@@ -331,9 +293,6 @@ module CRPII_FPGAFirmware_Release(
           // Take flash interface in reset
           flash_interface_reset = 1'b1;
 
-          // // Take PLL out of reset
-          // PLL_reset = 1'b0;
-
         end
 
         // Reset
@@ -346,9 +305,6 @@ module CRPII_FPGAFirmware_Release(
 
           // Hold flash interface in reset
           flash_interface_reset = 1'b0;
-
-          // // Hold PLL in reset
-          // PLL_reset = 1'b1;
         end
 
       end

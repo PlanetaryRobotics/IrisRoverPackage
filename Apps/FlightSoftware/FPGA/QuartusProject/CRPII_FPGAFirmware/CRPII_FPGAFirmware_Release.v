@@ -207,7 +207,6 @@ module CRPII_FPGAFirmware_Release(
 
 
 
-
   // Resets initialized to active reset condition
   reg flash_interface_reset = 1'b0;
 
@@ -302,9 +301,6 @@ module CRPII_FPGAFirmware_Release(
   reg flash_RDSR1_done = 1'b0;
   reg reset_flash_RDSR1_done = 1'b0;
   reg [7:0] flash_RDSR1_response = 8'd0;
-
-  reg flash_READ3_done = 1'b0;
-  reg reset_flash_READ3_done = 1'b0;
 
   reg flash_PP3_done = 1'b0;
   reg reset_flash_PP3_done = 1'b0;
@@ -693,18 +689,6 @@ module CRPII_FPGAFirmware_Release(
     else begin
       if(current_state == flash_RDSR1)
         flash_RDSR1_done = 1'b1;
-    end
-  end
-
-
-  // * READ3 Done
-  always@(posedge flash_mem_interface_done or posedge reset_flash_READ3_done) begin
-    if(reset_flash_READ3_done) begin
-      flash_READ3_done = 1'b0;
-    end
-    else begin
-      if(current_state == flash_READ3)
-        flash_READ3_done = 1'b1;
     end
   end
 

@@ -363,11 +363,6 @@ module CRPII_FPGAFirmware_Release(
   reg reset_flash_PP3_RDSR1_done = 1'b0;
   reg [7:0] flash_PP3_RDSR1_response = 8'd0;
 
-  reg flash_PP4_done = 1'b0;
-  reg reset_flash_PP4_done = 1'b0;
-
-  reg flash_PP4_RDSR1_done = 1'b0;
-  reg reset_flash_PP4_RDSR1_done = 1'b0;
   reg [7:0] flash_PP4_RDSR1_response = 8'd0;
 
   reg new_camera_LV = 1'b0;
@@ -721,13 +716,13 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // State transition @ NEGEDGE clk
+  // * State transition @ NEGEDGE clk
   always@(negedge clk) begin
       current_state <= next_state;
   end
 
 
-  // WREN Done
+  // * WREN Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_WREN_done) begin
     if(reset_flash_WREN_done) begin
       flash_WREN_done = 1'b0;
@@ -739,7 +734,7 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // WREN RDSR1 Done
+  // * WREN RDSR1 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_WREN_RDSR1_done) begin
     if(reset_flash_WREN_RDSR1_done) begin
       flash_WREN_RDSR1_done = 1'b0;
@@ -751,7 +746,7 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // RDSR1 Done
+  // * RDSR1 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_RDSR1_done) begin
     if(reset_flash_RDSR1_done) begin
       flash_RDSR1_done = 1'b0;
@@ -763,7 +758,7 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // READ3 Done
+  // * READ3 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_READ3_done) begin
     if(reset_flash_READ3_done) begin
       flash_READ3_done = 1'b0;
@@ -775,7 +770,7 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // PP3 Done
+  // * PP3 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_PP3_done) begin
     if(reset_flash_PP3_done) begin
       flash_PP3_done = 1'b0;
@@ -787,7 +782,7 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // PP3 RDSR1 Done
+  // * PP3 RDSR1 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_PP3_RDSR1_done) begin
     if(reset_flash_PP3_RDSR1_done) begin
       flash_PP3_RDSR1_done = 1'b0;
@@ -799,26 +794,28 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // PP4 Done
-  always@(posedge flash_mem_interface_done or posedge reset_flash_PP4_done) begin
-    if(reset_flash_PP4_done) begin
-      flash_PP4_done = 1'b0;
-    end
+  // * PP3 Command Counter:
+  reg reset_PP3_command_counter = 1'b0;
+  reg [3:0] PP3_command_counter = 4'd0;
+  always@(posedge PP3 or posedge reset_PP3_command_counter) begin
+    if(reset_PP3_command_counter)
+      PP3_command_counter = 0;
     else begin
-      if(current_state == flash_PP4)
-        flash_PP4_done = 1'b1;
+      PP3_command_counter = PP3_command_counter + 1;
     end
   end
 
-  // PP4 RDSR1 Done
-  always@(posedge flash_mem_interface_done or posedge reset_flash_PP4_RDSR1_done) begin
-    if(reset_flash_PP4_RDSR1_done) begin
-      flash_PP4_RDSR1_done = 1'b0;
-    end
-    else begin
-      if(current_state == flash_PP4_RDSR1)
-        flash_PP4_RDSR1_done = 1'b1;
-    end
+
+  // * FIFO Read Acknowledge:
+  // 1 sys-clk pulse telling FIFO that PP3 just finished writing another byte.
+  // Tell FIFO this so show-ahead can bring forward the next byte ASAP (delay
+  // is 1 rdclk).
+  reg [9:0] PP3_send_bytes_counter__current_page__prev_clk = 1'b0;
+  wire PP3_spi_cycle_completed_pulse = flash_mem_interface_spi_cycle_done & ~flash_mem_interface_spi_cycle_done__prev_clk;  // 1 sys-clk pulse saying we just completed a SPI cycle
+  wire FIFO_read_ack = PP3_spi_cycle_completed_pulse;
+  always @(posedge clk) begin
+    // Keep track of state change every sys-clk:
+    PP3_send_bytes_counter__current_page__prev_clk <= PP3_send_bytes_counter__current_page;
   end
 
 
@@ -848,32 +845,5 @@ module CRPII_FPGAFirmware_Release(
     	.rdempty( FIFO_is_empty ),
       .rdusedw(FIFO_read_bytes_avail)
   );
-
-
-
-  // * PP3 Command Counter:
-  reg reset_PP3_command_counter = 1'b0;
-  reg [3:0] PP3_command_counter = 4'd0;
-  always@(posedge PP3 or posedge reset_PP3_command_counter) begin
-    if(reset_PP3_command_counter)
-      PP3_command_counter = 0;
-    else begin
-      PP3_command_counter = PP3_command_counter + 1;
-    end
-  end
-
-
-  // * FIFO Read Acknowledge:
-  // 1 sys-clk pulse telling FIFO that PP3 just finished writing another byte.
-  // Tell FIFO this so show-ahead can bring forward the next byte ASAP (delay
-  // is 1 rdclk).
-  reg [9:0] PP3_send_bytes_counter__current_page__prev_clk = 1'b0;
-  wire PP3_spi_cycle_completed_pulse = flash_mem_interface_spi_cycle_done & ~flash_mem_interface_spi_cycle_done__prev_clk;  // 1 sys-clk pulse saying we just completed a SPI cycle
-  wire FIFO_read_ack = PP3_spi_cycle_completed_pulse;
-  always @(posedge clk) begin
-    // Keep track of state change every sys-clk:
-    PP3_send_bytes_counter__current_page__prev_clk <= PP3_send_bytes_counter__current_page;
-  end
-
 
 endmodule

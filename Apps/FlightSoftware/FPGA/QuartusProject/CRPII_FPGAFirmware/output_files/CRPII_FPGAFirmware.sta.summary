@@ -2,83 +2,67 @@
 Timing Analyzer Summary
 ------------------------------------------------------------
 
-Type  : Slow 1200mV 100C Model Setup 'camera_1_pixel_clock'
-Slack : -7.173
-TNS   : -951.249
-
-Type  : Slow 1200mV 100C Model Setup 'capturing_camera_frames'
-Slack : -6.935
-TNS   : -6.935
-
 Type  : Slow 1200mV 100C Model Setup 'clk'
-Slack : -6.361
-TNS   : -687.797
+Slack : -8.135
+TNS   : -2699.976
+
+Type  : Slow 1200mV 100C Model Setup 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : -7.907
+TNS   : -53.131
+
+Type  : Slow 1200mV 100C Model Setup 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : -7.263
+TNS   : -41.623
+
+Type  : Slow 1200mV 100C Model Setup 'camera_select'
+Slack : -6.028
+TNS   : -27.460
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -4.885
-TNS   : -547.590
+Slack : -4.697
+TNS   : -177.680
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : -4.001
-TNS   : -5.348
+Slack : -3.874
+TNS   : -5.436
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : -3.890
-TNS   : -7.604
+Slack : -3.657
+TNS   : -7.170
 
 Type  : Slow 1200mV 100C Model Setup 'hercules_SCK'
-Slack : -1.332
-TNS   : -10.679
-
-Type  : Slow 1200mV 100C Model Setup 'PP3_wrote_one_line'
-Slack : -1.098
-TNS   : -5.637
-
-Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.864
-TNS   : -2.836
+Slack : -1.234
+TNS   : -11.292
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -0.791
-TNS   : -5.884
-
-Type  : Slow 1200mV 100C Model Setup 'camera_1_LV'
-Slack : -0.712
-TNS   : -0.949
+Slack : -0.597
+TNS   : -4.179
 
 Type  : Slow 1200mV 100C Model Setup 'PP3'
-Slack : -0.220
-TNS   : -0.439
+Slack : -0.236
+TNS   : -0.510
 
-Type  : Slow 1200mV 100C Model Setup 'camera_1_FV'
-Slack : 0.015
-TNS   : 0.000
+Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : -0.153
+TNS   : -0.212
 
-Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.221
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Hold 'clk'
-Slack : 0.311
+Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.039
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.345
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Hold 'camera_1_FV'
-Slack : 0.394
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Hold 'camera_1_pixel_clock'
-Slack : 0.405
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Hold 'PP3'
-Slack : 0.417
+Slack : 0.040
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : 0.062
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Hold 'clk'
+Slack : 0.276
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Hold 'PP3'
 Slack : 0.417
 TNS   : 0.000
 
@@ -86,117 +70,97 @@ Type  : Slow 1200mV 100C Model Hold 'hercules_SCK'
 Slack : 0.418
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Hold 'PP3_wrote_one_line'
-Slack : 0.422
+Type  : Slow 1200mV 100C Model Hold 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 0.439
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Hold 'camera_1_LV'
-Slack : 0.422
+Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
+Slack : 0.449
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.430
+Type  : Slow 1200mV 100C Model Hold 'camera_select'
+Slack : 0.574
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 1.133
+Slack : 0.724
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Hold 'capturing_camera_frames'
-Slack : 2.393
+Type  : Slow 1200mV 100C Model Hold 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 1.305
 TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Recovery 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : -7.885
+TNS   : -55.382
+
+Type  : Slow 1200mV 100C Model Recovery 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : -6.512
+TNS   : -44.398
+
+Type  : Slow 1200mV 100C Model Recovery 'camera_select'
+Slack : -6.058
+TNS   : -40.766
 
 Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -4.673
-TNS   : -23.242
+Slack : -4.347
+TNS   : -20.632
 
 Type  : Slow 1200mV 100C Model Recovery 'clk'
-Slack : -3.168
-TNS   : -49.999
-
-Type  : Slow 1200mV 100C Model Recovery 'capturing_camera_frames'
-Slack : -2.686
-TNS   : -2.686
-
-Type  : Slow 1200mV 100C Model Recovery 'camera_1_pixel_clock'
-Slack : -1.541
-TNS   : -18.492
-
-Type  : Slow 1200mV 100C Model Recovery 'camera_1_LV'
-Slack : -1.536
-TNS   : -4.608
+Slack : -2.938
+TNS   : -34.904
 
 Type  : Slow 1200mV 100C Model Recovery 'hercules_SCK'
-Slack : -0.981
-TNS   : -17.607
-
-Type  : Slow 1200mV 100C Model Recovery 'PP3_wrote_one_line'
-Slack : -0.534
-TNS   : -4.272
+Slack : -0.925
+TNS   : -16.117
 
 Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -0.347
-TNS   : -19.014
+Slack : -0.615
+TNS   : -40.106
 
 Type  : Slow 1200mV 100C Model Recovery 'PP3'
-Slack : -0.240
-TNS   : -0.960
+Slack : -0.538
+TNS   : -2.152
 
 Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.190
-TNS   : -0.854
+Slack : -0.485
+TNS   : -1.898
 
-Type  : Slow 1200mV 100C Model Recovery 'camera_1_FV'
-Slack : -0.135
-TNS   : -0.135
-
-Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.346
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Removal 'camera_1_FV'
-Slack : 0.487
+Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.283
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.501
+Slack : 0.617
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.723
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'PP3'
-Slack : 0.659
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.798
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Removal 'PP3_wrote_one_line'
-Slack : 0.898
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Removal 'camera_1_LV'
-Slack : 0.977
+Slack : 0.933
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'hercules_SCK'
-Slack : 1.179
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Removal 'camera_1_pixel_clock'
-Slack : 1.593
+Slack : 1.172
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'clk'
-Slack : 1.734
+Slack : 1.513
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Removal 'capturing_camera_frames'
-Slack : 2.021
+Type  : Slow 1200mV 100C Model Removal 'camera_select'
+Slack : 2.077
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Minimum Pulse Width 'capturing_camera_frames'
-Slack : -12.445
-TNS   : -74.670
+Type  : Slow 1200mV 100C Model Removal 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 2.470
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Removal 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 3.980
+TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'hercules_SCK'
 Slack : -12.445
@@ -206,241 +170,201 @@ Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Inter
 Slack : -12.445
 TNS   : -30.435
 
-Type  : Slow 1200mV 100C Model Minimum Pulse Width 'camera_1_pixel_clock'
-Slack : -3.000
-TNS   : -387.805
-
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'clk'
 Slack : -3.000
-TNS   : -284.415
+TNS   : -1143.960
 
-Type  : Slow 1200mV 100C Model Minimum Pulse Width 'camera_1_LV'
+Type  : Slow 1200mV 100C Model Minimum Pulse Width 'camera_select'
 Slack : -3.000
-TNS   : -6.855
-
-Type  : Slow 1200mV 100C Model Minimum Pulse Width 'camera_1_FV'
-Slack : -3.000
-TNS   : -4.285
+TNS   : -3.000
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -2.710
-TNS   : -386.125
-
-Type  : Slow 1200mV 100C Model Minimum Pulse Width 'PP3_wrote_one_line'
 Slack : -1.285
-TNS   : -10.280
+TNS   : -133.640
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
 Slack : -1.285
-TNS   : -8.995
+TNS   : -6.425
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'PP3'
 Slack : -1.285
 TNS   : -5.140
 
+Type  : Slow 1200mV 100C Model Minimum Pulse Width 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 0.376
+TNS   : 0.000
+
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.369
+Slack : 0.384
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Minimum Pulse Width 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 0.400
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.407
+Slack : 0.405
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Setup 'camera_1_pixel_clock'
-Slack : -6.523
-TNS   : -870.182
-
-Type  : Slow 1200mV -40C Model Setup 'capturing_camera_frames'
-Slack : -6.175
-TNS   : -6.175
+Type  : Slow 1200mV -40C Model Setup 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : -7.362
+TNS   : -49.194
 
 Type  : Slow 1200mV -40C Model Setup 'clk'
-Slack : -5.507
-TNS   : -592.679
+Slack : -6.980
+TNS   : -2323.827
+
+Type  : Slow 1200mV -40C Model Setup 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : -6.265
+TNS   : -38.114
+
+Type  : Slow 1200mV -40C Model Setup 'camera_select'
+Slack : -5.767
+TNS   : -27.026
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -4.246
-TNS   : -448.920
+Slack : -4.053
+TNS   : -138.559
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : -3.508
-TNS   : -4.450
+Slack : -3.339
+TNS   : -4.557
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : -3.372
-TNS   : -6.629
+Slack : -3.147
+TNS   : -6.123
 
 Type  : Slow 1200mV -40C Model Setup 'hercules_SCK'
-Slack : -1.101
-TNS   : -8.152
-
-Type  : Slow 1200mV -40C Model Setup 'PP3_wrote_one_line'
-Slack : -0.783
-TNS   : -3.863
-
-Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.734
-TNS   : -2.090
+Slack : -1.008
+TNS   : -8.744
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -0.510
-TNS   : -3.970
+Slack : -0.385
+TNS   : -2.344
 
-Type  : Slow 1200mV -40C Model Setup 'camera_1_LV'
-Slack : -0.492
-TNS   : -0.550
+Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : -0.067
+TNS   : -0.067
 
 Type  : Slow 1200mV -40C Model Setup 'PP3'
-Slack : -0.043
-TNS   : -0.084
+Slack : -0.062
+TNS   : -0.123
 
-Type  : Slow 1200mV -40C Model Setup 'camera_1_FV'
-Slack : 0.163
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.251
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'clk'
-Slack : 0.261
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'camera_1_FV'
-Slack : 0.273
-TNS   : 0.000
+Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : -0.009
+TNS   : -0.029
 
 Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.345
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'hercules_SCK'
-Slack : 0.345
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'PP3'
-Slack : 0.346
+Slack : 0.084
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.346
+Slack : 0.114
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Hold 'camera_1_pixel_clock'
-Slack : 0.346
+Type  : Slow 1200mV -40C Model Hold 'clk'
+Slack : 0.205
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Hold 'PP3_wrote_one_line'
-Slack : 0.359
+Type  : Slow 1200mV -40C Model Hold 'hercules_SCK'
+Slack : 0.343
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Hold 'camera_1_LV'
-Slack : 0.359
+Type  : Slow 1200mV -40C Model Hold 'PP3'
+Slack : 0.345
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.365
+Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
+Slack : 0.409
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Hold 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 0.421
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Hold 'camera_select'
+Slack : 0.492
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 1.067
+Slack : 0.700
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Hold 'capturing_camera_frames'
-Slack : 2.186
+Type  : Slow 1200mV -40C Model Hold 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 1.109
 TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Recovery 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : -7.187
+TNS   : -50.148
+
+Type  : Slow 1200mV -40C Model Recovery 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : -5.918
+TNS   : -39.996
+
+Type  : Slow 1200mV -40C Model Recovery 'camera_select'
+Slack : -5.592
+TNS   : -37.388
 
 Type  : Slow 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -4.057
-TNS   : -20.292
+Slack : -3.861
+TNS   : -18.564
 
 Type  : Slow 1200mV -40C Model Recovery 'clk'
-Slack : -2.745
-TNS   : -42.745
-
-Type  : Slow 1200mV -40C Model Recovery 'capturing_camera_frames'
-Slack : -2.480
-TNS   : -2.480
-
-Type  : Slow 1200mV -40C Model Recovery 'camera_1_pixel_clock'
-Slack : -1.318
-TNS   : -15.816
-
-Type  : Slow 1200mV -40C Model Recovery 'camera_1_LV'
-Slack : -1.305
-TNS   : -3.915
+Slack : -2.625
+TNS   : -30.085
 
 Type  : Slow 1200mV -40C Model Recovery 'hercules_SCK'
-Slack : -0.725
-TNS   : -12.726
-
-Type  : Slow 1200mV -40C Model Recovery 'PP3_wrote_one_line'
-Slack : -0.340
-TNS   : -2.720
+Slack : -0.673
+TNS   : -11.266
 
 Type  : Slow 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -0.140
-TNS   : -6.518
+Slack : -0.403
+TNS   : -22.972
 
 Type  : Slow 1200mV -40C Model Recovery 'PP3'
-Slack : -0.065
-TNS   : -0.260
+Slack : -0.382
+TNS   : -1.528
 
 Type  : Slow 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.015
-TNS   : -0.015
+Slack : -0.311
+TNS   : -1.131
 
-Type  : Slow 1200mV -40C Model Recovery 'camera_1_FV'
-Slack : 0.115
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.296
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'camera_1_FV'
-Slack : 0.319
+Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.249
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.435
+Slack : 0.525
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.594
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Removal 'PP3'
-Slack : 0.578
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.702
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'PP3_wrote_one_line'
-Slack : 0.719
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'camera_1_LV'
-Slack : 0.723
+Slack : 0.738
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Removal 'hercules_SCK'
-Slack : 1.026
+Slack : 1.020
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Removal 'clk'
-Slack : 1.452
+Slack : 1.376
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Removal 'camera_1_pixel_clock'
-Slack : 1.628
+Type  : Slow 1200mV -40C Model Removal 'camera_select'
+Slack : 2.015
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Removal 'capturing_camera_frames'
-Slack : 1.773
+Type  : Slow 1200mV -40C Model Removal 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 2.288
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Minimum Pulse Width 'capturing_camera_frames'
-Slack : -12.445
-TNS   : -74.670
+Type  : Slow 1200mV -40C Model Removal 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 3.676
+TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'hercules_SCK'
 Slack : -12.445
@@ -450,288 +374,244 @@ Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Inter
 Slack : -12.445
 TNS   : -30.435
 
-Type  : Slow 1200mV -40C Model Minimum Pulse Width 'camera_1_pixel_clock'
-Slack : -3.000
-TNS   : -381.949
-
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'clk'
 Slack : -3.000
-TNS   : -284.415
+TNS   : -1135.063
 
-Type  : Slow 1200mV -40C Model Minimum Pulse Width 'camera_1_LV'
+Type  : Slow 1200mV -40C Model Minimum Pulse Width 'camera_select'
 Slack : -3.000
-TNS   : -6.855
-
-Type  : Slow 1200mV -40C Model Minimum Pulse Width 'camera_1_FV'
-Slack : -3.000
-TNS   : -4.285
+TNS   : -3.000
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -2.649
-TNS   : -384.173
-
-Type  : Slow 1200mV -40C Model Minimum Pulse Width 'PP3_wrote_one_line'
 Slack : -1.285
-TNS   : -10.280
+TNS   : -133.640
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
 Slack : -1.285
-TNS   : -8.995
+TNS   : -6.425
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'PP3'
 Slack : -1.285
 TNS   : -5.140
 
+Type  : Slow 1200mV -40C Model Minimum Pulse Width 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 0.167
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Minimum Pulse Width 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 0.244
+TNS   : 0.000
+
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.418
+Slack : 0.372
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.432
+Slack : 0.431
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Setup 'clk'
-Slack : -3.257
-TNS   : -301.378
+Slack : -4.133
+TNS   : -1068.835
 
-Type  : Fast 1200mV -40C Model Setup 'capturing_camera_frames'
-Slack : -2.866
-TNS   : -2.866
+Type  : Fast 1200mV -40C Model Setup 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : -3.747
+TNS   : -22.980
 
-Type  : Fast 1200mV -40C Model Setup 'camera_1_pixel_clock'
-Slack : -2.811
-TNS   : -352.294
+Type  : Fast 1200mV -40C Model Setup 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : -3.349
+TNS   : -17.400
+
+Type  : Fast 1200mV -40C Model Setup 'camera_select'
+Slack : -2.505
+TNS   : -8.170
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : -2.034
-TNS   : -3.572
-
-Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -1.825
-TNS   : -185.703
+Slack : -1.828
+TNS   : -3.354
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : -1.655
-TNS   : -1.655
+Slack : -1.627
+TNS   : -1.627
+
+Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : -1.472
+TNS   : -57.567
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.594
-TNS   : -2.516
-
-Type  : Fast 1200mV -40C Model Setup 'camera_1_FV'
-Slack : -0.287
-TNS   : -0.287
+Slack : -0.232
+TNS   : -0.711
 
 Type  : Fast 1200mV -40C Model Setup 'hercules_SCK'
-Slack : -0.056
-TNS   : -0.224
+Slack : -0.007
+TNS   : -0.056
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.005
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Setup 'PP3_wrote_one_line'
-Slack : 0.036
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Setup 'camera_1_LV'
-Slack : 0.237
+Slack : 0.175
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Setup 'PP3'
-Slack : 0.430
+Slack : 0.421
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.063
+Type  : Fast 1200mV -40C Model Hold 'camera_select'
+Slack : 0.007
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'clk'
-Slack : 0.124
+Slack : 0.079
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
+Slack : 0.152
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.168
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : 0.178
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'PP3'
 Slack : 0.179
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Type  : Fast 1200mV -40C Model Hold 'hercules_SCK'
 Slack : 0.179
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.179
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'camera_1_pixel_clock'
-Slack : 0.179
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'hercules_SCK'
 Slack : 0.180
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Hold 'PP3_wrote_one_line'
-Slack : 0.184
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'camera_1_LV'
-Slack : 0.184
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.185
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'camera_1_FV'
-Slack : 0.190
-TNS   : 0.000
-
 Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.510
+Slack : 0.303
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Hold 'capturing_camera_frames'
-Slack : 1.273
+Type  : Fast 1200mV -40C Model Hold 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 0.345
 TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Hold 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 0.512
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Recovery 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : -3.554
+TNS   : -24.608
+
+Type  : Fast 1200mV -40C Model Recovery 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : -2.684
+TNS   : -17.648
+
+Type  : Fast 1200mV -40C Model Recovery 'camera_select'
+Slack : -2.312
+TNS   : -14.672
 
 Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -2.046
-TNS   : -9.782
-
-Type  : Fast 1200mV -40C Model Recovery 'capturing_camera_frames'
-Slack : -1.063
-TNS   : -1.063
-
-Type  : Fast 1200mV -40C Model Recovery 'camera_1_LV'
-Slack : -0.979
-TNS   : -2.937
+Slack : -1.868
+TNS   : -8.390
 
 Type  : Fast 1200mV -40C Model Recovery 'clk'
-Slack : -0.893
-TNS   : -6.659
-
-Type  : Fast 1200mV -40C Model Recovery 'camera_1_pixel_clock'
-Slack : -0.154
-TNS   : -1.848
+Slack : -0.769
+TNS   : -4.614
 
 Type  : Fast 1200mV -40C Model Recovery 'hercules_SCK'
-Slack : 0.031
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Recovery 'PP3_wrote_one_line'
-Slack : 0.279
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Recovery 'camera_1_FV'
-Slack : 0.352
+Slack : 0.056
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.446
+Slack : 0.227
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Recovery 'PP3'
-Slack : 0.455
+Slack : 0.299
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.484
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.011
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.129
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Removal 'PP3'
-Slack : 0.205
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Removal 'camera_1_FV'
-Slack : 0.228
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Removal 'PP3_wrote_one_line'
-Slack : 0.287
+Slack : 0.310
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.451
+Slack : 0.144
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Removal 'camera_1_pixel_clock'
-Slack : 0.464
+Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : 0.180
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Removal 'hercules_SCK'
-Slack : 0.527
+Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.219
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Removal 'PP3'
+Slack : 0.268
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'clk'
-Slack : 0.570
+Slack : 0.451
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Removal 'camera_1_LV'
-Slack : 0.645
+Type  : Fast 1200mV -40C Model Removal 'hercules_SCK'
+Slack : 0.525
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Removal 'capturing_camera_frames'
-Slack : 1.191
+Type  : Fast 1200mV -40C Model Removal 'camera_select'
+Slack : 0.592
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Minimum Pulse Width 'capturing_camera_frames'
-Slack : -9.457
-TNS   : -56.742
+Type  : Fast 1200mV -40C Model Removal 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 0.950
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Removal 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 1.882
+TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'hercules_SCK'
 Slack : -9.457
-TNS   : -38.412
+TNS   : -38.299
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
 Slack : -9.457
 TNS   : -23.457
 
-Type  : Fast 1200mV -40C Model Minimum Pulse Width 'camera_1_pixel_clock'
-Slack : -3.000
-TNS   : -306.866
-
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'clk'
 Slack : -3.000
-TNS   : -293.401
+TNS   : -960.389
 
-Type  : Fast 1200mV -40C Model Minimum Pulse Width 'camera_1_LV'
+Type  : Fast 1200mV -40C Model Minimum Pulse Width 'camera_select'
 Slack : -3.000
-TNS   : -9.136
-
-Type  : Fast 1200mV -40C Model Minimum Pulse Width 'camera_1_FV'
-Slack : -3.000
-TNS   : -4.936
+TNS   : -10.632
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
 Slack : -1.000
-TNS   : -265.000
-
-Type  : Fast 1200mV -40C Model Minimum Pulse Width 'PP3_wrote_one_line'
-Slack : -1.000
-TNS   : -8.000
+TNS   : -104.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
 Slack : -1.000
-TNS   : -7.000
+TNS   : -5.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'PP3'
 Slack : -1.000
 TNS   : -4.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.320
+Slack : 0.306
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Minimum Pulse Width 'CameraSensorInterface:cameraInterface|capture_state.SWITCHING_CAM__RST'
+Slack : 0.311
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Minimum Pulse Width 'CameraSensorInterface:cameraInterface|capture_state.BOOT'
+Slack : 0.345
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.445
+Slack : 0.426
 TNS   : 0.000
 
 ------------------------------------------------------------

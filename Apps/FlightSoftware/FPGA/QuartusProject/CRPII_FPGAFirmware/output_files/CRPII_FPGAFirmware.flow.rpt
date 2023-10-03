@@ -1,5 +1,5 @@
 Flow report for CRPII_FPGAFirmware
-Fri Sep 29 10:32:58 2023
+Tue Oct  3 16:56:51 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
 
 
@@ -41,20 +41,20 @@ https://fpgasoftware.intel.com/eula.
 +-----------------------------------------------------------------------------------------+
 ; Flow Summary                                                                            ;
 +------------------------------------+----------------------------------------------------+
-; Flow Status                        ; Successful - Fri Sep 29 10:32:58 2023              ;
+; Flow Status                        ; Successful - Tue Oct  3 16:56:51 2023              ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Standard Edition ;
 ; Revision Name                      ; CRPII_FPGAFirmware                                 ;
 ; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                         ;
 ; Family                             ; Cyclone 10 LP                                      ;
 ; Device                             ; 10CL025YU256I7G                                    ;
 ; Timing Models                      ; Final                                              ;
-; Total logic elements               ; 998 / 24,624 ( 4 % )                               ;
-;     Total combinational functions  ; 825 / 24,624 ( 3 % )                               ;
-;     Dedicated logic registers      ; 605 / 24,624 ( 2 % )                               ;
-; Total registers                    ; 605                                                ;
+; Total logic elements               ; 1,403 / 24,624 ( 6 % )                             ;
+;     Total combinational functions  ; 1,243 / 24,624 ( 5 % )                             ;
+;     Dedicated logic registers      ; 726 / 24,624 ( 3 % )                               ;
+; Total registers                    ; 726                                                ;
 ; Total pins                         ; 54 / 151 ( 36 % )                                  ;
 ; Total virtual pins                 ; 0                                                  ;
-; Total memory bits                  ; 262,144 / 608,256 ( 43 % )                         ;
+; Total memory bits                  ; 262,294 / 608,256 ( 43 % )                         ;
 ; Embedded Multiplier 9-bit elements ; 0 / 132 ( 0 % )                                    ;
 ; Total PLLs                         ; 0 / 4 ( 0 % )                                      ;
 +------------------------------------+----------------------------------------------------+
@@ -65,7 +65,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 09/29/2023 10:32:25 ;
+; Start date & time ; 10/03/2023 16:56:14 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; CRPII_FPGAFirmware  ;
 +-------------------+---------------------+
@@ -76,7 +76,7 @@ https://fpgasoftware.intel.com/eula.
 +-------------------------------------+----------------------------------------+--------------------+----------------------------+-----------------------------------+
 ; Assignment Name                     ; Value                                  ; Default Value      ; Entity Name                ; Section Id                        ;
 +-------------------------------------+----------------------------------------+--------------------+----------------------------+-----------------------------------+
-; COMPILER_SIGNATURE_ID               ; 154027290306549.169599794509828        ; --                 ; --                         ; --                                ;
+; COMPILER_SIGNATURE_ID               ; 154027290306549.169636657414673        ; --                 ; --                         ; --                                ;
 ; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --                 ; --                         ; eda_board_design_timing           ;
 ; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --                 ; --                         ; eda_board_design_boundary_scan    ;
 ; EDA_GENERATE_FUNCTIONAL_NETLIST     ; Off                                    ; --                 ; --                         ; eda_board_design_signal_integrity ;
@@ -108,12 +108,12 @@ https://fpgasoftware.intel.com/eula.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:00:10     ; 1.0                     ; 426 MB              ; 00:00:24                           ;
-; Fitter               ; 00:00:12     ; 1.2                     ; 968 MB              ; 00:00:20                           ;
-; Assembler            ; 00:00:01     ; 1.0                     ; 400 MB              ; 00:00:01                           ;
-; Timing Analyzer      ; 00:00:03     ; 1.1                     ; 500 MB              ; 00:00:03                           ;
-; EDA Netlist Writer   ; 00:00:00     ; 1.0                     ; 631 MB              ; 00:00:01                           ;
-; Total                ; 00:00:26     ; --                      ; --                  ; 00:00:49                           ;
+; Analysis & Synthesis ; 00:00:12     ; 1.0                     ; 432 MB              ; 00:00:25                           ;
+; Fitter               ; 00:00:15     ; 1.2                     ; 968 MB              ; 00:00:23                           ;
+; Assembler            ; 00:00:01     ; 1.0                     ; 390 MB              ; 00:00:01                           ;
+; Timing Analyzer      ; 00:00:03     ; 1.2                     ; 524 MB              ; 00:00:03                           ;
+; EDA Netlist Writer   ; 00:00:01     ; 1.0                     ; 630 MB              ; 00:00:01                           ;
+; Total                ; 00:00:32     ; --                      ; --                  ; 00:00:53                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 

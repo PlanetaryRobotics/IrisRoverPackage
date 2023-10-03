@@ -34,7 +34,7 @@ module S70FL01GS_Flash_Memory_Interface_address_swap(
   input [31:0] address,
   input [31:0] num_bytes,
   // How many PP3 bytes have been written in the current PP3 transaction:
-  output [9:0] PP3_send_bytes_counter; // (shouldn't ever exceed 512B <- max size of a page for PP3. Added extra MSB for safety.)
+  output reg [9:0] PP3_send_bytes_counter, // (shouldn't ever exceed 512B <- max size of a page for PP3. Added extra MSB for safety.)
 
   input [7:0] input_data,
   output reg [7:0] output_data,

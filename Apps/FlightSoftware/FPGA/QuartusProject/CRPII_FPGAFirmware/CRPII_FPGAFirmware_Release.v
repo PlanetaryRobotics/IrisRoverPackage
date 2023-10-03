@@ -1,7 +1,7 @@
 
 // TODO: Add exit to possible infinite WREN_RDSR1_WAIT->WREN_RDSR1->WREN_RDSR1_CHECK loop if WREN command is missed (count cycles and bump back to WREN_WAIT on issue?)
 // -- seems to work relatively robustly on Earth (millions of bytes in a row) but if WREN command is missed or misinterpreted due to SEU we get stuck here forever. Want to prevent this.
-// TODO: Make sure `dcfifo` is using ECC (needs 32b FIFO width and Arria 10?)
+// TODO: Make sure `dcfifo` is using ECC (needs 32b FIFO width and Arria 10 with M20K?)
 
 
 module CRPII_FPGAFirmware_Release(
@@ -63,7 +63,6 @@ module CRPII_FPGAFirmware_Release(
 
   wire FIFO_is_empty;
   wire FIFO_is_full;
-  reg FIFO_read_req = 1'b0;
   reg FIFO_write_enable = 1'b0;
 
   reg capturing_camera_frames = 1'b0;
@@ -338,23 +337,24 @@ module CRPII_FPGAFirmware_Release(
   parameter flash_PP3_RDSR1_wait                    = 5'd15;
   parameter flash_PP3_RDSR1                         = 5'd16;
   parameter flash_PP3_RDSR1_check                   = 5'd17;
-  parameter flash_PP3_repeat_for_next_page_or_exit  = 5'd23;
-  parameter flash_PP3_repeat_for_next_line_or_exit  = 5'd30;
-  parameter flash_PP3_repeat_for_next_frame_or_exit = 5'd31;
+  parameter check_image_status                      = 5'd31;
   // Deprecated states:
   parameter flash_READ_ID_wait                      = 5'd2;
   parameter flash_READ_ID                           = 5'd3;
-  parameter flash_READ3                             = 5'd12;
   parameter flash_READ3_wait                        = 5'd11;
+  parameter flash_READ3                             = 5'd12;
   parameter wait_for_new_camera_LV                  = 5'd19;
   parameter wait_to_switchover_flash_control        = 5'd20;
   parameter flash_PP3_check_FIFO                    = 5'd21;
+  parameter flash_PP3_repeat_for_next_page_or_exit  = 5'd23;
   parameter flash_PP4_wait                          = 5'd24;
   parameter flash_PP4                               = 5'd25;
   parameter flash_PP4_RDSR1_wait                    = 5'd26;
   parameter flash_PP4_RDSR1                         = 5'd27;
   parameter flash_PP4_RDSR1_check                   = 5'd28;
   parameter flash_PP4_repeat_or_exit                = 5'd29;
+  parameter flash_PP3_repeat_for_next_line_or_exit  = 5'd30;
+  parameter flash_PP3_repeat_for_next_frame_or_exit = 5'd31;
 
 
   reg [23:0] powerup_reset_counter = 24'd0;
@@ -381,8 +381,6 @@ module CRPII_FPGAFirmware_Release(
 
   reg flash_PP3_done = 1'b0;
   reg reset_flash_PP3_done = 1'b0;
-
-  reg reset_PP3_FIFO_read_req = 1'b0;
 
   reg flash_PP3_RDSR1_done = 1'b0;
   reg reset_flash_PP3_RDSR1_done = 1'b0;
@@ -558,11 +556,9 @@ module CRPII_FPGAFirmware_Release(
 
 
       flash_WREN_wait: begin
-        LED1 = 1'b1; // Off
-
-        // Deassert previous state's done reset flag
-        // reset_flash_READ3_done = 1'b0;
-        // reset_flash_READ_ID_done = 1'b0;
+        // Previous state reset of counter reset
+        // (when we come here from `check_image_status`):
+        reset_PP3_command_counter = 1'b0;
 
         if (wait_counter == 32'h00000000) begin
           next_state = flash_WREN;
@@ -638,95 +634,50 @@ module CRPII_FPGAFirmware_Release(
       end
 
 
+      // Make sure we have enough data in the FIFO before proceeding:
       flash_PP3_wait: begin
+        // Set the number of bytes we need to write for this page:
+        // Lines are 2592B long, so we write in 2592B sections to flash.
+        // That means we write 5 512B pages (max size) then one 32B page to
+        // make up the difference. Afterwards, we advance to the start of the
+        // next page so every 6 pages contains 1 line:
+        num_bytes = (PP3_command_counter == 5) ? 32'd32 : 32'd512;
 
-        // LED2 = 1'b0; // On
-
-        // if(PP3_command_counter < 6) begin
-        //   if (FIFO_bytes_written_counter > 10'd512) begin
-        //     next_state = flash_PP3;
-        //     // reset_FIFO_bytes_written_counter = 1;
-        //
-        //     num_bytes = 32'd512;
-        //   end
-        // end
-
-        // if(FIFO_bytes_written_counter > 12'd0)
-        //   LED2 = 1'b0; // On
-        // else
-        //   LED2 = 1'b1; // Off
-
-        // Wait for full FIFO
-        if(PP3_command_counter == 0) begin
-          if (FIFO_bytes_written_counter > 12'd1) begin
-          // if (!FIFO_is_empty) begin
-
+        if(FIFO_is_empty) begin // FIFO IP requires us to check this in addition to rdusedw as a safety no matter what
+          // As a safety, if it looks like we're totally done, jump to waiting
+          // to make sure all writes are complete:
+          if(image_finished) begin
+            next_state = flash_PP3_RDSR1_wait;
+            // Also perform the same transition actions as PP3 performs when
+            // making this transition (just in case):
+            reset_flash_PP3_done = 1'b1;
+            PP3 = 1'b0;
+          end
+        end else begin // ~FIFO_is_empty
+          // Only advance to writing this page if there's enough data in the FIFO:
+          if(
+            (FIFO_read_bytes_avail >= num_bytes) // enough data in the FIFO for this page
+            || image_finished // as a safety, if the image is done, then we just need to drain the FIFO of everything it's got (helps us handle if a single byte got missed)
+          ) begin
             next_state = flash_PP3;
-            num_bytes = 32'd512;
-
-            // // Image start address
-            // address = 32'h00000000;
-
           end
         end
-
-        else begin
-            next_state = flash_PP3;
-
-            if(PP3_command_counter == 5)
-                num_bytes = 32'd32;
-            else
-                num_bytes = 32'd512;
-
-        end
+        // ^ doing this as one check tree instead of two `FIFO_is_empty && X`
+        // checks to prevent race condition where `FIFO_is_empty` updates
+        // between checks
       end
 
 
-      // Trigger page program
+      // Execute page program:
       flash_PP3: begin
-        // Deassert previous state's counter reset flag
-        // reset_FIFO_bytes_written_counter = 1'b0;
-
-        // LED2 = 1'b1; // Off
-        // LED2 = 1'b0; // On
-
-        // ! TODO: (WORKING-HERE): Integrate `PP3_send_bytes_counter__current_page` and continue remodel from here in the flow.
         if(flash_PP3_done) begin
           reset_flash_PP3_done = 1'b1;
-          reset_PP3_command_SPI_cycle_counter = 1'b1;
-          reset_PP3_FIFO_read_req = 1'b1;
-
           PP3 = 1'b0;
-          // address = address + 32'h00000200;
-          // num_bytes = 32'd0;
-
-          // FIFO_read_req = 1'b0;
-          // input_data = 8'h11;
-
           next_state = flash_PP3_RDSR1_wait;
         end
         else begin
           // Hold PP3 write flag high until we're done with the transaction:
           PP3 = 1'b1;
-
-          // address = 32'h00040000;
-          // num_bytes = 32'd512;
-
-
-          // // TODO
-          // // Write data not valid until PP3 instruction and 3 byte address have been sent
-          // //    Input data should be ready on the 4th clock
-          // if(PP3_command_SPI_cycle_counter >= 4) begin
-          //   FIFO_read_req = 1'b1;
-          //   // input_data = byte_to_flash; //FIFO_is_empty ? 8'h11 : byte_to_flash;
-          //   // input_data = input_data + 1;
-          //
-          // end
-          // else
-          //   FIFO_read_req = 1'b0;
-
-          // input_data = input_data + 1;
-
         end
       end
 
@@ -734,11 +685,6 @@ module CRPII_FPGAFirmware_Release(
       flash_PP3_RDSR1_wait: begin
         // Deassert previous state's done reset flag
         reset_flash_PP3_done = 1'b0;
-
-        // Deassert previous state's SPI cycle counter reset flag
-        reset_PP3_command_SPI_cycle_counter = 1'b0;
-
-        reset_PP3_FIFO_read_req = 1'b0;
 
         if (wait_counter == 32'h00000000) begin
           next_state = flash_PP3_RDSR1;
@@ -772,111 +718,33 @@ module CRPII_FPGAFirmware_Release(
         reset_flash_PP3_RDSR1_done = 1'b0;
 
         if(flash_PP3_RDSR1_response[0] == 1'b0)
-          next_state = flash_PP3_repeat_for_next_page_or_exit;
+          next_state = check_image_status;
         else
           next_state = flash_PP3_RDSR1_wait;
       end
 
 
-      // // Write data to flash from FIFO as long as its not empty
-      // flash_PP3_check_FIFO: begin
-      //
-      //   if(FIFO_is_empty) begin
-      //     next_state = idle;
-      //
-      //   end
-      //   else
-      //     next_state = flash_WREN_wait;
-      //
-      // end
-
-
-      // Repeating page writes to complete line or finish
-      flash_PP3_repeat_for_next_page_or_exit: begin
-
-        if(PP3_command_counter == 6) begin
-        // if(PP3_command_counter == 2) begin
-          next_state = flash_PP3_repeat_for_next_line_or_exit;
-
-          reset_PP3_command_counter = 1'b1;
-          reset_FIFO_bytes_written_counter = 1'b1;
-
-          PP3_wrote_one_line = 1'b1;
-          // address = address + 32'h00000200;
-        end
-
-        // Otherwise we need another page write to flash
-        else begin
-          next_state = flash_WREN_wait;
-
-          // Increment 512 bytes, the max length of PP3 data
-          address = address + 32'h00000200;
-        end
-
-      end
-
-
-      // Repeating writes of every 8th line
-      flash_PP3_repeat_for_next_line_or_exit: begin
-
-        reset_PP3_command_counter = 1'b0;
-        reset_FIFO_bytes_written_counter = 1'b0;
-
-        PP3_wrote_one_line = 1'b0;
-
-        // Reading every 8th line of a frame results in 1944 / 8 = 243 lines per frame
-        //  Line counter auto-resets at negedge of FV
-        if(lines_of_interleave_phase == 8'd243) begin
-          next_state = flash_PP3_repeat_for_next_frame_or_exit;
-
-          reset_lines_of_interleave_phase = 1'b1;
-        end
-
-        // Otherwise we need another line for this interleaving phase
-        else begin
-          next_state = flash_WREN_wait;
-
-          // Every line requires 6 pages of space, and reading every 8th line
-          //  requires the address to be offset
-          //  - Subtract 5 pages from address to return to line start address
-          //  - Add 8 lines to the line start address to find the next 8th line
-          // address = address - 32'h0000A00 + 32'h00006000;
-          // address = address + 32'h0000200;
-          //
-          // ^ THIS assumes we handle interleaving here. Seems it was decided
-          // to just stream data into the flash and let Ground handle
-          // reconstruction. More versatile anyway.
-          // Instead, just keep writing more pages:
-          address = address + 32'h00000200;
-        end
-
-      end
-
-
-      // Repeating writes to interleave 8 images
-      flash_PP3_repeat_for_next_frame_or_exit: begin
-
-        interleave_phase = interleave_phase + 1;
-
-        reset_lines_of_interleave_phase = 1'b0;
-
-        // Reading every 8th line of a frame results in 1944 / 8 = 243 lines per frame
-        //  Line counter auto-resets at negedge of FV
-        if(interleave_phase == phase_7) begin
-        // if(interleave_phase == phase_0) begin
+      check_image_status: begin
+        if(
+          image_finished    // Camera interface is done adding bytes to the FIFO
+          && FIFO_is_empty  // we've written everything in the FIFO to flash
+        ) begin
+          // We're done:
           next_state = idle;
-          interleave_phase = phase_0;
-        end
-
-        // Otherwise we need another line for this interleaving phase
-        else begin
+        end else begin
+          // Move on to the start of the next page
+          // (no matter what, we always do this - we stride in pages)
+          address = address + 32'h00000200;
+          // Start the page writing process over (get write lock then write):
           next_state = flash_WREN_wait;
 
-          // interleave_phase = interleave_phase + 1;
-
-          address = address + 32'h00000200;
+          // See if we need to reset anything:
+          if(PP3_command_counter == 6) begin
+            // Just finished all the pages in a "line" (2592B section),
+            // reset the counter:
+            reset_PP3_command_counter = 1'b1;
+          end
         end
-
       end
 
 
@@ -1198,22 +1066,6 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-  // // FIFO control and PP3 input data
-  // always@(posedge flash_mem_interface_spi_cycle_done or posedge reset_PP3_FIFO_read_req) begin
-  //
-  //   if(reset_PP3_FIFO_read_req)
-  //     FIFO_read_req = 1'b0;
-  //
-  //   else begin
-  //     if(current_state == flash_PP3 && PP3_command_SPI_cycle_counter >= 4) begin
-  //       FIFO_read_req = 1'b1;
-  //       input_data = byte_to_flash;
-  //     end
-  //   end
-  //
-  // end
-
-
   // PP3 RDSR1 Done
   always@(posedge flash_mem_interface_done or posedge reset_flash_PP3_RDSR1_done) begin
     if(reset_flash_PP3_RDSR1_done) begin
@@ -1272,32 +1124,31 @@ module CRPII_FPGAFirmware_Release(
   reg [7:0] lines_of_interleave_phase = 8'd0;
   reg reset_lines_of_interleave_phase = 1'b0;
 
+
+  // * Camera pixel FIFO
   wire [7:0] byte_to_flash;  // byte to write to Flash from FIFO
-
-  // Camera pixel FIFO
-
-  // assign pixel_is_valid = ! FIFO_is_empty && rx_Valid_out;
-  // assign FIFO_read_req = ! FIFO_is_empty && rx_Valid_out ;
-
   wire request_image = 1'b0; // input to `CameraSensorInterface`
   wire image_started;        // output from `CameraSensorInterface`
   wire image_finished;       // output from `CameraSensorInterface`
   wire [7:0] data_for_fifo;  // output from `CameraSensorInterface`
   wire sample_pixel_pulse;   // output from `CameraSensorInterface`
   wire keep_pixel;           // output from `CameraSensorInterface`
-  reg FIFO_read_ack = 1'b0;         // Acknowledge that Flash has read the current byte and show-ahead should present the next one.
+  reg FIFO_read_ack = 1'b0;  // Acknowledge that Flash has read the current byte and show-ahead should present the next one.
+  // Number of bytes available on the read side of the FIFO:
+  reg [15:0] FIFO_read_bytes_avail;
   FIFO CAM_FIFO
   (
     	.data( data_for_fifo[7:0] ),
-      .wrclk( sample_pixel_pulse ),
-    	.wrreq( keep_pixel ),
+      .wrclk( clk ),
+    	.wrreq( keep_pixel & sample_pixel_pulse ),
+    	.wrfull( FIFO_is_full ),
 
-      .rdclk( flash_mem_interface_spi_cycle_done ),
+      .rdclk( clk ),
       .rdreq( FIFO_read_ack ),
     	.q( byte_to_flash ),
-
+    
     	.rdempty( FIFO_is_empty ),
-    	.wrfull( FIFO_is_full )
+      .rdusedw(FIFO_read_bytes_avail)
   );
 
 
@@ -1407,53 +1258,17 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
-
-  // * FIFO Read Acknowledge 1 sys-clk pulse telling FIFO we read the current
-  // byte and it should present the next one (show-ahead mode).
-  reg reset_PP3_command_SPI_cycle_counter = 1'b0;
-  reg [9:0] PP3_command_SPI_cycle_counter = 10'd0; // Max PP3 SPI cycles = 516 = 1 instruction byte + 3 address + 512 data bytes
-  reg flash_mem_interface_spi_cycle_done__prev_clk = 1'b0;
+  // * FIFO Read Acknowledge:
+  // 1 sys-clk pulse telling FIFO that PP3 just finished writing another byte.
+  // Tell FIFO this so show-ahead can bring forward the next byte ASAP (delay
+  // is 1 rdclk).
+  reg [9:0] PP3_send_bytes_counter__current_page__prev_clk = 1'b0;
   wire PP3_spi_cycle_completed_pulse = flash_mem_interface_spi_cycle_done & ~flash_mem_interface_spi_cycle_done__prev_clk;  // 1 sys-clk pulse saying we just completed a SPI cycle
+  wire FIFO_read_ack = PP3_spi_cycle_completed_pulse;
   always @(posedge clk) begin
-    flash_mem_interface_spi_cycle_done__prev_clk <= flash_mem_interface_spi_cycle_done;
-
-    if(reset_PP3_command_SPI_cycle_counter)
-      PP3_command_SPI_cycle_counter <= 0;
-    else if( (current_state == flash_PP3) && PP3_spi_cycle_completed_pulse ) begin
-      PP3_command_SPI_cycle_counter <= PP3_command_SPI_cycle_counter + 1;
-
-      FIFO_read_ack
-    end
-
-    if() begin
-      // SPI Cycle just ended
-    end
-    
+    // Keep track of state change every sys-clk:
+    PP3_send_bytes_counter__current_page__prev_clk <= PP3_send_bytes_counter__current_page;
   end
-
-
-
-
-  // Old PP3 FIFO Control:
-  // // FIFO control and PP3 input data
-
-  // always@(posedge flash_mem_interface_spi_cycle_done or posedge reset_PP3_FIFO_read_req) begin
-
-  //   if(reset_PP3_FIFO_read_req)
-  //     FIFO_read_req = 1'b0;
-  //   else begin
-  //     if(current_state == flash_PP3 && PP3_command_SPI_cycle_counter >= 3) begin
-  //       FIFO_read_req = 1'b1;
-  //       input_data = byte_to_flash;
-  //     end
-  //   end
-
-  // end
-
-
-
-
-
 
 
 
@@ -1475,6 +1290,8 @@ module CRPII_FPGAFirmware_Release(
   end
 
 
+
+
   reg reset_PP4_command_SPI_cycle_counter = 1'b0;
   reg [9:0] PP4_command_SPI_cycle_counter = 10'd0;
 
@@ -1488,54 +1305,5 @@ module CRPII_FPGAFirmware_Release(
     end
 
   end
-
-
-  // always@(posedge flash_mem_interface_spi_cycle_done or posedge reset_new_camera_FV) begin
-  //   if(reset_new_camera_FV) begin
-  //     new_camera_FV = 1'b0;
-  //   end
-  //   else begin
-  //     if(current_state == wait_for_start_of_image_streaming)
-  //       new_camera_FV = 1'b1;
-  //   end
-  // end
-
-
-  // always@(negedge camera_1_pixel_clock or posedge reset_new_camera_FV) begin
-  //   if(reset_new_camera_FV) begin
-  //     new_camera_FV = 1'b0;
-  //   end
-  //   else begin
-  //     if(camera_1_FV) begin
-  //       if(current_state == wait_for_start_of_image_streaming)
-  //         new_camera_FV = 1'b1;
-  //     end
-  //   end
-  //
-  // end
-  //
-  // // always@(posedge camera_1_LV or posedge reset_new_camera_LV) begin
-  // //   if(reset_new_camera_LV) begin
-  // //     new_camera_LV = 1'b0;
-  // //   end
-  // //   else begin
-  // //     if(current_state == wait_for_new_camera_LV)
-  // //       new_camera_LV = 1'b1;
-  // //   end
-  // // end
-  //
-  //
-  // always@(posedge camera_1_LV or posedge reset_new_camera_LV) begin
-  //   if(reset_new_camera_LV) begin
-  //     new_camera_LV = 1'b0;
-  //   end
-  //   else begin
-  //     if(current_state == wait_for_new_camera_LV)
-  //       new_camera_LV = 1'b1;
-  //   end
-  // end
-
-
-
 
 endmodule

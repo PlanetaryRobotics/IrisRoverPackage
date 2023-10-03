@@ -577,7 +577,7 @@ reg camera_selection_in_progress = 1'b0; // Flag to let observers know that the 
 // * State Transitioner & Timer *
 always @(posedge clk) begin
     if(capture_state != capture_state_next) begin
-        state_timer = 37'b0;  // immediately reset timer, then update state:
+        state_timer <= 37'b0;  // immediately reset timer, then update state:
         // Advance to next state:
         capture_state <= capture_state_next;
     end else begin

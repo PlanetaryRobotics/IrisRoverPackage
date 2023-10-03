@@ -560,23 +560,6 @@ reg [36:0] state_timer = 37'b0; // 37b counter of how long we've been in the cur
 localparam ONE_SECOND = 37'd50_000_000; // Num. cycles in a second (used in a lot of places)
 localparam STATE_TIMEOUT_MAX_CYCLES = ONE_SECOND * 37'd60 * STATE_TIMEOUT_MINUTES;
 
-// * State Transitioner & Timer *
-always @(posedge clk) begin
-    if(capture_state != capture_state_next) begin
-        state_timer = 37'b0;  // immediately reset timer, then update state:
-        // Advance to next state:
-        capture_state <= capture_state_next;
-    end else begin
-        state_timer <= state_timer + 37'b1;
-    end
-
-    // Always update `capture_state_prev_clk` b/c, by definition,
-    // it's always supposed to be a 1 clk-cycle shadow (1-FF shift reg) of
-    // `capture_state`:
-    capture_state_prev_clk <= capture_state; // note this is in parallel w/ the above
-end
-
-
 // * Derived Camera Signals (MUX) *
 reg no_camera_selected = 1'b1; // Whether any cameras have been selected (properly, through the FSM)
 reg selected_camera_idx = 1'b0; // Which camera is currently selected ('b0 for Cam 1, 'b1 for Cam 2)
@@ -591,7 +574,21 @@ wire [11:0] PIXDATA     = no_camera_selected ? {8'hCC, 4'b0}    : (selected_came
 // State machine logic impl. as combo per Intel recommendation for Quartus
 // auto-detection.
 reg camera_selection_in_progress = 1'b0; // Flag to let observers know that the camera is actively being switched and to not track any transitions the camera signals may be doing.
-always @(*) begin
+// * State Transitioner & Timer *
+always @(posedge clk) begin
+    if(capture_state != capture_state_next) begin
+        state_timer = 37'b0;  // immediately reset timer, then update state:
+        // Advance to next state:
+        capture_state <= capture_state_next;
+    end else begin
+        state_timer <= state_timer + 37'b1;
+    end
+
+    // Always update `capture_state_prev_clk` b/c, by definition,
+    // it's always supposed to be a 1 clk-cycle shadow (1-FF shift reg) of
+    // `capture_state`:
+    capture_state_prev_clk <= capture_state; // note this is in parallel w/ the above
+
     if(state_timer > STATE_TIMEOUT_MAX_CYCLES) begin
         // If we've stayed in a state for WAY longer than should be the case,
         // we need to just yeet back to BOOT and start over.

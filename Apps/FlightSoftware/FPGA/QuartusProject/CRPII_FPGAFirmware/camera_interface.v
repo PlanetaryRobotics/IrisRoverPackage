@@ -1,11 +1,9 @@
-// FSM and support logic for interfacing with the Camera Sensors
-
-// Store settings per image (mode etc) - don't apply changes until capturing a new image.
-
+// FSM and support logic for interfacing with the Camera Sensors.
+//
 // Designed with input synchronization and filtering, and line states to help 
 // with immunity to signal noise and phase shifts on the incoming parallel bus.
 // Also designed with some protections against SEU in mind.
-
+//
 // The core philosophy to the following implementation is that we care VERY much
 // about getting every pixel without corruption and getting it in the right
 // order, even with very noisy input signals.
@@ -13,9 +11,14 @@
 // also zero about motion blur (our environment is assumed to be static).
 // So, all key input signals are tracked statefully and cross-referenced so we
 // can be as sure as possible about staying in a state or transitioning.
-
+//
 // TODO: Check for FIFO full and don't advance internal state (which pixels and
-// lines are done) until we've actually written the data. (check for almost_full too?)
+//       lines are done) until we've actually written the data. (check for
+//       almost_full too?)
+// TODO: do we want to also dejitter PIXCLK in here somewhere? 1:1 PLL at I or
+//       O? (probably O?) ... would we need to resync
+//
+// TODO: Pixel-timing images (weave into MUX)
 
 module CameraSensorInterface
 #(
@@ -35,17 +38,17 @@ module CameraSensorInterface
 )
 (
     input wire clk,  // FPGA system clock
-    
-    // Signals from camera sensor:
+
+    // Signals from camera sensors:
     // Camera 1 Interface
-    output reg  camera_1_reset_bar,
+    output reg camera_1_reset_bar,
     input wire camera_1_pixel_clock,
     input wire camera_1_FV,
     input wire camera_1_LV,
     input wire [11:0] camera_1_pixel_in,
 
     // Camera 2 Interface
-    output reg  camera_2_reset_bar,
+    output reg camera_2_reset_bar,
     input wire camera_2_pixel_clock,
     input wire camera_2_FV,
     input wire camera_2_LV,
@@ -56,10 +59,11 @@ module CameraSensorInterface
     input wire [7:0] imaging_mode,
 
     // I/O control & status signals:
-    input wire request_image,   // Outside agent would like us to take an image as soon as possible
+    input wire  request_image,  // Outside agent would like us to take an image as soon as possible
     output wire image_started,  // We've now started taking that image
     output wire image_finished  // That image is done
-    
+
+    // FIFO Interface:
     // `data_for_fifo`: Data to be saved into the FIFO (pixel data or header info)
     output wire [7:0] data_for_fifo;
     // `sample_pixel_pulse`: Pulse goes high when it's time to sample a pixel
@@ -72,40 +76,11 @@ module CameraSensorInterface
     output wire keep_pixel;
 );
 
-// Count clocks since last FIFO entry
-
-// Count clocks since last FV
-
-// Count clocks since last LV
-
-// Signal for valid pixels:
-assign PV = FV & LV;
-
-// DIAGNOSTIC COUNTS FOR PRODUCING TIMING IMAGES:
-reg [14:0] lv_clk_count; // Number of sys clocks since last LV posedge
-reg [14:0] pv_clk_count; // Number of sys clocks since last PV 
-reg [14:0] pv_clk_count; // Number of sys clocks since last PV 
-reg [14:0] pixclk_clk_count; // Number of sys clocks since last PIXCLK negedge
-
-reg [25:0] fv_clk_count; // Number of sys clocks since last FV posedge
-ResettableCounter #(.N(26)) fv_counter(.clk(clk), .count(fv_clk_count), .reset_on_pos(FV));
-wire fv_clk_count_reset
-
-// Line data MUX:
-
-always @(posedge clk or posedge FV) begin
-    fv_clk_count = fv_clk_count + 1;
-end
-
-
-
-
 // *****************************
 // * INPUT PROCESSING **********
 // *****************************
 // Continuous stream processing input signals.
 // Not part of the command & control loop (purely inputs).
-
 
 // * SIGNAL SYNCHRONIZATION AND CONDITIONING *
 // Enabled by the fact that we get 4 full system clocks per PIXCLK and 8 between each rise.
@@ -576,6 +551,10 @@ reg [3:0] capture_state_next = BOOT; // Capture state to transition to on the ne
 wire not_streaming = (capture_state != STREAMING_IMAGE);
 wire actively_streaming = (capture_state == STREAMING_IMAGE);
 
+// * Feedback Signals to Controller (agent who requested image) *
+assign image_started = actively_streaming;
+assign image_finished = not_streaming;
+
 // * State Timer *
 reg [36:0] state_timer = 37'b0; // 37b counter of how long we've been in the current state, capable of counting up to 30 minutes (9e10 cycles at 50MHz), way longer than any state should take.
 localparam integer ONE_SECOND = 37'd50_000_000; // Num. cycles in a second (used in a lot of places)
@@ -711,7 +690,7 @@ always @(*) begin
                 end
             end
             STREAMING_IMAGE: begin
-                // Actively streaming bits into the FIFO.
+                // Actively streaming bytes into the FIFO.
                 // This continues until the Frame Processing circuits tell us we've
                 // captured all the lines we need for all of our interleaved frames:
                 if(all_interleaved_frames_complete) begin
@@ -726,57 +705,4 @@ always @(*) begin
     end
 end
 
-
-
-
-
-
-// COMPUTE OUTPUT METASIGNALS:
-// - Can we be loading pixels now:
-// - LOAD DATA INTO FIFO
-// - COMPOSITE IMAGE COMPLETE
-
-
-
-load_pixels = line_complete
-// what's the next line number we need. If we missed it in this frame somehow, just get it in the next frame (this is okay b/c we're assuming a static scene)
-
-
-// Perform logical checks on FV and LV (LV must be at least X )
-
-
-    // Grab important transitions:
-
-    // Trigger a sampling of the data 2 sys clocks after pixclk falls:
-
-    // Delay signals so they're aligned with the X'd data:
-
-    // Pixel in line
-
-    // * THINK ABOUT THE DELAYS
-end
-
-    // Use the synchronized signals
-
-    // output all raw synced signals PLUS computed signals:
-    // - PIX_SAMPLE (to drive FIFO) which comes 1 sys clk AFTER PIX_CLK fall
-    // = COMPUTED LV which accounts for count since the last transition in EITHER direction - also resets to align with FV.
-    // - same deal for FV?
-    // - PV
-
-    // do we want to also dejitter PIXCLK in here somewhere? 1:1 PLL at I or O? (probably O?) ... would we need to resync
-    // sync and dejitter external clock
-
-    // also counts for pixel in line, line in frame, line in interleave
-    // and then feed this into a MUX for data vs metadata header (sync sample pulse with that too?)
-
-    // make sure this will resync on each line
-
-    // put all signals through a 3 or 4 sysclk wide averaging window?
-    // -- 4 is too big. only get 4 or 5 sysclks per pixclk edge
-
-end
-
-
 endmodule
-

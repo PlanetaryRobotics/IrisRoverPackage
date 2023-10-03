@@ -34,7 +34,7 @@
 //https://fpgasoftware.intel.com/eula.
 
 
-//dcfifo_mixed_widths ADD_USEDW_MSB_BIT="ON" DEVICE_FAMILY="Cyclone 10 LP" LPM_NUMWORDS=32768 LPM_SHOWAHEAD="ON" LPM_WIDTH=8 LPM_WIDTH_R=8 LPM_WIDTHU=16 LPM_WIDTHU_R=16 OVERFLOW_CHECKING="ON" RDSYNC_DELAYPIPE=5 UNDERFLOW_CHECKING="ON" USE_EAB="ON" WRSYNC_DELAYPIPE=5 data q rdclk rdempty rdreq wrclk wrfull wrreq wrusedw INTENDED_DEVICE_FAMILY="Cyclone 10 LP" ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
+//dcfifo_mixed_widths ADD_USEDW_MSB_BIT="ON" DEVICE_FAMILY="Cyclone 10 LP" LPM_NUMWORDS=32768 LPM_SHOWAHEAD="ON" LPM_WIDTH=8 LPM_WIDTH_R=8 LPM_WIDTHU=16 LPM_WIDTHU_R=16 OVERFLOW_CHECKING="ON" RDSYNC_DELAYPIPE=5 UNDERFLOW_CHECKING="ON" USE_EAB="ON" WRSYNC_DELAYPIPE=5 data q rdclk rdempty rdreq rdusedw wrclk wrfull wrreq INTENDED_DEVICE_FAMILY="Cyclone 10 LP" ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
 //VERSION_BEGIN 22.1 cbx_a_gray2bin 2023:07:20:14:03:03:SC cbx_a_graycounter 2023:07:20:14:03:03:SC cbx_altdpram 2023:07:20:14:03:03:SC cbx_altera_counter 2023:07:20:14:03:03:SC cbx_altera_gray_counter 2023:07:20:14:03:03:SC cbx_altera_syncram 2023:07:20:14:03:03:SC cbx_altera_syncram_nd_impl 2023:07:20:14:03:03:SC cbx_altsyncram 2023:07:20:14:03:03:SC cbx_cycloneii 2023:07:20:14:03:03:SC cbx_dcfifo 2023:07:20:14:03:03:SC cbx_fifo_common 2023:07:20:14:03:03:SC cbx_lpm_add_sub 2023:07:20:14:03:03:SC cbx_lpm_compare 2023:07:20:14:03:03:SC cbx_lpm_counter 2023:07:20:14:03:03:SC cbx_lpm_decode 2023:07:20:14:03:02:SC cbx_lpm_mux 2023:07:20:14:03:03:SC cbx_mgl 2023:07:20:14:14:26:SC cbx_nadder 2023:07:20:14:03:03:SC cbx_scfifo 2023:07:20:14:03:03:SC cbx_stratix 2023:07:20:14:03:03:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_stratixiii 2023:07:20:14:03:03:SC cbx_stratixv 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
 // synthesis VERILOG_INPUT_VERSION VERILOG_2001
 // altera message_off 10463
@@ -543,21 +543,21 @@ module  FIFO_decode
 	wire  enable_wire;
 	wire  [3:0]  eq_node;
 	wire  [3:0]  eq_wire;
-	wire  [2:0]  w_anode683w;
-	wire  [2:0]  w_anode696w;
-	wire  [2:0]  w_anode704w;
-	wire  [2:0]  w_anode712w;
+	wire  [2:0]  w_anode692w;
+	wire  [2:0]  w_anode705w;
+	wire  [2:0]  w_anode713w;
+	wire  [2:0]  w_anode721w;
 
 	assign
 		data_wire = data,
 		enable_wire = enable,
 		eq = eq_node,
 		eq_node = eq_wire[3:0],
-		eq_wire = {w_anode712w[2], w_anode704w[2], w_anode696w[2], w_anode683w[2]},
-		w_anode683w = {(w_anode683w[1] & (~ data_wire[1])), (w_anode683w[0] & (~ data_wire[0])), enable_wire},
-		w_anode696w = {(w_anode696w[1] & (~ data_wire[1])), (w_anode696w[0] & data_wire[0]), enable_wire},
-		w_anode704w = {(w_anode704w[1] & data_wire[1]), (w_anode704w[0] & (~ data_wire[0])), enable_wire},
-		w_anode712w = {(w_anode712w[1] & data_wire[1]), (w_anode712w[0] & data_wire[0]), enable_wire};
+		eq_wire = {w_anode721w[2], w_anode713w[2], w_anode705w[2], w_anode692w[2]},
+		w_anode692w = {(w_anode692w[1] & (~ data_wire[1])), (w_anode692w[0] & (~ data_wire[0])), enable_wire},
+		w_anode705w = {(w_anode705w[1] & (~ data_wire[1])), (w_anode705w[0] & data_wire[0]), enable_wire},
+		w_anode713w = {(w_anode713w[1] & data_wire[1]), (w_anode713w[0] & (~ data_wire[0])), enable_wire},
+		w_anode721w = {(w_anode721w[1] & data_wire[1]), (w_anode721w[0] & data_wire[0]), enable_wire};
 endmodule //FIFO_decode
 
 
@@ -585,20 +585,20 @@ module  FIFO_decode1
 	wire  [1:0]  data_wire;
 	wire  [3:0]  eq_node;
 	wire  [3:0]  eq_wire;
-	wire  [2:0]  w_anode721w;
-	wire  [2:0]  w_anode735w;
+	wire  [2:0]  w_anode730w;
 	wire  [2:0]  w_anode744w;
 	wire  [2:0]  w_anode753w;
+	wire  [2:0]  w_anode762w;
 
 	assign
 		data_wire = data,
 		eq = eq_node,
 		eq_node = eq_wire[3:0],
-		eq_wire = {w_anode753w[2], w_anode744w[2], w_anode735w[2], w_anode721w[2]},
-		w_anode721w = {(w_anode721w[1] & (~ data_wire[1])), (w_anode721w[0] & (~ data_wire[0])), 1'b1},
-		w_anode735w = {(w_anode735w[1] & (~ data_wire[1])), (w_anode735w[0] & data_wire[0]), 1'b1},
-		w_anode744w = {(w_anode744w[1] & data_wire[1]), (w_anode744w[0] & (~ data_wire[0])), 1'b1},
-		w_anode753w = {(w_anode753w[1] & data_wire[1]), (w_anode753w[0] & data_wire[0]), 1'b1};
+		eq_wire = {w_anode762w[2], w_anode753w[2], w_anode744w[2], w_anode730w[2]},
+		w_anode730w = {(w_anode730w[1] & (~ data_wire[1])), (w_anode730w[0] & (~ data_wire[0])), 1'b1},
+		w_anode744w = {(w_anode744w[1] & (~ data_wire[1])), (w_anode744w[0] & data_wire[0]), 1'b1},
+		w_anode753w = {(w_anode753w[1] & data_wire[1]), (w_anode753w[0] & (~ data_wire[0])), 1'b1},
+		w_anode762w = {(w_anode762w[1] & data_wire[1]), (w_anode762w[0] & data_wire[0]), 1'b1};
 endmodule //FIFO_decode1
 
 
@@ -628,28 +628,28 @@ module  FIFO_mux
 
 	wire  [7:0]  result_node;
 	wire  [1:0]  sel_node;
-	wire  [3:0]  w_data766w;
-	wire  [3:0]  w_data796w;
-	wire  [3:0]  w_data821w;
-	wire  [3:0]  w_data846w;
-	wire  [3:0]  w_data871w;
-	wire  [3:0]  w_data896w;
-	wire  [3:0]  w_data921w;
-	wire  [3:0]  w_data946w;
+	wire  [3:0]  w_data775w;
+	wire  [3:0]  w_data805w;
+	wire  [3:0]  w_data830w;
+	wire  [3:0]  w_data855w;
+	wire  [3:0]  w_data880w;
+	wire  [3:0]  w_data905w;
+	wire  [3:0]  w_data930w;
+	wire  [3:0]  w_data955w;
 
 	assign
 		result = result_node,
-		result_node = {(((w_data946w[1] & sel_node[0]) & (~ (((w_data946w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data946w[2]))))) | ((((w_data946w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data946w[2]))) & (w_data946w[3] | (~ sel_node[0])))), (((w_data921w[1] & sel_node[0]) & (~ (((w_data921w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data921w[2]))))) | ((((w_data921w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data921w[2]))) & (w_data921w[3] | (~ sel_node[0])))), (((w_data896w[1] & sel_node[0]) & (~ (((w_data896w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data896w[2]))))) | ((((w_data896w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data896w[2]))) & (w_data896w[3] | (~ sel_node[0])))), (((w_data871w[1] & sel_node[0]) & (~ (((w_data871w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data871w[2]))))) | ((((w_data871w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data871w[2]))) & (w_data871w[3] | (~ sel_node[0])))), (((w_data846w[1] & sel_node[0]) & (~ (((w_data846w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data846w[2]))))) | ((((w_data846w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data846w[2]))) & (w_data846w[3] | (~ sel_node[0])))), (((w_data821w[1] & sel_node[0]) & (~ (((w_data821w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data821w[2]))))) | ((((w_data821w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data821w[2]))) & (w_data821w[3] | (~ sel_node[0])))), (((w_data796w[1] & sel_node[0]) & (~ (((w_data796w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data796w[2]))))) | ((((w_data796w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data796w[2]))) & (w_data796w[3] | (~ sel_node[0])))), (((w_data766w[1]
- & sel_node[0]) & (~ (((w_data766w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data766w[2]))))) | ((((w_data766w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data766w[2]))) & (w_data766w[3] | (~ sel_node[0]))))},
+		result_node = {(((w_data955w[1] & sel_node[0]) & (~ (((w_data955w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data955w[2]))))) | ((((w_data955w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data955w[2]))) & (w_data955w[3] | (~ sel_node[0])))), (((w_data930w[1] & sel_node[0]) & (~ (((w_data930w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data930w[2]))))) | ((((w_data930w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data930w[2]))) & (w_data930w[3] | (~ sel_node[0])))), (((w_data905w[1] & sel_node[0]) & (~ (((w_data905w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data905w[2]))))) | ((((w_data905w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data905w[2]))) & (w_data905w[3] | (~ sel_node[0])))), (((w_data880w[1] & sel_node[0]) & (~ (((w_data880w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data880w[2]))))) | ((((w_data880w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data880w[2]))) & (w_data880w[3] | (~ sel_node[0])))), (((w_data855w[1] & sel_node[0]) & (~ (((w_data855w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data855w[2]))))) | ((((w_data855w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data855w[2]))) & (w_data855w[3] | (~ sel_node[0])))), (((w_data830w[1] & sel_node[0]) & (~ (((w_data830w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data830w[2]))))) | ((((w_data830w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data830w[2]))) & (w_data830w[3] | (~ sel_node[0])))), (((w_data805w[1] & sel_node[0]) & (~ (((w_data805w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data805w[2]))))) | ((((w_data805w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data805w[2]))) & (w_data805w[3] | (~ sel_node[0])))), (((w_data775w[1]
+ & sel_node[0]) & (~ (((w_data775w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data775w[2]))))) | ((((w_data775w[0] & (~ sel_node[1])) & (~ sel_node[0])) | (sel_node[1] & (sel_node[0] | w_data775w[2]))) & (w_data775w[3] | (~ sel_node[0]))))},
 		sel_node = {sel[1:0]},
-		w_data766w = {data[24], data[16], data[8], data[0]},
-		w_data796w = {data[25], data[17], data[9], data[1]},
-		w_data821w = {data[26], data[18], data[10], data[2]},
-		w_data846w = {data[27], data[19], data[11], data[3]},
-		w_data871w = {data[28], data[20], data[12], data[4]},
-		w_data896w = {data[29], data[21], data[13], data[5]},
-		w_data921w = {data[30], data[22], data[14], data[6]},
-		w_data946w = {data[31], data[23], data[15], data[7]};
+		w_data775w = {data[24], data[16], data[8], data[0]},
+		w_data805w = {data[25], data[17], data[9], data[1]},
+		w_data830w = {data[26], data[18], data[10], data[2]},
+		w_data855w = {data[27], data[19], data[11], data[3]},
+		w_data880w = {data[28], data[20], data[12], data[4]},
+		w_data905w = {data[29], data[21], data[13], data[5]},
+		w_data930w = {data[30], data[22], data[14], data[6]},
+		w_data955w = {data[31], data[23], data[15], data[7]};
 endmodule //FIFO_mux
 
 //synthesis_resources = lut 28 M9K 32 reg 6 
@@ -731,7 +731,7 @@ module  FIFO_altsyncram
 	wire  [1:0]  address_b_sel;
 	wire  [14:0]  address_b_wire;
 	wire  [1:0]  rden_decode_addr_sel_b;
-	wire  [1:0]  w_addr_val_a395w;
+	wire  [1:0]  w_addr_val_a404w;
 	wire  [1:0]  wren_decode_addr_sel_a;
 
 	// synopsys translate_off
@@ -763,7 +763,7 @@ module  FIFO_altsyncram
 	.eq(wire_rden_decode_b_eq));
 	FIFO_decode   wren_decode_a
 	( 
-	.data(w_addr_val_a395w),
+	.data(w_addr_val_a404w),
 	.enable(wren_a),
 	.eq(wire_wren_decode_a_eq));
 	FIFO_mux   mux13
@@ -2889,24 +2889,67 @@ module  FIFO_altsyncram
 		address_b_wire = address_b,
 		q_b = wire_mux13_result,
 		rden_decode_addr_sel_b = address_b_wire[14:13],
-		w_addr_val_a395w = wren_decode_addr_sel_a,
+		w_addr_val_a404w = wren_decode_addr_sel_a,
 		wren_decode_addr_sel_a = address_a_wire[14:13];
 endmodule //FIFO_altsyncram
 
 
-//dffpipe DELAY=2 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=X_ON_VIOLATION_OPTION=OFF;SYNCHRONIZER_IDENTIFICATION=FORCED_IF_ASYNCHRONOUS;PRESERVE_REGISTER=ON;DONT_MERGE_REGISTER=ON;ADV_NETLIST_OPT_ALLOWED=NEVER_ALLOW
-//VERSION_BEGIN 22.1 cbx_a_gray2bin 2023:07:20:14:03:03:SC cbx_a_graycounter 2023:07:20:14:03:03:SC cbx_altdpram 2023:07:20:14:03:03:SC cbx_altera_counter 2023:07:20:14:03:03:SC cbx_altera_gray_counter 2023:07:20:14:03:03:SC cbx_altera_syncram 2023:07:20:14:03:03:SC cbx_altera_syncram_nd_impl 2023:07:20:14:03:03:SC cbx_altsyncram 2023:07:20:14:03:03:SC cbx_cycloneii 2023:07:20:14:03:03:SC cbx_dcfifo 2023:07:20:14:03:03:SC cbx_fifo_common 2023:07:20:14:03:03:SC cbx_lpm_add_sub 2023:07:20:14:03:03:SC cbx_lpm_compare 2023:07:20:14:03:03:SC cbx_lpm_counter 2023:07:20:14:03:03:SC cbx_lpm_decode 2023:07:20:14:03:02:SC cbx_lpm_mux 2023:07:20:14:03:03:SC cbx_mgl 2023:07:20:14:14:26:SC cbx_nadder 2023:07:20:14:03:03:SC cbx_scfifo 2023:07:20:14:03:03:SC cbx_stratix 2023:07:20:14:03:03:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_stratixiii 2023:07:20:14:03:03:SC cbx_stratixv 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
-
-
-//dffpipe DELAY=2 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
+//dffpipe DELAY=1 WIDTH=1 clock d q ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
 //VERSION_BEGIN 22.1 cbx_mgl 2023:07:20:14:14:26:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
 
-//synthesis_resources = reg 32 
+//synthesis_resources = reg 1 
 //synopsys translate_off
 `timescale 1 ps / 1 ps
 //synopsys translate_on
 (* ALTERA_ATTRIBUTE = {"AUTO_SHIFT_REGISTER_RECOGNITION=OFF"} *)
 module  FIFO_dffpipe
+	( 
+	clock,
+	d,
+	q) /* synthesis synthesis_clearbox=1 */;
+	input   clock;
+	input   [0:0]  d;
+	output   [0:0]  q;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_off
+`endif
+	tri0   clock;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_on
+`endif
+
+	reg	[0:0]	dffe14a;
+	wire clrn;
+	wire ena;
+	wire prn;
+	wire sclr;
+
+	// synopsys translate_off
+	initial
+		dffe14a = 0;
+	// synopsys translate_on
+	always @ ( posedge clock or  negedge prn or  negedge clrn)
+		if (prn == 1'b0) dffe14a <= {1{1'b1}};
+		else if (clrn == 1'b0) dffe14a <= 1'b0;
+		else if  (ena == 1'b1)   dffe14a <= (d & (~ sclr));
+	assign
+		clrn = 1'b1,
+		ena = 1'b1,
+		prn = 1'b1,
+		q = dffe14a,
+		sclr = 1'b0;
+endmodule //FIFO_dffpipe
+
+
+//dffpipe DELAY=1 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
+//VERSION_BEGIN 22.1 cbx_mgl 2023:07:20:14:14:26:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
+
+//synthesis_resources = reg 16 
+//synopsys translate_off
+`timescale 1 ps / 1 ps
+//synopsys translate_on
+(* ALTERA_ATTRIBUTE = {"AUTO_SHIFT_REGISTER_RECOGNITION=OFF"} *)
+module  FIFO_dffpipe1
 	( 
 	clock,
 	d,
@@ -2923,7 +2966,6 @@ module  FIFO_dffpipe
 `endif
 
 	reg	[15:0]	dffe15a;
-	reg	[15:0]	dffe16a;
 	wire clrn;
 	wire ena;
 	wire prn;
@@ -2937,99 +2979,23 @@ module  FIFO_dffpipe
 		if (prn == 1'b0) dffe15a <= {16{1'b1}};
 		else if (clrn == 1'b0) dffe15a <= 16'b0;
 		else if  (ena == 1'b1)   dffe15a <= (d & {16{(~ sclr)}});
-	// synopsys translate_off
-	initial
-		dffe16a = 0;
-	// synopsys translate_on
-	always @ ( posedge clock or  negedge prn or  negedge clrn)
-		if (prn == 1'b0) dffe16a <= {16{1'b1}};
-		else if (clrn == 1'b0) dffe16a <= 16'b0;
-		else if  (ena == 1'b1)   dffe16a <= (dffe15a & {16{(~ sclr)}});
 	assign
 		clrn = 1'b1,
 		ena = 1'b1,
 		prn = 1'b1,
-		q = dffe16a,
-		sclr = 1'b0;
-endmodule //FIFO_dffpipe
-
-//synthesis_resources = reg 32 
-//synopsys translate_off
-`timescale 1 ps / 1 ps
-//synopsys translate_on
-(* ALTERA_ATTRIBUTE = {"X_ON_VIOLATION_OPTION=OFF;SYNCHRONIZER_IDENTIFICATION=FORCED_IF_ASYNCHRONOUS;PRESERVE_REGISTER=ON;DONT_MERGE_REGISTER=ON;ADV_NETLIST_OPT_ALLOWED=NEVER_ALLOW"} *)
-module  FIFO_alt_synch_pipe
-	( 
-	clock,
-	d,
-	q) /* synthesis synthesis_clearbox=1 */;
-	input   clock;
-	input   [15:0]  d;
-	output   [15:0]  q;
-
-	wire  [15:0]   wire_dffpipe14_q;
-
-	FIFO_dffpipe   dffpipe14
-	( 
-	.clock(clock),
-	.d(d),
-	.q(wire_dffpipe14_q));
-	assign
-		q = wire_dffpipe14_q;
-endmodule //FIFO_alt_synch_pipe
-
-
-//dffpipe DELAY=1 WIDTH=1 clock d q ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
-//VERSION_BEGIN 22.1 cbx_mgl 2023:07:20:14:14:26:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
-
-//synthesis_resources = reg 1 
-//synopsys translate_off
-`timescale 1 ps / 1 ps
-//synopsys translate_on
-(* ALTERA_ATTRIBUTE = {"AUTO_SHIFT_REGISTER_RECOGNITION=OFF"} *)
-module  FIFO_dffpipe1
-	( 
-	clock,
-	d,
-	q) /* synthesis synthesis_clearbox=1 */;
-	input   clock;
-	input   [0:0]  d;
-	output   [0:0]  q;
-`ifndef ALTERA_RESERVED_QIS
-// synopsys translate_off
-`endif
-	tri0   clock;
-`ifndef ALTERA_RESERVED_QIS
-// synopsys translate_on
-`endif
-
-	reg	[0:0]	dffe17a;
-	wire clrn;
-	wire ena;
-	wire prn;
-	wire sclr;
-
-	// synopsys translate_off
-	initial
-		dffe17a = 0;
-	// synopsys translate_on
-	always @ ( posedge clock or  negedge prn or  negedge clrn)
-		if (prn == 1'b0) dffe17a <= {1{1'b1}};
-		else if (clrn == 1'b0) dffe17a <= 1'b0;
-		else if  (ena == 1'b1)   dffe17a <= (d & (~ sclr));
-	assign
-		clrn = 1'b1,
-		ena = 1'b1,
-		prn = 1'b1,
-		q = dffe17a,
+		q = dffe15a,
 		sclr = 1'b0;
 endmodule //FIFO_dffpipe1
 
 
-//dffpipe DELAY=1 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
+//dffpipe DELAY=2 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=X_ON_VIOLATION_OPTION=OFF;SYNCHRONIZER_IDENTIFICATION=FORCED_IF_ASYNCHRONOUS;PRESERVE_REGISTER=ON;DONT_MERGE_REGISTER=ON;ADV_NETLIST_OPT_ALLOWED=NEVER_ALLOW
+//VERSION_BEGIN 22.1 cbx_a_gray2bin 2023:07:20:14:03:03:SC cbx_a_graycounter 2023:07:20:14:03:03:SC cbx_altdpram 2023:07:20:14:03:03:SC cbx_altera_counter 2023:07:20:14:03:03:SC cbx_altera_gray_counter 2023:07:20:14:03:03:SC cbx_altera_syncram 2023:07:20:14:03:03:SC cbx_altera_syncram_nd_impl 2023:07:20:14:03:03:SC cbx_altsyncram 2023:07:20:14:03:03:SC cbx_cycloneii 2023:07:20:14:03:03:SC cbx_dcfifo 2023:07:20:14:03:03:SC cbx_fifo_common 2023:07:20:14:03:03:SC cbx_lpm_add_sub 2023:07:20:14:03:03:SC cbx_lpm_compare 2023:07:20:14:03:03:SC cbx_lpm_counter 2023:07:20:14:03:03:SC cbx_lpm_decode 2023:07:20:14:03:02:SC cbx_lpm_mux 2023:07:20:14:03:03:SC cbx_mgl 2023:07:20:14:14:26:SC cbx_nadder 2023:07:20:14:03:03:SC cbx_scfifo 2023:07:20:14:03:03:SC cbx_stratix 2023:07:20:14:03:03:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_stratixiii 2023:07:20:14:03:03:SC cbx_stratixv 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
+
+
+//dffpipe DELAY=2 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=AUTO_SHIFT_REGISTER_RECOGNITION=OFF
 //VERSION_BEGIN 22.1 cbx_mgl 2023:07:20:14:14:26:SC cbx_stratixii 2023:07:20:14:03:03:SC cbx_util_mgl 2023:07:20:14:03:03:SC  VERSION_END
 
-//synthesis_resources = reg 16 
+//synthesis_resources = reg 32 
 //synopsys translate_off
 `timescale 1 ps / 1 ps
 //synopsys translate_on
@@ -3050,6 +3016,7 @@ module  FIFO_dffpipe12
 // synopsys translate_on
 `endif
 
+	reg	[15:0]	dffe17a;
 	reg	[15:0]	dffe18a;
 	wire clrn;
 	wire ena;
@@ -3058,12 +3025,20 @@ module  FIFO_dffpipe12
 
 	// synopsys translate_off
 	initial
+		dffe17a = 0;
+	// synopsys translate_on
+	always @ ( posedge clock or  negedge prn or  negedge clrn)
+		if (prn == 1'b0) dffe17a <= {16{1'b1}};
+		else if (clrn == 1'b0) dffe17a <= 16'b0;
+		else if  (ena == 1'b1)   dffe17a <= (d & {16{(~ sclr)}});
+	// synopsys translate_off
+	initial
 		dffe18a = 0;
 	// synopsys translate_on
 	always @ ( posedge clock or  negedge prn or  negedge clrn)
 		if (prn == 1'b0) dffe18a <= {16{1'b1}};
 		else if (clrn == 1'b0) dffe18a <= 16'b0;
-		else if  (ena == 1'b1)   dffe18a <= (d & {16{(~ sclr)}});
+		else if  (ena == 1'b1)   dffe18a <= (dffe17a & {16{(~ sclr)}});
 	assign
 		clrn = 1'b1,
 		ena = 1'b1,
@@ -3071,6 +3046,31 @@ module  FIFO_dffpipe12
 		q = dffe18a,
 		sclr = 1'b0;
 endmodule //FIFO_dffpipe12
+
+//synthesis_resources = reg 32 
+//synopsys translate_off
+`timescale 1 ps / 1 ps
+//synopsys translate_on
+(* ALTERA_ATTRIBUTE = {"X_ON_VIOLATION_OPTION=OFF;SYNCHRONIZER_IDENTIFICATION=FORCED_IF_ASYNCHRONOUS;PRESERVE_REGISTER=ON;DONT_MERGE_REGISTER=ON;ADV_NETLIST_OPT_ALLOWED=NEVER_ALLOW"} *)
+module  FIFO_alt_synch_pipe
+	( 
+	clock,
+	d,
+	q) /* synthesis synthesis_clearbox=1 */;
+	input   clock;
+	input   [15:0]  d;
+	output   [15:0]  q;
+
+	wire  [15:0]   wire_dffpipe16_q;
+
+	FIFO_dffpipe12   dffpipe16
+	( 
+	.clock(clock),
+	.d(d),
+	.q(wire_dffpipe16_q));
+	assign
+		q = wire_dffpipe16_q;
+endmodule //FIFO_alt_synch_pipe
 
 
 //dffpipe DELAY=2 WIDTH=16 clock d q ALTERA_INTERNAL_OPTIONS=X_ON_VIOLATION_OPTION=OFF;SYNCHRONIZER_IDENTIFICATION=FORCED_IF_ASYNCHRONOUS;PRESERVE_REGISTER=ON;DONT_MERGE_REGISTER=ON;ADV_NETLIST_OPT_ALLOWED=NEVER_ALLOW
@@ -3200,6 +3200,44 @@ module  FIFO_cmpr
 endmodule //FIFO_cmpr
 
 
+//lpm_compare DEVICE_FAMILY="Cyclone 10 LP" LPM_WIDTH=16 aeb dataa datab
+//VERSION_BEGIN 22.1 cbx_cycloneii 2023:07:20:14:03:03:SC cbx_lpm_add_sub 2023:07:20:14:03:03:SC cbx_lpm_compare 2023:07:20:14:03:03:SC cbx_mgl 2023:07:20:14:14:26:SC cbx_nadder 2023:07:20:14:03:03:SC cbx_stratix 2023:07:20:14:03:03:SC cbx_stratixii 2023:07:20:14:03:03:SC  VERSION_END
+
+//synthesis_resources = 
+//synopsys translate_off
+`timescale 1 ps / 1 ps
+//synopsys translate_on
+module  FIFO_cmpr1
+	( 
+	aeb,
+	dataa,
+	datab) /* synthesis synthesis_clearbox=1 */;
+	output   aeb;
+	input   [15:0]  dataa;
+	input   [15:0]  datab;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_off
+`endif
+	tri0   [15:0]  dataa;
+	tri0   [15:0]  datab;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_on
+`endif
+
+	wire  [0:0]  aeb_result_wire;
+	wire  [0:0]  aneb_result_wire;
+	wire  [41:0]  data_wire;
+	wire  eq_wire;
+
+	assign
+		aeb = eq_wire,
+		aeb_result_wire = (~ aneb_result_wire),
+		aneb_result_wire = (data_wire[0] | data_wire[1]),
+		data_wire = {datab[15], dataa[15], datab[14], dataa[14], datab[13], dataa[13], datab[12], dataa[12], datab[11], dataa[11], datab[10], dataa[10], datab[9], dataa[9], datab[8], dataa[8], datab[7], dataa[7], datab[6], dataa[6], datab[5], dataa[5], datab[4], dataa[4], datab[3], dataa[3], datab[2], dataa[2], datab[1], dataa[1], datab[0], dataa[0], ((data_wire[38] ^ data_wire[39]) | (data_wire[40] ^ data_wire[41])), ((data_wire[34] ^ data_wire[35]) | (data_wire[36] ^ data_wire[37])), ((data_wire[30] ^ data_wire[31]) | (data_wire[32] ^ data_wire[33])), ((data_wire[26] ^ data_wire[27]) | (data_wire[28] ^ data_wire[29])), ((data_wire[22] ^ data_wire[23]) | (data_wire[24] ^ data_wire[25])), ((data_wire[18] ^ data_wire[19]) | (data_wire[20] ^ data_wire[21])), ((data_wire[14] ^ data_wire[15]) | (data_wire[16] ^ data_wire[17])), ((data_wire[10] ^ data_wire[11]) | (data_wire[12] ^ data_wire[13])), ((data_wire[6] | data_wire[7]) | (data_wire[8] | data_wire[9])), (((data_wire[2] | data_wire[3]) | data_wire[4]) | data_wire[5])},
+		eq_wire = aeb_result_wire;
+endmodule //FIFO_cmpr1
+
+
 //lpm_mux DEVICE_FAMILY="Cyclone 10 LP" LPM_SIZE=2 LPM_WIDTH=1 LPM_WIDTHS=1 data result sel
 //VERSION_BEGIN 22.1 cbx_lpm_mux 2023:07:20:14:03:03:SC cbx_mgl 2023:07:20:14:14:26:SC  VERSION_END
 
@@ -3226,43 +3264,45 @@ module  FIFO_mux1
 
 	wire  [0:0]  result_node;
 	wire  [0:0]  sel_node;
-	wire  [1:0]  w_data1037w;
+	wire  [1:0]  w_data1153w;
 
 	assign
 		result = result_node,
-		result_node = {((sel_node & w_data1037w[1]) | ((~ sel_node) & w_data1037w[0]))},
+		result_node = {((sel_node & w_data1153w[1]) | ((~ sel_node) & w_data1153w[0]))},
 		sel_node = {sel[0]},
-		w_data1037w = {data[1:0]};
+		w_data1153w = {data[1:0]};
 endmodule //FIFO_mux1
 
 //synthesis_resources = lut 49 M9K 32 reg 229 
 //synopsys translate_off
 `timescale 1 ps / 1 ps
 //synopsys translate_on
-(* ALTERA_ATTRIBUTE = {"AUTO_SHIFT_REGISTER_RECOGNITION=OFF;REMOVE_DUPLICATE_REGISTERS=OFF;SYNCHRONIZER_IDENTIFICATION=OFF;SYNCHRONIZATION_REGISTER_CHAIN_LENGTH = 3;suppress_da_rule_internal=d101;suppress_da_rule_internal=d102;suppress_da_rule_internal=d103;-name CUT ON -from rdptr_g -to ws_dgrp|FIFO_dffpipe123:dffpipe19|dffe20a;-name SDC_STATEMENT \"set_false_path -from *rdptr_g* -to *ws_dgrp|FIFO_dffpipe123:dffpipe19|dffe20a* \";-name CUT ON -from delayed_wrptr_g -to rs_dgwp|FIFO_dffpipe:dffpipe14|dffe15a;-name SDC_STATEMENT \"set_false_path -from *delayed_wrptr_g* -to *rs_dgwp|FIFO_dffpipe:dffpipe14|dffe15a* \""} *)
+(* ALTERA_ATTRIBUTE = {"AUTO_SHIFT_REGISTER_RECOGNITION=OFF;REMOVE_DUPLICATE_REGISTERS=OFF;SYNCHRONIZER_IDENTIFICATION=OFF;SYNCHRONIZATION_REGISTER_CHAIN_LENGTH = 3;suppress_da_rule_internal=d101;suppress_da_rule_internal=d102;suppress_da_rule_internal=d103;-name CUT ON -from rdptr_g -to ws_dgrp|FIFO_dffpipe123:dffpipe19|dffe20a;-name SDC_STATEMENT \"set_false_path -from *rdptr_g* -to *ws_dgrp|FIFO_dffpipe123:dffpipe19|dffe20a* \";-name CUT ON -from delayed_wrptr_g -to rs_dgwp|FIFO_dffpipe12:dffpipe16|dffe17a;-name SDC_STATEMENT \"set_false_path -from *delayed_wrptr_g* -to *rs_dgwp|FIFO_dffpipe12:dffpipe16|dffe17a* \""} *)
 module  FIFO_dcfifo
 	( 
 	data,
 	q,
 	rdclk,
 	rdempty,
+	rdfull,
 	rdreq,
+	rdusedw,
 	wrclk,
 	wrfull,
-	wrreq,
-	wrusedw) /* synthesis synthesis_clearbox=1 */;
+	wrreq) /* synthesis synthesis_clearbox=1 */;
 	input   [7:0]  data;
 	output   [7:0]  q;
 	input   rdclk;
 	output   rdempty;
+	output   rdfull;
 	input   rdreq;
+	output   [15:0]  rdusedw;
 	input   wrclk;
 	output   wrfull;
 	input   wrreq;
-	output   [15:0]  wrusedw;
 
-	wire  [15:0]   wire_wrptr_g_gray2bin_bin;
-	wire  [15:0]   wire_ws_dgrp_gray2bin_bin;
+	wire  [15:0]   wire_rdptr_g_gray2bin_bin;
+	wire  [15:0]   wire_rs_dgwp_gray2bin_bin;
 	wire  [15:0]   wire_rdptr_g1p_q;
 	wire  [15:0]   wire_wrptr_g1p_q;
 	wire  [7:0]   wire_fifo_ram_q_b;
@@ -3282,18 +3322,19 @@ module  FIFO_dcfifo
 	reg	[15:0]	wrptr_g;
 	(* ALTERA_ATTRIBUTE = {"SYNCHRONIZER_IDENTIFICATION=FORCED_IF_ASYNCHRONOUS;PRESERVE_REGISTER=ON"} *)
 	reg	[15:0]	ws_dgrp_reg;
+	wire  [0:0]   wire_rdfull_reg_q;
+	wire  [15:0]   wire_rs_brp_q;
+	wire  [15:0]   wire_rs_bwp_q;
 	wire  [15:0]   wire_rs_dgwp_q;
-	wire  [0:0]   wire_wrfull_reg_q;
-	wire  [15:0]   wire_ws_brp_q;
-	wire  [15:0]   wire_ws_bwp_q;
 	wire  [15:0]   wire_ws_dgrp_q;
-	wire	[15:0]	wire_wrusedw_sub_dataa;
-	wire	[15:0]	wire_wrusedw_sub_datab;
-	wire	[15:0]	wire_wrusedw_sub_result;
+	wire	[15:0]	wire_rdusedw_sub_dataa;
+	wire	[15:0]	wire_rdusedw_sub_datab;
+	wire	[15:0]	wire_rdusedw_sub_result;
 	wire  wire_rdempty_eq_comp1_lsb_aeb;
 	wire  wire_rdempty_eq_comp1_msb_aeb;
 	wire  wire_rdempty_eq_comp_lsb_aeb;
 	wire  wire_rdempty_eq_comp_msb_aeb;
+	wire  wire_rdfull_eq_comp_aeb;
 	wire  wire_wrfull_eq_comp1_lsb_aeb;
 	wire  wire_wrfull_eq_comp1_msb_aeb;
 	wire  wire_wrfull_eq_comp_lsb_aeb;
@@ -3306,19 +3347,20 @@ module  FIFO_dcfifo
 	wire  int_wrfull;
 	wire  [14:0]  ram_address_a;
 	wire  [14:0]  ram_address_b;
+	wire  [15:0]  rdptr_gs;
 	wire  valid_rdreq;
 	wire  valid_wrreq;
 	wire  [15:0]  wrptr_g1s;
 	wire  [15:0]  wrptr_gs;
 
-	FIFO_a_gray2bin   wrptr_g_gray2bin
+	FIFO_a_gray2bin   rdptr_g_gray2bin
 	( 
-	.bin(wire_wrptr_g_gray2bin_bin),
-	.gray(wrptr_g[15:0]));
-	FIFO_a_gray2bin   ws_dgrp_gray2bin
+	.bin(wire_rdptr_g_gray2bin_bin),
+	.gray(rdptr_g[15:0]));
+	FIFO_a_gray2bin   rs_dgwp_gray2bin
 	( 
-	.bin(wire_ws_dgrp_gray2bin_bin),
-	.gray(ws_dgrp_reg[15:0]));
+	.bin(wire_rs_dgwp_gray2bin_bin),
+	.gray(rs_dgwp_reg[15:0]));
 	FIFO_a_graycounter   rdptr_g1p
 	( 
 	.clock(rdclk),
@@ -3393,36 +3435,36 @@ module  FIFO_dcfifo
 	// synopsys translate_on
 	always @ ( posedge wrclk)
 		  ws_dgrp_reg <= wire_ws_dgrp_q;
+	FIFO_dffpipe   rdfull_reg
+	( 
+	.clock(rdclk),
+	.d(wire_rdfull_eq_comp_aeb),
+	.q(wire_rdfull_reg_q));
+	FIFO_dffpipe1   rs_brp
+	( 
+	.clock(rdclk),
+	.d(wire_rdptr_g_gray2bin_bin),
+	.q(wire_rs_brp_q));
+	FIFO_dffpipe1   rs_bwp
+	( 
+	.clock(rdclk),
+	.d(wire_rs_dgwp_gray2bin_bin),
+	.q(wire_rs_bwp_q));
 	FIFO_alt_synch_pipe   rs_dgwp
 	( 
 	.clock(rdclk),
 	.d(delayed_wrptr_g),
 	.q(wire_rs_dgwp_q));
-	FIFO_dffpipe1   wrfull_reg
-	( 
-	.clock(wrclk),
-	.d(int_wrfull),
-	.q(wire_wrfull_reg_q));
-	FIFO_dffpipe12   ws_brp
-	( 
-	.clock(wrclk),
-	.d(wire_ws_dgrp_gray2bin_bin),
-	.q(wire_ws_brp_q));
-	FIFO_dffpipe12   ws_bwp
-	( 
-	.clock(wrclk),
-	.d(wire_wrptr_g_gray2bin_bin),
-	.q(wire_ws_bwp_q));
 	FIFO_alt_synch_pipe1   ws_dgrp
 	( 
 	.clock(wrclk),
 	.d(rdptr_g),
 	.q(wire_ws_dgrp_q));
 	assign
-		wire_wrusedw_sub_result = wire_wrusedw_sub_dataa - wire_wrusedw_sub_datab;
+		wire_rdusedw_sub_result = wire_rdusedw_sub_dataa - wire_rdusedw_sub_datab;
 	assign
-		wire_wrusedw_sub_dataa = wire_ws_bwp_q,
-		wire_wrusedw_sub_datab = wire_ws_brp_q;
+		wire_rdusedw_sub_dataa = wire_rs_bwp_q,
+		wire_rdusedw_sub_datab = wire_rs_brp_q;
 	FIFO_cmpr   rdempty_eq_comp1_lsb
 	( 
 	.aeb(wire_rdempty_eq_comp1_lsb_aeb),
@@ -3443,6 +3485,11 @@ module  FIFO_dcfifo
 	.aeb(wire_rdempty_eq_comp_msb_aeb),
 	.dataa(wire_rs_dgwp_q[15:8]),
 	.datab(rdptr_g[15:8]));
+	FIFO_cmpr1   rdfull_eq_comp
+	( 
+	.aeb(wire_rdfull_eq_comp_aeb),
+	.dataa(rs_dgwp_reg),
+	.datab(rdptr_gs));
 	FIFO_cmpr   wrfull_eq_comp1_lsb
 	( 
 	.aeb(wire_wrfull_eq_comp1_lsb_aeb),
@@ -3490,12 +3537,14 @@ module  FIFO_dcfifo
 		ram_address_a = {(wrptr_g[15] ^ wrptr_g[14]), wrptr_g[13:0]},
 		ram_address_b = {(wire_rdptr_g1p_q[15] ^ wire_rdptr_g1p_q[14]), wire_rdptr_g1p_q[13:0]},
 		rdempty = int_rdempty,
+		rdfull = wire_rdfull_eq_comp_aeb,
+		rdptr_gs = {(~ rdptr_g[15]), (~ rdptr_g[14]), rdptr_g[13:0]},
+		rdusedw = {wire_rdfull_reg_q, wire_rdusedw_sub_result[14:0]},
 		valid_rdreq = (rdreq & (~ int_rdempty)),
 		valid_wrreq = (wrreq & (~ int_wrfull)),
 		wrfull = int_wrfull,
 		wrptr_g1s = {(~ wire_wrptr_g1p_q[15]), (~ wire_wrptr_g1p_q[14]), wire_wrptr_g1p_q[13:0]},
-		wrptr_gs = {(~ wrptr_g[15]), (~ wrptr_g[14]), wrptr_g[13:0]},
-		wrusedw = {wire_wrfull_reg_q, wire_wrusedw_sub_result[14:0]};
+		wrptr_gs = {(~ wrptr_g[15]), (~ wrptr_g[14]), wrptr_g[13:0]};
 endmodule //FIFO_dcfifo
 //VALID FILE
 
@@ -3511,8 +3560,8 @@ module FIFO (
 	wrreq,
 	q,
 	rdempty,
-	wrfull,
-	wrusedw)/* synthesis synthesis_clearbox = 1 */;
+	rdusedw,
+	wrfull)/* synthesis synthesis_clearbox = 1 */;
 
 	input	[7:0]  data;
 	input	  rdclk;
@@ -3521,17 +3570,17 @@ module FIFO (
 	input	  wrreq;
 	output	[7:0]  q;
 	output	  rdempty;
+	output	[15:0]  rdusedw;
 	output	  wrfull;
-	output	[15:0]  wrusedw;
 
 	wire [7:0] sub_wire0;
 	wire  sub_wire1;
-	wire  sub_wire2;
-	wire [15:0] sub_wire3;
+	wire [15:0] sub_wire2;
+	wire  sub_wire3;
 	wire [7:0] q = sub_wire0[7:0];
 	wire  rdempty = sub_wire1;
-	wire  wrfull = sub_wire2;
-	wire [15:0] wrusedw = sub_wire3[15:0];
+	wire [15:0] rdusedw = sub_wire2[15:0];
+	wire  wrfull = sub_wire3;
 
 	FIFO_dcfifo	FIFO_dcfifo_component (
 				.data (data),
@@ -3541,8 +3590,8 @@ module FIFO (
 				.wrreq (wrreq),
 				.q (sub_wire0),
 				.rdempty (sub_wire1),
-				.wrfull (sub_wire2),
-				.wrusedw (sub_wire3));
+				.rdusedw (sub_wire2),
+				.wrfull (sub_wire3));
 
 endmodule
 
@@ -3575,12 +3624,12 @@ endmodule
 // Retrieval info: PRIVATE: output_width NUMERIC "8"
 // Retrieval info: PRIVATE: rsEmpty NUMERIC "1"
 // Retrieval info: PRIVATE: rsFull NUMERIC "0"
-// Retrieval info: PRIVATE: rsUsedW NUMERIC "0"
+// Retrieval info: PRIVATE: rsUsedW NUMERIC "1"
 // Retrieval info: PRIVATE: sc_aclr NUMERIC "0"
 // Retrieval info: PRIVATE: sc_sclr NUMERIC "0"
 // Retrieval info: PRIVATE: wsEmpty NUMERIC "0"
 // Retrieval info: PRIVATE: wsFull NUMERIC "1"
-// Retrieval info: PRIVATE: wsUsedW NUMERIC "1"
+// Retrieval info: PRIVATE: wsUsedW NUMERIC "0"
 // Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 // Retrieval info: CONSTANT: ADD_USEDW_MSB_BIT STRING "ON"
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone 10 LP"
@@ -3599,10 +3648,10 @@ endmodule
 // Retrieval info: USED_PORT: rdclk 0 0 0 0 INPUT NODEFVAL "rdclk"
 // Retrieval info: USED_PORT: rdempty 0 0 0 0 OUTPUT NODEFVAL "rdempty"
 // Retrieval info: USED_PORT: rdreq 0 0 0 0 INPUT NODEFVAL "rdreq"
+// Retrieval info: USED_PORT: rdusedw 0 0 16 0 OUTPUT NODEFVAL "rdusedw[15..0]"
 // Retrieval info: USED_PORT: wrclk 0 0 0 0 INPUT NODEFVAL "wrclk"
 // Retrieval info: USED_PORT: wrfull 0 0 0 0 OUTPUT NODEFVAL "wrfull"
 // Retrieval info: USED_PORT: wrreq 0 0 0 0 INPUT NODEFVAL "wrreq"
-// Retrieval info: USED_PORT: wrusedw 0 0 16 0 OUTPUT NODEFVAL "wrusedw[15..0]"
 // Retrieval info: CONNECT: @data 0 0 8 0 data 0 0 8 0
 // Retrieval info: CONNECT: @rdclk 0 0 0 0 rdclk 0 0 0 0
 // Retrieval info: CONNECT: @rdreq 0 0 0 0 rdreq 0 0 0 0
@@ -3610,8 +3659,8 @@ endmodule
 // Retrieval info: CONNECT: @wrreq 0 0 0 0 wrreq 0 0 0 0
 // Retrieval info: CONNECT: q 0 0 8 0 @q 0 0 8 0
 // Retrieval info: CONNECT: rdempty 0 0 0 0 @rdempty 0 0 0 0
+// Retrieval info: CONNECT: rdusedw 0 0 16 0 @rdusedw 0 0 16 0
 // Retrieval info: CONNECT: wrfull 0 0 0 0 @wrfull 0 0 0 0
-// Retrieval info: CONNECT: wrusedw 0 0 16 0 @wrusedw 0 0 16 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL FIFO.v TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL FIFO.inc FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL FIFO.cmp FALSE

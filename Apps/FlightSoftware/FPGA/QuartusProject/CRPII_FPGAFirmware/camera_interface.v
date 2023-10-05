@@ -126,28 +126,28 @@ end
 // really just a 3bit moving average to get consensus for a signal.
 // Done for all signals as a bus. Not necessarily used for all signals.
 // Makes us immune to single-cycle blips.
-wire [14:0] sync_avg_pre = (  // this signal is a pre-stage for edge-detection
+wire [14:0] sync_avg = (  // this signal is a pre-stage for edge-detection
       (sync_buff[2] & sync_buff[1])
     | (sync_buff[2] & sync_buff[0])
     | (sync_buff[1] & sync_buff[0])
 );
-reg [14:0] sync_avg;
+reg [14:0] sync_avg_prev;
 always @(posedge clk) begin
     // Add 1 stage of delay to averaged signals to check for edges in the
     // averaged signals:
     // (we have `sync_avg` be the later of these two stages so the `sync_avg`
     // edge detectors in time with the `sync_avg` signal)
-    sync_avg <= sync_avg_pre;
+    sync_avg_prev <= sync_avg;
 end
 
 
 // * Edge Detectors *
 // Detect edges on the synchronized bus outputs:
-wire [14:0] sync_posedge = sync_buff[2] & ~sync_buff[1];
-wire [14:0] sync_negedge = ~sync_buff[2] & sync_buff[1];
+wire [14:0] sync_posedge = sync_out[2] & ~sync_buff[0];
+wire [14:0] sync_negedge = ~sync_out[2] & sync_buff[0];
 // Detect edges on the averaged bus outputs:
-wire [14:0] sync_avg_posedge = sync_avg & ~sync_avg_pre;
-wire [14:0] sync_avg_negedge = ~sync_avg & sync_avg_pre;
+wire [14:0] sync_avg_posedge = sync_avg & ~sync_avg_prev;
+wire [14:0] sync_avg_negedge = ~sync_avg & sync_avg_prev;
 
 // * Key Synchronized Signals *
 wire [11:0] sync_PIXDATA = sync_avg[11:0];
@@ -213,6 +213,7 @@ wire line_complete = ~line_active;
 //    pixels we've pushed into the FIFO.
 
 reg [11:0] pixels_elapsed_in_line = 12'b0;
+reg waiting_for_end_of_line = 1'b0;
 always @(posedge clk) begin
     if(camera_selection_in_progress) begin
         // Input signals may be changing over between cameras. We can't trust
@@ -221,23 +222,29 @@ always @(posedge clk) begin
         // For now, just hold states and counts in reset:
         pixels_elapsed_in_line <= 12'b0;
         line_active <= 1'b0;
+        waiting_for_end_of_line <= 1'b0;
     end else if (line_active) begin
         // Don't transition out of a line until the appropriate number of
         // pixels have elapsed (this helps ensure we always write a full line
         // of consecutive pixels):
         if(pixels_elapsed_in_line >= VALID_LINE_SIZE) begin  // >= not == to help recover from SEU
-            line_active = 1'b0; // immediate
+            line_active <= 1'b0;
             pixels_elapsed_in_line <= 12'b0; // reset the count
+            waiting_for_end_of_line <= 1'b1; // Don't let line go active again until we exit this line.
         end else if(sample_pixel_pulse) begin
             // Set this using a "non-blocking" assignment so the value doesn't take
             // place until the next sys-clock (since we won't have actually sampled
             // it until then).
             pixels_elapsed_in_line <= pixels_elapsed_in_line + 12'b1;
         end
-    end else if (sync_LV) begin
-        // We're not in the line active state but the flag is now high.
-        // Transition immediately:
-        line_active = 1'b1;
+    end else begin // line is not active
+        if(!sync_LV && in_blanking_region) begin
+            waiting_for_end_of_line <= 1'b0;
+        end
+        if(sync_LV && !waiting_for_end_of_line) begin
+            // We're not in the line active state but the flag is now high.
+            line_active <= 1'b1;
+        end
     end
 end
 
@@ -251,7 +258,7 @@ reg [11:0] prev_line_in_frame = 12'b0; // What was the last line in the frame (0
 reg line_counter_can_be_incremented = 1'b0;
 reg line_counter_incremented_at_end = 1'b0; // 1 sys-clock pulse letting observers know we just incremented the line_counter (at the end of a line)
 reg frame_ended_pulse = 1'b0; // 1 sys-clock wide pulse telling observers the last line of the current frame is definitely done. +
-wire in_blanking_region = sync_PIXDATA[11:0] == 12'b0;
+wire in_blanking_region = (sync_PIXDATA[11:0] == 12'b0);
 // `out_of_frame`: Logic to check that we're DEFINITELY outside of a frame
 // (in the inter-frame blanking interval)
 // -- based on inputs only, not state tracking (pixel counts, etc):
@@ -304,18 +311,18 @@ always @(posedge clk) begin
             && in_blanking_region // all of the data bits are 0 (we're in blanking)
             && line_counter_can_be_incremented // make sure this only happens once
         ) begin
-            line_counter_can_be_incremented = 1'b0;
+            line_counter_can_be_incremented <= 1'b0;
         
-            prev_line_in_frame = line_in_frame;
-            line_in_frame = line_in_frame + 12'b1;
+            prev_line_in_frame <= line_in_frame;
+            line_in_frame <= line_in_frame + 12'b1;
 
             line_counter_incremented_at_end <= 1'b1; // trigger this after increment
         end
 
-        if(line_active) begin  // NB: line_complete = ~line_active
+        if(line_active && !line_counter_can_be_incremented) begin  // NB: line_complete = ~line_active
             // Now that we're back in a line, allow the line counter to be
             // incremented again once we're out:
-            line_counter_can_be_incremented = 1'b1;
+            line_counter_can_be_incremented <= 1'b1;
         end
 
         // Only reset during the blanking region between frames:
@@ -325,8 +332,8 @@ always @(posedge clk) begin
             out_of_frame     // all inputs show that we're in an inter-frame blanking interval
             && line_complete // we've read all the data we need to read so it's okay to change this
         ) begin
-            prev_line_in_frame = line_in_frame;
-            line_in_frame = 12'b0;
+            prev_line_in_frame <= line_in_frame;
+            line_in_frame <= 12'b0;
             frame_ended_pulse <= 1'b1; // send after resetting counts
         end
     end
@@ -370,13 +377,13 @@ always @(posedge clk) begin
     if(not_streaming) begin
         // For extra timing margin, reset all signals and registers while we're
         // not streaming (before a stream even starts):
-        all_interleaved_frames_complete = 1'b0;
-        interleaved_frame_index = 1'b0;
-        line_in_interleaved_frame = 12'b0;
+        all_interleaved_frames_complete <= 1'b0;
+        line_in_interleaved_frame <= 12'b0;
+        interleaved_frame_index <= 5'b0;
         // Set all consensus inputs for target:
-        target_interleaved_line_to_sample__input[0] = 12'b0;
-        target_interleaved_line_to_sample__input[1] = 12'b0;
-        target_interleaved_line_to_sample__input[2] = 12'b0;
+        target_interleaved_line_to_sample__input[0] <= 12'b0;
+        target_interleaved_line_to_sample__input[1] <= 12'b0;
+        target_interleaved_line_to_sample__input[2] <= 12'b0;
     end else if(
         line_counter_incremented_at_end
         && (prev_line_in_frame == target_interleaved_line_to_sample)
@@ -392,26 +399,26 @@ always @(posedge clk) begin
         // Check if that line was the last line in the interleaved frame:
         if(line_in_interleaved_frame >= (INTERLEAVED_LINES_PER_FRAME-1'b1)) begin // >= not == to help recover from SEU
             // We're done with this interleaved frame:
-            line_in_interleaved_frame = 1'b0;
+            line_in_interleaved_frame <= 1'b0;
             // Move on to the next frame or signal that we're done:
             if(interleaved_frame_index >= (N_INTERLEAVED_FRAMES-1'b1)) begin // >= not == to help recover from SEU
                 // We just finished the final frame, signal that we're done
                 // with all frames:
-                all_interleaved_frames_complete = 1'b1;
+                all_interleaved_frames_complete <= 1'b1;
             end else begin
                 // There're more frames. Move on to the next interleaved frame:
-                interleaved_frame_index = interleaved_frame_index + 5'b1;
+                interleaved_frame_index <= interleaved_frame_index + 5'b1;
                 // Start the target line back at the beginning
                 // (skipping 2 lines for each interleaved frame to preserve
                 // bayering):
-                target_interleaved_line_to_sample__input[0] = 12'd2 * interleaved_frame_index;
-                target_interleaved_line_to_sample__input[1] = target_interleaved_line_to_sample__input[0];
-                target_interleaved_line_to_sample__input[2] = target_interleaved_line_to_sample__input[0];
+                target_interleaved_line_to_sample__input[0] <= interleaved_frame_index + interleaved_frame_index + 5'b2;
+                target_interleaved_line_to_sample__input[1] <= interleaved_frame_index + interleaved_frame_index + 5'b2;
+                target_interleaved_line_to_sample__input[2] <= interleaved_frame_index + interleaved_frame_index + 5'b2;
             end
         end else begin
             // We *didn't* just finish the last line in this interleaved
             // frame, so just increment to the next line:
-            line_in_interleaved_frame = line_in_interleaved_frame + 12'b1;
+            line_in_interleaved_frame <= line_in_interleaved_frame + 12'b1;
 
             // ... and Update the target line to capture
             // (knowing that we're not at the end):
@@ -423,13 +430,13 @@ always @(posedge clk) begin
             // for the FIFO will be the same.
             // NB: (1+15)/2 = 8
             if(target_interleaved_line_to_sample[0] == 1'b0) begin
-                target_interleaved_line_to_sample__input[0] = target_interleaved_line_to_sample + 12'd1;
-                target_interleaved_line_to_sample__input[1] = target_interleaved_line_to_sample__input[0];
-                target_interleaved_line_to_sample__input[2] = target_interleaved_line_to_sample__input[0];
+                target_interleaved_line_to_sample__input[0] <= target_interleaved_line_to_sample + 12'd1;
+                target_interleaved_line_to_sample__input[1] <= target_interleaved_line_to_sample + 12'd1;
+                target_interleaved_line_to_sample__input[2] <= target_interleaved_line_to_sample + 12'd1;
             end else if(target_interleaved_line_to_sample < (LINES_IN_FRAME - INTERLEAVE_JUMP_SIZE)) begin
-                target_interleaved_line_to_sample__input[0] = target_interleaved_line_to_sample + INTERLEAVE_JUMP_SIZE;
-                target_interleaved_line_to_sample__input[1] = target_interleaved_line_to_sample__input[0];
-                target_interleaved_line_to_sample__input[2] = target_interleaved_line_to_sample__input[0];
+                target_interleaved_line_to_sample__input[0] <= target_interleaved_line_to_sample + INTERLEAVE_JUMP_SIZE;
+                target_interleaved_line_to_sample__input[1] <= target_interleaved_line_to_sample + INTERLEAVE_JUMP_SIZE;
+                target_interleaved_line_to_sample__input[2] <= target_interleaved_line_to_sample + INTERLEAVE_JUMP_SIZE;
             end else begin // (target_interleaved_line_to_sample + INTERLEAVE_JUMP_SIZE) >= LINES_IN_FRAME
                 // Lands us outside of the set of valid lines
                 //
@@ -465,9 +472,9 @@ always @(posedge clk) begin
                 // 6: 1932,1933, 1941   - 1941 filled in
                 // 7: 1934,1935, 1943   - 1943 filled in
                 // This should work (if needed) so long as N_INTERLEAVED_PAIRS is a factor of LINES_IN_FRAME.
-                target_interleaved_line_to_sample__input[0] = target_interleaved_line_to_sample + (INTERLEAVE_JUMP_SIZE - N_INTERLEAVED_FRAMES + 12'd1);
-                target_interleaved_line_to_sample__input[1] = target_interleaved_line_to_sample__input[0];
-                target_interleaved_line_to_sample__input[2] = target_interleaved_line_to_sample__input[0];
+                target_interleaved_line_to_sample__input[0] <= target_interleaved_line_to_sample + (INTERLEAVE_JUMP_SIZE - N_INTERLEAVED_FRAMES + 12'd1);
+                target_interleaved_line_to_sample__input[1] <= target_interleaved_line_to_sample + (INTERLEAVE_JUMP_SIZE - N_INTERLEAVED_FRAMES + 12'd1);
+                target_interleaved_line_to_sample__input[2] <= target_interleaved_line_to_sample + (INTERLEAVE_JUMP_SIZE - N_INTERLEAVED_FRAMES + 12'd1);
             end
         end
     end else if(target_interleaved_line_to_sample >= LINES_IN_FRAME) begin
@@ -476,7 +483,7 @@ always @(posedge clk) begin
         // on so just move on so just end early.
         // Image will be cut short which should be a good indicator that we
         // need to reboot the FPGA.
-        all_interleaved_frames_complete = 1'b1;
+        all_interleaved_frames_complete <= 1'b1;
     end
 end
 
@@ -489,9 +496,9 @@ end
 reg [7:0] frame_number = 8'b0;
 always @(posedge clk) begin
     if (not_streaming) begin
-        frame_number = 8'b0;
+        frame_number <= 8'b0;
     end else if(s_frame_start) begin
-        frame_number = frame_number + 8'b1;
+        frame_number <= frame_number + 8'b1;
     end
 end
 
@@ -593,20 +600,20 @@ always @(posedge clk) begin
         // If we've stayed in a state for WAY longer than should be the case,
         // we need to just yeet back to BOOT and start over.
         // This is the final line of defense against hangups.
-        capture_state_next = BOOT;
+        capture_state_next <= BOOT;
     end else begin
         case (capture_state)
             BOOT: begin
                 // Hold both cameras in reset (active-low):
-                camera_1_reset_bar = 1'b0;
-                camera_2_reset_bar = 1'b0;
-                no_camera_selected = 1'b1;
+                camera_1_reset_bar <= 1'b0;
+                camera_2_reset_bar <= 1'b0;
+                no_camera_selected <= 1'b1;
                 if(state_timer > ONE_SECOND) begin
                     // Things have had time to settle. Moving on to IDLE state.
                     // Not unresetting the cameras here b/c we do that through
                     // special states so we can control when it happens and react
                     // to it
-                    capture_state_next = IDLE;
+                    capture_state_next <= IDLE;
                 end
             end
             IDLE: begin
@@ -615,45 +622,46 @@ always @(posedge clk) begin
                     // No camera selected (properly) yet or we need to change that.
                     // Only allowing this to happen in the idle state so we don't
                     // switch cameras while imaging.
-                    camera_selection_in_progress = 1'b1;
-                    capture_state_next = SWITCHING_CAM__RST;
+                    camera_selection_in_progress <= 1'b1;
+                    capture_state_next <= SWITCHING_CAM__RST;
                 end else if(request_image) begin
-                    capture_state_next = COMMANDED__WAITING_FOR_FRAME_END;
+                    capture_state_next <= COMMANDED__WAITING_FOR_FRAME_END;
                 end
             end
             SWITCHING_CAM__RST: begin
                 // Hold both cameras in reset for at least 1s (active-low):
-                camera_1_reset_bar = 1'b1;
-                camera_2_reset_bar = 1'b1;
-                no_camera_selected = 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
+                camera_1_reset_bar <= 1'b0;
+                camera_2_reset_bar <= 1'b0;
+                no_camera_selected <= 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
+
                 if(state_timer > ONE_SECOND) begin
                     // Perform the switch only after we've been in rst for a while,
                     // so switchover doesn't happen with the cameras active.
-                    selected_camera_idx = desired_camera_idx;
-                    no_camera_selected = 1'b0; // we've now selected a camera
-                    capture_state_next = SWITCHING_CAM__POST_SWITCHOVER_WAIT;
+                    selected_camera_idx <= desired_camera_idx;
+                    no_camera_selected <= 1'b0; // we've now selected a camera
+                    capture_state_next <= SWITCHING_CAM__POST_SWITCHOVER_WAIT;
                 end
             end
             SWITCHING_CAM__POST_SWITCHOVER_WAIT: begin
                 // Wait here a bit, doing nothing, after the MUX switch before unresetting:
                 // (makes sure the switchover completes while neither cam is active)
                 if(state_timer > ONE_SECOND) begin
-                    capture_state_next = SWITCHING_CAM__UNRST;
+                    capture_state_next <= SWITCHING_CAM__UNRST;
                 end
             end
             SWITCHING_CAM__UNRST: begin
                 // Unreset JUST THE SELECTED CAMERA (active-low).
                 // Leave the other off for power saving.
                 if(selected_camera_idx == 1'b1) begin
-                    camera_2_reset_bar = 1'b1;
+                    camera_2_reset_bar <= 1'b1;
                 end else begin
-                    camera_1_reset_bar = 1'b1;
+                    camera_1_reset_bar <= 1'b1;
                 end
 
                 // Wait a sec for things to start and stabilize
                 // (longer than needed but that's fine).
                 if(state_timer > ONE_SECOND) begin
-                    capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_START;
+                    capture_state_next <= SWITCHING_CAM__WAIT_FOR_FRAME_START;
                 end
             end
             SWITCHING_CAM__WAIT_FOR_FRAME_START: begin
@@ -662,14 +670,14 @@ always @(posedge clk) begin
                 // an inter-frame boundary.
                 // So, first we must wait for a frame start trigger...
                 if(sync_FV) begin
-                    capture_state_next = SWITCHING_CAM__WAIT_FOR_FRAME_END;
+                    capture_state_next <= SWITCHING_CAM__WAIT_FOR_FRAME_END;
                 end
             end
             SWITCHING_CAM__WAIT_FOR_FRAME_END: begin
                 // ... then we wait for the next inter-frame boundary.
                 if(out_of_frame) begin
-                    camera_selection_in_progress = 1'b0;
-                    capture_state_next = IDLE;
+                    camera_selection_in_progress <= 1'b0;
+                    capture_state_next <= IDLE;
                 end
             end
             COMMANDED__WAITING_FOR_FRAME_END: begin
@@ -683,7 +691,7 @@ always @(posedge clk) begin
                 // So, all we need to do is wait until we're definitely in an
                 // inter-frame blanking interval and we can proceed.
                 if(out_of_frame) begin
-                    capture_state_next = STREAMING_IMAGE;
+                    capture_state_next <= STREAMING_IMAGE;
                 end
             end
             STREAMING_IMAGE: begin
@@ -691,12 +699,12 @@ always @(posedge clk) begin
                 // This continues until the Frame Processing circuits tell us we've
                 // captured all the lines we need for all of our interleaved frames:
                 if(all_interleaved_frames_complete) begin
-                    capture_state_next = IDLE;
+                    capture_state_next <= IDLE;
                 end
             end
             default: begin
                 // Shouldn't be here. Reboot circuit:
-                capture_state_next = BOOT;
+                capture_state_next <= BOOT;
             end
         endcase
     end

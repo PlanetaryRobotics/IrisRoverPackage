@@ -8,6 +8,7 @@ numba~=0.56.4
 numpy<1.24
 matplotlib
 seaborn~=0.12.2
+ipympl
 pandas
 tabulate
 styleframe

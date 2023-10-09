@@ -411,9 +411,9 @@ always @(posedge clk) begin
                 // Start the target line back at the beginning
                 // (skipping 2 lines for each interleaved frame to preserve
                 // bayering):
-                target_interleaved_line_to_sample__input[0] <= interleaved_frame_index + interleaved_frame_index + 5'b2;
-                target_interleaved_line_to_sample__input[1] <= interleaved_frame_index + interleaved_frame_index + 5'b2;
-                target_interleaved_line_to_sample__input[2] <= interleaved_frame_index + interleaved_frame_index + 5'b2;
+                target_interleaved_line_to_sample__input[0] <= interleaved_frame_index + interleaved_frame_index + 5'd2;
+                target_interleaved_line_to_sample__input[1] <= interleaved_frame_index + interleaved_frame_index + 5'd2;
+                target_interleaved_line_to_sample__input[2] <= interleaved_frame_index + interleaved_frame_index + 5'd2;
             end
         end else begin
             // We *didn't* just finish the last line in this interleaved
@@ -630,8 +630,8 @@ always @(posedge clk) begin
             end
             SWITCHING_CAM__RST: begin
                 // Hold both cameras in reset for at least 1s (active-low):
-                camera_1_reset_bar <= 1'b0;
-                camera_2_reset_bar <= 1'b0;
+                camera_1_reset_bar <= 1'b1;
+                camera_2_reset_bar <= 1'b1;
                 no_camera_selected <= 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
 
                 if(state_timer > ONE_SECOND) begin

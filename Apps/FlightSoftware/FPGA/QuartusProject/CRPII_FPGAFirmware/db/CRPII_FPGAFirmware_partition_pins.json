@@ -64,14 +64,6 @@
 					"strict" : false
 				},
 				{
-					"name" : "camera_2_FV",
-					"strict" : false
-				},
-				{
-					"name" : "camera_1_FV",
-					"strict" : false
-				},
-				{
 					"name" : "camera_2_pixel_in[11]",
 					"strict" : false
 				},
@@ -112,6 +104,30 @@
 					"strict" : false
 				},
 				{
+					"name" : "camera_2_LV",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_LV",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[7]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[7]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[6]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[6]",
+					"strict" : false
+				},
+				{
 					"name" : "camera_2_pixel_in[4]",
 					"strict" : false
 				},
@@ -128,19 +144,11 @@
 					"strict" : false
 				},
 				{
-					"name" : "camera_2_pixel_in[6]",
+					"name" : "camera_2_pixel_in[9]",
 					"strict" : false
 				},
 				{
-					"name" : "camera_1_pixel_in[6]",
-					"strict" : false
-				},
-				{
-					"name" : "camera_2_pixel_in[7]",
-					"strict" : false
-				},
-				{
-					"name" : "camera_1_pixel_in[7]",
+					"name" : "camera_1_pixel_in[9]",
 					"strict" : false
 				},
 				{
@@ -152,14 +160,6 @@
 					"strict" : false
 				},
 				{
-					"name" : "camera_2_pixel_in[9]",
-					"strict" : false
-				},
-				{
-					"name" : "camera_1_pixel_in[9]",
-					"strict" : false
-				},
-				{
 					"name" : "camera_2_pixel_in[10]",
 					"strict" : false
 				},
@@ -168,11 +168,11 @@
 					"strict" : false
 				},
 				{
-					"name" : "camera_2_LV",
+					"name" : "camera_2_FV",
 					"strict" : false
 				},
 				{
-					"name" : "camera_1_LV",
+					"name" : "camera_1_FV",
 					"strict" : false
 				},
 				{

@@ -1,5 +1,5 @@
 Analysis & Synthesis report for CRPII_FPGAFirmware
-Tue Oct  3 19:19:03 2023
+Thu Oct  5 11:56:31 2023
 Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
 
 
@@ -63,7 +63,6 @@ Quartus Prime Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
  55. Post-Synthesis Netlist Statistics for Top Partition
  56. Elapsed Time Per Partition
  57. Analysis & Synthesis Messages
- 58. Analysis & Synthesis Suppressed Messages
 
 
 
@@ -90,15 +89,15 @@ https://fpgasoftware.intel.com/eula.
 +-----------------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                            ;
 +------------------------------------+----------------------------------------------------+
-; Analysis & Synthesis Status        ; Successful - Tue Oct  3 19:19:03 2023              ;
+; Analysis & Synthesis Status        ; Successful - Thu Oct  5 11:56:31 2023              ;
 ; Quartus Prime Version              ; 22.1std.2 Build 922 07/20/2023 SC Standard Edition ;
 ; Revision Name                      ; CRPII_FPGAFirmware                                 ;
 ; Top-level Entity Name              ; CRPII_FPGAFirmware_Release                         ;
 ; Family                             ; Cyclone 10 LP                                      ;
-; Total logic elements               ; 1,486                                              ;
-;     Total combinational functions  ; 1,264                                              ;
-;     Dedicated logic registers      ; 740                                                ;
-; Total registers                    ; 740                                                ;
+; Total logic elements               ; 1,481                                              ;
+;     Total combinational functions  ; 1,259                                              ;
+;     Dedicated logic registers      ; 728                                                ;
+; Total registers                    ; 728                                                ;
 ; Total pins                         ; 54                                                 ;
 ; Total virtual pins                 ; 0                                                  ;
 ; Total memory bits                  ; 262,294                                            ;
@@ -268,20 +267,20 @@ https://fpgasoftware.intel.com/eula.
 +---------------------------------------------+-----------+
 ; Resource                                    ; Usage     ;
 +---------------------------------------------+-----------+
-; Estimated Total logic elements              ; 1,486     ;
+; Estimated Total logic elements              ; 1,481     ;
 ;                                             ;           ;
-; Total combinational functions               ; 1264      ;
+; Total combinational functions               ; 1259      ;
 ; Logic element usage by number of LUT inputs ;           ;
-;     -- 4 input functions                    ; 692       ;
-;     -- 3 input functions                    ; 208       ;
-;     -- <=2 input functions                  ; 364       ;
+;     -- 4 input functions                    ; 693       ;
+;     -- 3 input functions                    ; 191       ;
+;     -- <=2 input functions                  ; 375       ;
 ;                                             ;           ;
 ; Logic elements by mode                      ;           ;
-;     -- normal mode                          ; 989       ;
+;     -- normal mode                          ; 984       ;
 ;     -- arithmetic mode                      ; 275       ;
 ;                                             ;           ;
-; Total registers                             ; 740       ;
-;     -- Dedicated logic registers            ; 740       ;
+; Total registers                             ; 728       ;
+;     -- Dedicated logic registers            ; 728       ;
 ;     -- I/O registers                        ; 0         ;
 ;                                             ;           ;
 ; I/O pins                                    ; 54        ;
@@ -290,9 +289,9 @@ https://fpgasoftware.intel.com/eula.
 ; Embedded Multiplier 9-bit elements          ; 0         ;
 ;                                             ;           ;
 ; Maximum fan-out node                        ; clk~input ;
-; Maximum fan-out                             ; 641       ;
-; Total fan-out                               ; 7326      ;
-; Average fan-out                             ; 3.39      ;
+; Maximum fan-out                             ; 629       ;
+; Total fan-out                               ; 7288      ;
+; Average fan-out                             ; 3.40      ;
 +---------------------------------------------+-----------+
 
 
@@ -301,9 +300,9 @@ https://fpgasoftware.intel.com/eula.
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
 ; Compilation Hierarchy Node                                   ; Combinational ALUTs ; Dedicated Logic Registers ; Memory Bits ; DSP Elements ; DSP 9x9 ; DSP 18x18 ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                                    ; Entity Name                                   ; Library Name ;
 +--------------------------------------------------------------+---------------------+---------------------------+-------------+--------------+---------+-----------+------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+--------------+
-; |CRPII_FPGAFirmware_Release                                  ; 1264 (229)          ; 740 (151)                 ; 262294      ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                            ; CRPII_FPGAFirmware_Release                    ; work         ;
-;    |CameraSensorInterface:cameraInterface|                   ; 510 (335)           ; 188 (184)                 ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface                                                                                      ; CameraSensorInterface                         ; work         ;
-;       |ImageMetadataMux:imageMetadataMux|                    ; 165 (165)           ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux                                                    ; ImageMetadataMux                              ; work         ;
+; |CRPII_FPGAFirmware_Release                                  ; 1259 (229)          ; 728 (151)                 ; 262294      ; 0            ; 0       ; 0         ; 54   ; 0            ; |CRPII_FPGAFirmware_Release                                                                                                                            ; CRPII_FPGAFirmware_Release                    ; work         ;
+;    |CameraSensorInterface:cameraInterface|                   ; 505 (329)           ; 176 (172)                 ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface                                                                                      ; CameraSensorInterface                         ; work         ;
+;       |ImageMetadataMux:imageMetadataMux|                    ; 166 (166)           ; 0 (0)                     ; 0           ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux                                                    ; ImageMetadataMux                              ; work         ;
 ;       |altshift_taps:sync_rtl_0|                             ; 10 (0)              ; 4 (0)                     ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|altshift_taps:sync_rtl_0                                                             ; altshift_taps                                 ; work         ;
 ;          |shift_taps_k7m:auto_generated|                     ; 10 (0)              ; 4 (0)                     ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|altshift_taps:sync_rtl_0|shift_taps_k7m:auto_generated                               ; shift_taps_k7m                                ; work         ;
 ;             |altsyncram_pg81:altsyncram2|                    ; 0 (0)               ; 0 (0)                     ; 150         ; 0            ; 0       ; 0         ; 0    ; 0            ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|altshift_taps:sync_rtl_0|shift_taps_k7m:auto_generated|altsyncram_pg81:altsyncram2   ; altsyncram_pg81                               ; work         ;
@@ -656,30 +655,30 @@ Note: All latches listed above may not be present at the end of synthesis due to
 ; address[0..8]                                                                                    ; Stuck at GND due to stuck port data_in                                                                 ;
 ; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|dffpipe_f09:rs_bwp|dffe6a[15]   ; Lost fanout                                                                                            ;
 ; FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|dffpipe_f09:rs_brp|dffe6a[15]   ; Lost fanout                                                                                            ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][0]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][0]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][0]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][0]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][11]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][11]      ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][11]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][11]      ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][10]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][10]      ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][10]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][10]      ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][9]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][9]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][9]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][9]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][0]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][0]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][0]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][0]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][1]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][1]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][1]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][1]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][2]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][2]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][2]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][2]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][3]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][3]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][3]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][3]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][4]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][4]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][4]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][4]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][5]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][5]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][5]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][5]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][6]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][6]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][6]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][6]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][7]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][7]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][7]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][7]       ;
 ; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][8]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][8]       ;
 ; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][8]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][8]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][7]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][7]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][7]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][7]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][6]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][6]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][6]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][6]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][5]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][5]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][5]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][5]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][1]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][1]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][1]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][1]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][2]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][2]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][2]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][2]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][3]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][3]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][3]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][3]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][4]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][4]       ;
-; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][4]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][4]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][9]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][9]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][9]             ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][9]       ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][10]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][10]      ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][10]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][10]      ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[0][11]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][11]      ;
+; CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[1][11]            ; Merged with CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][11]      ;
 ; CameraSensorInterface:cameraInterface|capture_state_prev_clk.BOOT                                ; Lost fanout                                                                                            ;
 ; CameraSensorInterface:cameraInterface|capture_state_prev_clk.IDLE                                ; Lost fanout                                                                                            ;
 ; CameraSensorInterface:cameraInterface|capture_state_prev_clk.SWITCHING_CAM__RST                  ; Lost fanout                                                                                            ;
@@ -759,12 +758,12 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +----------------------------------------------+-------+
 ; Statistic                                    ; Value ;
 +----------------------------------------------+-------+
-; Total registers                              ; 740   ;
-; Number of registers using Synchronous Clear  ; 150   ;
-; Number of registers using Synchronous Load   ; 8     ;
+; Total registers                              ; 728   ;
+; Number of registers using Synchronous Clear  ; 151   ;
+; Number of registers using Synchronous Load   ; 7     ;
 ; Number of registers using Asynchronous Clear ; 140   ;
 ; Number of registers using Asynchronous Load  ; 0     ;
-; Number of registers using Clock Enable       ; 309   ;
+; Number of registers using Clock Enable       ; 321   ;
 ; Number of registers using Preset             ; 0     ;
 +----------------------------------------------+-------+
 
@@ -798,32 +797,32 @@ Note: All latches listed above may not be present at the end of synthesis due to
 +-----------------------------------------------------------+--------------------------------------------------+------------+
 
 
-+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-; Multiplexer Restructuring Statistics (Restructuring Performed)                                                                                                                                                                  ;
-+--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------------------------------------------------------------------------------+
-; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                        ;
-+--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------------------------------------------------------------------------------+
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|interleaved_frame_index[4]                      ;
-; 3:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_frame[8]                                ;
-; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|frame_number[5]                                 ;
-; 4:1                ; 12 bits   ; 24 LEs        ; 24 LEs               ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|prev_line_in_frame[0]                           ;
-; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_interleaved_frame[7]                    ;
-; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|pixels_elapsed_in_line[10]                      ;
-; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|output_data[0]                ;
-; 5:1                ; 23 bits   ; 69 LEs        ; 23 LEs               ; 46 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[22]                                                                           ;
-; 7:1                ; 2 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][1]  ;
-; 7:1                ; 6 bits    ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][11] ;
-; 7:1                ; 3 bits    ; 12 LEs        ; 9 LEs                ; 3 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][5]  ;
-; 5:1                ; 32 bits   ; 96 LEs        ; 32 LEs               ; 64 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[21]                                                                      ;
-; 36:1               ; 5 bits    ; 120 LEs       ; 50 LEs               ; 70 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[7]         ;
-; 3:1                ; 15 bits   ; 30 LEs        ; 30 LEs               ; 0 LEs                  ; No         ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|PIXDATA[1]                                      ;
-; 12:1               ; 4 bits    ; 32 LEs        ; 16 LEs               ; 16 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|capture_state_next                              ;
-; 23:1               ; 5 bits    ; 75 LEs        ; 20 LEs               ; 55 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector8                                                                             ;
-; 24:1               ; 2 bits    ; 32 LEs        ; 4 LEs                ; 28 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector4                                                                             ;
-; 24:1               ; 2 bits    ; 32 LEs        ; 6 LEs                ; 26 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector7                                                                             ;
-; 24:1               ; 2 bits    ; 32 LEs        ; 8 LEs                ; 24 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector1                                                                             ;
-; 29:1               ; 17 bits   ; 323 LEs       ; 170 LEs              ; 153 LEs                ; No         ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector3                     ;
-+--------------------+-----------+---------------+----------------------+------------------------+------------+-------------------------------------------------------------------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Multiplexer Restructuring Statistics (Restructuring Performed)                                                                                                                                                                 ;
++--------------------+-----------+---------------+----------------------+------------------------+------------+------------------------------------------------------------------------------------------------------------------+
+; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                       ;
++--------------------+-----------+---------------+----------------------+------------------------+------------+------------------------------------------------------------------------------------------------------------------+
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|interleaved_frame_index[1]                     ;
+; 3:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|prev_line_in_frame[6]                          ;
+; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|frame_number[4]                                ;
+; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_frame[2]                               ;
+; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|line_in_interleaved_frame[9]                   ;
+; 4:1                ; 12 bits   ; 24 LEs        ; 12 LEs               ; 12 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|pixels_elapsed_in_line[7]                      ;
+; 4:1                ; 2 bits    ; 4 LEs         ; 4 LEs                ; 0 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|output_data[0]               ;
+; 5:1                ; 23 bits   ; 69 LEs        ; 23 LEs               ; 46 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|address[14]                                                                          ;
+; 7:1                ; 2 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][2] ;
+; 7:1                ; 5 bits    ; 20 LEs        ; 10 LEs               ; 10 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][9] ;
+; 7:1                ; 4 bits    ; 16 LEs        ; 12 LEs               ; 4 LEs                  ; Yes        ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|target_interleaved_line_to_sample__input[2][6] ;
+; 5:1                ; 32 bits   ; 96 LEs        ; 32 LEs               ; 64 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|wait_counter[18]                                                                     ;
+; 36:1               ; 5 bits    ; 120 LEs       ; 50 LEs               ; 70 LEs                 ; Yes        ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master_command[7]        ;
+; 3:1                ; 15 bits   ; 30 LEs        ; 30 LEs               ; 0 LEs                  ; No         ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|FV                                             ;
+; 12:1               ; 4 bits    ; 32 LEs        ; 16 LEs               ; 16 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|capture_state_next                             ;
+; 23:1               ; 5 bits    ; 75 LEs        ; 20 LEs               ; 55 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector6                                                                            ;
+; 24:1               ; 2 bits    ; 32 LEs        ; 4 LEs                ; 28 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector9                                                                            ;
+; 24:1               ; 2 bits    ; 32 LEs        ; 6 LEs                ; 26 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector14                                                                           ;
+; 24:1               ; 2 bits    ; 32 LEs        ; 8 LEs                ; 24 LEs                 ; No         ; |CRPII_FPGAFirmware_Release|Selector2                                                                            ;
+; 29:1               ; 17 bits   ; 323 LEs       ; 170 LEs              ; 153 LEs                ; No         ; |CRPII_FPGAFirmware_Release|S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|Selector8                    ;
++--------------------+-----------+---------------+----------------------+------------------------+------------+------------------------------------------------------------------------------------------------------------------+
 
 
 +--------------------------------------------------------------+
@@ -1025,13 +1024,13 @@ Note: In order to hide this table in the UI and the text report file, please set
 
 +---------------------------------------------------------------------------------------------------------------------------------------------------+
 ; Parameter Settings for User Entity Instance: CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux|IrisFpgaFwVersion:fw_version ;
-+----------------+----------+-----------------------------------------------------------------------------------------------------------------------+
-; Parameter Name ; Value    ; Type                                                                                                                  ;
-+----------------+----------+-----------------------------------------------------------------------------------------------------------------------+
-; FW_VER_MAJ     ; 00001011 ; Unsigned Binary                                                                                                       ;
-; FW_VER_MIN     ; 00000000 ; Unsigned Binary                                                                                                       ;
-; FW_VER_PATCH   ; 00000001 ; Unsigned Binary                                                                                                       ;
-+----------------+----------+-----------------------------------------------------------------------------------------------------------------------+
++----------------+-------+--------------------------------------------------------------------------------------------------------------------------+
+; Parameter Name ; Value ; Type                                                                                                                     ;
++----------------+-------+--------------------------------------------------------------------------------------------------------------------------+
+; FW_VER_MAJ     ; 11    ; Signed Integer                                                                                                           ;
+; FW_VER_MIN     ; 0     ; Signed Integer                                                                                                           ;
+; FW_VER_PATCH   ; 3     ; Signed Integer                                                                                                           ;
++----------------+-------+--------------------------------------------------------------------------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
 
@@ -1221,30 +1220,30 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; Type                  ; Count                       ;
 +-----------------------+-----------------------------+
 ; boundary_port         ; 54                          ;
-; cycloneiii_ff         ; 740                         ;
+; cycloneiii_ff         ; 728                         ;
 ;     CLR               ; 40                          ;
-;     ENA               ; 98                          ;
+;     ENA               ; 110                         ;
 ;     ENA CLR           ; 100                         ;
-;     ENA SCLR          ; 104                         ;
-;     ENA SCLR SLD      ; 5                           ;
+;     ENA SCLR          ; 105                         ;
+;     ENA SCLR SLD      ; 4                           ;
 ;     ENA SLD           ; 2                           ;
-;     SCLR              ; 41                          ;
+;     SCLR              ; 42                          ;
 ;     SLD               ; 1                           ;
-;     plain             ; 349                         ;
-; cycloneiii_lcell_comb ; 1266                        ;
+;     plain             ; 324                         ;
+; cycloneiii_lcell_comb ; 1261                        ;
 ;     arith             ; 275                         ;
 ;         2 data inputs ; 246                         ;
 ;         3 data inputs ; 29                          ;
-;     normal            ; 991                         ;
+;     normal            ; 986                         ;
 ;         0 data inputs ; 3                           ;
 ;         1 data inputs ; 31                          ;
-;         2 data inputs ; 86                          ;
-;         3 data inputs ; 179                         ;
-;         4 data inputs ; 692                         ;
+;         2 data inputs ; 97                          ;
+;         3 data inputs ; 162                         ;
+;         4 data inputs ; 693                         ;
 ; cycloneiii_ram_block  ; 47                          ;
 ;                       ;                             ;
-; Max LUT depth         ; 10.00                       ;
-; Average LUT depth     ; 4.28                        ;
+; Max LUT depth         ; 10.40                       ;
+; Average LUT depth     ; 4.40                        ;
 +-----------------------+-----------------------------+
 
 
@@ -1263,7 +1262,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 22.1std.2 Build 922 07/20/2023 SC Standard Edition
-    Info: Processing started: Tue Oct  3 19:18:51 2023
+    Info: Processing started: Thu Oct  5 11:56:20 2023
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off CRPII_FPGAFirmware -c CRPII_FPGAFirmware
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
@@ -1297,11 +1296,18 @@ Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(147): object 
 Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(159): object "s_line_start" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 159
 Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(160): object "s_line_end" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 160
 Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(162): object "s_frame_end" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 162
-Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(547): object "capture_state_prev_clk" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 547
-Warning (10230): Verilog HDL assignment warning at camera_interface.v(430): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 430
-Warning (10230): Verilog HDL assignment warning at camera_interface.v(468): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 468
-Info (12128): Elaborating entity "ImageMetadataMux" for hierarchy "CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 509
+Warning (10036): Verilog HDL or VHDL warning at camera_interface.v(554): object "capture_state_prev_clk" assigned a value but never read File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 554
+Warning (10230): Verilog HDL assignment warning at camera_interface.v(437): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 437
+Warning (10230): Verilog HDL assignment warning at camera_interface.v(438): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 438
+Warning (10230): Verilog HDL assignment warning at camera_interface.v(439): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 439
+Warning (10230): Verilog HDL assignment warning at camera_interface.v(475): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 475
+Warning (10230): Verilog HDL assignment warning at camera_interface.v(476): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 476
+Warning (10230): Verilog HDL assignment warning at camera_interface.v(477): truncated value with size 32 to match size of target (12) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 477
+Info (12128): Elaborating entity "ImageMetadataMux" for hierarchy "CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 516
 Info (12128): Elaborating entity "IrisFpgaFwVersion" for hierarchy "CameraSensorInterface:cameraInterface|ImageMetadataMux:imageMetadataMux|IrisFpgaFwVersion:fw_version" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/image_metadata_mux.v Line: 44
+Warning (10230): Verilog HDL assignment warning at version.v(15): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/version.v Line: 15
+Warning (10230): Verilog HDL assignment warning at version.v(16): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/version.v Line: 16
+Warning (10230): Verilog HDL assignment warning at version.v(17): truncated value with size 32 to match size of target (8) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/version.v Line: 17
 Info (12128): Elaborating entity "spi_slave" for hierarchy "spi_slave:hercules_SPI_listener" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 175
 Warning (10230): Verilog HDL assignment warning at spi_slave.v(72): truncated value with size 32 to match size of target (4) File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/SPI/spi_slave.v Line: 72
 Info (12128): Elaborating entity "S70FL01GS_Flash_Memory_Interface_address_swap" for hierarchy "S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 233
@@ -1406,7 +1412,7 @@ Info (12128): Elaborating entity "cmpr_m76" for hierarchy "FIFO:CAM_FIFO|dcfifo:
 Info (12021): Found 1 design units, including 1 entities, in source file db/mux_c28.tdf
     Info (12023): Found entity 1: mux_c28 File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/mux_c28.tdf Line: 23
 Info (12128): Elaborating entity "mux_c28" for hierarchy "FIFO:CAM_FIFO|dcfifo:dcfifo_component|dcfifo_uhi1:auto_generated|mux_c28:rdemp_eq_comp_lsb_mux" File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/db/dcfifo_uhi1.tdf Line: 101
-Info (284007): State machine "|CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|capture_state" will be implemented as a safe state machine. File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 546
+Info (284007): State machine "|CRPII_FPGAFirmware_Release|CameraSensorInterface:cameraInterface|capture_state" will be implemented as a safe state machine. File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/camera_interface.v Line: 553
 Info (19000): Inferred 1 megafunctions from design logic
     Info (276034): Inferred altshift_taps megafunction from the following design logic: "CameraSensorInterface:cameraInterface|sync_rtl_0"
         Info (286033): Parameter NUMBER_OF_TAPS set to 1
@@ -1441,24 +1447,17 @@ Warning (13024): Output pins are stuck at VCC or GND
     Warning (13410): Pin "LED1" is stuck at GND File: /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/CRPII_FPGAFirmware_Release.v Line: 52
 Info (286030): Timing-Driven Synthesis is running
 Info (17049): 46 registers lost all their fanouts during netlist optimizations.
-Info (144001): Generated suppressed messages file /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.map.smsg
 Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 0 node(s), including 0 DDIO, 0 PLL, 0 transceiver and 0 LCELL
-Info (21057): Implemented 1610 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 1605 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 36 input pins
     Info (21059): Implemented 18 output pins
-    Info (21061): Implemented 1509 logic cells
+    Info (21061): Implemented 1504 logic cells
     Info (21064): Implemented 47 RAM segments
-Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 43 warnings
-    Info: Peak virtual memory: 450 megabytes
-    Info: Processing ended: Tue Oct  3 19:19:03 2023
-    Info: Elapsed time: 00:00:12
-    Info: Total CPU time (on all processors): 00:00:24
-
-
-+------------------------------------------+
-; Analysis & Synthesis Suppressed Messages ;
-+------------------------------------------+
-The suppressed messages can be found in /home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/FPGA/QuartusProject/CRPII_FPGAFirmware/output_files/CRPII_FPGAFirmware.map.smsg.
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 50 warnings
+    Info: Peak virtual memory: 479 megabytes
+    Info: Processing ended: Thu Oct  5 11:56:31 2023
+    Info: Elapsed time: 00:00:11
+    Info: Total CPU time (on all processors): 00:00:23
 
 

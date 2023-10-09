@@ -271,10 +271,12 @@
   </connection>
 
   <!-- Navigation to telemetry channel (port 6) -->
+  <!-- DEPRECATED: Navigation Telemetry removed to make space. Nav is likely going away as a component.
   <connection name="navigation_to_chanTlm">
     <source component="navigation" port="Tlm" type="Tlm" num="0" />
     <target component="tlmChan" port="TlmRecv" type="Tlm" num="0" />
   </connection>
+  -->
 
   <!-- Motor Control to telemetry channel (port 7) -->
   <connection name="motorControl_to_chanTlm">

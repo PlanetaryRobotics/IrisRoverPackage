@@ -24,15 +24,6 @@
 | | | |Callback_ID|U16||
 |Nav_StopMovement|4 (0x4)|Stops all movement| | |
 
-## Telemetry Channel List
-
-|Channel Name|ID|Type|Description|
-|---|---|---|---|
-|Nav_Moved_Forward|0 (0x0)|U16|The distance moved forward in cm|
-|Nav_Moved_Backward|1 (0x1)|U16|The distance moved backward in cm|
-|Nav_Turned_Left|2 (0x2)|U16|The angle turned to the left (counter clockwise) in degrees|
-|Nav_Turned_Right|3 (0x3)|U16|The angle turned to the right (clockwise) in degrees|
-|Nav_Image_Size|4 (0x4)|U16|Image size|
 
 ## Event List
 

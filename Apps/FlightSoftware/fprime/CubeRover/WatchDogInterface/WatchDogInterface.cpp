@@ -860,9 +860,9 @@ namespace CubeRover
         struct WatchdogTelemetry *buff =
             reinterpret_cast<struct WatchdogTelemetry *>(msg.dataBuffer);
 
-        this->tlmWrite_VOLTAGE_2_5V(buff->voltage_2V5);
-        this->tlmWrite_VOLTAGE_2_8V(buff->voltage_2V8);
-        this->tlmWrite_VOLTAGE_24V(buff->voltage_24V);
+//        this->tlmWrite_VOLTAGE_2_5V(buff->voltage_2V5); // DEPRECATED TELEM FIELD (see note in XML)
+//        this->tlmWrite_VOLTAGE_2_8V(buff->voltage_2V8); // DEPRECATED TELEM FIELD (see note in XML)
+//        this->tlmWrite_VOLTAGE_24V(buff->voltage_24V); // DEPRECATED TELEM FIELD (see note in XML)
         this->tlmWrite_VOLTAGE_28V(buff->voltage_28V);
         this->tlmWrite_BATTERY_THERMISTOR(buff->battery_thermistor);
         // this->tlmWrite_SYSTEM_STATUS(buff->sys_status);        // Not currently impl. (we get this from WD->Herc packet forwarding anyway).

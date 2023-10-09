@@ -544,6 +544,40 @@
             Warning that an incorrect reset value has been sent from ground
             </comment>
         </event>
+        
+        <event id="0x6" name="CurrentAdcReadingsPackage" severity="ACTIVITY_HI" format_string = "ADC Readings of Currents received. 3V3F:%d, 3V3R:%d, 3V3:%d, 3V3H:%d, 1V2H:%d, 1V2F:%d, 24V:%d">
+            <comment>
+            Update package containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
+             GSW GDS will split this out into meta Telemetry Channels on Ground so all Ground assets receive this as telemetry. 
+             GDS will also handle ADC->mA conversion.
+             This is acceptable b/c these are lower priority ("bonus") telem that we weren't counting on, so it's okay if this isn't delivered
+             regularly or sometimes gets dropped. 
+             Also, it's not too unreasonable to package all of these together since they're all read together at once using ADC2 Group1.
+            </comment>
+             <args>
+                <arg name="CURRENT_3V3_FPGA" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the FPGA's 3.3V rail. GDS will convert this to mA.</comment>
+                </arg>
+                <arg name="CURRENT_3V3_RADIO" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the Radio's 3.3V rail. GDS will convert this to mA.</comment>
+                </arg>
+                <arg name="CURRENT_3V3" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the entire 3.3V rail (and all of its derived rails). GDS will convert this to mA.</comment>
+                </arg>
+                <arg name="CURRENT_3V3_HERCULES" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the Hercules' 3.3V rail. GDS will convert this to mA.</comment>
+                </arg>
+                <arg name="CURRENT_1V2_HERCULES" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the Hercules' 1.2V rail. GDS will convert this to mA.</comment>
+                </arg>
+                <arg name="CURRENT_1V2_FPGA" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the FPGA's 1.2V rail. GDS will convert this to mA.</comment>
+                </arg>
+                <arg name="CURRENT_24V" type="U16">
+                    <comment>Raw ADC reading from the INA190A5 of the current being drawn by the entire 24V rail. GDS will convert this to mA.</comment>
+                </arg>
+            </args>
+        </event>
     </events>
 
     <telemetry>
@@ -554,6 +588,7 @@
             </comment>
         </channel>
         -->
+        <!-- DEPRECATED: Removing voltage sense telemetry to make room for thermistor telem (we ran out of room for more telemetry channels). This is okay since we also get these voltage sensors through periodic packets directly from the WD to Ground (i.e. not through FPrime).
         <channel id="2" name="VOLTAGE_2_5V" data_type="int16_t">
             <comment>
                 WD ADC reading for Voltage from 2.5V line from Watchdog
@@ -568,7 +603,7 @@
             <comment>
                 WD ADC reading for Voltage from 24V line from Watchdog
             </comment>
-        </channel>
+        </channel> -->
         <channel id="5" name="VOLTAGE_28V" data_type="int16_t">
             <comment>
                 WD ADC reading for Voltage from 28V line from Watchdog
@@ -576,7 +611,7 @@
         </channel>
         <channel id="16" name="BATTERY_THERMISTOR" data_type="U8">
             <comment>
-                Battery Charge left in mAH
+                Battery Thermistor reading from Watchdog
             </comment>
         </channel>
         <!-- -DEPRECATED-
@@ -628,6 +663,56 @@
         <channel id="32" name="THERM_5" data_type="U16">
             <comment>
                 12 bit ADC Reading for On-SBC Thermistor RT6.
+            </comment>
+        </channel>
+        <channel id="33" name="THERM_6" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 1 (TMR1).
+            </comment>
+        </channel>
+        <channel id="34" name="THERM_7" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 2 (TMR2).
+            </comment>
+        </channel>
+        <channel id="35" name="THERM_8" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 3 (TMR3).
+            </comment>
+        </channel>
+        <channel id="36" name="THERM_9" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 4 (TMR4).
+            </comment>
+        </channel>
+        <channel id="37" name="THERM_10" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 5 (TMR5).
+            </comment>
+        </channel>
+        <channel id="38" name="THERM_11" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 6 (TMR6).
+            </comment>
+        </channel>
+        <channel id="39" name="THERM_12" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 7 (TMR7).
+            </comment>
+        </channel>
+        <channel id="40" name="THERM_13" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 8 (TMR8).
+            </comment>
+        </channel>
+        <channel id="41" name="THERM_14" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 9 (TMR9).
+            </comment>
+        </channel>
+        <channel id="42" name="THERM_15" data_type="U16">
+            <comment>
+                12 bit ADC Reading for off-board temperature sensor 10 (TMR10).
             </comment>
         </channel>
     </telemetry>

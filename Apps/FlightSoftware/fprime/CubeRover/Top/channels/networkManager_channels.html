@@ -39,10 +39,10 @@ html {
     <td>Received Signal Strength Indication abt WF121 connection to AP in dB</td>
  </tr>
  <tr>
-    <td>SNR</td>
+    <td>NumCompleteDirectMessages</td>
     <td>2561 (0xa01)</td>
-    <td>I8</td>
-    <td>Signal to noise radio</td>
+    <td>U8</td>
+    <td>Number of Successfully Parsed Direct Messages from the Radio (a basic vital for if Radio-Herc comms are still working).</td>
  </tr>
  <tr>
     <td>PktRecv</td>
@@ -57,22 +57,10 @@ html {
     <td>Number of packets sent (downlink)</td>
  </tr>
  <tr>
-    <td>WIFIErrorStatus</td>
-    <td>2564 (0xa04)</td>
-    <td>WIFIErrorCode</td>
-    <td>Returned Error code of WIFI chip</td>
- </tr>
- <tr>
     <td>WIFIStateStatus</td>
     <td>2565 (0xa05)</td>
     <td>WIFIState</td>
     <td>Returned State Transition code of WIFI chip</td>
- </tr>
- <tr>
-    <td>UartBytesReceived</td>
-    <td>2566 (0xa06)</td>
-    <td>U32</td>
-    <td>Number of raw bytes received over UART from the Radio (valid or invalid - used for diagnostics).</td>
  </tr>
 </table>
 </body>

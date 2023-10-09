@@ -196,8 +196,10 @@
         <channel id="0" name="RSSI" data_type="I8">
             <comment>Received Signal Strength Indication abt WF121 connection to AP in dB</comment>
         </channel>
-        <channel id="1" name="SNR" data_type="I8">
-            <comment>Signal to noise radio</comment>
+        <channel id="1" name="NumCompleteDirectMessages" data_type="U8">
+            <!-- This channel spot used to be SNR but we don't actually have live access to that.
+            We only get it when scanning for networks which is now handled internally by the Radio. -->
+            <comment>Number of Successfully Parsed Direct Messages from the Radio (a basic vital for if Radio-Herc comms are still working).</comment>
         </channel>
         <channel id="2" name="PktRecv" data_type="U32">
             <comment>Number of packets received (uplink)</comment>
@@ -205,9 +207,10 @@
         <channel id="3" name="PktSent" data_type="U32">
             <comment>Number of packets sent (downlink)</comment>
         </channel>
+        <!-- DEPRECTATED to make room for more telem. Don't actually use this channel anymore since BGAPI errors are handled internally by NetworkInterface.
 		<channel id="4" name="WIFIErrorStatus" data_type="ENUM">
 		    <comment>Returned Error code of WIFI chip</comment>
-		    <!-- Matches `ErrorCode` from `Wf121.hpp` -->
+		    --><!-- Matches `ErrorCode` from `Wf121.hpp` --><!--
 		    <enum name="WIFIErrorCode">
 				<item name="wec_NO_ERROR" value="0" />
 				<item name="wec_TRY_AGAIN" value="1" />
@@ -264,7 +267,7 @@
 				<item name="wec_HOSTNAME_NOT_SET" value="530" comment="This error code is generated if the hostname has not been set" />
 				<item name="wec_HOSTNAME_CONFLICT" value="531" comment="This error code is generated if a hostname conflict was detected." />
         	</enum>
-        </channel>
+        </channel> -->
          <channel id="5" name="WIFIStateStatus" data_type="ENUM">
             <comment>Returned State Transition code of WIFI chip</comment>
                 <enum name="WIFIState">
@@ -278,9 +281,10 @@
                     <item name="nm_UDP_CONNECTED" value="0x50" comment="UDP client &amp; socket are active. Radio is ready to communicate." />
                 </enum>
         </channel>
+        <!-- DEPRECATED: Never ended up using this channel. Need more space.
         <channel id="6" name="UartBytesReceived" data_type="U32">
             <comment>Number of raw bytes received over UART from the Radio (valid or invalid - used for diagnostics).</comment>
-        </channel>
+        </channel> -->
     </telemetry>
 
     <events>

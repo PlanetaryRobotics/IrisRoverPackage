@@ -535,7 +535,7 @@
 
         <event id="0x4" name="ADCThermistorError" severity="WARNING_HI" format_string = "ADC Thermistor Conversion Error" >
             <comment>
-            Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated
+            Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated.
             </comment>
         </event>
 
@@ -545,9 +545,9 @@
             </comment>
         </event>
         
-        <event id="0x6" name="CurrentAdcReadingsPackage" severity="ACTIVITY_HI" format_string = "ADC Readings of Currents received. 3V3F:%d, 3V3R:%d, 3V3:%d, 3V3H:%d, 1V2H:%d, 1V2F:%d, 24V:%d">
+        <event id="0x6" name="AdcCurrentSensorReadingsReport" severity="ACTIVITY_HI" format_string = "ADC Readings of Currents received. 3V3F:%d, 3V3R:%d, 3V3:%d, 3V3H:%d, 1V2H:%d, 1V2F:%d, 24V:%d">
             <comment>
-            Update package containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
+            Report containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
              GSW GDS will split this out into meta Telemetry Channels on Ground so all Ground assets receive this as telemetry. 
              GDS will also handle ADC->mA conversion.
              This is acceptable b/c these are lower priority ("bonus") telem that we weren't counting on, so it's okay if this isn't delivered
@@ -578,6 +578,13 @@
                 </arg>
             </args>
         </event>
+
+        <event id="0x7" name="ADCCurrentError" severity="WARNING_HI" format_string = "ADC Current Sensor Conversion Error" >
+            <comment>
+            Warning that less than 7 current sensors had conversions or conversion never completed meaning no new current values are being generated.
+            </comment>
+        </event>
+
     </events>
 
     <telemetry>

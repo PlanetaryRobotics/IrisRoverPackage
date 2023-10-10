@@ -86,7 +86,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="1">ADCThermistorError</td>
 			<td rowspan="1">4100 (0x1004)</td>
-			<td rowspan="1">Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated</td>
+			<td rowspan="1">Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated.</td>
 				<td></td>
 				<td></td>
 				<td></td>
@@ -102,9 +102,9 @@ html {
 				<td></td>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="8">CurrentAdcReadingsPackage</td>
+			<td rowspan="8">AdcCurrentSensorReadingsReport</td>
 			<td rowspan="8">4102 (0x1006)</td>
-			<td rowspan="8">Update package containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
+			<td rowspan="8">Report containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
              GSW GDS will split this out into meta Telemetry Channels on Ground so all Ground assets receive this as telemetry. 
              GDS will also handle ADC->mA conversion.
              This is acceptable b/c these are lower priority ("bonus") telem that we weren't counting on, so it's okay if this isn't delivered
@@ -152,6 +152,15 @@ html {
 						<td></td>
 						<td>Raw ADC reading from the INA190A5 of the current being drawn by the entire 24V rail. GDS will convert this to mA.</td>
 					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">ADCCurrentError</td>
+			<td rowspan="1">4103 (0x1007)</td>
+			<td rowspan="1">Warning that less than 7 current sensors had conversions or conversion never completed meaning no new current values are being generated.</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
 		</tr>
 	</tbody>
 </table>

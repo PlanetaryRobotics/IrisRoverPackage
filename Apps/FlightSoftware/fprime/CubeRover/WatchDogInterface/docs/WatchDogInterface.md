@@ -98,9 +98,9 @@
 | | | |Cmd|Fw::LogStringArg&|50|The cmd that watchdog interface processed|
 |WatchDogCommError|3 (0x3)|Warning that a WatchDog MSP430 error has occured.| | | | |
 | | | |error|U32||The watchdog error value (reference to documentation)|
-|ADCThermistorError|4 (0x4)|Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated| | | | |
+|ADCThermistorError|4 (0x4)|Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated.| | | | |
 |WatchDogIncorrectResetValue|5 (0x5)|Warning that an incorrect reset value has been sent from ground| | | | |
-|CurrentAdcReadingsPackage|6 (0x6)|Update package containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
+|AdcCurrentSensorReadingsReport|6 (0x6)|Report containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
              GSW GDS will split this out into meta Telemetry Channels on Ground so all Ground assets receive this as telemetry. 
              GDS will also handle ADC->mA conversion.
              This is acceptable b/c these are lower priority ("bonus") telem that we weren't counting on, so it's okay if this isn't delivered
@@ -113,3 +113,4 @@
 | | | |CURRENT_1V2_HERCULES|U16||Raw ADC reading from the INA190A5 of the current being drawn by the Hercules' 1.2V rail. GDS will convert this to mA.|
 | | | |CURRENT_1V2_FPGA|U16||Raw ADC reading from the INA190A5 of the current being drawn by the FPGA's 1.2V rail. GDS will convert this to mA.|
 | | | |CURRENT_24V|U16||Raw ADC reading from the INA190A5 of the current being drawn by the entire 24V rail. GDS will convert this to mA.|
+|ADCCurrentError|7 (0x7)|Warning that less than 7 current sensors had conversions or conversion never completed meaning no new current values are being generated.| | | | |

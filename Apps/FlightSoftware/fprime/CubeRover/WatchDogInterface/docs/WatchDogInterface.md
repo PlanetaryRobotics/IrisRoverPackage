@@ -68,17 +68,24 @@
 
 |Channel Name|ID|Type|Description|
 |---|---|---|---|
-|VOLTAGE_2_5V|2 (0x2)|int16_t|WD ADC reading for Voltage from 2.5V line from Watchdog|
-|VOLTAGE_2_8V|3 (0x3)|int16_t|WD ADC reading for Voltage from 2.8V line from Watchdog|
-|VOLTAGE_24V|4 (0x4)|int16_t|WD ADC reading for Voltage from 24V line from Watchdog|
 |VOLTAGE_28V|5 (0x5)|int16_t|WD ADC reading for Voltage from 28V line from Watchdog|
-|BATTERY_THERMISTOR|16 (0x10)|U8|Battery Charge left in mAH|
+|BATTERY_THERMISTOR|16 (0x10)|U8|Battery Thermistor reading from Watchdog|
 |THERM_0|27 (0x1b)|U16|12 bit ADC Reading for On-SBC Thermistor RT1.|
 |THERM_1|28 (0x1c)|U16|12 bit ADC Reading for On-SBC Thermistor RT2.|
 |THERM_2|29 (0x1d)|U16|12 bit ADC Reading for On-SBC Thermistor RT3.|
 |THERM_3|30 (0x1e)|U16|12 bit ADC Reading for On-SBC Thermistor RT4.|
 |THERM_4|31 (0x1f)|U16|12 bit ADC Reading for On-SBC Thermistor RT5.|
 |THERM_5|32 (0x20)|U16|12 bit ADC Reading for On-SBC Thermistor RT6.|
+|THERM_6|33 (0x21)|U16|12 bit ADC Reading for off-board temperature sensor 1 (TMR1).|
+|THERM_7|34 (0x22)|U16|12 bit ADC Reading for off-board temperature sensor 2 (TMR2).|
+|THERM_8|35 (0x23)|U16|12 bit ADC Reading for off-board temperature sensor 3 (TMR3).|
+|THERM_9|36 (0x24)|U16|12 bit ADC Reading for off-board temperature sensor 4 (TMR4).|
+|THERM_10|37 (0x25)|U16|12 bit ADC Reading for off-board temperature sensor 5 (TMR5).|
+|THERM_11|38 (0x26)|U16|12 bit ADC Reading for off-board temperature sensor 6 (TMR6).|
+|THERM_12|39 (0x27)|U16|12 bit ADC Reading for off-board temperature sensor 7 (TMR7).|
+|THERM_13|40 (0x28)|U16|12 bit ADC Reading for off-board temperature sensor 8 (TMR8).|
+|THERM_14|41 (0x29)|U16|12 bit ADC Reading for off-board temperature sensor 9 (TMR9).|
+|THERM_15|42 (0x2a)|U16|12 bit ADC Reading for off-board temperature sensor 10 (TMR10).|
 
 ## Event List
 
@@ -91,5 +98,19 @@
 | | | |Cmd|Fw::LogStringArg&|50|The cmd that watchdog interface processed|
 |WatchDogCommError|3 (0x3)|Warning that a WatchDog MSP430 error has occured.| | | | |
 | | | |error|U32||The watchdog error value (reference to documentation)|
-|ADCThermistorError|4 (0x4)|Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated| | | | |
+|ADCThermistorError|4 (0x4)|Warning that less than 16 thermistors had conversions or conversion never completed meaning no new tempurature values are being generated.| | | | |
 |WatchDogIncorrectResetValue|5 (0x5)|Warning that an incorrect reset value has been sent from ground| | | | |
+|AdcCurrentSensorReadingsReport|6 (0x6)|Report containing all of the currents measured using the ADC. Delivered as an event since we ran out of space for new telem.
+             GSW GDS will split this out into meta Telemetry Channels on Ground so all Ground assets receive this as telemetry. 
+             GDS will also handle ADC->mA conversion.
+             This is acceptable b/c these are lower priority ("bonus") telem that we weren't counting on, so it's okay if this isn't delivered
+             regularly or sometimes gets dropped. 
+             Also, it's not too unreasonable to package all of these together since they're all read together at once using ADC2 Group1.| | | | |
+| | | |CURRENT_3V3_FPGA|U16||Raw ADC reading from the INA190A5 of the current being drawn by the FPGA's 3.3V rail. GDS will convert this to mA.|
+| | | |CURRENT_3V3_RADIO|U16||Raw ADC reading from the INA190A5 of the current being drawn by the Radio's 3.3V rail. GDS will convert this to mA.|
+| | | |CURRENT_3V3|U16||Raw ADC reading from the INA190A5 of the current being drawn by the entire 3.3V rail (and all of its derived rails). GDS will convert this to mA.|
+| | | |CURRENT_3V3_HERCULES|U16||Raw ADC reading from the INA190A5 of the current being drawn by the Hercules' 3.3V rail. GDS will convert this to mA.|
+| | | |CURRENT_1V2_HERCULES|U16||Raw ADC reading from the INA190A5 of the current being drawn by the Hercules' 1.2V rail. GDS will convert this to mA.|
+| | | |CURRENT_1V2_FPGA|U16||Raw ADC reading from the INA190A5 of the current being drawn by the FPGA's 1.2V rail. GDS will convert this to mA.|
+| | | |CURRENT_24V|U16||Raw ADC reading from the INA190A5 of the current being drawn by the entire 24V rail. GDS will convert this to mA.|
+|ADCCurrentError|7 (0x7)|Warning that less than 7 current sensors had conversions or conversion never completed meaning no new current values are being generated.| | | | |

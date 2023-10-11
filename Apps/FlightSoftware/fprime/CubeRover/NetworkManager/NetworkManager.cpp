@@ -593,7 +593,7 @@ namespace CubeRover
             tlmWrite_RSSI(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getRssi());
             // Note: SNR is defunct (never really something we had live access to)
             // BUT we're going to trojan it for the time being in order to get numCompleteDirectMessages out so we can assess Radio-Herc Comms Health:
-            tlmWrite_SNR(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getNumCompleteDirectMessages() % 0xFF);
+            tlmWrite_NumCompleteDirectMessages(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getNumCompleteDirectMessages() % 0xFF);
             tlmWrite_PktRecv(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpRxPacketCount());
             tlmWrite_PktSent(m_pRadioDriver->m_networkInterface.m_protectedRadioStatus.getUdpTxPacketCount());
 

@@ -28,8 +28,10 @@
 
 // The pin number for the deploment pin 2
 static const U8 deploy_bit = 4;
-// The number of thermistors on the SBC
-static const U8 number_thermistors = 6;
+// The number of thermistors on the SBC + number of externally wired thermistors
+static const U8 number_thermistors = 16;
+// The number of current sensors on the SBC:
+static const U8 number_current_sensors = 7;
 // Default size of zero sent to watchdog
 static const U16 zero_size = 0x0000;
 // Minimum size that should be received back from watchdog when receiving
@@ -42,6 +44,12 @@ static const U32 header_magic = 0x21B00B;
  * to be sent to the MSP430 watchdog.
  */
 static const uint32_t COMMAND_TIMEOUT_MILLISECONDS = 2000;
+
+// HOW OFTEN SHOULD WE READ ADC FOR THERMISTORS (minimum period, not particularly time sensitive):
+static const uint32_t ADC_THERMISTOR_READ_PERIOD_MS = 2000;
+
+// HOW OFTEN SHOULD WE READ ADC FOR CURRENT SENSORS (minimum period, not particularly time sensitive):
+static const uint32_t ADC_CURRENT_READ_PERIOD_MS = 1500;
 
 // How often the processor should wait before checking back in on dmaSend completion while polling for it.
 // Since this is a high priority task, it's not a good idea for this to be 0 (though it *can* be zero) in order to prevent Task starvation.
@@ -464,6 +472,7 @@ namespace CubeRover
         };
 
         bool Read_Temp(); // Checking the temperature sensors from the ADC
+        bool Read_Current(); // Checking the current sensors from the ADC
 
         void pollDMASendFinished(); // Polls DMA send finish to see if we've finished our DMA sending
 
@@ -618,6 +627,7 @@ namespace CubeRover
 
             sciBASE_t *m_sci;                              // The sci base used to initialize the watchdog interface connection
         adcData_t m_thermistor_buffer[number_thermistors]; // Location to store current data for thermistors
+        adcData_t m_current_buffer[number_current_sensors]; // Location to store current data for current sensors
         bool m_finished_initializing;                      // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
         /**
@@ -636,6 +646,11 @@ namespace CubeRover
 
         uint32_t m_skippedStrokes;
         uint32_t m_missedStrokeResponses;
+
+        // Time we last read the temperature sensors:
+        uint32_t m_lastThermistorReadTime;
+        // Time we last read the current sensors
+        uint32_t m_lastCurrentReadTime;
     };
 
 } // end namespace CubeRover

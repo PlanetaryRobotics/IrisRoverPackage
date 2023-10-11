@@ -51,7 +51,6 @@
 #include "sys_selftest.h"
 #include "adc.h"
 #include "gio.h"
-#include "mibspi.h"
 #include "sci.h"
 #include "spi.h"
 #include "rti.h"
@@ -142,23 +141,7 @@ void i2cNotification(i2cBASE_t *i2c, uint32 flags)
 
 /* USER CODE BEGIN (22) */
 /* USER CODE END */
-#pragma WEAK(mibspiNotification)
-void mibspiNotification(mibspiBASE_t *mibspi, uint32 flags)
-{
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (25) */
-    /* USER CODE END */
-}
 
-/* USER CODE BEGIN (26) */
-/* USER CODE END */
-#pragma WEAK(mibspiGroupNotification)
-void mibspiGroupNotification(mibspiBASE_t *mibspi, uint32 group)
-{
-    /*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    /* USER CODE BEGIN (27) */
-    /* USER CODE END */
-}
 /* USER CODE BEGIN (28) */
 extern void sci_ISR(uint32 flags);    // ISR for SCI interface (used for WF121)
 extern void scilin_ISR(uint32 flags); // ISR for SCILIN interface (used for WD)

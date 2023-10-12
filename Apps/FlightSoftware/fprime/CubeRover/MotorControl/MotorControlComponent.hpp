@@ -18,28 +18,28 @@
 #include "MotorController_i2c.h"
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
-#define ALL_MOTOR_ADDR 0x00
+//#define ALL_MOTOR_ADDR 0x00   // TODO: REMOVE
 #define ALL_MOTOR_ID 0x00
 // TODO: MAKE MOTOR IDS ENUMS IN FPRIME XML
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
-#define FRONT_LEFT_MC_I2C_ID 0x01
+//#define FRONT_LEFT_MC_I2C_ID 0x01   // TODO: REMOVE
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
-#define FRONT_RIGHT_MC_I2C_ID 0x02
+//#define FRONT_RIGHT_MC_I2C_ID 0x02   // TODO: REMOVE
 // Rear ones should be flipped from this but when flipped it made motors go
 // the wrong way:
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
-#define REAR_RIGHT_MC_I2C_ID 0x04
+//#define REAR_RIGHT_MC_I2C_ID 0x04   // TODO: REMOVE
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
-#define REAR_LEFT_MC_I2C_ID 0x03
+//#define REAR_LEFT_MC_I2C_ID 0x03   // TODO: REMOVE
 #define NUM_MOTORS 4
 
 #define MAX_SPEED 100 // TODO: Should be 255?
-#define CUBEROVER_WHEEL_DIAMETER_CM 18.2f
+//#define CUBEROVER_WHEEL_DIAMETER_CM 18.2f // TODO: REMOVE
 #define CUBEROVER_COM_TO_WHEEL_CIRC_CM 78.54f
-#define MOTOR_NB_PAIR_POLES 1.0f
-#define MOTOR_GEAR_BOX_REDUCTION 5.0f
+//#define MOTOR_NB_PAIR_POLES 1.0f  // TODO: REMOVE
+//#define MOTOR_GEAR_BOX_REDUCTION 5.0f  // TODO: REMOVE
 #define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
-#define PI 3.14159265
+//#define PI 3.14159265  // TODO: REMOVE
 
 namespace CubeRover
 {
@@ -245,7 +245,7 @@ namespace CubeRover
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
 
-        MotorTick_t groundCMToMotorTicks(int16_t dist);
+//        MotorTick_t groundCMToMotorTicks(int16_t dist);   // TODO: REMOVE
         Throttle_t groundSpeedToSpeedPrecent(int16_t speed);
 
         bool updateTelemetry();
@@ -258,7 +258,7 @@ namespace CubeRover
         uint16_t m_ticksToRotation;
 
         // Encoder Converting values
-        float m_encoderTickToCMRatio;
+//        float m_encoderTickToCMRatio;
 
         // Angular distance converting value
         float m_angularToLinear;

@@ -59,7 +59,7 @@ namespace CubeRover
         m_RR_Encoder_Count = 0;
         m_RL_Encoder_Count = 0;
         m_ticksToRotation = 0;      // gets set in init (probably shouldn't be this way for clarity but it works and doesn't cause problems)
-        m_encoderTickToCMRatio = 0; // gets set in init (probably shouldn't be this way for clarity but it works and doesn't cause problems)
+//        m_encoderTickToCMRatio = 0; // gets set in init (probably shouldn't be this way for clarity but it works and doesn't cause problems)
         m_angularToLinear = 0;      // gets set in init (probably shouldn't be this way for clarity but it works and doesn't cause problems)
     }
 
@@ -76,7 +76,7 @@ namespace CubeRover
         m_ticksToRotation = 9750;
 
         // Initialize the encoder tick to cm ratio
-        m_encoderTickToCMRatio = m_ticksToRotation / (PI * CUBEROVER_WHEEL_DIAMETER_CM); //(PI * CUBEROVER_WHEEL_DIAMETER_CM) / (MOTOR_NB_PAIR_POLES * MOTOR_GEAR_BOX_REDUCTION * 6.0);
+//        m_encoderTickToCMRatio = m_ticksToRotation / (PI * CUBEROVER_WHEEL_DIAMETER_CM); //(PI * CUBEROVER_WHEEL_DIAMETER_CM) / (MOTOR_NB_PAIR_POLES * MOTOR_GEAR_BOX_REDUCTION * 6.0);
 
         // Initalize the converting values
         m_angularToLinear = CUBEROVER_COM_TO_WHEEL_CIRC_CM / 360;
@@ -654,7 +654,8 @@ namespace CubeRover
         }
 
         MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
-        Relative_ticks = groundCMToMotorTicks(distance);
+        Relative_ticks = distance;
+//        Relative_ticks = groundCMToMotorTicks(distance); // TODO : REMOVE
         // Ensure the sides are traveling the right direction
         if (m_forward_is_positive)
         {
@@ -708,8 +709,8 @@ namespace CubeRover
     /**
      * @brief      Helper function to rotate all motors simultaneously
      *
-     * @param[in]  Distance       cm
-     * @param[in]  Speed          cm/s
+     * @param[in]  Distance       The distance to travel in motor ticks
+     * @param[in]  Speed          The speed to travel in normalized speed
      */
     MotorControlComponentImpl::MCError_t
     MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed)
@@ -734,7 +735,8 @@ namespace CubeRover
             return err;
         }
 
-        MotorTick_t Relative_ticks = m_angularToLinear * groundCMToMotorTicks(distance);
+        MotorTick_t Relative_ticks = m_angularToLinear * distance;
+//        MotorTick_t Relative_ticks = m_angularToLinear * groundCMToMotorTicks(distance); // TODO : REMOVE
 
         taskENTER_CRITICAL();
         StatusRegister_t status;
@@ -820,12 +822,12 @@ namespace CubeRover
 
 // Convert ground units to motor control native units
 #define TICKS_PER_CM 158.343f // TODO: This should be settable based on if this is for FM1 or EM4
-    MotorControlComponentImpl::MotorTick_t
-    MotorControlComponentImpl::groundCMToMotorTicks(int16_t dist)
-    {
-        // TODO: Make this constant editable (different on EM4 and FM1)
-        return (int)(TICKS_PER_CM * (float(dist)));
-    }
+//    MotorControlComponentImpl::MotorTick_t   // TODO : REMOVE
+//    MotorControlComponentImpl::groundCMToMotorTicks(int16_t dist)
+//    {
+//        // TODO: Make this constant editable (different on EM4 and FM1)
+//        return (int)(TICKS_PER_CM * (float(dist)));
+//    }
 
     // Convert ground units to motor control native units (cm/s -> msp430 scaled speed)
     constexpr float MC_MSP_IQ_SPEED_SCALER = 255.0 / 7968.75;

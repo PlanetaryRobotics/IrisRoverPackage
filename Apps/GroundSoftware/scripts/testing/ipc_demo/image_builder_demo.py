@@ -801,7 +801,7 @@ class Image:
             f"Lines with Corrupted Data:\t {num_corrupted_lines}",
         ]
 
-    def save(self, debayer: bool = True) -> None:
+    def save(self, interp: bool = True, debayer: bool = True) -> None:
         app.logger.notice(f"Saving {self.file_name_base} . . .")
 
         # Validate file first:
@@ -864,8 +864,12 @@ class Image:
             )
 
         # Building  image:
-        app.logger.info("Building Interpolated Image (very long) . . .")
-        interp_image = self.interim_build(interpolate_unknown=True)
+        if interp:
+            app.logger.info("Building Interpolated Image (very long) . . .")
+            interp_image = self.interim_build(interpolate_unknown=True)
+        else:
+            app.logger.info("Skipping Interpolation. Building padded image...")
+            interp_image = self.interim_build(interpolate_unknown=False)
 
         # Build raw (greyscale, possibly bayered) image:
         app.logger.info("Building Raw Image . . .")
@@ -1054,10 +1058,10 @@ class BasicImageDecoder:
             image.save()
             self.finish_image(file_group_id)
 
-    def export_all(self, debayer: bool = True):
+    def export_all(self, interp: bool = True, debayer: bool = True):
         """Forces an export of all current in-process images."""
         for image in self.images_in_progress.values():
-            image.save(debayer)
+            image.save(debayer=debayer, interp=interp)
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:
         for block in packet.payloads[FileBlockPayload]:
@@ -1084,7 +1088,10 @@ def main(opts) -> None:
                 decoder.process_file_block(block)
         except KeyboardInterrupt as ki:
             """User can press key to export all in-progress images."""
-            decoder.export_all(debayer=opts.debayer)
+            decoder.export_all(
+                interp=opts.interp,
+                debayer=opts.debayer
+            )
 
 
 parser = argparse.ArgumentParser(description=(
@@ -1093,6 +1100,11 @@ parser = argparse.ArgumentParser(description=(
 
 
 def get_opts():
+    parser.add_argument('--interp', default=True,
+                        action=argparse.BooleanOptionalAction,
+                        help=(
+                            "Whether or not to attempt to interpolate unknown pixels."
+                        ))
     parser.add_argument('--debayer', default=False,
                         action=argparse.BooleanOptionalAction,
                         help=(

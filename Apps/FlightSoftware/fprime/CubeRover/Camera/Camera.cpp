@@ -97,27 +97,30 @@ namespace CubeRover
   /* Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line). */
   void CameraComponentImpl::Take_Image_Section_cmdHandler(
       FwOpcodeType opCode, /*!< The opcode*/
-      U32 cmdSeq, /*!< The command sequence number*/
+      U32 cmdSeq,          /*!< The command sequence number*/
       U8 camera_num,
       U16 startLine,
       U16 endLine,
-      U16 callback_id
-  ){
-      m_numGroundImgsReq++;
-      tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
+      U16 callback_id)
+  {
+    m_numGroundImgsReq++;
+    tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
 
-      if(startLine > endLine){
-          this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
-      }
-      if((endLine-startLine) <= 1){
-          this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
-      }
-      if(startLine > (IMAGE_HEIGHT-1) || endLine > IMAGE_HEIGHT){
-          this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
-      }
+    if (startLine > endLine)
+    {
+      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+    }
+    if ((endLine - startLine) <= 1)
+    {
+      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+    }
+    if (startLine > (IMAGE_HEIGHT - 1) || endLine > IMAGE_HEIGHT)
+    {
+      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
+    }
 
-      takeImage(camera_num, callback_id, startLine, endLine);
-      this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    takeImage(camera_num, callback_id, startLine, endLine);
+    this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
   void CameraComponentImpl ::
@@ -185,7 +188,7 @@ namespace CubeRover
           const FwOpcodeType opCode,
           const U32 cmdSeq)
   {
-    // TODO
+    eraseFpgaFlash();
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
@@ -383,9 +386,10 @@ namespace CubeRover
       const uint32_t startLine,
       const uint32_t endLine)
   {
-      if(startLine > endLine || (endLine-startLine) <= 1 || startLine > (IMAGE_HEIGHT-1) || endLine > IMAGE_HEIGHT){
-          return;
-      }
+    if (startLine > endLine || (endLine - startLine) <= 1 || startLine > (IMAGE_HEIGHT - 1) || endLine > IMAGE_HEIGHT)
+    {
+      return;
+    }
 
     S25fl512l::MemAlloc alloc;
     alloc.startAddress = 0;

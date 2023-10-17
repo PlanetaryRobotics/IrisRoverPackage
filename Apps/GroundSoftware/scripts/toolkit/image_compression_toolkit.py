@@ -20,12 +20,16 @@ HS_WINDOW: Final[int] = 10
 HS_LOOKAHEAD: Final[int] = 3
 
 
+LEN_OF_LINE_HEADER = 15  # Bytes
+LEN_OF_FRAME_HEADER_DATA = 84  # Bytes
+
+
 def compress(line: bytes, n_bin: int = N_BIN_DEFAULT, heatshrink: bool = True) -> bytes:
     # Bin and heatshrink. Also RLE homogeneous lines.
     # Impl. in a way that's easily translatable to C++
     line = bytearray(line)  # make it mutable
     line_len: int = len(line)
-    if (line_is_homogeneous(line)):
+    if (line_is_homogeneous(line) and len(line) > 6):
         # If Line is all 1 value, replace with:
         # b"ALL" + (U16 num bytes) + char to repeat (really basic RLE)
         line[0:3] = b"ALL"
@@ -79,7 +83,7 @@ def decompress(line: bytes) -> bytes:
     return bytes(line)
 
 
-# Use Aptina-style (bayer-preserving) binning as a method of acceptably lossless compression:
+# Use Aptina-style (bayer-preserving) binning as a method of acceptably lossy compression:
 # Do this in-place:
 # Impl. in a way that's easily translatable to C++
 
@@ -96,10 +100,6 @@ def bin_section(line: bytes, start_idx: int, n_bin: int) -> Tuple[int, int]:
     byte_1 = (byte_1 // n_bin)
     byte_2 = (byte_2 // n_bin)
     return (byte_1 & 0xFF, byte_2 & 0xFF)
-
-
-LEN_OF_LINE_HEADER = 15  # Bytes
-LEN_OF_FRAME_HEADER_DATA = 84  # Bytes
 
 
 def unbin_section(binned_bytes: bytes, n_bin: int) -> bytes:
@@ -200,11 +200,14 @@ def bin_line(n_bin: int, line: bytes | bytearray) -> Tuple[bytes, int]:
         else:
             # Copy all of the remaining bytes before the header and all the bytes in the header:
             # Copy the header:
-            header_len: int = LEN_OF_LINE_HEADER if (
-                line[header_start_idx] == 0x11) else LEN_OF_FRAME_HEADER_DATA
+            header_len: int
+            if line[header_start_idx] == 0x11:
+                header_len = LEN_OF_LINE_HEADER
+            else:
+                header_len = LEN_OF_FRAME_HEADER_DATA
             n_bytes_to_copy: int = header_start_idx - read_idx + header_len
-            line[write_idx:write_idx +
-                 n_bytes_to_copy] = line[read_idx:read_idx+n_bytes_to_copy]
+            line[write_idx:write_idx + n_bytes_to_copy] \
+                = line[read_idx:read_idx+n_bytes_to_copy]
             # Advance read index:
             read_idx += n_bytes_to_copy
             # Apply Nbinned to its previous location, advance its index to after the header, and reset it:

@@ -58,8 +58,6 @@ namespace CubeRover
         m_FR_Encoder_Count = 0;
         m_RR_Encoder_Count = 0;
         m_RL_Encoder_Count = 0;
-        m_ticksToRotation = 0;      // gets set in init (probably shouldn't be this way for clarity but it works and doesn't cause problems)
-        m_angularToLinear = 0;      // gets set in init (probably shouldn't be this way for clarity but it works and doesn't cause problems)
     }
 
     /**
@@ -71,12 +69,6 @@ namespace CubeRover
     {
         MotorControlComponentBase::init(instance);
 
-        // Initalized the ticks per rotation
-        m_ticksToRotation = 9750;
-
-        // Initalize the converting values
-        m_angularToLinear = CUBEROVER_COM_TO_WHEEL_CIRC_CM / 360;
-        // This should be the circumference from the COM of the rover to the wheel.
     }
 
     /**
@@ -110,6 +102,7 @@ namespace CubeRover
      * @param[in]  Distance       Distance
      * @param[in]  Speed          Speed
      */
+    /* --- NAV COMPONENT MOVE COMMANDS --- */
     void MotorControlComponentImpl ::motorCommandIn_handler(const NATIVE_INT_TYPE portNum,
                                                             CubeRoverPorts::MC_CommandType command_type,
                                                             CubeRoverPorts::MC_MovementType movement_type,
@@ -229,6 +222,8 @@ namespace CubeRover
         if (Motor_ID == ALL_MOTOR_ID)
         {
             err = sendAllMotorsData(REG_P_SPEED, &P_Value);
+//            err = updateMotorControllers(REG_P_SPEED, &P_Value);
+
             if (err != MC_NO_ERROR)
             {
                 this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
@@ -632,15 +627,14 @@ namespace CubeRover
 
         checkMotorsStatus(); // TODO: se the return value here ...
 
-        Throttle_t motor_speed;
         // Enforce speed always positive. Direction set by distance
         if (speed > 0)
         {
-            motor_speed = groundSpeedToSpeedPrecent(speed);
+//          uint8_t motor_speed = groundSpeedToSpeedPrecent(speed);
 
             // Send the speed to all the motors
             // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
-            err = sendAllMotorsData(REG_TARGET_SPEED, &motor_speed);
+            err = sendAllMotorsData(REG_TARGET_SPEED, &speed);
             if (err != MC_NO_ERROR)
                 return err;
         }
@@ -649,7 +643,7 @@ namespace CubeRover
             return MC_BAD_COMMAND_INPUT;
         }
 
-        MotorTick_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
+        int32_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
         Relative_ticks = distance;
         // Ensure the sides are traveling the right direction
         if (m_forward_is_positive)
@@ -717,11 +711,11 @@ namespace CubeRover
         // Enforce speed always positive. Direction set by distance
         if (speed > 0)
         {
-            Throttle_t motor_speed = m_angularToLinear * groundSpeedToSpeedPrecent(speed);
+//            uint8_t motor_speed = m_angularToLinear * groundSpeedToSpeedPrecent(speed);
 
             // Send the speed to all the motors
             // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
-            err = sendAllMotorsData(REG_TARGET_SPEED, &motor_speed);
+            err = sendAllMotorsData(REG_TARGET_SPEED, &speed);
             if (err != MC_NO_ERROR)
                 return err;
         }
@@ -730,7 +724,7 @@ namespace CubeRover
             return err;
         }
 
-        MotorTick_t Relative_ticks = m_angularToLinear * distance;
+        int32_t Relative_ticks = m_angularToLinear * distance;
 
         taskENTER_CRITICAL();
         StatusRegister_t status;
@@ -812,23 +806,6 @@ namespace CubeRover
                 return MC_I2C_TIMEOUT_ERROR;
             }
         }
-    }
-
-// Convert ground units to motor control native units
-#define TICKS_PER_CM 158.343f // TODO: This should be settable based on if this is for FM1 or EM4
-
-
-    // Convert ground units to motor control native units (cm/s -> msp430 scaled speed)
-    constexpr float MC_MSP_IQ_SPEED_SCALER = 255.0 / 7968.75;
-    MotorControlComponentImpl::Throttle_t
-    MotorControlComponentImpl::groundSpeedToSpeedPrecent(int16_t speed)
-    {
-        // TODO: If no constant multiple by operator editable 1
-        // This is what's used to set the MC MSP speed register.
-        // In the speed reg, speed is -1.0 to +1.0 where 255 ticks per PWM_PERIOD = PI_SPD_CONTROL_PRESCALER * PWM_PERIOD_TICKS = 16MHz / (1000 * 512) = 31.25Hz -> 7968.75 ticks/s
-        // cm/s * TICKS_PER_CM = ticks/s. 7968.75 ticks/s is 255.
-        // We send a number from 0 to +255, representing the mag. of the _iq speed (0 to 1).
-        return speed * (TICKS_PER_CM * MC_MSP_IQ_SPEED_SCALER);
     }
 
     bool MotorControlComponentImpl::updateTelemetry()

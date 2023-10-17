@@ -14,7 +14,7 @@
 #define I2C_RX_BUFFER_MAX_SIZE      8
 #define I2C_TX_BUFFER_MAX_SIZE      8
 #define I2C_MAX_DATA_SIZE           4
-#define I2C_SLAVE_ADDRESS           0x48
+#define I2C_SLAVE_ADDRESS_BASE      0x48
 #define I2C_PACKET_HEADER           0xAA
 
 #include "driverlib.h"

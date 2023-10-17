@@ -25,8 +25,7 @@
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
 #define NUM_MOTORS 4
 
-#define MAX_SPEED 100 // TODO: Should be 255?
-#define CUBEROVER_COM_TO_WHEEL_CIRC_CM 78.54f
+#define MAX_SPEED 100
 #define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
 
 namespace CubeRover
@@ -141,13 +140,32 @@ namespace CubeRover
 
         /* Implementation specific declarations */
     public:
+
+        /* -------------------------------------------------------
+         * MC DEFINITIONS
+         * Author: RAD
+         * -------------------------------------------------------
+         */
+
+        // MC Error Types
+        typedef enum
+        {
+            MC_NO_ERROR,
+            MC_I2C_TIMEOUT_ERROR,
+            MC_UNEXPECTED_ERROR,
+            MC_BAD_COMMAND_INPUT
+        } MCError_t;
+
+        /* Motor Controller Interface Definitions */
+
+        // i2c Register
         typedef enum
         {
             REG_I2C_ADDRESS = 0,              // Read-only  - 1Byte
             REG_RELATIVE_TARGET_POSITION = 1, // Write-only - 4Bytes
             REG_TARGET_SPEED = 2,             // Write-only - 1Byte
             REG_CURRENT_POSITION = 3,         // Read-only  - 4Bytes
-            // REG_CURRENT_SPEED = 4,         // Deprecated
+            REG_CURRENT_SPEED = 4,            // DEPRICATED - 2Bytes
             REG_MOTOR_CURRENT = 5, // Read-only  - 4Bytes
             REG_P_CURRENT = 6,     // Write-only - 2Bytes
             REG_I_CURRENT = 7,     // Write-only - 2Bytes
@@ -161,7 +179,7 @@ namespace CubeRover
             NUM_REGS = 16,
         } RegisterAddress_t;
 
-        /* Motor Control Interface w.r.t. PR #51 & PR#52 */
+        // i2c Control Register
         typedef union
         {
             uint8_t value;
@@ -176,6 +194,7 @@ namespace CubeRover
             } bits;
         } ControlRegister_t;
 
+        // i2c Status Register
         typedef union
         {
             uint8_t value;
@@ -190,6 +209,7 @@ namespace CubeRover
             } bits;
         } StatusRegister_t;
 
+        // i2c Fault Register
         typedef union
         {
             uint8_t value;
@@ -201,18 +221,6 @@ namespace CubeRover
                 uint8_t unused : 5;
             } bits;
         } FaultRegister_t;
-
-        typedef enum
-        {
-            MC_NO_ERROR,
-            MC_I2C_TIMEOUT_ERROR,
-            MC_UNEXPECTED_ERROR,
-            MC_BAD_COMMAND_INPUT
-        } MCError_t;
-
-        typedef int32_t Distance_cm_t;
-        typedef int32_t MotorTick_t;
-        typedef uint8_t Throttle_t;
 
         // Tightly coupled to *_ADDR and *_ID defines
         static const uint8_t motorIdAddressMap[NUM_MOTORS];
@@ -232,8 +240,6 @@ namespace CubeRover
         MCError_t moveAllMotorsStraight(int32_t distance, int16_t speed);
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
-
-        Throttle_t groundSpeedToSpeedPrecent(int16_t speed);
 
         bool updateTelemetry();
 

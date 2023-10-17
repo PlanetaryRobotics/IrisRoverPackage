@@ -1,6 +1,6 @@
 // ======================================================================
 // \title  CameraComponentImpl.hpp
-// \author Raewyn
+// \author Connor Colombo, Raewyn Duvall
 // \brief  hpp file for Camera component implementation class
 //
 // \copyright
@@ -19,6 +19,8 @@
 
 // --- SYSTEM IMAGE PARAMS ---
 #define IMAGE_WIDTH 2592
+// Number of pages used by each image line:
+#define IMAGE_PAGE_WIDTH 6
 #define IMAGE_HEIGHT 1944
 
 // --- DUMMY IMAGE PARAMS ---
@@ -29,13 +31,23 @@
 #define DUMMY_IMAGE_WIDTH IMAGE_WIDTH
 #define DUMMY_IMAGE_HEIGHT IMAGE_HEIGHT
 
-// RAD TODO - isn't downsampling a user-defined parameter?
-// #define DOWNSAMPLING        1
-// #define DOWNSAMPLED_IMG_WIDTH   (IMAGE_WIDTH / DOWNSAMPLING)
-// #define DOWNSAMPLE_IMG_HEIGHT   (IMAGE_HEIGHT / DOWNSAMPLING)
-
 namespace CubeRover
 {
+
+    // Metadata about how an image line is formatted:
+    struct ImageLineFormattingMetadata
+    {
+        // Has the line been binned:
+        uint8_t binned; // only 0xFF or 0x00 are valid
+        // Has the line been compressed:
+        uint8_t compressed; // only 0xFF or 0x00 are valid
+    } __attribute__((packed));
+
+    struct FormattedImageLine
+    {
+        ImageLineFormattingMetadata formatting;
+        uint8_t buffer[PAGE_SIZE * IMAGE_PAGE_WIDTH];
+    } __attribute__((packed));
 
     enum class DummyImageType
     {
@@ -117,19 +129,19 @@ namespace CubeRover
         /* Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line). */
         void Take_Image_Section_cmdHandler(
             FwOpcodeType opCode, /*!< The opcode*/
-            U32 cmdSeq, /*!< The command sequence number*/
-            U8 camera_num, /*!<
-                            0: Camera 0     1: Camera 1
-                        */
-            U16 startLine, /*!<
-                            Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
-                        */
-            U16 endLine, /*!<
-                            Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
-                        */
-            U16 callback_id /*!<
-                            Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
-                        */
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U8 camera_num,       /*!<
+                                  0: Camera 0     1: Camera 1
+                              */
+            U16 startLine,       /*!<
+                                  Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                              */
+            U16 endLine,         /*!<
+                                    Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                                */
+            U16 callback_id      /*!<
+                                 Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                             */
         );
 
         //! Implementation for Error command handler
@@ -231,24 +243,39 @@ namespace CubeRover
         // User Methods
         // ----------------------------------------------------------------------
 
-        void takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine);
+        // Downlink pages from flash memory. Pages are downlinked in groups
+        // called "file lines" (legacy name, different from image lines)
+        // which are just multiple pages back-to-back.
+        // More pages per line means more efficiency but means more data is
+        // lost if a line fails.
+        //
+        // Each line can be compressed before downlink.
+        // Each line can be binned before compression.
+        // Binning
+        void downlinkMemory(
+            const uint32_t startPage,
+            const uint32_t endPage,
+            const uint8_t n_bin = 1, // <=1 is no binning
+            const uint8_t pagesPerLine = 6,
+            const bool compressLine = false);
+
+        uint32_t takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine, bool eraseFirst = true);
         void generateDummyImage(bool viaFlash, DummyImageType type);
         void triggerImageCapture(void);
         void eraseFpgaFlash(void);
         void sendImgFromFlash(uint32_t createTime, const uint32_t startLine, const uint32_t endLine);
-        void downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines);
+        void downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines, bool isFirstOrLastLineToDownlink);
 
         S25fl512l m_fpgaFlash;
 
         // Align image buffer to uint64_t boundary since all FPrime buffers get handled as U64 (for some reason?).
         // Can't normally align member variable, but uint64_t will be naturally aligned on an 8-byte boundary
-        // thus forcing the m_headerBuffer to also be aligned at such a boundary. In other words, this union
-        // is equivalent to:
-        // uint8_t m_imageLineBuffer[IMAGE_WIDTH] __attribute__((aligned(8)));
+        // thus forcing the m_headerBuffer to also be aligned at such a boundary.
         // Stolen from `WatchDogMpsm` for same purpose.
         union
         {
-            uint8_t m_imageLineBuffer[IMAGE_WIDTH];
+            FormattedImageLine m_imageLine;
+            uint8_t m_formattedImageLineBuffer[sizeof(FormattedImageLine)];
             uint64_t not_used__imageLineBuffer;
         };
 
@@ -257,6 +284,7 @@ namespace CubeRover
         U32 m_imagesSent;
         U32 m_bytesSent;
         uint16_t m_lastCallbackId;
+        uint8_t m_lastCameraSelected; // which camera was used to capture the most recent image.
         uint8_t m_cameraSelect;
     };
 

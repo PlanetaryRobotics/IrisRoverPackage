@@ -23,6 +23,28 @@
     	<!--This is a really basic default event. Added this so Camera component would have a Log port that we could connect to ActiveLogger so, if we want to add detailed logs in the future, it's not burdensome.-->
         <comment>A basic notification that, for some reason, the camera failed to capture an image. Try again.</comment>
     </event>
+    <event id="1" name="Camera_ImageCaptureComplete" severity="ACTIVITY_HI" format_string="Image capture complete. FGID: %d. CID: %d.">
+    	<comment>Notice that the camera has finished downlinking the image with the given settings.</comment>
+        <args>
+            <arg name="fileGroupId" type="U16">
+                <comment>Which "File Group" this came from. Since we're downlinking lines of flash memory as a "File", we need a way for grouping them together so we know they're part of the same file.</comment>
+            </arg>
+            <arg name="callbackId" type="U16">
+                <comment>Callback ID sent along with the command which generated this request.</comment>
+            </arg>
+        </args>
+    </event>
+    <event id="2" name="Camera_ImageDownlinkComplete" severity="ACTIVITY_HI" format_string="Image downlink complete. FGID: %d. CID: %d.">
+    	<comment>Downlink of requested image data is complete.</comment>
+        <args>
+            <arg name="fileGroupId" type="U16">
+                <comment>Which "File Group" this came from. Since we're downlinking lines of flash memory as a "File", we need a way for grouping them together so we know they're part of the same file.</comment>
+            </arg>
+            <arg name="callbackId" type="U16">
+                <comment>Callback ID sent along with the command which generated this request.</comment>
+            </arg>
+        </args>
+    </event>
   </events>
     
     <telemetry>

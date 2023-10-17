@@ -1,6 +1,6 @@
 // ======================================================================
 // \title  CameraComponentImpl.cpp
-// \author justin
+// \author Connor Colombo, Raewyn Duvall
 // \brief  cpp file for Camera component implementation class
 //
 // \copyright
@@ -11,6 +11,8 @@
 // ======================================================================
 
 #include <CubeRover/Camera/Camera.hpp>
+#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
+#include <GroundInterface/GroundInterface.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/FswPacket" // PrimaryFlightController/FlightMCU
 #include <cstring>
@@ -18,6 +20,8 @@
 #include "gio.h"
 #include "spi.h"
 #include "lin.h"
+
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;
 
 namespace CubeRover
 {
@@ -46,6 +50,7 @@ namespace CubeRover
     m_numGroundImgsReq = 0;
     m_imagesSent = 0;
     m_bytesSent = 0;
+    m_lastCameraSelected = 0xAA; // none yet
   }
 
   CameraComponentImpl ::
@@ -65,7 +70,10 @@ namespace CubeRover
   {
     m_numComponentImgsReq++;
     tlmWrite_Cam_ComponentImagesRequested(m_numComponentImgsReq);
-    takeImage(CameraNum, CallbackId, 0, IMAGE_HEIGHT);
+    // Capture Image:
+    uint32_t createTime = takeImage(CameraNum, CallbackId, 0, IMAGE_HEIGHT);
+    // Downlink it:
+    sendImgFromFlash(createTime, 0, IMAGE_HEIGHT);
   }
 
   // ----------------------------------------------------------------------
@@ -90,7 +98,10 @@ namespace CubeRover
   {
     m_numGroundImgsReq++;
     tlmWrite_Cam_CommandImagesRequested(m_numGroundImgsReq);
-    takeImage(camera_num, callback_id, 0, IMAGE_HEIGHT);
+    // Capture Image:
+    uint32_t createTime = takeImage(camera_num, callback_id, 0, IMAGE_HEIGHT);
+    // Downlink it:
+    sendImgFromFlash(createTime, 0, IMAGE_HEIGHT);
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
@@ -119,7 +130,10 @@ namespace CubeRover
       this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_VALIDATION_ERROR);
     }
 
-    takeImage(camera_num, callback_id, startLine, endLine);
+    // Capture Image:
+    uint32_t createTime = takeImage(camera_num, callback_id, startLine, endLine);
+    // Downlink it:
+    sendImgFromFlash(createTime, startLine, endLine);
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
@@ -238,7 +252,9 @@ namespace CubeRover
   // ----------------------------------------------------------------------
 
   // TAKE IMAGE
-  void CameraComponentImpl::takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine)
+  // Triggers the capture of an image. Doesn't actually downlink it (in case we want to do that later).
+  // Returns the capture time.
+  uint32_t CameraComponentImpl::takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine, bool eraseFirst)
   {
     // Set the camera and callback IDs
     m_cameraSelect = camera;
@@ -247,10 +263,26 @@ namespace CubeRover
 
     // Take Real Image!
 
+    // Automatically send the appropriate reset-specific command for camera
+    // select:
+    if (!m_cameraSelect)
+    {
+      watchDogInterface.Reset_Specific_Handler(WatchDogInterfaceComponentBase::reset_values_possible::FPGA_Cam_0);
+    }
+    else
+    {
+      watchDogInterface.Reset_Specific_Handler(WatchDogInterfaceComponentBase::reset_values_possible::FPGA_Cam_1);
+    }
+    // TODO: [CWC] This (^) is how resets were done before but shouldn't we be using `WatchdogResetRequest` for this? Investigate. It's done so infrequently and is now mutexed that it's probably okay.
+
     // set bit to control camera
     gioSetBit(linPORT, 1, m_cameraSelect & 0x01);
+    m_lastCameraSelected = m_cameraSelect & 0x01;
 
-    eraseFpgaFlash();
+    if (eraseFirst)
+    {
+      eraseFpgaFlash();
+    }
 
     // add small delays to make sure camera is selection is done
     for (int delay = 0; delay < 500; delay++)
@@ -260,11 +292,16 @@ namespace CubeRover
 
     // capture image
     triggerImageCapture();
+    // Wait until FPGA tells us its done:
     while (gioGetBit(gioPORTB, 1))
       ;
 
-    // send image from flash
-    sendImgFromFlash(createTime, startLine, endLine);
+    log_ACTIVITY_HI_Camera_ImageCaptureComplete(
+        GroundInterfaceComponentImpl::hashTime(createTime),
+        m_lastCallbackId //
+    );
+
+    return createTime;
   }
 
   // CREATE AND SEND DUMMY IMAGE
@@ -278,7 +315,7 @@ namespace CubeRover
     {
       // Prep Flash before writing each line
       alloc.startAddress = 0;
-      alloc.reservedSize = sizeof(m_imageLineBuffer);
+      alloc.reservedSize = sizeof(m_imageLine.buffer);
 
       eraseFpgaFlash();
     }
@@ -303,23 +340,23 @@ namespace CubeRover
         case DummyImageType::GRID:
           // Make the grid version:
           // if camera == 0 then all black, else black and white grid, in theory...
-          m_imageLineBuffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
+          m_imageLine.buffer[x] = 255 * (((x / grid_x_spacing) + (y / grid_y_spacing)) % 2);
           // Make it a gradient in both x and y for debugging:
-          if (m_imageLineBuffer[x] == 0x00)
+          if (m_imageLine.buffer[x] == 0x00)
           {
-            m_imageLineBuffer[x] += 255 * x / DUMMY_IMAGE_WIDTH / 3;
-            m_imageLineBuffer[x] += 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+            m_imageLine.buffer[x] += 255 * x / DUMMY_IMAGE_WIDTH / 3;
+            m_imageLine.buffer[x] += 255 * y / DUMMY_IMAGE_HEIGHT / 3;
           }
           else
           {
-            m_imageLineBuffer[x] -= 255 * x / DUMMY_IMAGE_WIDTH / 3;
-            m_imageLineBuffer[x] -= 255 * y / DUMMY_IMAGE_HEIGHT / 3;
+            m_imageLine.buffer[x] -= 255 * x / DUMMY_IMAGE_WIDTH / 3;
+            m_imageLine.buffer[x] -= 255 * y / DUMMY_IMAGE_HEIGHT / 3;
           }
           break;
         case DummyImageType::SEQUENCE:
         default:
           // Make the sequence version where every 4B are an incrementing U32:
-          m_imageLineBuffer[x] = sequenceCount.arr[sequenceByteCount % 4];
+          m_imageLine.buffer[x] = sequenceCount.arr[sequenceByteCount % 4];
           if (sequenceByteCount % 4 == 3)
           {
             // Inc. to next value once all bytes in this value have been added:
@@ -331,13 +368,22 @@ namespace CubeRover
       if (viaFlash)
       {
         // write each line to flash
-        m_fpgaFlash.writeDataToFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+        m_fpgaFlash.writeDataToFlash(&alloc, 0, m_imageLine.buffer, DUMMY_IMAGE_WIDTH);
         alloc.startAddress += PAGE_SIZE * 6;
       }
       else
       {
         // send each line as it is created
-        downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, y, DUMMY_IMAGE_HEIGHT);
+        // Downlinking with formatting metadata:
+        m_imageLine.formatting.binned = 0x00;
+        m_imageLine.formatting.compressed = 0x00;
+        downlinkImageLine(
+            m_formattedImageLineBuffer, sizeof(ImageLineFormattingMetadata) + DUMMY_IMAGE_WIDTH,
+            // Very late add: reserve top bit of callback Id for cameraNum:
+            (m_lastCallbackId & 0x7FFF) | ((m_lastCameraSelected & 0x01) << 15),
+            createTime, y, DUMMY_IMAGE_HEIGHT,
+            (y == 0 || y == (DUMMY_IMAGE_HEIGHT - 1)) //
+        );
       }
     }
 
@@ -381,11 +427,16 @@ namespace CubeRover
   }
 
   // SEND IMAGE FROM FLASH, reading from `startLine` to `endLine`
+  // If n_bin > 2, bayer-preserving binning will be attempted.
+  // If compressLine, lossless compression of binned line will be attempted.
   void CameraComponentImpl::sendImgFromFlash(
       uint32_t createTime,
       const uint32_t startLine,
-      const uint32_t endLine)
+      const uint32_t endLine,
+      const uint8_t n_bin,
+      const bool compressLine)
   {
+    static bool binningOccurred, compressionOccurred;
     if (startLine > endLine || (endLine - startLine) <= 1 || startLine > (IMAGE_HEIGHT - 1) || endLine > IMAGE_HEIGHT)
     {
       return;
@@ -397,22 +448,61 @@ namespace CubeRover
 
     for (int i = startLine; i < endLine; i++)
     {
-      alloc.startAddress = 6 * PAGE_SIZE * i; // set to correct block
-      m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLineBuffer, sizeof(m_imageLineBuffer));
+      alloc.startAddress = IMAGE_PAGE_WIDTH * PAGE_SIZE * i; // set to correct block
+      // Read out all PAGES in a line.
+      // Since an image line doesn't full This should capture a region of blank
+      // flash at the end of each line. We need this b/c FPGA's Flash FSM
+      // sometimes places this skip in the wrong position.
+      // RLE compression should make this extra 480B of data irrelevant since
+      // it'll be compressed.
+      m_fpgaFlash.readDataFromFlash(&alloc, 0, m_imageLine.buffer, sizeof(m_imageLine.buffer));
+
+      // Optionally bin & compress data:
+      uint16_t dataSize;
+      if (n_bin > 2 || compressLine)
+      {
+        // Attempt to compress and bin:
+        dataSize = ::IrisImage::compressAndBinLine(
+            m_imageLine.buffer, sizeof(m_imageLine.buffer),
+            n_bin, compressLine,
+            &binningOccurred,
+            &compressionOccurred //
+        );
+        m_imageLine.formatting.binned = binningOccurred ? 0xFF : 0x00;
+        m_imageLine.formatting.compressed = compressionOccurred ? 0xFF : 0x00;
+      }
+      else
+      {
+        // Default:
+        dataSize = sizeof(m_imageLine.buffer);
+        m_imageLine.formatting.binned = 0x00;
+        m_imageLine.formatting.compressed = 0x00;
+      }
 
       // NOTE: Still using IMAGE_HEIGHT here (even if we're only sending a subset) because we need to know the total number of lines in the **FULL** FileGroup:
-      downlinkImageLine(m_imageLineBuffer, sizeof(m_imageLineBuffer), m_lastCallbackId, createTime, i, IMAGE_HEIGHT);
+      downlinkImageLine(
+          m_formattedImageLineBuffer, (sizeof(ImageLineFormattingMetadata) + dataSize),
+          // Very late add: reserve top bit of callback Id for cameraNum:
+          (m_lastCallbackId & 0x7FFF) | ((m_lastCameraSelected & 0x01) << 15),
+          createTime, i, IMAGE_HEIGHT,
+          (i == startLine || y == (endLine - 1)) //
+      );
     }
+
+    log_ACTIVITY_HI_Camera_ImageDownlinkComplete(
+        GroundInterfaceComponentImpl::hashTime(createTime),
+        m_lastCallbackId //
+    );
 
     m_imagesSent++;
     tlmWrite_Cam_ImagesSent(m_imagesSent);
   }
 
   // DOWNLINK ONE ROW OF IMAGE
-  void CameraComponentImpl::downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines)
+  void CameraComponentImpl::downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines, bool isFirstOrLastLineToDownlink)
   {
     Fw::Buffer fwBuffer(0, 0, reinterpret_cast<U64>(image), size);
-    downlinkImage_out(0, callbackId, createTime, lineIndex, numLines, fwBuffer);
+    downlinkImage_out(0, callbackId, createTime, lineIndex, numLines, isFirstOrLastLineToDownlink, fwBuffer);
 
     m_bytesSent += static_cast<U32>(size);
     tlmWrite_Cam_BytesSent(m_bytesSent);

@@ -100,6 +100,7 @@ namespace CubeRover
             U32 fileGroupCreateTime,       /*!< When the File Group this file comes from was created (i.e. image capture time -  each image LINE is a "File", so an image is a "File Group") */
             U16 fileGroupLineNumber,       /*!< Which "line" in the File Group this file is (i.e. image line number - each image LINE is a "File", so an image is a "File Group"). 0-indexed. */
             U16 fileGroupTotalLines,       /*!< Total number of lines in the File Group (image) */
+            bool forceMetadataBlock,       /*!< Force inclusion of file metadata block in this block. Otherwise it's only included in some lines. */
             Fw::Buffer &fwBuffer           /*!< Buffer containing the data*/
         );
 
@@ -154,8 +155,13 @@ namespace CubeRover
 
         // User defined methods, members, and structs
 
-        void downlinkFileMetadata(uint16_t fileGroupId, uint16_t fileGroupLineNumber, uint16_t fileGroupTotalLines, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
-        uint16_t hashTime(uint32_t time); // Used for files to get unique Id for parallel downlinks
+    public:
+        static uint16_t hashTime(uint32_t time); // Used for files to get unique Id for parallel downlinks
+
+        PRIVATE :
+
+            void
+            downlinkFileMetadata(uint16_t fileGroupId, uint16_t fileGroupLineNumber, uint16_t fileGroupTotalLines, uint8_t totalBlocks, uint16_t callbackId, uint32_t timestamp_ms);
         void downlinkBufferWrite(void *_data, uint16_t size, downlinkPacketType from);
         void flushTlmDownlinkBuffer();
         void downlink(void *_data, uint16_t size);

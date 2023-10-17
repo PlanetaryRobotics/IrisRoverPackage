@@ -18,6 +18,9 @@
         <arg name="fileGroupTotalLines" type="U16">
             <comment>Total number of lines in the File Group (image).</comment>
         </arg>
+        <arg name="forceMetadataBlock" type="bool">
+            <comment>Force inclusion of file metadata block in this block. Otherwise it's only included in some lines.</comment>
+        </arg>
         <arg name="fwBuffer" type="Fw::Buffer" pass_by="reference">
             <comment>Buffer containing the data</comment>
         </arg>

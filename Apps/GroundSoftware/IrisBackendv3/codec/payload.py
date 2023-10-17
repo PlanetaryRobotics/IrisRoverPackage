@@ -1084,8 +1084,11 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
+    # Top bit of callback Id has been reserved for camera number:
     @property
-    def callback_id(self) -> int: return self._callback_id
+    def callback_id(self) -> int: return (self._callback_id & 0x7FFF)
+    @property
+    def camera_num(self) -> int: return ((self._callback_id >> 15) & 0x01)
 
     @property
     def file_group_total_lines(self) -> int:

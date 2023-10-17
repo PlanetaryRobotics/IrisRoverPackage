@@ -58,7 +58,6 @@ DEFAULT_IMAGE_LINE_COUNT: Final[int] = 1944
 DEFAULT_IMAGE_WIDTH: Final[int] = 2592
 
 FileIdType: TypeAlias = int
-CallbackIdType: TypeAlias = int
 
 # Setup:
 manager = ipc.IpcAppManagerSync(socket_specs={
@@ -322,16 +321,21 @@ class ImageLine:
     @classmethod
     def from_first_block(cls: Type[ImageLine], block: FileBlockPayload) -> ImageLine:
         """Initializes this `ImageLine` from whatever `FileBlockPayload` was
-        found first (should be `FileMetadata` but that's not guaranteed)."""
+        found first (should be `FileMetadata` but that's not guaranteed).
+        NOTE: FileMetadata is now only downlinked for the first line,
+        last line, and any lines where %100==0.
+        """
         line = cls.new_empty()
         # `add_block` automatically handles sizing the line, so we don't have
         # to worry about it here...
         line.add_block(block)
-        if not block.is_metadata:
+        if not block.is_metadata and (block.file_group_line_number % 100 == 0):
             app.logger.warning(
                 f"First block for `ImageLine` with "
                 f"line={block.file_group_line_number} in {block.file_group_id} "
-                f"was not `FileMetadata`. This is unusual but not impossible."
+                f"was not `FileMetadata`. "
+                "Metadata should be in every line with (fg_line_number%100==0). "
+                "Missing it on the first block is unusual but not impossible."
             )
         return line
 
@@ -586,7 +590,7 @@ class Image:
         # Check for consensus:
         fg_ids = [l.file_group_id for l in self.lines_in_progress.values()]
         if any(fg_id != fg_ids[0] for fg_id in fg_ids):
-            # Use most common value:
+            # Use most common value if disagreement:
             most_common = Counter(fg_ids).most_common(1)[0][0]
             return most_common
         else:
@@ -609,18 +613,100 @@ class Image:
         else:
             return True
 
+    @property
+    def callback_id(self) -> int | None:
+        """Callback ID of this File Group (Image)."""
+        if len(self.lines_in_progress) == 0:
+            # No data yet.
+            return None
+
+        # Check for consensus among all lines with a metadata block:
+        cids = [
+            l.metadata.callback_id for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cid != cids[0] for cid in cids):
+            # Use most common value if disagreement:
+            most_common = Counter(cids).most_common(1)[0][0]
+            return most_common
+        else:
+            return cids[0]
+
+    def validate_callback_id(self) -> bool:
+        """Checks if reported `callback_id` is internally consistent within
+        this file."""
+        # Check for consensus:
+        cids = [
+            l.metadata.callback_id for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cid != cids[0] for cid in cids):
+            # Report the disagreement and resolution:
+            app.logger.warning(
+                f"Disagreement about `callback_id` in `Image`. "
+                f"Counts of values reported by lines in file are: "
+                f"`{Counter(cids)}`. "
+                f"Using value: `{self.callback_id = }`."
+            )
+            return False
+        else:
+            return True
+
+    @property
+    def camera_num(self) -> int | None:
+        """Camera Number of this File Group (Image)."""
+        if len(self.lines_in_progress) == 0:
+            # No data yet.
+            return None
+
+        # Check for consensus among all lines with a metadata block:
+        cam_nums = [
+            l.metadata.camera_num for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cam_num != cam_nums[0] for cam_num in cam_nums):
+            # Use most common value if disagreement:
+            most_common = Counter(cam_nums).most_common(1)[0][0]
+            return most_common
+        else:
+            return cam_nums[0]
+
+    def validate_camera_num(self) -> bool:
+        """Checks if reported `camera_num` is internally consistent within
+        this file."""
+        # Check for consensus:
+        cam_nums = [
+            l.metadata.camera_num for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cam_num != cam_nums[0] for cam_num in cam_nums):
+            # Report the disagreement and resolution:
+            app.logger.warning(
+                f"Disagreement about `camera_num` in `Image`. "
+                f"Counts of values reported by lines in file are: "
+                f"`{Counter(cam_nums)}`. "
+                f"Using value: `{self.camera_num = }`."
+            )
+            return False
+        else:
+            return True
+
     def validate(self) -> bool:
         """Returns whether all lines in this file are valid & internally
         consistent."""
         # Collect as bools first so ALL validation checks are run
         # (this allows them to emit logs as needed)
         fg_id_valid = self.validate_file_group_id()
+        callback_id_valid = self.validate_callback_id()
+        cam_num_valid = self.validate_camera_num()
         all_lines_valid = all(
             line.validate()
             for line in self.lines_in_progress.values()
         )
         return (
             fg_id_valid and
+            callback_id_valid and
+            cam_num_valid and
             all_lines_valid
         )
 

@@ -14,6 +14,7 @@
 #ifndef MotorControl_HPP
 #define MotorControl_HPP
 
+#include "Fw/Types/BasicTypes.hpp"
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 #include "MotorController_i2c.h"
 
@@ -23,6 +24,7 @@
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
+
 #define NUM_MOTORS 4
 
 #define MAX_SPEED 100
@@ -147,7 +149,7 @@ namespace CubeRover
          * -------------------------------------------------------
          */
 
-        // MC Error Types
+        // --- MC Error Types
         typedef enum
         {
             MC_NO_ERROR,
@@ -156,9 +158,7 @@ namespace CubeRover
             MC_BAD_COMMAND_INPUT
         } MCError_t;
 
-        /* Motor Controller Interface Definitions */
-
-        // i2c Register
+        // --- MC i2c Register
         typedef enum
         {
             REG_I2C_ADDRESS = 0,              // Read-only  - 1Byte
@@ -179,7 +179,7 @@ namespace CubeRover
             NUM_REGS = 16,
         } RegisterAddress_t;
 
-        // i2c Control Register
+        // MC i2c Control Register
         typedef union
         {
             uint8_t value;
@@ -194,7 +194,7 @@ namespace CubeRover
             } bits;
         } ControlRegister_t;
 
-        // i2c Status Register
+        // MC i2c Status Register
         typedef union
         {
             uint8_t value;
@@ -209,7 +209,7 @@ namespace CubeRover
             } bits;
         } StatusRegister_t;
 
-        // i2c Fault Register
+        // MC i2c Fault Register
         typedef union
         {
             uint8_t value;
@@ -221,6 +221,83 @@ namespace CubeRover
                 uint8_t unused : 5;
             } bits;
         } FaultRegister_t;
+
+
+        /* --- Motor Controller Object Definitions --- */
+
+        // mc state
+        typedef enum
+        {
+            IDLE,           // Updating Parameters w/Drivers Disabled
+            ENABLED,        // Drivers Enabled
+            ARMED,          // Execute Drive Sent
+            RUNNING,        // Driving
+            TARGET_REACHED, // Target Reached
+            DISABLED,       // Powered Off (theoretically)
+            FAULT,          // Fault
+        } MCState_t;
+
+
+        struct MotorController_t
+        {
+            MCState_t state;
+
+            uint8_t i2c_addr;
+
+            int32_t target_pos;
+            int16_t target_vel;
+
+            int32_t current_pos; // encoder ticks
+            int16_t current_vel;
+            uint32_t motor_current;
+
+        //    int8_t current_p_val;
+        //    int8_t current_i_val;
+        //    int8_t vel_p_val;
+        //    int8_t vel_i_val;
+        //    int8_t acc_val;
+        //    int8_t dec_val;
+
+            ControlRegister_t ctrl;
+            StatusRegister_t status;
+            FaultRegister_t fault;
+        };
+
+
+
+
+        /* --- FUNCTIONS --- */
+        void initMotorControllers();
+
+        MCError_t updateMotorControllers(const RegisterAddress_t id, void *_data);
+
+
+        /* --- Private Variables --- */
+        MotorController_t motors[NUM_MOTORS];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /* ------------------------------------------
+         * OBSOLETE MC DEFINITIONS
+         * ------------------------------------------
+         */
 
         // Tightly coupled to *_ADDR and *_ID defines
         static const uint8_t motorIdAddressMap[NUM_MOTORS];

@@ -222,7 +222,6 @@ namespace CubeRover
         if (Motor_ID == ALL_MOTOR_ID)
         {
             err = sendAllMotorsData(REG_P_SPEED, &P_Value);
-//            err = updateMotorControllers(REG_P_SPEED, &P_Value);
 
             if (err != MC_NO_ERROR)
             {
@@ -519,6 +518,53 @@ namespace CubeRover
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // ----------------------------------------------------------------------
+    // User-defined helper functions
+    // ----------------------------------------------------------------------
+
+    void MotorControlComponentImpl::initMotorControllers()
+    {
+
+    }
+
+    MotorControlComponentImpl::MCError_t
+    MotorControlComponentImpl::updateMotorControllers(const RegisterAddress_t reg, void *_data)
+    {
+        MCError_t err = MC_NO_ERROR;
+
+
+
+
+        for (int i = 0; i < NUM_MOTORS; ++i)
+        {
+//            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
+            if (err != MC_NO_ERROR)
+                return err;
+        }
+
+        return MC_NO_ERROR;
+    }
+
+    // ----------------------------------------------------------------------
+    // OBSOLETE User-defined helper functions
+    // ----------------------------------------------------------------------
+
     uint32_t MotorControlComponentImpl::regSizeMap(RegisterAddress_t reg)
     {
         switch (reg)
@@ -544,6 +590,8 @@ namespace CubeRover
             return 0;
         }
     }
+
+
 
     MotorControlComponentImpl::MCError_t
     MotorControlComponentImpl::sendAllMotorsData(const RegisterAddress_t reg, void *_data)

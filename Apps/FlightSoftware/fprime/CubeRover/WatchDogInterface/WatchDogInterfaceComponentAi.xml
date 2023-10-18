@@ -479,7 +479,7 @@
             </args>
         </command>
 
-        <command kind="async" opcode="0xFF" mnemonic="Echo">
+        <command kind="async" opcode="0xFE" mnemonic="Echo">
             <comment>
             Echo the given fixed length string (technically can send a string of any length up to the max length).
             </comment>

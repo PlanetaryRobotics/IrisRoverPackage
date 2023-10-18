@@ -92,7 +92,7 @@ extern "C"
         WD_CMD_MSGS__CMD_ID__SET_LATCH_BATT_STATE = 0x10FB,         //!< Set battery latch state.
         WD_CMD_MSGS__CMD_ID__LATCH_SET_PULSE_LOW = 0x10FC,          //!< Pulse battery latch "SET" override low.
         WD_CMD_MSGS__CMD_ID__LATCH_RESET_PULSE_LOW = 0x10FD,        //!< Pulse battery latch "RESET" override low.
-        WD_CMD_MSGS__CMD_ID__ECHO = 0x10FF,                         //!< Diagnostic request to echo the given bytes back (with a header attached marking it as an echo)
+        WD_CMD_MSGS__CMD_ID__ECHO = 0x10FE,                         //!< Diagnostic request to echo the given bytes back (with a header attached marking it as an echo)
     } WdCmdMsgs__CommandId;
 
     /**

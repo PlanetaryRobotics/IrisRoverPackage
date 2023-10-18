@@ -60,7 +60,7 @@
 | | | |latch_set|latch_set_states||
 |Set_Latch_Reset|253 (0xfd)|Control the battery latch "RESET" override. This line *should* be severed on Iris FM1, so this *should* effectively be a no-op.| | |
 | | | |latch_reset|latch_reset_states||
-|Echo|255 (0xff)|Echo the given fixed length string (technically can send a string of any length up to the max length).| | |
+|Echo|254 (0xfe)|Echo the given fixed length string (technically can send a string of any length up to the max length).| | |
 | | | |length|U8||
 | | | |message|Fw::CmdStringArg|Message for the Watchdog to Echo back to us.|
 

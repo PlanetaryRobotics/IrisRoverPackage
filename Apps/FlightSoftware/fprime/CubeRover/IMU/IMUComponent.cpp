@@ -181,9 +181,9 @@ namespace CubeRover
   void IMUComponentImpl::setExtAccRaw(int16_t *srcAccRaw)
   {
     this->m_extMutex.lock();
-    this->m_extAccRaw[0] = accRaw[0];
-    this->m_extAccRaw[1] = accRaw[1];
-    this->m_extAccRaw[2] = accRaw[2];
+    this->m_extAccRaw[0] = srcAccRaw[0];
+    this->m_extAccRaw[1] = srcAccRaw[1];
+    this->m_extAccRaw[2] = srcAccRaw[2];
     this->m_extMutex.unLock();
   }
 

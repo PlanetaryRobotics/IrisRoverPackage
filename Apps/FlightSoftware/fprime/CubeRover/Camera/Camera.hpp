@@ -14,6 +14,7 @@
 #define Camera_HPP
 
 #include "CubeRover/Camera/CameraComponentAc.hpp"
+#include "CubeRover/WatchDogInterface/WatchDogInterface.hpp" // need the `reset_values_possible` enum definitions
 
 #include "S25fl512l.hpp"
 
@@ -82,8 +83,8 @@ namespace CubeRover
         // WDI 28V Settings:
         bool wdi28V_on;
         bool wdi28V_triggerMode;
-        U16 wdi28V_min;
-        U16 wdi28V_max; //
+        I16 wdi28V_min;
+        I16 wdi28V_max; //
     } __attribute__((packed));
 
     enum class DummyImageType
@@ -93,7 +94,7 @@ namespace CubeRover
         PRE_BAKED = 2 // pre-baked and stored in Hercules FLASH0
     };
 
-    class CameraComponentImpl : public CameraComponentBase
+    class CameraComponentImpl : public CameraComponentBase,  public WatchDogInterfaceComponentBaseFriend
     {
 
     public:
@@ -226,39 +227,98 @@ namespace CubeRover
             bool eraseFirst      /*!< Whether or not to erase the flash before capturing an image. */
         );
 
-        void Capture_Image_Only_cmdHandler(
-            FwOpcodeType opCode, /*!< The opcode*/
-            U32 cmdSeq,          /*!< The command sequence number*/
-            // Capture Settings:
-            U8 camera_num,
-            U16 callback_id,
-            bool eraseFirst,
-            // Timeout Settings:
-            U32 timeoutMs,
-            bool triggerOnTimeout,
-            // Trigger Settings:
-            bool conditionModeAll,
-            // IMU XAcc Settings:
-            bool imuXAcc_on,
-            bool imuXAcc_triggerMode,
-            I16 imuXAcc_min,
-            I16 imuXAcc_max,
-            // IMU YAcc Settings:
-            bool imuYAcc_on,
-            bool imuYAcc_triggerMode,
-            I16 imuYAcc_min,
-            I16 imuYAcc_max,
-            // IMU ZAcc Settings:
-            bool imuZAcc_on,
-            bool imuZAcc_triggerMode,
-            I16 imuZAcc_min,
-            I16 imuZAcc_max,
-            // WDI 28V Settings:
-            bool wdi28V_on,
-            bool wdi28V_triggerMode,
-            U16 wdi28V_min,
-            U16 wdi28V_max //
-        );
+        /* Waits to capture an image until a series of trigger condition is satisfied.
+
+       Triggers conditions are defined as a window around a sensor value. A trigger can be defined as
+
+       The following trigger variables are available:
+       - Imu_XAcc (raw reading)
+       - Imu_YAcc (raw reading)
+       - Imu_ZAcc (raw reading)
+       - Voltage28V (raw ADC value, as reported by WatchDogInterface)
+       These values correspond to what's reported in telemetry from Hercules.
+
+       A window is specified around each sensor variable and a trigger can be defined as the
+       reading being inside or outside the window on a per-sensor basis.
+
+       Each sensor trigger condition can be turned ON or OFF.
+
+       `conditionModeAll` sets whether ALL or just 1 of the trigger conditions must be satisfied
+
+       The camera will stop waiting for a trigger after `timeoutMs`.
+       If `triggerOnTimeout`, an image will be captured when timeout occurs.
+
+       This is a late add, definitely a trick, and may or may not work but we'll try it. */
+       void Capture_Deployment_Image_cmdHandler(
+           FwOpcodeType opCode, /*!< The opcode*/
+           U32 cmdSeq, /*!< The command sequence number*/
+           U8 camera_num, /*!<
+                           0: Camera 0     1: Camera 1
+                       */
+           U16 callback_id, /*!<
+                           Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                       */
+           bool eraseFirst, /*!<
+                           Whether or not to erase the flash before capturing an image.
+                       */
+           U32 timeoutMs, /*!<
+                           Max time to wait for a trigger condition before timing out (ms).
+                       */
+           bool triggerOnTimeout, /*!<
+                           Whether or not to capture an image on timeout just in case.
+                       */
+           bool conditionModeAll, /*!<
+                           True: ALL trigger conditions that are ON must be met. False: ANY of the trigger conditions that are ON (i.e. just 1) will trigger image capture.
+                       */
+           bool imuXAcc_on, /*!<
+                           Whether or not to use the IMU X Acceleration window as a trigger.
+                       */
+           bool imuXAcc_triggerMode, /*!<
+                           True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                       */
+           I16 imuXAcc_min, /*!<
+                           Lower bound (inclusive) of window for IMU X Acceleration (raw reading).
+                       */
+           I16 imuXAcc_max, /*!<
+                           Upper bound (exclusive) of window for IMU X Acceleration (raw reading).
+                       */
+           bool imuYAcc_on, /*!<
+                           Whether or not to use the IMU Y Acceleration window as a trigger.
+                       */
+           bool imuYAcc_triggerMode, /*!<
+                           True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                       */
+           I16 imuYAcc_min, /*!<
+                           Lower bound (inclusive) of window for IMU Y Acceleration (raw reading).
+                       */
+           I16 imuYAcc_max, /*!<
+                           Upper bound (exclusive) of window for IMU Y Acceleration (raw reading).
+                       */
+           bool imuZAcc_on, /*!<
+                           Whether or not to use the IMU Z Acceleration window as a trigger.
+                       */
+           bool imuZAcc_triggerMode, /*!<
+                           True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                       */
+           I16 imuZAcc_min, /*!<
+                           Lower bound (inclusive) of window for IMU Z Acceleration (raw reading).
+                       */
+           I16 imuZAcc_max, /*!<
+                           Upper bound (exclusive) of window for IMU Z Acceleration (raw reading).
+                       */
+           bool wdi28V_on, /*!<
+                           Whether or not to use the 28V voltage reported by WatchDogInterface as a trigger;
+                       */
+           bool wdi28V_triggerMode, /*!<
+                           True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                       */
+           I16 wdi28V_min, /*!<
+                           Lower bound (inclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                       */
+           I16 wdi28V_max /*!<
+                           Upper bound (exclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                       */
+       );
 
         //! Implementation for Error command handler
         //! Get camera status

@@ -3,6 +3,12 @@
 #include <stdbool.h>
 #include "heatshrink_encoder.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+
 typedef enum
 {
     HSES_NOT_FULL,        /* input buffer not full enough */
@@ -503,7 +509,8 @@ static void do_indexing(heatshrink_encoder *hse)
     const uint16_t input_offset = get_input_offset(hse);
     const uint16_t end = input_offset + hse->input_size;
 
-    for (uint16_t i = 0; i < end; i++)
+    uint16_t i;
+    for (i = 0; i < end; i++)
     {
         uint8_t v = data[i];
         int16_t lv = last[v];
@@ -575,7 +582,8 @@ static uint16_t find_longest_match(heatshrink_encoder *hse, uint16_t start,
         pos = hsi->index[pos];
     }
 #else
-    for (int16_t pos = end - 1; pos - (int16_t)start >= 0; pos--)
+    int16_t pos;
+    for (pos = end - 1; pos - (int16_t)start >= 0; pos--)
     {
         uint8_t *const pospoint = &buf[pos];
         if ((pospoint[match_maxlen] == needlepoint[match_maxlen]) && (*pospoint == *needlepoint))
@@ -664,7 +672,8 @@ static void push_bits(heatshrink_encoder *hse, uint8_t count, uint8_t bits,
     }
     else
     {
-        for (int i = count - 1; i >= 0; i--)
+        int i;
+        for (i = count - 1; i >= 0; i--)
         {
             bool bit = bits & (1 << i);
             if (bit)
@@ -718,3 +727,8 @@ static void save_backlog(heatshrink_encoder *hse)
     hse->match_scan_index = 0;
     hse->input_size -= input_buf_sz - rem;
 }
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif

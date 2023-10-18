@@ -3,17 +3,17 @@
 #include <stddef.h>
 #include <string.h>
 
-extern "C"
-{
 #include "heatshrink/heatshrink_encoder.h"
-}
 
 #if HEATSHRINK_DYNAMIC_ALLOC
 #error HEATSHRINK_DYNAMIC_ALLOC should not be used. Please set it to 0.
 #endif
 
+//#define OFFER_COMPRESSION
+
 namespace IrisImage
 {
+#ifdef OFFER_COMPRESSION
     static heatshrink_encoder hse;
 
     // Static buffer to store compression data:
@@ -116,6 +116,7 @@ namespace IrisImage
         // Return size of compressed data:
         return polled;
     }
+#endif // OFFER_COMPRESSION
 
     // Returns whether the line contains all of the same value:
     bool line_is_homogeneous(uint8_t *line, uint16_t lineLen)
@@ -388,6 +389,7 @@ namespace IrisImage
             *binningOccurred = (binnedLen < lineLen);
 
             *compressionOccurred = false;
+#ifdef OFFER_COMPRESSION
             if (use_heatshrink)
             {
                 // Attempt compression:
@@ -405,6 +407,7 @@ namespace IrisImage
                     *compressionOccurred = true;
                 }
             }
+#endif // OFFER_COMPRESSION
         }
 
         if (*compressionOccurred)

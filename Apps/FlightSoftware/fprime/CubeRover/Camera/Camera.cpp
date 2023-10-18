@@ -11,12 +11,13 @@
 // ======================================================================
 
 #include <CubeRover/Camera/Camera.hpp>
-#include <CubeRover/WatchDogInterface/WatchDogInterface.hpp>
 #include <CubeRover/IMU/IMUComponent.hpp>
 #include <GroundInterface/GroundInterface.hpp>
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/FswPacket" // PrimaryFlightController/FlightMCU
 #include <cstring>
+
+#include "IrisImageCompression.hpp"
 
 #include "gio.h"
 #include "spi.h"
@@ -221,7 +222,7 @@ namespace CubeRover
     this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
   }
 
-  void Capture_Deployment_Image_cmdHandler(
+  void CameraComponentImpl::Capture_Deployment_Image_cmdHandler(
       FwOpcodeType opCode, /*!< The opcode*/
       U32 cmdSeq,          /*!< The command sequence number*/
       // Capture Settings:
@@ -251,8 +252,8 @@ namespace CubeRover
       // WDI 28V Settings:
       bool wdi28V_on,
       bool wdi28V_triggerMode,
-      U16 wdi28V_min,
-      U16 wdi28V_max //
+      I16 wdi28V_min,
+      I16 wdi28V_max //
   )
   {
     // Store settings:
@@ -445,11 +446,11 @@ namespace CubeRover
     // select:
     if (!m_cameraSelect)
     {
-      watchDogInterface.Reset_Specific_Handler(WatchDogInterfaceComponentBase::reset_values_possible::FPGA_Cam_0);
+      watchDogInterface.Reset_Specific_Handler(WD_CAM_SEL_0_RESET_ID);
     }
     else
     {
-      watchDogInterface.Reset_Specific_Handler(WatchDogInterfaceComponentBase::reset_values_possible::FPGA_Cam_1);
+      watchDogInterface.Reset_Specific_Handler(WD_CAM_SEL_1_RESET_ID);
     }
     // TODO: [CWC] This (^) is how resets were done before but shouldn't we be using `WatchdogResetRequest` for this? Investigate. It's done so infrequently and is now mutexed that it's probably okay.
 
@@ -669,7 +670,7 @@ namespace CubeRover
           // Very late add: reserve top bit of callback Id for cameraNum:
           (m_lastCallbackId & 0x7FFF) | ((m_lastCameraSelected & 0x01) << 15),
           createTime, i, IMAGE_HEIGHT,
-          (i == startLine || y == (endLine - 1)) //
+          (i == startLine || i == (endLine - 1)) //
       );
     }
 
@@ -692,51 +693,34 @@ namespace CubeRover
     tlmWrite_Cam_BytesSent(m_bytesSent);
   }
 
-  void CameraComponentImpl::schedIn_handler(
-      const NATIVE_INT_TYPE portNum,
-      NATIVE_UINT_TYPE context)
+
+  // Check the given sensor reading against the sensor's trigger conditions to
+  // see if this deployment image trigger is true.
+  template <typename T>
+  bool deploymentImage_checkSensorForTrigger(
+      T sensorReading,
+      bool conditionOn,
+      bool triggerMode,
+      T windowMin,
+      T windowMax)
   {
-    static uint32_t time;
-    static bool trigger;
-
-    // Check for trigger conditions for deployment image:
-    time = static_cast<uint32_t>(getTime().get_time_ms());
-
-    trigger = false;
-    // Check if we should still be looking for a deployment image trigger:
-    if (m_deploymentImageSettings.waitingForTrigger && (time - m_deploymentImageSettings.startTimeMs) > m_deploymentImageSettings.timeoutMs)
+    if (conditionOn)
     {
-      // Time's up.
-      // Stop looking:
-      m_deploymentImageSettings.waitingForTrigger = false;
-      // Trigger if we should we trigger on timeout:
-      trigger = m_deploymentImageSettings.triggerOnTimeout;
+      return false;
     }
 
-    // Check for a trigger:
-    if (!trigger && deploymentImage_checkForTrigger(m_deploymentImageSettings))
+    if (triggerMode)
     {
-      trigger = true;
+      // Trigger when inside the window:
+      return (windowMin <= sensorReading) && (sensorReading < windowMax);
     }
-
-    if (trigger)
+    else
     {
-      // Deployment image trigger occurred!
-      // Flag that we're no longer waiting to take an image (BEFORE capture):
-      m_deploymentImageSettings.waitingForTrigger = false;
-      // Set check flags to something more resilient to SEU:
-      m_deploymentImageSettings.triggerOnTimeout = false;
-      m_deploymentImageSettings.conditionModeAll = true;
-      // Take the Image:
-      time = takeImage(
-          m_deploymentImageSettings.camera_num,
-          m_deploymentImageSettings.callback_id,
-          m_deploymentImageSettings.eraseFirst);
-      log_ACTIVITY_HI_Camera_DeploymentImageCaptured(
-          GroundInterfaceComponentImpl::hashTime(time),
-          m_deploymentImageSettings.callback_id);
+      // Trigger when outside the window:
+      return (windowMin > sensorReading) || (sensorReading >= windowMax);
     }
   }
+
 
   // Returns whether it's time to trigger a deployment image based on the given settings.
   bool deploymentImage_checkForTrigger(DeploymentImageSettings &settings)
@@ -805,30 +789,49 @@ namespace CubeRover
     }
   }
 
-  // Check the given sensor reading against the sensor's trigger conditions to
-  // see if this deployment image trigger is true.
-  template <typename T>
-  bool deploymentImage_checkSensorForTrigger(
-      T sensorReading,
-      bool conditionOn,
-      bool triggerMode,
-      T windowMin,
-      T windowMax)
+  void CameraComponentImpl::schedIn_handler(
+      const NATIVE_INT_TYPE portNum,
+      NATIVE_UINT_TYPE context)
   {
-    if (conditionOn)
+    static uint32_t time;
+    static bool trigger;
+
+    // Check for trigger conditions for deployment image:
+    time = static_cast<uint32_t>(getTime().get_time_ms());
+
+    trigger = false;
+    // Check if we should still be looking for a deployment image trigger:
+    if (m_deploymentImageSettings.waitingForTrigger && (time - m_deploymentImageSettings.startTimeMs) > m_deploymentImageSettings.timeoutMs)
     {
-      return false;
+      // Time's up.
+      // Stop looking:
+      m_deploymentImageSettings.waitingForTrigger = false;
+      // Trigger if we should we trigger on timeout:
+      trigger = m_deploymentImageSettings.triggerOnTimeout;
     }
 
-    if (triggerMode)
+    // Check for a trigger:
+    if (!trigger && deploymentImage_checkForTrigger(m_deploymentImageSettings))
     {
-      // Trigger when inside the window:
-      return (windowMin <= sensorReading) && (sensorReading < windowMax);
+      trigger = true;
     }
-    else
+
+    if (trigger)
     {
-      // Trigger when outside the window:
-      return (windowMin > sensorReading) || (sensorReading >= windowMax);
+      // Deployment image trigger occurred!
+      // Flag that we're no longer waiting to take an image (BEFORE capture):
+      m_deploymentImageSettings.waitingForTrigger = false;
+      // Set check flags to something more resilient to SEU:
+      m_deploymentImageSettings.triggerOnTimeout = false;
+      m_deploymentImageSettings.conditionModeAll = true;
+      // Take the Image:
+      time = takeImage(
+          m_deploymentImageSettings.camera_num,
+          m_deploymentImageSettings.callback_id,
+          m_deploymentImageSettings.eraseFirst);
+      log_ACTIVITY_HI_Camera_DeploymentImageCaptured(
+          GroundInterfaceComponentImpl::hashTime(time),
+          m_deploymentImageSettings.callback_id);
     }
   }
 

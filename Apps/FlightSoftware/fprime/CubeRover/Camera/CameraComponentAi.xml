@@ -214,6 +214,7 @@
                 </comment>
             </arg>
         </args>
+    </event>
   </events>
     
     <telemetry>

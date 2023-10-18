@@ -304,7 +304,7 @@ namespace CubeRover
                                                                  reset_values_possible resetValue,
                                                                  bool sendResponse)
     {
-        static const char command_type[24] = "Reset Specific:";
+        static char command_type[24] = "Reset Specific:";
         static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
 
         sloppyResourceProtectionMutex.lock();

@@ -20,6 +20,8 @@
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
 #define ALL_MOTOR_ID 0x00
+#define MC_SLAVE_I2C_ADDR_0 = 0x48
+
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
@@ -158,6 +160,18 @@ namespace CubeRover
             MC_BAD_COMMAND_INPUT
         } MCError_t;
 
+        // mc state
+        typedef enum
+        {
+            IDLE,           // Updating Parameters w/Drivers Disabled
+            ENABLED,        // Drivers Enabled
+            ARMED,          // Execute Drive Sent
+            RUNNING,        // Driving
+            TARGET_REACHED, // Target Reached
+            DISABLED,       // Powered Off (theoretically)
+            FAULT           // Fault
+        } MCState_t;
+
         // --- MC i2c Register
         typedef enum
         {
@@ -174,7 +188,7 @@ namespace CubeRover
             REG_ACC_RATE = 10,     // Write-only - 2Bytes
             REG_DEC_RATE = 11,     // Write-only - 2Bytes
             REG_CTRL = 12,         // Write-only - 1Byte
-            e_REG_STATUS = 13,     // Read-only  - 1Byte
+            REG_STATUS = 13,       // Read-only  - 1Byte
             REG_FAULT = 14,        // Read-only  - 1Byte
             NUM_REGS = 16,
         } RegisterAddress_t;
@@ -206,6 +220,15 @@ namespace CubeRover
                 uint8_t position_converged : 1;
                 uint8_t controller_error : 1;
                 uint8_t unused : 3;
+
+                // NEW STATES:
+//                IDLE,           // Updating Parameters w/Drivers Disabled
+//                ENABLED,        // Drivers Enabled
+//                ARMED,          // Execute Drive Sent
+//                RUNNING,        // Driving
+//                TARGET_REACHED, // Target Reached
+//                DISABLED,       // Powered Off (theoretically)
+//                FAULT,          // Fault
             } bits;
         } StatusRegister_t;
 
@@ -222,26 +245,19 @@ namespace CubeRover
             } bits;
         } FaultRegister_t;
 
-
-        /* --- Motor Controller Object Definitions --- */
-
-        // mc state
         typedef enum
         {
-            IDLE,           // Updating Parameters w/Drivers Disabled
-            ENABLED,        // Drivers Enabled
-            ARMED,          // Execute Drive Sent
-            RUNNING,        // Driving
-            TARGET_REACHED, // Target Reached
-            DISABLED,       // Powered Off (theoretically)
-            FAULT,          // Fault
-        } MCState_t;
+            MOTOR_A = 0,
+            MOTOR_B = 1,
+            MOTOR_C = 2,
+            MOTOR_D = 3,
+            ALL
+        };
 
 
         struct MotorController_t
         {
-            MCState_t state;
-
+            motorID_t motor_id;
             uint8_t i2c_addr;
 
             int32_t target_pos;
@@ -273,6 +289,7 @@ namespace CubeRover
 
 
         /* --- Private Variables --- */
+        MCState_t motorControllerState;
         MotorController_t motors[NUM_MOTORS];
 
 

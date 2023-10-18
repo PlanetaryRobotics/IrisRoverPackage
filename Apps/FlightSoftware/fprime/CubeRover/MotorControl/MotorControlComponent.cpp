@@ -540,7 +540,11 @@ namespace CubeRover
 
     void MotorControlComponentImpl::initMotorControllers()
     {
-
+        motorControllerState = DISABLED;
+        for (int i = 0; i < NUM_MOTORS; i++)
+        {
+            motors[i].i2c_addr = MC_SLAVE_I2C_ADDR_0 + i;
+        }
     }
 
     MotorControlComponentImpl::MCError_t
@@ -561,6 +565,12 @@ namespace CubeRover
         return MC_NO_ERROR;
     }
 
+
+
+
+
+
+
     // ----------------------------------------------------------------------
     // OBSOLETE User-defined helper functions
     // ----------------------------------------------------------------------
@@ -573,7 +583,7 @@ namespace CubeRover
         case REG_TARGET_SPEED:
         case REG_CTRL:
         case REG_FAULT:
-        case e_REG_STATUS:
+        case REG_STATUS:
             return 1;
         case REG_P_CURRENT:
         case REG_I_CURRENT:
@@ -614,7 +624,7 @@ namespace CubeRover
         MCError_t err;
         for (int i = 0; i < NUM_MOTORS; ++i)
         {
-            err = motorControlTransfer(motorIdAddressMap[i], e_REG_STATUS, &m_currStatus[i].value);
+            err = motorControlTransfer(motorIdAddressMap[i], REG_STATUS, &m_currStatus[i].value);
             if (err != MC_NO_ERROR)
             {
                 // I2C Communication Error
@@ -776,10 +786,10 @@ namespace CubeRover
 
         taskENTER_CRITICAL();
         StatusRegister_t status;
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, e_REG_STATUS, &status.value);
+        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_STATUS, &status.value);
+        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_STATUS, &status.value);
+        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_STATUS, &status.value);
+        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_STATUS, &status.value);
 
         err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
@@ -825,7 +835,7 @@ namespace CubeRover
             reg == REG_CURRENT_POSITION ||
             reg == REG_CURRENT_POSITION ||
             reg == REG_MOTOR_CURRENT ||
-            reg == e_REG_STATUS ||
+            reg == REG_STATUS ||
             reg == REG_FAULT)
         {
             taskENTER_CRITICAL();
@@ -920,7 +930,7 @@ namespace CubeRover
             while (delay) // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
                 delay--;
 
-            uint8_t reg = e_REG_STATUS;
+            uint8_t reg = REG_STATUS;
             for (int i = 0; i < 4; ++i)
             {
                 StatusRegister_t this_status;

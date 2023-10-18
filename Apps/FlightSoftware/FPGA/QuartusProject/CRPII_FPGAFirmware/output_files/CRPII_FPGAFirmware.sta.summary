@@ -3,55 +3,55 @@ Timing Analyzer Summary
 ------------------------------------------------------------
 
 Type  : Slow 1200mV 100C Model Setup 'clk'
-Slack : -7.372
-TNS   : -2603.389
+Slack : -7.589
+TNS   : -2597.265
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -4.535
-TNS   : -177.907
+Slack : -5.119
+TNS   : -178.215
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : -4.386
-TNS   : -6.680
+Slack : -4.180
+TNS   : -5.748
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : -3.485
-TNS   : -6.727
+Slack : -3.596
+TNS   : -6.642
 
 Type  : Slow 1200mV 100C Model Setup 'hercules_SCK'
-Slack : -1.150
-TNS   : -10.518
+Slack : -1.270
+TNS   : -12.236
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -0.565
-TNS   : -4.723
+Slack : -0.900
+TNS   : -5.973
 
 Type  : Slow 1200mV 100C Model Setup 'PP3'
-Slack : -0.332
-TNS   : -0.593
+Slack : -0.208
+TNS   : -0.414
 
 Type  : Slow 1200mV 100C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.064
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.171
-TNS   : 0.000
+Slack : -0.045
+TNS   : -0.045
 
 Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.214
-TNS   : 0.000
+Slack : -0.002
+TNS   : -0.002
 
-Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.325
+Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.083
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Hold 'clk'
-Slack : 0.368
+Slack : 0.126
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.415
+Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
+Slack : 0.242
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.361
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Hold 'PP3'
@@ -59,59 +59,59 @@ Slack : 0.418
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Hold 'hercules_SCK'
-Slack : 0.418
+Slack : 0.419
 TNS   : 0.000
 
-Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.774
+Type  : Slow 1200mV 100C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
+Slack : 0.652
 TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Recovery 'clk'
-Slack : -2.694
-TNS   : -36.121
 
 Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -2.545
-TNS   : -13.418
+Slack : -3.550
+TNS   : -19.172
+
+Type  : Slow 1200mV 100C Model Recovery 'clk'
+Slack : -3.510
+TNS   : -38.211
 
 Type  : Slow 1200mV 100C Model Recovery 'hercules_SCK'
-Slack : -0.977
-TNS   : -16.063
+Slack : -0.972
+TNS   : -16.278
 
 Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.533
-TNS   : -1.851
-
-Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -0.460
-TNS   : -27.533
+Slack : -0.437
+TNS   : -1.566
 
 Type  : Slow 1200mV 100C Model Recovery 'PP3'
-Slack : -0.203
-TNS   : -0.812
+Slack : -0.424
+TNS   : -1.696
 
-Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.527
+Type  : Slow 1200mV 100C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : -0.375
+TNS   : -26.893
+
+Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.589
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.552
+Slack : 0.621
+TNS   : 0.000
+
+Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : 0.633
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'PP3'
-Slack : 0.590
-TNS   : 0.000
-
-Type  : Slow 1200mV 100C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.612
+Slack : 0.785
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'hercules_SCK'
-Slack : 1.150
+Slack : 1.172
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Removal 'clk'
-Slack : 1.725
+Slack : 1.598
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'hercules_SCK'
@@ -124,7 +124,7 @@ TNS   : -30.435
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'clk'
 Slack : -3.000
-TNS   : -1146.530
+TNS   : -1128.540
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
 Slack : -1.285
@@ -139,123 +139,123 @@ Slack : -1.285
 TNS   : -5.140
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.383
+Slack : 0.376
 TNS   : 0.000
 
 Type  : Slow 1200mV 100C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.405
+Slack : 0.387
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Setup 'clk'
-Slack : -6.469
-TNS   : -2246.616
+Slack : -6.610
+TNS   : -2245.853
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -3.901
-TNS   : -139.623
+Slack : -4.372
+TNS   : -141.130
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : -3.828
-TNS   : -5.759
+Slack : -3.655
+TNS   : -4.831
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : -3.008
-TNS   : -5.771
+Slack : -3.126
+TNS   : -5.699
 
 Type  : Slow 1200mV -40C Model Setup 'hercules_SCK'
-Slack : -0.894
-TNS   : -7.767
+Slack : -1.047
+TNS   : -9.651
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -0.373
-TNS   : -2.896
+Slack : -0.633
+TNS   : -4.103
 
 Type  : Slow 1200mV -40C Model Setup 'PP3'
-Slack : -0.147
-TNS   : -0.192
+Slack : -0.037
+TNS   : -0.073
 
 Type  : Slow 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.152
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.200
+Slack : 0.035
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.216
+Slack : 0.047
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Hold 'clk'
-Slack : 0.271
+Slack : 0.076
 TNS   : 0.000
 
-Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.299
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'hercules_SCK'
-Slack : 0.345
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'PP3'
-Slack : 0.346
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.418
+Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.124
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.699
+Slack : 0.262
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.297
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Hold 'hercules_SCK'
+Slack : 0.344
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Hold 'PP3'
+Slack : 0.345
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
+Slack : 0.624
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Recovery 'clk'
-Slack : -2.374
-TNS   : -31.040
+Slack : -3.114
+TNS   : -32.775
 
 Type  : Slow 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -2.175
-TNS   : -11.694
+Slack : -3.100
+TNS   : -16.948
 
 Type  : Slow 1200mV -40C Model Recovery 'hercules_SCK'
-Slack : -0.715
-TNS   : -11.185
+Slack : -0.718
+TNS   : -11.412
 
 Type  : Slow 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.314
-TNS   : -0.927
+Slack : -0.240
+TNS   : -0.697
 
 Type  : Slow 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -0.301
-TNS   : -12.761
+Slack : -0.223
+TNS   : -11.466
 
 Type  : Slow 1200mV -40C Model Recovery 'PP3'
-Slack : -0.035
-TNS   : -0.140
-
-Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.412
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.441
-TNS   : 0.000
-
-Type  : Slow 1200mV -40C Model Removal 'PP3'
-Slack : 0.494
-TNS   : 0.000
+Slack : -0.212
+TNS   : -0.848
 
 Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
+Slack : 0.488
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
 Slack : 0.500
 TNS   : 0.000
 
+Type  : Slow 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.520
+TNS   : 0.000
+
+Type  : Slow 1200mV -40C Model Removal 'PP3'
+Slack : 0.648
+TNS   : 0.000
+
 Type  : Slow 1200mV -40C Model Removal 'hercules_SCK'
-Slack : 1.001
+Slack : 1.016
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Removal 'clk'
-Slack : 1.397
+Slack : 1.387
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'hercules_SCK'
@@ -268,7 +268,7 @@ TNS   : -30.435
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'clk'
 Slack : -3.000
-TNS   : -1137.624
+TNS   : -1119.634
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
 Slack : -1.285
@@ -283,62 +283,66 @@ Slack : -1.285
 TNS   : -5.140
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.409
+Slack : 0.416
 TNS   : 0.000
 
 Type  : Slow 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.441
+Slack : 0.428
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Setup 'clk'
-Slack : -2.843
-TNS   : -962.011
+Slack : -2.966
+TNS   : -963.724
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : -1.908
-TNS   : -2.008
-
-Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : -1.710
-TNS   : -3.217
+Slack : -1.748
+TNS   : -1.748
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : -1.348
-TNS   : -51.359
+Slack : -1.682
+TNS   : -67.293
+
+Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
+Slack : -1.621
+TNS   : -3.121
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : -0.168
-TNS   : -0.600
+Slack : -0.186
+TNS   : -0.424
 
 Type  : Fast 1200mV -40C Model Setup 'hercules_SCK'
-Slack : -0.003
-TNS   : -0.024
+Slack : -0.008
+TNS   : -0.064
 
 Type  : Fast 1200mV -40C Model Setup 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.160
-TNS   : 0.000
+Slack : -0.002
+TNS   : -0.004
 
 Type  : Fast 1200mV -40C Model Setup 'PP3'
-Slack : 0.375
+Slack : 0.436
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'clk'
+Slack : 0.007
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
 Slack : 0.153
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
+Slack : 0.178
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'PP3'
 Slack : 0.179
 TNS   : 0.000
 
-Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.179
+Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.180
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'hercules_SCK'
-Slack : 0.179
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
 Slack : 0.180
 TNS   : 0.000
 
@@ -347,64 +351,60 @@ Slack : 0.185
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.219
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Hold 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.294
+Slack : 0.275
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : -1.069
-TNS   : -5.396
+Slack : -1.438
+TNS   : -7.548
 
 Type  : Fast 1200mV -40C Model Recovery 'clk'
-Slack : -0.744
-TNS   : -4.647
+Slack : -1.085
+TNS   : -6.510
 
 Type  : Fast 1200mV -40C Model Recovery 'hercules_SCK'
-Slack : 0.032
+Slack : 0.037
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.243
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.335
+Slack : 0.300
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Recovery 'PP3'
-Slack : 0.469
+Slack : 0.307
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Recovery 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
+Slack : 0.394
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
-Slack : 0.121
-TNS   : 0.000
-
-Type  : Fast 1200mV -40C Model Removal 'PP3'
-Slack : 0.147
+Slack : 0.164
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|flash_mem_interface_done'
-Slack : 0.147
+Slack : 0.182
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
-Slack : 0.273
+Slack : 0.270
+TNS   : 0.000
+
+Type  : Fast 1200mV -40C Model Removal 'PP3'
+Slack : 0.275
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'clk'
-Slack : 0.489
+Slack : 0.492
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Removal 'hercules_SCK'
-Slack : 0.514
+Slack : 0.524
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'hercules_SCK'
 Slack : -9.457
-TNS   : -38.302
+TNS   : -38.363
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|SCK'
 Slack : -9.457
@@ -412,7 +412,7 @@ TNS   : -23.457
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'clk'
 Slack : -3.000
-TNS   : -966.409
+TNS   : -948.732
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|done'
 Slack : -1.000
@@ -427,11 +427,11 @@ Slack : -1.000
 TNS   : -4.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.send'
-Slack : 0.334
+Slack : 0.349
 TNS   : 0.000
 
 Type  : Fast 1200mV -40C Model Minimum Pulse Width 'S70FL01GS_Flash_Memory_Interface_address_swap:flash_mem|spi_master:MAS|current_state.idle'
-Slack : 0.393
+Slack : 0.424
 TNS   : 0.000
 
 ------------------------------------------------------------

@@ -22,6 +22,8 @@
 #include "adxl312.h"
 #include "l3gd20h.h"
 
+#include <Os/Mutex.hpp>
+
 // TODO: Make these configureable in flight
 #define IMU_LPF_COEFF 0.01
 #define MAX_ROVER_PITCH_ANGLE 40
@@ -98,6 +100,18 @@ namespace CubeRover
     float32 m_lpfAccX;
     float32 m_lpfAccY;
     float32 m_lpfAccZ;
+
+    // Mutex allowing external agents to safely access IMU data while
+    // circumventing FPrime:
+    ::Os::Mutex m_extMutex;
+    // Protected, externally accessible data:
+    // Raw accelerometer data:
+    int16_t m_extAccRaw[3];
+
+  public:
+    // Getters and Setters for Mutex-protected data:
+    void setExtAccRaw(int16_t *srcAccRaw);
+    void getExtAccRaw(int16_t *dstAccRaw);
   };
 
 } // end namespace CubeRover

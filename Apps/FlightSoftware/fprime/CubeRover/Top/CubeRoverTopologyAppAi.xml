@@ -121,7 +121,7 @@
     <source component="rateGroupLowFreq" port="RateGroupMemberOut" type="Sched" num="2" />
     <target component="groundInterface" port="schedIn" type="Sched" num="0"/>
   </connection>
-  
+
   <!--
   <connection name = "rgHighFreq_to_health_clk">
     <source component = "rateGroupHighFreq" port="RateGroupMemberOut" type = "Sched" num = "3" />
@@ -136,9 +136,14 @@
     <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="0" />
     <target component="networkManager" port="schedIn" type="Sched" num="0"/>
   </connection>
-  
+
+  <connection name="rgMedFreq_to_camera">
+    <source component="rateGroupMedFreq" port="RateGroupMemberOut" type="Sched" num="1" />
+    <target component="camera" port="schedIn" type="Sched" num="0"/>
+  </connection>
+
   <connection name = "rgMedFreq_to_navigation_clk">
-    <source component = "rateGroupMedFreq" port="RateGroupMemberOut" type = "Sched" num = "1" />
+    <source component = "rateGroupMedFreq" port="RateGroupMemberOut" type = "Sched" num = "2" />
     <target component = "navigation" port = "schedIn" type = "Sched" num = "0"/>
   </connection>
 

@@ -89,6 +89,8 @@ namespace CubeRover
     tlmWrite_X_Ang(m_gyro.raw[0]);
     tlmWrite_Y_Ang(m_gyro.raw[1]);
     tlmWrite_Z_Ang(m_gyro.raw[2]);
+    // Set mutex-protected externally accessible data:
+    setExtAccRaw(m_acc.raw);
 
     computePitchRoll(&pitch, &roll);
 
@@ -176,4 +178,21 @@ namespace CubeRover
     *roll = atan2(-m_lpfAccX, m_lpfAccZ) * 180.0f * ONE_OVER_PI;
   }
 
+  void IMUComponentImpl::setExtAccRaw(int16_t *srcAccRaw)
+  {
+    this->m_extMutex.lock();
+    this->m_extAccRaw[0] = accRaw[0];
+    this->m_extAccRaw[1] = accRaw[1];
+    this->m_extAccRaw[2] = accRaw[2];
+    this->m_extMutex.unLock();
+  }
+
+  void IMUComponentImpl::getExtAccRaw(int16_t *dstAccRaw)
+  {
+    this->m_extMutex.lock();
+    dstAccRaw[0] = this->m_extAccRaw[0];
+    dstAccRaw[1] = this->m_extAccRaw[1];
+    dstAccRaw[2] = this->m_extAccRaw[2];
+    this->m_extMutex.unLock();
+  }
 } // end namespace CubeRover

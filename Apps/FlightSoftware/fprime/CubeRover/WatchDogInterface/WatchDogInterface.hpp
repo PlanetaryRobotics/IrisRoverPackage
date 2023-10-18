@@ -471,7 +471,7 @@ namespace CubeRover
             ::Os::Mutex cmdMutex;
         };
 
-        bool Read_Temp(); // Checking the temperature sensors from the ADC
+        bool Read_Temp();    // Checking the temperature sensors from the ADC
         bool Read_Current(); // Checking the current sensors from the ADC
 
         void pollDMASendFinished(); // Polls DMA send finish to see if we've finished our DMA sending
@@ -625,10 +625,10 @@ namespace CubeRover
         bool debugPrintfBufferWithPrefix(uint8_t *prefixBuffer, size_t prefixBufferLen, uint8_t *buffer, size_t bufferLen);
         PRIVATE :
 
-            sciBASE_t *m_sci;                              // The sci base used to initialize the watchdog interface connection
-        adcData_t m_thermistor_buffer[number_thermistors]; // Location to store current data for thermistors
+            sciBASE_t *m_sci;                               // The sci base used to initialize the watchdog interface connection
+        adcData_t m_thermistor_buffer[number_thermistors];  // Location to store current data for thermistors
         adcData_t m_current_buffer[number_current_sensors]; // Location to store current data for current sensors
-        bool m_finished_initializing;                      // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
+        bool m_finished_initializing;                       // Flag set when this component is fully initialized and interrupt DMA can be used (otherwise polling DMA)
 
         /**
          * The array of structures that allow us to track the status of previously transmitted commands.
@@ -651,6 +651,18 @@ namespace CubeRover
         uint32_t m_lastThermistorReadTime;
         // Time we last read the current sensors
         uint32_t m_lastCurrentReadTime;
+
+        // Mutex allowing external agents to safely access IMU data while
+        // circumventing FPrime:
+        ::Os::Mutex m_extDataMutex;
+        // Protected, externally accessible data:
+        // Voltage28V, raw ADC reading:
+        int16_t m_extVoltage28VRaw;
+
+    public:
+        // Getters and Setters for Mutex-protected data:
+        void setExt28VRaw(int16_t voltage);
+        int16_t getExt28VRaw();
     };
 
 } // end namespace CubeRover

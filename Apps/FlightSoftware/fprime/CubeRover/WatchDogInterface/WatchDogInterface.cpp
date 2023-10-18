@@ -968,7 +968,7 @@ namespace CubeRover
         // this->tlmWrite_BATTERY_LEVEL(buff->battery_level);     //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
         // this->tlmWrite_BATTERY_CURRENT(buff->battery_current); //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
         // this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage); // Not currently impl. (we get this from WD->Herc packet forwarding anyway)
-
+        setExt28VRaw(buff->voltage_28V);
         return;
     }
 
@@ -1330,6 +1330,22 @@ namespace CubeRover
 
         resourceProtectionMutex.unLock();
         return true;
+    }
+
+    void WatchDogInterfaceComponentImpl::setExt28VRaw(int16_t voltage)
+    {
+        this->m_extDataMutex.lock();
+        this->m_extVoltage28VRaw = voltage;
+        this->m_extDataMutex.unLock();
+    }
+
+    int16_t WatchDogInterfaceComponentImpl::getExt28VRaw()
+    {
+        int16_t reading;
+        this->m_extDataMutex.lock();
+        reading = this->m_extVoltage28VRaw;
+        this->m_extDataMutex.unLock();
+        return reading;
     }
 
 } // end namespace CubeRover

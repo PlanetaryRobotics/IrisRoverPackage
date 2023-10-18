@@ -23,8 +23,14 @@
     },
     "cSpell.words": [
         "Aptina",
+        "downsampled",
         "heatshrink",
         "HSER",
         "losslessly"
-    ]
+    ],
+    "files.associations": {
+        "__locale": "cpp",
+        "locale": "cpp",
+        "string": "cpp"
+    }
 }

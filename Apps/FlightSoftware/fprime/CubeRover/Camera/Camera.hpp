@@ -49,6 +49,43 @@ namespace CubeRover
         uint8_t buffer[PAGE_SIZE * IMAGE_PAGE_WIDTH];
     } __attribute__((packed));
 
+    // Saved settings for capturing a deployment image:
+    struct DeploymentImageSettings
+    {
+        // Status Data:
+        bool waitingForTrigger; // currently waiting for a trigger.
+        U32 startTimeMs;        // when we started waiting for a trigger.
+        // Capture Settings:
+        U8 camera_num;
+        U16 callback_id;
+        bool eraseFirst;
+        // Timeout Settings:
+        U32 timeoutMs;
+        bool triggerOnTimeout = false; // safe default
+        // Trigger Settings:
+        bool conditionModeAll = true; // safe default
+        // IMU XAcc Settings:
+        bool imuXAcc_on;
+        bool imuXAcc_triggerMode;
+        I16 imuXAcc_min;
+        I16 imuXAcc_max;
+        // IMU YAcc Settings:
+        bool imuYAcc_on;
+        bool imuYAcc_triggerMode;
+        I16 imuYAcc_min;
+        I16 imuYAcc_max;
+        // IMU ZAcc Settings:
+        bool imuZAcc_on;
+        bool imuZAcc_triggerMode;
+        I16 imuZAcc_min;
+        I16 imuZAcc_max;
+        // WDI 28V Settings:
+        bool wdi28V_on;
+        bool wdi28V_triggerMode;
+        U16 wdi28V_min;
+        U16 wdi28V_max; //
+    } __attribute__((packed));
+
     enum class DummyImageType
     {
         GRID = 0,
@@ -143,6 +180,85 @@ namespace CubeRover
                                  Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
                              */
         );
+        /* Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line). Offers advanced capture and downlink settings. */
+        void Take_Image_Section_Adv_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U8 camera_num,       /*!<
+                                  0: Camera 0     1: Camera 1
+                              */
+            U16 startLine,       /*!<
+                                  Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                              */
+            U16 endLine,         /*!<
+                                    Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                                */
+            U16 callback_id,     /*!<
+                                 Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                             */
+            bool eraseFirst,     /*!< Whether or not to erase the flash before capturing an image. */
+            uint8_t n_bin,       /*!< Binning setting: factor by which lines should be downsampled through binning. Values gt 2 will trigger an attempt at binning. This is a Bayer-preserving binning process that skips over any line or frame headers embedded in the image by the FPGA FW. Also RLEs homogeneous lines. */
+            bool compressLine    /*!< Whether or not to attempt to compress lines (after binning if performed). Also RLEs homogeneous lines. */
+        );
+        /* Downlinks an image from flash based on the given settings. Doesn't capture an image or erase flash first, just sends whatever's already there. Camera number, callback_id, and capture time (file group id) are stored in Hercules vRAM since the last command that triggered an image capture. If Hercules has rebooted since then, this will still work but those values will be wrong.*/
+        void Read_Image_Section_Adv_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U16 startLine,       /*!<
+                                  Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                              */
+            U16 endLine,         /*!<
+                                    Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                                */
+            uint8_t n_bin,       /*!< Binning setting: factor by which lines should be downsampled through binning. Values gt 2 will trigger an attempt at binning. This is a Bayer-preserving binning process that skips over any line or frame headers embedded in the image by the FPGA FW. Also RLEs homogeneous lines. */
+            bool compressLine    /*!< Whether or not to attempt to compress lines (after binning if performed). Also RLEs homogeneous lines. */
+        );
+        /* Trigger Image Capture but don't downlink it (that can be done later with: `Read_Image_Section_Adv`). */
+        void Capture_Image_Only_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            U8 camera_num,       /*!<
+                                  0: Camera 0     1: Camera 1
+                              */
+            U16 callback_id,     /*!<
+                                 Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                             */
+            bool eraseFirst      /*!< Whether or not to erase the flash before capturing an image. */
+        );
+
+        void Capture_Image_Only_cmdHandler(
+            FwOpcodeType opCode, /*!< The opcode*/
+            U32 cmdSeq,          /*!< The command sequence number*/
+            // Capture Settings:
+            U8 camera_num,
+            U16 callback_id,
+            bool eraseFirst,
+            // Timeout Settings:
+            U32 timeoutMs,
+            bool triggerOnTimeout,
+            // Trigger Settings:
+            bool conditionModeAll,
+            // IMU XAcc Settings:
+            bool imuXAcc_on,
+            bool imuXAcc_triggerMode,
+            I16 imuXAcc_min,
+            I16 imuXAcc_max,
+            // IMU YAcc Settings:
+            bool imuYAcc_on,
+            bool imuYAcc_triggerMode,
+            I16 imuYAcc_min,
+            I16 imuYAcc_max,
+            // IMU ZAcc Settings:
+            bool imuZAcc_on,
+            bool imuZAcc_triggerMode,
+            I16 imuZAcc_min,
+            I16 imuZAcc_max,
+            // WDI 28V Settings:
+            bool wdi28V_on,
+            bool wdi28V_triggerMode,
+            U16 wdi28V_min,
+            U16 wdi28V_max //
+        );
 
         //! Implementation for Error command handler
         //! Get camera status
@@ -194,21 +310,12 @@ namespace CubeRover
                                       */
         );
 
-        //! Implementation for Read_Image command handler
-        //! Downlink image generated by a sequence number
-        void Read_Image_cmdHandler(
-            const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq,          /*!< The command sequence number*/
-            U16 callbackID             /*!<
-                                      DRedownlink an image generated from the specified callbac
-                                  */
-        );
-
         //! Implementation for Erase_Image command handler
         //! TBD
-        void Erase_Image_cmdHandler(
+        void Erase_Flash_cmdHandler(
             const FwOpcodeType opCode, /*!< The opcode*/
-            const U32 cmdSeq           /*!< The command sequence number*/
+            const U32 cmdSeq,          /*!< The command sequence number*/
+            U8 numSectors              /*!< Number of sectors to erase. Default is 40. Only change if you have a reason. */
         );
 
         //! Implementation for Soft_Camera_Reset command handler
@@ -239,31 +346,22 @@ namespace CubeRover
             const U32 cmdSeq, /*!< The command sequence number*/
             const bool viaFlash);
 
+        //! Handler implementation for schedIn
+        //!
+        void schedIn_handler(
+            const NATIVE_INT_TYPE portNum, /*!< The port number*/
+            NATIVE_UINT_TYPE context       /*!< The call order*/
+        );
+
         // ----------------------------------------------------------------------
         // User Methods
         // ----------------------------------------------------------------------
 
-        // Downlink pages from flash memory. Pages are downlinked in groups
-        // called "file lines" (legacy name, different from image lines)
-        // which are just multiple pages back-to-back.
-        // More pages per line means more efficiency but means more data is
-        // lost if a line fails.
-        //
-        // Each line can be compressed before downlink.
-        // Each line can be binned before compression.
-        // Binning
-        void downlinkMemory(
-            const uint32_t startPage,
-            const uint32_t endPage,
-            const uint8_t n_bin = 1, // <=1 is no binning
-            const uint8_t pagesPerLine = 6,
-            const bool compressLine = false);
-
-        uint32_t takeImage(uint8_t camera, uint16_t callbackId, const uint32_t startLine, const uint32_t endLine, bool eraseFirst = true);
+        uint32_t takeImage(uint8_t camera, uint16_t callbackId, bool eraseFirst = true);
         void generateDummyImage(bool viaFlash, DummyImageType type);
         void triggerImageCapture(void);
-        void eraseFpgaFlash(void);
-        void sendImgFromFlash(uint32_t createTime, const uint32_t startLine, const uint32_t endLine);
+        void eraseFpgaFlash(uint8_t numSectors = 40);
+        void sendImgFromFlash(uint32_t createTime, const uint32_t startLine, const uint32_t endLine, const uint8_t n_bin = 1, const bool compressLine = false);
         void downlinkImageLine(uint8_t *image, int size, uint16_t callbackId, uint32_t createTime, uint16_t lineIndex, uint16_t numLines, bool isFirstOrLastLineToDownlink);
 
         S25fl512l m_fpgaFlash;
@@ -283,9 +381,12 @@ namespace CubeRover
         U32 m_numGroundImgsReq;
         U32 m_imagesSent;
         U32 m_bytesSent;
+        uint8_t m_cameraSelect;
         uint16_t m_lastCallbackId;
         uint8_t m_lastCameraSelected; // which camera was used to capture the most recent image.
-        uint8_t m_cameraSelect;
+        uint32_t m_lastCaptureTime;   // time the most recent image was captured.
+        // Settings for capturing a deployment image:
+        DeploymentImageSettings m_deploymentImageSettings;
     };
 
 } // end namespace CubeRover

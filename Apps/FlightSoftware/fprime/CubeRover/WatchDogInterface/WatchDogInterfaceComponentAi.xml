@@ -162,6 +162,11 @@
 					    <item name="Disable_Batteries" value = "0x24" comment="Properly disable the batteries (with persistent latching)." />
 					    <item name="Clear_Persistent_Deploy" value = "0xDD" comment="Clear the persistent 'deployed' status (in case it comes on erroneously during transit - e.g. due to cosmic radiation)." />
 					    <item name="HDRM_Deploy_Signal_Power_On" value = "0xEE" comment="Have the MSP430 Watchdog raise **its** deploy interlock signal. NOTE: This is not the normal way to do this. Only due this if the normal deploy pathway isn't working for some reason." />
+                        <item name="SAFETY_TIMER_REBOOT_CTRL_ON" value = "0x4A" comment="Allow the safety timer to reboot the system." />
+                        <item name="SAFETY_TIMER_REBOOT_CTRL_OFF" value = "0x4B" comment="Don't allow the safety timer to reboot the system." />
+                        <item name="SAFETY_TIMER_ACK" value = "0x4C" comment="Acknowledge the safety timer, setting the count back to 0." />
+                        <item name="SAFETY_TIMER_CUTOFF_INC" value = "0x4D" comment="Increment the safety timer cutoff by a fixed number of minutes." />
+                        <item name="SAFETY_TIMER_CUTOFF_DEC" value = "0x4E" comment="Decrement the safety timer cutoff by a fixed number of minutes." />
 					</enum>
 					<comment>
                     	ENUM Value that specifies which components or hardware need to be reset

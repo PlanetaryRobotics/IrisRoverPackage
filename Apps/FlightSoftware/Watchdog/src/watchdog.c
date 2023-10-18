@@ -308,14 +308,20 @@ int watchdog_monitor(HerculesComms__State *hState,
     }
     else
     {
-        if (*watchdogOpts & WDOPT_MONITOR_HERCULES)
+        if (!(*watchdogOpts & WDOPT_MONITOR_HERCULES))
+        {
+            DPRINTF("Hercules Unresponsive. No reset b/c monitoring off.");
+        }
+        else
         {
             // Only inc. counter if Herc is being monitored.
             herc_conseq_missed_kicks_since_reset += 1;
-            DPRINTF("Hercules Unresponsive.");
+            DPRINTF("Hercules Unresponsive. %d/%d", herc_conseq_missed_kicks_since_reset, HERC_CONSEQ_MISSED_KICK_THRESHOLD);
             // Only reset if counter too big:
             if (herc_conseq_missed_kicks_since_reset >= HERC_CONSEQ_MISSED_KICK_THRESHOLD)
             {
+                // Too many missed kicks. Try to recover Hercules.
+
                 if (herc_monitor_reset_count_since_power_cycle >= HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD)
                 {
                     DPRINTF("No Hercules Kick. Resets didn't work. Power cycling Hercules . . .");
@@ -330,12 +336,10 @@ int watchdog_monitor(HerculesComms__State *hState,
                 else
                 {
                     // reset the hercules
-                    DPRINTF("No Hercules Kick. Resetting Hercules . . .");
+                    herc_monitor_reset_count_since_power_cycle += 1;
+                    DPRINTF("No Hercules Kick. Resetting Hercules . . . %d/%d", herc_monitor_reset_count_since_power_cycle, HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD);
                     herc_conseq_missed_kicks_since_reset = 0;
                     setHerculesReset();
-
-                    // Inc the number of times we've needed to do this:
-                    herc_monitor_reset_count_since_power_cycle += 1;
 
                     // queue up hercules unreset
                     *watchdogFlags |= WDFLAG_UNRESET_HERCULES;

@@ -17,17 +17,15 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 #include "MotorController_i2c.h"
+#include "MotorController.hpp"
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
 #define ALL_MOTOR_ID 0x00
-#define MC_SLAVE_I2C_ADDR_0 = 0x48
 
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
-
-#define NUM_MOTORS 4
 
 #define MAX_SPEED 100
 #define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
@@ -143,13 +141,26 @@ namespace CubeRover
                                            const U32 cmdSeq /*!< The command sequence number*/);
 
         /* Implementation specific declarations */
-    public:
+
 
         /* -------------------------------------------------------
          * MC DEFINITIONS
          * Author: RAD
          * -------------------------------------------------------
          */
+
+    private:
+
+        typedef enum
+        {
+            MOTOR_A = 0,
+            MOTOR_B = 1,
+            MOTOR_C = 2,
+            MOTOR_D = 3,
+            NUM_MOTORS = 4
+        }MCMotorID_t;
+
+    public:
 
         // --- MC Error Types
         typedef enum
@@ -172,112 +183,8 @@ namespace CubeRover
             FAULT           // Fault
         } MCState_t;
 
-        // --- MC i2c Register
-        typedef enum
-        {
-            REG_I2C_ADDRESS = 0,              // Read-only  - 1Byte
-            REG_RELATIVE_TARGET_POSITION = 1, // Write-only - 4Bytes
-            REG_TARGET_SPEED = 2,             // Write-only - 1Byte
-            REG_CURRENT_POSITION = 3,         // Read-only  - 4Bytes
-            REG_CURRENT_SPEED = 4,            // DEPRICATED - 2Bytes
-            REG_MOTOR_CURRENT = 5, // Read-only  - 4Bytes
-            REG_P_CURRENT = 6,     // Write-only - 2Bytes
-            REG_I_CURRENT = 7,     // Write-only - 2Bytes
-            REG_P_SPEED = 8,       // Write-only - 2Bytes
-            REG_I_SPEED = 9,       // Write-only - 2Bytes
-            REG_ACC_RATE = 10,     // Write-only - 2Bytes
-            REG_DEC_RATE = 11,     // Write-only - 2Bytes
-            REG_CTRL = 12,         // Write-only - 1Byte
-            REG_STATUS = 13,       // Read-only  - 1Byte
-            REG_FAULT = 14,        // Read-only  - 1Byte
-            NUM_REGS = 16,
-        } RegisterAddress_t;
-
-        // MC i2c Control Register
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t open_loop : 1;
-                uint8_t clear_fault : 1;
-                uint8_t fsm_disable : 1;
-                uint8_t fsm_run : 1;
-                uint8_t override_fault_detection : 1;
-                uint8_t unused : 3;
-            } bits;
-        } ControlRegister_t;
-
-        // MC i2c Status Register
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t open_loop : 1;
-                uint8_t clear_fault : 1;
-                uint8_t fsm_disable : 1;
-                uint8_t position_converged : 1;
-                uint8_t controller_error : 1;
-                uint8_t unused : 3;
-
-                // NEW STATES:
-//                IDLE,           // Updating Parameters w/Drivers Disabled
-//                ENABLED,        // Drivers Enabled
-//                ARMED,          // Execute Drive Sent
-//                RUNNING,        // Driving
-//                TARGET_REACHED, // Target Reached
-//                DISABLED,       // Powered Off (theoretically)
-//                FAULT,          // Fault
-            } bits;
-        } StatusRegister_t;
-
-        // MC i2c Fault Register
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t driver_fault : 1;
-                uint8_t position_no_change : 1;
-                uint8_t driving_wrong_direction : 1;
-                uint8_t unused : 5;
-            } bits;
-        } FaultRegister_t;
-
-        typedef enum
-        {
-            MOTOR_A = 0,
-            MOTOR_B = 1,
-            MOTOR_C = 2,
-            MOTOR_D = 3,
-            ALL
-        };
 
 
-        struct MotorController_t
-        {
-            motorID_t motor_id;
-            uint8_t i2c_addr;
-
-            int32_t target_pos;
-            int16_t target_vel;
-
-            int32_t current_pos; // encoder ticks
-            int16_t current_vel;
-            uint32_t motor_current;
-
-        //    int8_t current_p_val;
-        //    int8_t current_i_val;
-        //    int8_t vel_p_val;
-        //    int8_t vel_i_val;
-        //    int8_t acc_val;
-        //    int8_t dec_val;
-
-            ControlRegister_t ctrl;
-            StatusRegister_t status;
-            FaultRegister_t fault;
-        };
 
 
 
@@ -290,7 +197,7 @@ namespace CubeRover
 
         /* --- Private Variables --- */
         MCState_t motorControllerState;
-        MotorController_t motors[NUM_MOTORS];
+        MotorController motors[NUM_MOTORS];
 
 
 

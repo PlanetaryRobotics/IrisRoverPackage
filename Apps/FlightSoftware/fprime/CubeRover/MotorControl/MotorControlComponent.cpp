@@ -69,6 +69,11 @@ namespace CubeRover
     {
         MotorControlComponentBase::init(instance);
 
+        motorControllerState = IDLE;
+        for (int i = 0; i < NUM_MOTORS; i++)
+        {
+            initMotorController(&motors[i], i);
+        }
     }
 
     /**
@@ -109,41 +114,7 @@ namespace CubeRover
                                                             U8 Distance,
                                                             U8 Speed)
     {
-        MCError_t err; // TODO: this isn't actually used for anything here.
-        if (command_type == CubeRoverPorts::MC_DrivingConfiguration)
-        {
-            switch (movement_type)
-            {
-            case CubeRoverPorts::MC_Forward:
-                err = moveAllMotorsStraight(Distance, Speed);
-                log_COMMAND_MC_moveStarted();
-                break;
-            case CubeRoverPorts::MC_Backward:
-                err = moveAllMotorsStraight(-Distance, Speed);
-                log_COMMAND_MC_moveStarted();
-                break;
-            case CubeRoverPorts::MC_Left:
-                err = rotateAllMotors(Distance, Speed);
-                log_COMMAND_MC_moveStarted();
-                break;
-            case CubeRoverPorts::MC_Right:
-                err = rotateAllMotors(-Distance, Speed);
-                log_COMMAND_MC_moveStarted();
-                break;
-            case CubeRoverPorts::MC_Stop:
-                err = moveAllMotorsStraight(0, 0);
-                break;
-            default:
-                return;
-            }
-            if (err != MC_NO_ERROR) // TODO: Should stop right?
-                log_WARNING_HI_MC_MSPNotResponding();
-            pollStatus();
-        }
-        else if (command_type == CubeRoverPorts::MC_UpdateTelemetry)
-        {
-            updateTelemetry();
-        }
+
     }
 
     // ----------------------------------------------------------------------
@@ -423,6 +394,8 @@ namespace CubeRover
         // TODO: Should this force open loop control as well?
         MCError_t err;
         uint8_t speed = MAX_SPEED;
+        uint32_t ticks = Raw_Ticks;
+
         if (Motor_ID == ALL_MOTOR_ID)
         {
             err = sendAllMotorsData(REG_TARGET_SPEED, &speed);
@@ -432,7 +405,7 @@ namespace CubeRover
                 return;
             }
 
-            err = sendAllMotorsData(REG_RELATIVE_TARGET_POSITION, &Raw_Ticks);
+            err = sendAllMotorsData(REG_TARGET_POSITION, &Raw_Ticks);
             if (err != MC_NO_ERROR)
             {
                 this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
@@ -448,7 +421,7 @@ namespace CubeRover
                 return;
             }
 
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], REG_RELATIVE_TARGET_POSITION, &Raw_Ticks);
+            err = motorControlTransfer(motorIdAddressMap[Motor_ID], REG_TARGET_POSITION, &Raw_Ticks);
             if (err != MC_NO_ERROR)
             {
                 this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
@@ -541,10 +514,10 @@ namespace CubeRover
     void MotorControlComponentImpl::initMotorControllers()
     {
         motorControllerState = DISABLED;
-        for (int i = 0; i < NUM_MOTORS; i++)
-        {
-            motors[i].i2c_addr = MC_SLAVE_I2C_ADDR_0 + i;
-        }
+//        for (int i = 0; i < NUM_MOTORS; i++)
+//        {
+//            motors[i].i2c_addr = MC_SLAVE_I2C_ADDR_0 + i;
+//        }
     }
 
     MotorControlComponentImpl::MCError_t
@@ -579,25 +552,25 @@ namespace CubeRover
     {
         switch (reg)
         {
-        case REG_I2C_ADDRESS:
-        case REG_TARGET_SPEED:
-        case REG_CTRL:
-        case REG_FAULT:
-        case REG_STATUS:
-            return 1;
-        case REG_P_CURRENT:
-        case REG_I_CURRENT:
-        case REG_P_SPEED:
-        case REG_I_SPEED:
-        case REG_ACC_RATE:
-        case REG_DEC_RATE:
-            return 2;
-        case REG_RELATIVE_TARGET_POSITION:
-        case REG_CURRENT_POSITION:
-        case REG_MOTOR_CURRENT: // TODO: CHeck if this retuns 2 byts or 4!? 2 from thismethod 4 from micheal's update current tlm code
-            return 4;
-        default:
-            return 0;
+            case REG_I2C_ADDRESS:
+            case REG_TARGET_SPEED:
+            case REG_MC_CTRL:
+            case REG_MC_FAULT:
+            case REG_MC_STATUS:
+                return 1;
+            case REG_P_CURRENT:
+            case REG_I_CURRENT:
+            case REG_P_SPEED:
+            case REG_I_SPEED:
+            case REG_ACC_RATE:
+            case REG_DEC_RATE:
+                return 2;
+            case REG_TARGET_POSITION:
+            case REG_CURRENT_POSITION:
+            case REG_MOTOR_CURRENT: // TODO: CHeck if this retuns 2 byts or 4!? 2 from thismethod 4 from micheal's update current tlm code
+                return 4;
+            default:
+                return 0;
         }
     }
 
@@ -624,7 +597,7 @@ namespace CubeRover
         MCError_t err;
         for (int i = 0; i < NUM_MOTORS; ++i)
         {
-            err = motorControlTransfer(motorIdAddressMap[i], REG_STATUS, &m_currStatus[i].value);
+            err = motorControlTransfer(motorIdAddressMap[i], REG_MC_STATUS, &m_currStatus[i].value);
             if (err != MC_NO_ERROR)
             {
                 // I2C Communication Error
@@ -655,10 +628,10 @@ namespace CubeRover
     bool MotorControlComponentImpl::startMotorMovement()
     {
         MCError_t err;
-        char motorStartValue = 32;
+        char motorStartValue = START_MOTORS;
         for (int i = 0; i < NUM_MOTORS; ++i)
         {
-            err = motorControlTransfer(motorIdAddressMap[i], REG_CTRL, &motorStartValue);
+            err = motorControlTransfer(motorIdAddressMap[i], REG_MC_CTRL, &motorStartValue);
             if (err != MC_NO_ERROR)
             {
                 // I2C Communication Error
@@ -716,28 +689,28 @@ namespace CubeRover
         }
 
         taskENTER_CRITICAL();
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
+        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_TARGET_POSITION, &Left_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
             return err;
         }
 
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Right_Wheels_Relative_ticks);
+        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_TARGET_POSITION, &Right_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
             return err;
         }
 
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Right_Wheels_Relative_ticks);
+        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_TARGET_POSITION, &Right_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
             return err;
         }
 
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Left_Wheels_Relative_ticks);
+        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_TARGET_POSITION, &Left_Wheels_Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
@@ -786,33 +759,33 @@ namespace CubeRover
 
         taskENTER_CRITICAL();
         StatusRegister_t status;
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_STATUS, &status.value);
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_STATUS, &status.value);
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_STATUS, &status.value);
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_STATUS, &status.value);
+        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_MC_STATUS, &status.value);
+        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_MC_STATUS, &status.value);
+        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_MC_STATUS, &status.value);
+        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_MC_STATUS, &status.value);
 
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
+        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, REG_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
             return err;
         }
 
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
+        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, REG_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
             return err;
         }
 
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
+        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, REG_TARGET_POSITION, &Relative_ticks);
         if (err != MC_NO_ERROR)
         {
             taskEXIT_CRITICAL();
             return err;
         }
 
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_RELATIVE_TARGET_POSITION, &Relative_ticks);
+        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, REG_TARGET_POSITION, &Relative_ticks);
         taskEXIT_CRITICAL();
 
         return err;
@@ -835,8 +808,8 @@ namespace CubeRover
             reg == REG_CURRENT_POSITION ||
             reg == REG_CURRENT_POSITION ||
             reg == REG_MOTOR_CURRENT ||
-            reg == REG_STATUS ||
-            reg == REG_FAULT)
+            reg == REG_MC_STATUS ||
+            reg == REG_MC_FAULT)
         {
             taskENTER_CRITICAL();
             if (i2cMasterReadData(m_i2c, addr, reg_buffer, dataLength, data))
@@ -930,7 +903,7 @@ namespace CubeRover
             while (delay) // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
                 delay--;
 
-            uint8_t reg = REG_STATUS;
+            uint8_t reg = REG_MC_STATUS;
             for (int i = 0; i < 4; ++i)
             {
                 StatusRegister_t this_status;

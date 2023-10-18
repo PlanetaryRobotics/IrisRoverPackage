@@ -195,8 +195,8 @@ extern "C"
         WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_ON = 0x4A,  //!< Allow the safety timer to reboot the system
         WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_OFF = 0x4B, //!< Don't allow the safety timer to reboot the system
         WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_ACK = 0x4C,             //!< Acknowledge the safety timer, setting the count back to 0
-        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC = 0x4D,      //!< Increment the safety timer cutoff by 5 mins
-        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC = 0x4E       //!< Decrement the safety timer cutoff by 5 mins
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC = 0x4D,      //!< Increment the safety timer cutoff by a fixed number of minutes.
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC = 0x4E       //!< Decrement the safety timer cutoff by a fixed number of minutes.
     } WdCmdMsgs__ResetSpecificId;
 
     /**

@@ -19,10 +19,10 @@
 // below them will never be NULL. Since the Ptr values should be set
 // to non-NULL values in watchdog_init prior to enabling the interrupts,
 // these three shouldn't ever actually be used.
-static volatile uint16_t shouldBeUnusedWatchdogFlags = 0;
+static volatile uint32_t shouldBeUnusedWatchdogFlags = 0;
 static volatile uint16_t shouldBeUnusedTimeCount = 0;
 
-// static volatile uint16_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
+// static volatile uint32_t* watchdogFlagsPtr = &shouldBeUnusedWatchdogFlags;
 static volatile uint16_t *timeCountCentisecondsPtr = &shouldBeUnusedTimeCount;
 
 static volatile BOOL lookingForWdIntFallingEdge = TRUE;
@@ -32,7 +32,7 @@ static volatile uint16_t wdIntTimeBetweenLastEdges = 0;
 /**
  * Set up the ISRs for the watchdog
  */
-int watchdog_init(volatile uint16_t *watchdogFlags,
+int watchdog_init(volatile uint32_t *watchdogFlags,
                   volatile uint16_t *timeCountCentiseconds,
                   const HeaterParams *hParams)
 {
@@ -158,7 +158,7 @@ int watchdog_init(volatile uint16_t *watchdogFlags,
  * Function called every ~5s
  */
 int watchdog_monitor(HerculesComms__State *hState,
-                     volatile uint16_t *watchdogFlags,
+                     volatile uint32_t *watchdogFlags,
                      uint8_t *watchdogOpts,
                      BOOL *writeIOExpander,
                      WatchdogStateDetails *details)

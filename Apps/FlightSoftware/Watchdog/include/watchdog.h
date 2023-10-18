@@ -21,7 +21,7 @@ extern "C"
 
 // MPS: I'm not documenting these because this code will soon be restructured into a state-based paradigm.
 
-int watchdog_init(volatile uint16_t* watchdogFlags,
+int watchdog_init(volatile uint32_t* watchdogFlags,
                   volatile uint16_t* timeCountCentiseconds,
                   const HeaterParams* hParams);
 
@@ -32,7 +32,7 @@ void watchdog_build_hercules_telem(const I2C_Sensors__Readings *i2cReadings,
                                    size_t telbufSize);
 
 int watchdog_monitor(HerculesComms__State* hState,
-                     volatile uint16_t* watchdogFlags,
+                     volatile uint32_t* watchdogFlags,
                      uint8_t* watchdogOpts,
                      BOOL* writeIOExpander,
                      WatchdogStateDetails* details);

@@ -35,7 +35,8 @@ int watchdog_monitor(HerculesComms__State* hState,
                      volatile uint32_t* watchdogFlags,
                      uint8_t* watchdogOpts,
                      BOOL* writeIOExpander,
-                     WatchdogStateDetails* details);
+                     WatchdogStateDetails* details,
+                     UART__State *uart0State);
 
 uint16_t watchdog_get_wd_int_flat_duration(void);
 

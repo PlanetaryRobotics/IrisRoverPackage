@@ -110,7 +110,8 @@ namespace iris
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
                          &writeIOExpander,
-                         &(theContext.m_details));
+                         &(theContext.m_details),
+                         theContext.m_uart0State);
 
         if (writeIOExpander)
         {
@@ -218,9 +219,23 @@ namespace iris
         // hercules can be programmed. In flight, though, we want Hercules monitoring to be on by default.
         DPRINTF("Defaulting MONITOR_HERCULES to OFF in MISSION for programming.");
         theContext.m_watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+
+        // [CWC-10/18/2023] Need safety timer to be off in this mode too since it depends on Herc comms.
+        DPRINTF("Defaulting SAFETY TIMER to OFF in MISSION for programming.");
+        theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF;
+        theContext.m_details.m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        theContext.m_details.m_safetyTimerParams.countdownWarningCount = 0;
 #else
         DPRINTF("Defaulting MONITOR_HERCULES to ON in MISSION.");
         theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES; // default to monitoring Hercules for aliveness
+
+        // Wait until now to activate the supervisory timer (want to wait until
+        // `EnteringMission->Mission` state transition b/c we wait until Radio
+        // is or should be up to do this...)
+        DPRINTF("SAFETY TIMER: Activated in Mission.");
+        theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
+        theContext.m_details.m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        theContext.m_details.m_safetyTimerParams.countdownWarningCount = 0;
 #endif
 
         return getState();

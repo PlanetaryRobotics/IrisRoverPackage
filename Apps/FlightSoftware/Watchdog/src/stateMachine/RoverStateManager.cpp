@@ -65,6 +65,11 @@ namespace iris
         m_context.m_uartConfig.uart1Buffers.rxBuffer = uart1RxBuffer;
         m_context.m_uartConfig.uart1Buffers.rxBufferSize = sizeof(uart1RxBuffer);
 
+        m_context.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF; // starts off, doesn't come on until Mission.
+        m_context.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds = SAFETY_TIMER__DEFAULT_CUTOFF_CS;
+        m_context.m_details.m_safetyTimerParams.centisecondsAtLastAck = 0;
+        m_context.m_details.m_safetyTimerParams.countdownWarningCount = 0;
+
         m_context.m_details.m_hParams.m_kpHeater = DEFAULT_KP_HEATER;
         m_context.m_details.m_hParams.m_pwmLimit = DEFAULT_PWM_LIMIT;
         m_context.m_details.m_hParams.m_heaterSetpoint = DEFAULT_HEATER_SETPOINT;
@@ -77,6 +82,7 @@ namespace iris
         m_context.m_details.m_hParams.m_thresholdsChanged = true;
         m_context.m_details.m_hParams.m_forceState = HEATER_FORCE_NOTHING;
         m_context.m_details.m_hParams.m_inputSource = HEATER_CONTROL_INPUT_BATT_RT;
+
         m_context.m_details.m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE);
         m_context.m_details.m_inputPinAndStateBits = 0;
         m_context.m_details.m_outputPinBits = 0;

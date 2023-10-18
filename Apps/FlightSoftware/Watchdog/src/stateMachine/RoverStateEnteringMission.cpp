@@ -74,7 +74,8 @@ namespace iris
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
                          &writeIoExpander,
-                         &(theContext.m_details));
+                         &(theContext.m_details),
+                         theContext.m_uart0State);
 
 #if 0 // Due to lots of race conditions w/ code handling transitions, I'm disabling reading/writing I2C here fo this state
         if (writeIoExpander && true /** @todo Replace true with whether I2C has been initialized */) {

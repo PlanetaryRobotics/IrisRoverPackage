@@ -97,7 +97,8 @@ namespace iris
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
                          &writeIOExpander,
-                         &(theContext.m_details));
+                         &(theContext.m_details),
+                         theContext.m_uart0State);
 
         if (writeIOExpander)
         {

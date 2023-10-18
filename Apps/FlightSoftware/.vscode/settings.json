@@ -23,12 +23,21 @@
     },
     "cSpell.words": [
         "Aptina",
+        "bitflip",
+        "bitflips",
         "Centisecond",
+        "Centiseconds",
         "CONSEQ",
+        "DLATCH",
         "downsampled",
         "heatshrink",
         "HSER",
+        "IOEX",
+        "IPASBI",
         "losslessly",
+        "REGE",
+        "Substate",
+        "uninitialize",
         "Unreset",
         "WDFLAG",
         "WDOPT"
@@ -36,6 +45,10 @@
     "files.associations": {
         "__locale": "cpp",
         "locale": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "concepts": "cpp",
+        "ios": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp"
     }
 }

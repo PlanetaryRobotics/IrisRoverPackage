@@ -152,6 +152,450 @@ int watchdog_init(volatile uint32_t *watchdogFlags,
     return 0;
 }
 
+// Handler for Hercules Monitoring (called as sub-task of watchdog_monitor):
+void hercules_monitor(HerculesComms__State *hState,
+                      volatile uint32_t *watchdogFlags,
+                      uint8_t *watchdogOpts,
+                      BOOL *writeIOExpander,
+                      WatchdogStateDetails *details)
+{
+    /* check if hercules has given a valid kick */
+    if (*watchdogFlags & WDFLAG_HERCULES_KICK)
+    {
+        *watchdogFlags ^= WDFLAG_HERCULES_KICK;
+        herc_conseq_missed_kicks_since_reset = 0;
+        // Let Ground know Hercules is still alive
+        // (if Hercules was rebooted while our comms were only over Wifi,
+        // we wouldn't know when it would be good to send SWITCH TO WIFI MODE).
+        DPRINTF("Hercules Alive.");
+    }
+    else
+    {
+        if (!(*watchdogOpts & WDOPT_MONITOR_HERCULES))
+        {
+            // missed a kick, but don't reset the hercules.
+            DPRINTF("Hercules Unresponsive. No reset b/c monitoring off.");
+        }
+        else
+        {
+            // Only inc. counter if Herc is being monitored.
+            herc_conseq_missed_kicks_since_reset += 1;
+            DPRINTF("Hercules Unresponsive. %d/%d", herc_conseq_missed_kicks_since_reset, HERC_CONSEQ_MISSED_KICK_THRESHOLD);
+            // Only reset if counter too big:
+            if (herc_conseq_missed_kicks_since_reset >= HERC_CONSEQ_MISSED_KICK_THRESHOLD)
+            {
+                // Too many missed kicks. Try to recover Hercules.
+
+                if (herc_monitor_reset_count_since_power_cycle >= HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD)
+                {
+                    DPRINTF("No Hercules Kick. Resets didn't work. Power cycling Hercules . . .");
+                    herc_conseq_missed_kicks_since_reset = 0; // count this as a reset so it doesn't immediately re-trigger
+                    herc_monitor_reset_count_since_power_cycle = 0;
+                    // Kill the power:
+                    powerOffHercules();
+                    SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_POWER_OFF);
+                    // Queue up the power coming back on:
+                    *watchdogFlags |= WDFLAG_POWER_ON_HERCULES;
+                }
+                else
+                {
+                    // reset the hercules
+                    herc_monitor_reset_count_since_power_cycle += 1;
+                    DPRINTF("No Hercules Kick. Resetting Hercules . . . %d/%d", herc_monitor_reset_count_since_power_cycle, HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD);
+                    herc_conseq_missed_kicks_since_reset = 0;
+                    setHerculesReset();
+
+                    // queue up hercules unreset
+                    *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
+                    SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
+
+                    // if the issue was due to a comms breakdown, reset the comms state
+                    if (NULL != hState)
+                    {
+                        DPRINTF("\t Resetting Hercules Comms . . .");
+                        HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
+
+                        //!< @todo Replace with returning watchdog error code once that is implemented.
+                        DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+                    }
+
+                    *writeIOExpander = TRUE;
+                } // Reset count check
+            }     // Missed Kicks check
+        }         // Hercules Monitoring check
+    }             // Hercules Kick check
+}
+
+// Handler for Supervisor Safety Timer (called as sub-task of watchdog_monitor):
+void safety_timer_handler(HerculesComms__State *hState,
+                          volatile uint32_t *watchdogFlags,
+                          uint8_t *watchdogOpts,
+                          BOOL *writeIOExpander,
+                          WatchdogStateDetails *details,
+                          UART__State *uart0State)
+{
+    // Statically allocate so this doesn't go on the stack:
+    static uint16_t time_elapsed_cs;
+    static uint16_t warning_count_target;
+
+    //*
+    //* Check for Preconditions:
+    // Hold timer at 0 if not in Mission (i.e. make sure we don't reset or
+    // emit countdown messages):
+    if (details->m_stateAsUint != static_cast<uint8_t>(RoverState::MISSION))
+    {
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+    }
+
+    //*
+    //* Check for bitflips (so we don't do any reboots accidentally or not do one when we should):
+    // Make sure Reboot Control is in a safe state:
+    if (
+        details->m_safetyTimerParams.timerRebootControlOn != SAFETY_TIMER__REBOOT_CONTROL_ON &&
+        details->m_safetyTimerParams.timerRebootControlOn != SAFETY_TIMER__REBOOT_CONTROL_OFF)
+    {
+        DPRINTF("SAFETY TIMER: Bitflip in Reboot Control: 0x%x. Defaulting to ON.", details->safetyTimerParams.timerRebootControlOn);
+        details->m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
+    }
+    if ( // These bits should always agree. If XOR, they disagree and there's been a flip:
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_1A) ^
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_1B))
+    {
+        // Probable bit flip. More likely to have activated one bit during the
+        // very long windows we want this to be off than deactivated a bit
+        // during the short window where we have both on, so default to off.
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_1X: 0x%x. Turning bits off.", *watchdogFlags);
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
+    }
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2A) ^
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2B))
+    {
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_2X: 0x%x. Turning bits off.", *watchdogFlags);
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
+    }
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1A) ^
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1B))
+    {
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_1X: 0x%x. Turning bits off.", *watchdogFlags);
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1B;
+    }
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2A) ^
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2B))
+    {
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_2X: 0x%x. Turning bits off.", *watchdogFlags);
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2B;
+    }
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3A) ^
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3B))
+    {
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_3X: 0x%x. Turning bits off.", *watchdogFlags);
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3B;
+    }
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4A) ^
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4B))
+    {
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_4X: 0x%x. Turning bits off.", *watchdogFlags);
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
+    }
+
+    //*
+    //* Check for timer kick:
+    if (*watchdogFlags & WDFLAG_SAFETY_TIMER_KICK)
+    {
+        *watchdogFlags ^= WDFLAG_SAFETY_TIMER_KICK;
+        // Reset the timer to now:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        DPRINTF("SAFETY TIMER: ACK Kick processed. Timer reset.");
+    }
+    else
+    {
+        // Haven't received a kick since the last monitor event.
+        time_elapsed_cs = (Time__getTimeInCentiseconds() - details->m_safetyTimerParams.centisecondsAtLastAck);
+
+        // Check if the timer has expired:
+        if (time_elapsed_cs > details->m_safetyTimerParams.timerResetCutoffCentiseconds)
+        {
+            // GND hasn't checked-in in a while. Need to reboot (if reboot control is on):
+            if (!details->m_safetyTimerParams.timerRebootControlOn)
+            {
+                // Can't reboot b/c timer is not on.
+                DPRINTF("SAFETY TIMER: Timer expired at %d cs. NO REBOOT b/c control is OFF.", Time__getTimeInCentiseconds());
+            }
+            else
+            {
+                DPRINTF("SAFETY TIMER: Timer expired at %d cs. Performing Reboot . . .", Time__getTimeInCentiseconds());
+                // Queue up both bits to trigger the first state of the full power reboot:
+                watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
+                watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
+            }
+            // Either way, reset the timer:
+            details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+            details->m_safetyTimerParams.countdownWarningCount = 0;
+        }
+        else
+        {
+            // Timer hasn't expired but see if we should emit a countdown warning:
+            // How many warning messages should we have emitted:
+            warning_count_target = uint16_t(time_elapsed_cs / SAFETY_TIMER__COUNTDOWN_INTERVAL_CS);
+            if (warning_count_target != details->m_safetyTimerParams.countdownWarningCount)
+            {
+                // Emit a countdown warning message:
+                if (!details->m_safetyTimerParams.timerRebootControlOn)
+                {
+                    DPRINTF(
+                        "SAFETY TIMER: %d/%d. Reboot Ctrl: ON. ROVER WILL REBOOT in %d minutes. Send ACK to reset timer.",
+                        time_elapsed_cs,
+                        details->m_safetyTimerParams.timerResetCutoffCentiseconds,
+                        (details->m_safetyTimerParams.timerResetCutoffCentiseconds - time_elapsed_cs) / 600 //
+                    );
+                }
+                else
+                {
+                    // Slightly more low-key since we won't reboot if the timer expires.
+                    DPRINTF(
+                        "SAFETY TIMER: %d/%d. Reboot Ctrl: OFF. Expires in %d minutes. Send ACK to reset timer.",
+                        time_elapsed_cs,
+                        details->m_safetyTimerParams.timerResetCutoffCentiseconds,
+                        (details->m_safetyTimerParams.timerResetCutoffCentiseconds - time_elapsed_cs) / 600 //
+                    );
+                }
+                details->m_safetyTimerParams.countdownWarningCount = warning_count_target;
+            } // warning count check
+        }     // timeout check
+    }         // kick check
+
+    //* Advance Full Power Reboot "State Machine":
+    // Check states in parallel ifs, ordered with later stage power ups later
+    // so in case poorly placed flips turned on early power off states, the
+    // desired power on state will still run.
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_1A) &&
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_1B) //
+    )
+    {
+        DPRINTF("\t SAFETY TIMER: PWR_OFF_1");
+        // Perform MISSION -> SERVICE power transitions:
+        // transition to EnteringService: Nothing.
+        // EnteringService::transitionTo: Nothing.
+        // EnteringService::spinOnce: Nothing.
+        // EnteringService::handleTimerTick: Nothing.
+
+        // transition to Service: Nothing.
+        // Service::transitionTo: Nothing.
+        // Service::spinOnce: Nothing.
+        // Service::handleTimerTick: Nothing.
+
+        // Turns out nothing needs to happen here rn. Keeping this state
+        // around just in case that changes (the added 5s delay to reboot start
+        // won't really matter).
+
+        // Make sure timer stays off during this state:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        // Turn off these bits:
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
+        // Move to the next state:
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
+    }
+
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2A) &&
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2B) //
+    )
+    {
+        DPRINTF("\t SAFETY TIMER: PWR_OFF_2");
+        // Perform SERVICE -> KA power transitions:
+
+        // transition to EnteringKeepAlive: Nothing.
+        // EnteringKeepAlive::transitionTo: Nothing.
+        // EnteringKeepAlive::transitionToWaitingForIoExpanderWrite:
+        powerOffFpga();
+        powerOffMotors();
+        powerOffRadio();
+        powerOffHercules();
+        setRadioReset();
+        setFPGAReset();
+        setMotorsReset();
+        setHerculesReset();
+        disable3V3PowerRail();
+        disableVSysAllPowerRail();
+        // blimp_normalBoot(); *DON'T* call this b/c we don't want to mess with batteries here.
+        // Power controls from blimp_normalBoot:
+        blimp_vSysAllEnOff(); // Makes sure VSA is off (technically happened above)
+        blimp_chargerEnOff(); // Make sure charger is off (in case something got excited here and turned on, causing mayhem)
+        blimp_regEnOff();     // REGE for charger off
+        // Make sure to disable the Hercules uart so we don't dump current through that tx pin:
+        // This is okay to do here, even though we're still in MISSION, b/c
+        // MISSION only re-enables comms if Hercules is ON.
+        if (HerculesComms__isInitialized(hState))
+        {
+            DebugComms__registerHerculesComms(NULL);
+            HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(hState));
+            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+        }
+        UART__uninit0(&(uart0State));
+        // EnteringKeepAlive::transitionToFinishUpSetup: Nothing.
+        // EnteringKeepAlive::spinOnce: Nothing.
+        // EnteringKeepAlive::handleTimerTick: Nothing.
+
+        // transition to KeepAlive: Nothing.
+        // KeepAlive::transitionTo: Nothing.
+        // KeepAlive::spinOnce: Nothing.
+        // KeepAlive::handleTimerTick: Nothing.
+
+        *writeIOExpander = TRUE; // some of the above (mainly resets) require IOEX writes
+
+        // Make sure timer stays off during this state:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        // Turn off these bits:
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
+        // Move to the next state:
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1A;
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1B;
+    }
+
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1A) &&
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1B) //
+    )
+    {
+        DPRINTF("\t SAFETY TIMER: PWR_ON_1");
+        // Perform KA -> SERVICE power transitions:
+
+        // transition to EnteringService: Nothing.
+        // EnteringService::transitionTo: Nothing.
+        // EnteringService::spinOnce: Nothing.
+        // EnteringService::handleTimerTick: Nothing.
+
+        // transition to Service: Nothing.
+        // Service::transitionTo: Nothing.
+        // Service::spinOnce: Nothing.
+        // Service::handleTimerTick: Nothing.
+
+        // Turns out nothing needs to happen here rn. Keeping this state
+        // around just in case that changes (the added 5s with everything off
+        // won't really matter and might even be beneficial).
+
+        // Make sure timer stays off during this state:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        // Turn off these bits:
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1B;
+        // Move to the next state:
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2A;
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2B;
+    }
+
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2A) &&
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2B) //
+    )
+    {
+        DPRINTF("\t SAFETY TIMER: PWR_ON_2");
+        // Perform SERVICE -> MISSION power transitions:
+
+        // transition to EnteringMission: Nothing.
+        // EnteringMission::transitionTo: Nothing.
+        // EnteringMission::transitionToWaitingForI2cDone: Nothing.
+        // EnteringMission::transitionToWaitingForIoExpanderWrite1:
+        blimp_vSysAllEnOn();
+        enable3V3PowerRail();
+        releaseRadioReset();
+        releaseFPGAReset();
+
+        *writeIOExpander = TRUE; // some of the above require IOEX writes
+
+        // EnteringMission::spinOnce: Nothing (directly, but dispatched to transition commands below):
+        // waits for I2C to complete, so we'll insert a new state here... (after IOEX and ~5s wait)
+
+        // Make sure timer stays off during this state:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        // Turn off these bits:
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2B;
+        // Move to the next state:
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3A;
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3B;
+    }
+
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3A) &&
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3B) //
+    )
+    {
+        DPRINTF("\t SAFETY TIMER: PWR_ON_3");
+        // EnteringMission::transitionToWaitingForIoExpanderWrite2:
+        powerOffFpga();   // Keep Peripherals off here
+        powerOffMotors(); // Keep Peripherals off here
+        powerOnRadio();
+        *writeIOExpander = TRUE; // some of the above require IOEX writes
+
+        // EnteringMission::transitionToWaitingForFuelGaugeOrTimeout: Nothing.
+        // EnteringMission::transitionToWatitingForWifiReadyOrTimeout: Nothing.
+        // waits for Radio connection or 25s... so, we'll insert a new state here (after IOEX and ~5s wait)
+
+        // Make sure timer stays off during this transition:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        // Turn off these bits:
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3B;
+        // Move to the next state:
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4A;
+        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4B;
+    }
+
+    if (
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4A) &&
+        (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4B) //
+    )
+    {
+        DPRINTF("\t SAFETY TIMER: PWR_ON_4");
+        // EnteringMission::transitionToWaitingForIoExpanderWrite3:
+        powerOnHercules();
+        releaseMotorsReset();
+        releaseHerculesReset();
+        // *waits for I2C to complete, then:
+        // RoverStateBase::enableHerculesComms: We don't have to this here b/c
+        // next timer MISSION tick will notice that herc is on but comms are
+        // not and it will activate them by calling enableHerculesComms.
+        // then transitions to Mission...
+        // EnteringMission::handleTimerTick: Nothing.
+
+        // transition to Mission: Nothing.
+        // Mission::transitionTo: Nothing.
+        // Mission::spinOnce: Nothing.
+        // Mission::handleTimerTick: Nothing.
+
+        // Make sure timer stays off during this state:
+        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.countdownWarningCount = 0;
+        // Turn off these bits:
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
+        *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
+        // All done, so we can just stop at turning off these bits.
+    }
+}
+
 /**
  * Perform the watchdog monitoring steps here
  *
@@ -161,7 +605,8 @@ int watchdog_monitor(HerculesComms__State *hState,
                      volatile uint32_t *watchdogFlags,
                      uint8_t *watchdogOpts,
                      BOOL *writeIOExpander,
-                     WatchdogStateDetails *details)
+                     WatchdogStateDetails *details,
+                     UART__State *uart0State)
 {
     // NOTE: hState can be NULL if the Hercules comm link isn't up
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogFlags, "Parameter is NULL", -1);
@@ -296,74 +741,11 @@ int watchdog_monitor(HerculesComms__State *hState,
         *watchdogFlags ^= WDFLAG_ADC_READY;
     }
 
-    /* check if hercules has given a valid kick */
-    if (*watchdogFlags & WDFLAG_HERCULES_KICK)
-    {
-        *watchdogFlags ^= WDFLAG_HERCULES_KICK;
-        herc_conseq_missed_kicks_since_reset = 0;
-        // Let Ground know Hercules is still alive
-        // (if Hercules was rebooted while our comms were only over Wifi,
-        // we wouldn't know when it would be good to send SWITCH TO WIFI MODE).
-        DPRINTF("Hercules Alive.");
-    }
-    else
-    {
-        if (!(*watchdogOpts & WDOPT_MONITOR_HERCULES))
-        {
-            DPRINTF("Hercules Unresponsive. No reset b/c monitoring off.");
-        }
-        else
-        {
-            // Only inc. counter if Herc is being monitored.
-            herc_conseq_missed_kicks_since_reset += 1;
-            DPRINTF("Hercules Unresponsive. %d/%d", herc_conseq_missed_kicks_since_reset, HERC_CONSEQ_MISSED_KICK_THRESHOLD);
-            // Only reset if counter too big:
-            if (herc_conseq_missed_kicks_since_reset >= HERC_CONSEQ_MISSED_KICK_THRESHOLD)
-            {
-                // Too many missed kicks. Try to recover Hercules.
+    /* Handle Updating the Safety Timer: */
+    safety_timer_handler(hState, watchdogFlags, watchdogOpts, writeIOExpander, details, uart0State);
 
-                if (herc_monitor_reset_count_since_power_cycle >= HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD)
-                {
-                    DPRINTF("No Hercules Kick. Resets didn't work. Power cycling Hercules . . .");
-                    herc_conseq_missed_kicks_since_reset = 0; // count this as a reset so it doesn't immediately re-trigger
-                    herc_monitor_reset_count_since_power_cycle = 0;
-                    // Kill the power:
-                    powerOffHercules();
-                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_POWER_OFF);
-                    // Queue up the power coming back on:
-                    *watchdogFlags |= WDFLAG_POWER_ON_HERCULES;
-                }
-                else
-                {
-                    // reset the hercules
-                    herc_monitor_reset_count_since_power_cycle += 1;
-                    DPRINTF("No Hercules Kick. Resetting Hercules . . . %d/%d", herc_monitor_reset_count_since_power_cycle, HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD);
-                    herc_conseq_missed_kicks_since_reset = 0;
-                    setHerculesReset();
-
-                    // queue up hercules unreset
-                    *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
-                    SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
-
-                    // if the issue was due to a comms breakdown, reset the comms state
-                    if (NULL != hState)
-                    {
-                        DPRINTF("\t Resetting Hercules Comms . . .");
-                        HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
-
-                        //!< @todo Replace with returning watchdog error code once that is implemented.
-                        DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
-                    }
-
-                    *writeIOExpander = TRUE;
-                }
-            }
-        }
-        else
-        {
-            // missed a kick, but don't reset the hercules.
-        }
-    }
+    /* Check if hercules has given a valid kick: */
+    hercules_monitor(hState, watchdogFlags, watchdogOpts, writeIOExpander, details);
 
     /* re-enable interrupts */
     __enable_interrupt();

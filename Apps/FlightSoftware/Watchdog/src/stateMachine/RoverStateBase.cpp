@@ -1628,11 +1628,14 @@ namespace iris
         case WD_CMD_MSGS__RESET_ID__CAM_FPGA_RESET:
             //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
             // TOGGLE the FPGA reset state. Toggling rather than unresetting supports FPGA programming.
-            if(toggleFPGAReset()){
+            if (toggleFPGAReset())
+            {
                 // FPGA will be put INTO reset. Log the event:
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
                 DebugComms__tryPrintfToLanderNonblocking("FPGA being RESET\n");
-            } else {
+            }
+            else
+            {
                 // FPGA will be RELEASED from reset. Log the event:
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_UNRESET);
                 DebugComms__tryPrintfToLanderNonblocking("FPGA being UNRESET\n");
@@ -1640,10 +1643,10 @@ namespace iris
             writeIoExpander = true;
 
             // Old reset, unreset impl:
-//            setFPGAReset();
-//            // queue up the fpga unreset
-//            theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
-//            SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
+            //            setFPGAReset();
+            //            // queue up the fpga unreset
+            //            theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
+            //            SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
             break;
 
         case WD_CMD_MSGS__RESET_ID__CAM_FPGA_POWER_ON:
@@ -1868,6 +1871,44 @@ namespace iris
         case WD_CMD_MSGS__RESET_ID__3_3V_EN_POWER_OFF:
             disable3V3PowerRail();
             SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_OFF);
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_ON:
+            theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
+            DPRINTF("SAFETY TIMER REBOOT CONTROL: ON.");
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_OFF:
+            theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF;
+            DPRINTF("SAFETY TIMER REBOOT CONTROL: OFF.");
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_ACK:
+            // Just set a KICK flag here. Timer reset happens in the next state update in watchdog process:
+            theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
+            DPRINTF("SAFETY TIMER: ACK received.");
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC:
+            if ((SAFETY_TIMER__CUTOFF_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
+            {
+                // Inc will put this over max val. Stopping here.
+                DPRINTF("SAFETY TIMER: Cutoff NOT inc. Max would be exceeded. Val is: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+            }
+            else
+            {
+                theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds += SAFETY_TIMER__CUTOFF_INCREMENT_CS;
+                DPRINTF("SAFETY TIMER: Cutoff inc to: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+            }
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC:
+            if ((theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds - SAFETY_TIMER__CUTOFF_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
+            {
+                // Inc will put this over max val. Stopping here.
+                DPRINTF("SAFETY TIMER: Cutoff NOT dec. Min would be exceeded. Val is: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+            }
+            else
+            {
+                theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds -= SAFETY_TIMER__CUTOFF_INCREMENT_CS;
+                DPRINTF("SAFETY TIMER: Cutoff dec to: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+            }
             break;
 
         case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE:

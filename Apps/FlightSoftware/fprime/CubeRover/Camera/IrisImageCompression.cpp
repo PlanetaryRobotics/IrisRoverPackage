@@ -9,8 +9,6 @@
 #error HEATSHRINK_DYNAMIC_ALLOC should not be used. Please set it to 0.
 #endif
 
-//#define OFFER_COMPRESSION
-
 namespace IrisImage
 {
 #ifdef OFFER_COMPRESSION
@@ -21,7 +19,7 @@ namespace IrisImage
     // (or, at it needs to be as big as the maximum size we'll accept for a
     // compressed line. If we only ever want to compress things up to X bytes,
     // then X is an okay setting).
-    static const uint16_t COMPRESSION_BUFFER_LEN = 512 * 6;
+    static const uint16_t COMPRESSION_BUFFER_LEN = 512 * 3;
     static uint8_t g_compression_buffer[COMPRESSION_BUFFER_LEN];
 
     /*

@@ -17,7 +17,7 @@
 // values for our images:
 // NOTE: Lesser values for WINDOW_BITS are acceptable if necessary to save
 // space.
-#define HEATSHRINK_STATIC_WINDOW_BITS 10
+#define HEATSHRINK_STATIC_WINDOW_BITS 8
 #define HEATSHRINK_STATIC_LOOKAHEAD_BITS 4
 #endif
 
@@ -25,6 +25,6 @@
 #define HEATSHRINK_DEBUGGING_LOGS 0
 
 /* Use indexing for faster compression. (This requires additional space.) */
-#define HEATSHRINK_USE_INDEX 1
+#define HEATSHRINK_USE_INDEX 0
 
 #endif

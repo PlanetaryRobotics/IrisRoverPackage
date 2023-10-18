@@ -19,6 +19,10 @@ Counterpart to `image_compression_toolkit.py` in the GSW GDS.
 #include <stdint.h>
 #include <Fw/Cfg/Config.hpp>
 
+// Comment this out to remove the ability to use compression (heatshrink) and save a couple kB of RAM.
+// Functions requesting compression will still work if this is removed, just compression won't happen.
+#define OFFER_COMPRESSION
+
 namespace IrisImage
 {
     // Data for FPGA FW Headers:

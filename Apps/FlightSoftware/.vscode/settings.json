@@ -23,10 +23,13 @@
     },
     "cSpell.words": [
         "Aptina",
+        "CONSEQ",
         "downsampled",
         "heatshrink",
         "HSER",
-        "losslessly"
+        "losslessly",
+        "Unreset",
+        "WDOPT"
     ],
     "files.associations": {
         "__locale": "cpp",

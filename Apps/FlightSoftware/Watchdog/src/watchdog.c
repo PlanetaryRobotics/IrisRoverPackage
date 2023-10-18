@@ -177,6 +177,12 @@ int watchdog_monitor(HerculesComms__State *hState,
     // being reset again...
     static const uint8_t HERC_CONSEQ_MISSED_KICK_THRESHOLD = 3;
 
+    // How many times have we reset Hercules (overall) since last power cycle:
+    static uint8_t herc_monitor_reset_count_since_power_cycle = 0;
+    // If we have needed to auto reset hercules too many times, it's possible
+    // something else is wrong and we should power cycle Hercules:
+    static const uint8_t HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD = 2;
+
     /* temporarily disable interrupts */
     __disable_interrupt();
 
@@ -215,6 +221,14 @@ int watchdog_monitor(HerculesComms__State *hState,
         *writeIOExpander = TRUE;
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_UNRESET);
         DPRINTF("Unreset Hercules.");
+    }
+
+    /* Turn Hercules (back) on, e.g. after a power cycle: */
+    if (*watchdogFlags & WDFLAG_POWER_ON_HERCULES)
+    {
+        powerOnHercules();
+        SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_POWER_ON);
+        DPRINTF("(Re)booted Hercules.");
     }
 
     /* unreset motor 1 */
@@ -272,6 +286,7 @@ int watchdog_monitor(HerculesComms__State *hState,
         enableVSysAllPowerRail();
         *watchdogFlags ^= WDFLAG_POWER_ON_V_SYS_ALL;
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__V_SYS_ALL_ON__UNRESET);
+        DPRINTF("Powered on VSA.");
     }
 
     /* check ADC values */
@@ -299,27 +314,45 @@ int watchdog_monitor(HerculesComms__State *hState,
             herc_conseq_missed_kicks_since_reset += 1;
             DPRINTF("Hercules Unresponsive.");
             // Only reset if counter too big:
-            if(herc_conseq_missed_kicks_since_reset >= HERC_CONSEQ_MISSED_KICK_THRESHOLD){
-                // reset the hercules
-                DPRINTF("No Hercules Kick. Resetting Hercules . . .");
-                herc_conseq_missed_kicks_since_reset = 0;
-                setHerculesReset();
-
-                // queue up hercules unreset
-                *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
-                SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
-
-                // if the issue was due to a comms breakdown, reset the comms state
-                if (NULL != hState)
+            if (herc_conseq_missed_kicks_since_reset >= HERC_CONSEQ_MISSED_KICK_THRESHOLD)
+            {
+                if (herc_monitor_reset_count_since_power_cycle >= HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD)
                 {
-                    DPRINTF("\t Resetting Hercules Comms . . .");
-                    HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
-
-                    //!< @todo Replace with returning watchdog error code once that is implemented.
-                    DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+                    DPRINTF("No Hercules Kick. Resets didn't work. Power cycling Hercules . . .");
+                    herc_conseq_missed_kicks_since_reset = 0; // count this as a reset so it doesn't immediately re-trigger
+                    herc_monitor_reset_count_since_power_cycle = 0;
+                    // Kill the power:
+                    powerOffHercules();
+                    SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HERCULES_POWER_OFF);
+                    // Queue up the power coming back on:
+                    *watchdogFlags |= WDFLAG_POWER_ON_HERCULES;
                 }
+                else
+                {
+                    // reset the hercules
+                    DPRINTF("No Hercules Kick. Resetting Hercules . . .");
+                    herc_conseq_missed_kicks_since_reset = 0;
+                    setHerculesReset();
 
-                *writeIOExpander = TRUE;
+                    // Inc the number of times we've needed to do this:
+                    herc_monitor_reset_count_since_power_cycle += 1;
+
+                    // queue up hercules unreset
+                    *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
+                    SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
+
+                    // if the issue was due to a comms breakdown, reset the comms state
+                    if (NULL != hState)
+                    {
+                        DPRINTF("\t Resetting Hercules Comms . . .");
+                        HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
+
+                        //!< @todo Replace with returning watchdog error code once that is implemented.
+                        DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+                    }
+
+                    *writeIOExpander = TRUE;
+                }
             }
         }
         else

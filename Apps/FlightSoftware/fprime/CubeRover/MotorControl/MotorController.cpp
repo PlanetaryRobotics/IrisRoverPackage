@@ -15,6 +15,7 @@ namespace CubeRover
     {
 //        // mc_mutex.lock();
 
+
         mc->i2c_addr = id + MC_SLAVE_I2C_ADDR_BASE;
         mc->up_to_date = NO_UPDATES;
 
@@ -132,11 +133,14 @@ namespace CubeRover
             return err;
         }
 
-        // Get ctrl & fault regs
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->ctrl), &(mc->ctrl)) != NO_ERR) {
+        // Get ctrl, state, & fault regs
+        if (getMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(mc->ctrl), &(mc->ctrl)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->fault), &(mc->fault)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state)) != NO_ERR) {
+            err_cnt = err_cnt + 1;
+        }
+        if (getMcRegVal(mc->i2c_addr, REG_MC_FAULT, sizeof(mc->fault), &(mc->fault)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
 
@@ -144,34 +148,34 @@ namespace CubeRover
         if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->target_pos), &(mc->target_pos)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->target_vel), &(mc->target_vel)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_TARGET_SPEED, sizeof(mc->target_vel), &(mc->target_vel)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->curr_pos), &(mc->curr_pos)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_CURRENT_POSITION, sizeof(mc->curr_pos), &(mc->curr_pos)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->curr_vel), &(mc->curr_vel)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_CURRENT_SPEED, sizeof(mc->curr_vel), &(mc->curr_vel)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->curr_current), &(mc->curr_current)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_MOTOR_CURRENT, sizeof(mc->curr_current), &(mc->curr_current)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->current_p_val), &(mc->current_p_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_P_CURRENT, sizeof(mc->current_p_val), &(mc->current_p_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->current_i_val), &(mc->current_i_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_I_CURRENT, sizeof(mc->current_i_val), &(mc->current_i_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->vel_p_val), &(mc->vel_p_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_P_SPEED, sizeof(mc->vel_p_val), &(mc->vel_p_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->vel_i_val), &(mc->vel_i_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_I_SPEED, sizeof(mc->vel_i_val), &(mc->vel_i_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->acc_val), &(mc->acc_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_ACC_RATE, sizeof(mc->acc_val), &(mc->acc_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->dec_val), &(mc->dec_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, REG_DEC_RATE, sizeof(mc->dec_val), &(mc->dec_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
 

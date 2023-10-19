@@ -183,13 +183,15 @@ namespace CubeRover
 
         /* --- FUNCTIONS --- */
         void initMotorControllers();
-//        void runMcStateMachine();
         void checkFaults();
+        void checkStates();
+
+//        void runMcStateMachine();
 
 
         /* --- Private Variables --- */
         MCState_t m_motorControllerState;
-
+        MotorControllerStruct m_motor_controllers[NUM_MOTORS];
 
 
 
@@ -269,14 +271,10 @@ namespace CubeRover
         int32_t m_FL_Encoder_Count_Offset;
         int32_t m_RL_Encoder_Count_Offset;
         int32_t m_RR_Encoder_Count_Offset;
+
     };
 
-    static MotorControllerStruct m_motor_controllers[NUM_MOTORS] = {
-                                    MotorControllerStruct(),
-                                    MotorControllerStruct(),
-                                    MotorControllerStruct(),
-                                    MotorControllerStruct()
-    };
+
 
 
 } // end namespace CubeRover

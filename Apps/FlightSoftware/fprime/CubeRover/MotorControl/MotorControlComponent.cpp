@@ -46,6 +46,10 @@ namespace CubeRover
 #endif
     {
         m_i2c = MOTOR_CONTROL_I2CREG;
+        m_motor_controllers[0] = MotorControllerStruct();
+        m_motor_controllers[1] = MotorControllerStruct();
+        m_motor_controllers[2] = MotorControllerStruct();
+        m_motor_controllers[3] = MotorControllerStruct();
         m_stallDetectectionEnabled[0] = true;
         m_stallDetectectionEnabled[1] = true;
         m_stallDetectectionEnabled[2] = true;
@@ -386,6 +390,7 @@ namespace CubeRover
                                                         U8 Motor_ID,
                                                         U32 Raw_Ticks)
     {
+
         // TODO: Should this force open loop control as well?
         MCError_t err;
         uint8_t speed = MAX_SPEED;
@@ -423,6 +428,9 @@ namespace CubeRover
                 return;
             }
         }
+
+        checkStates();
+        checkFaults();
 
         if (!startMotorMovement())
         {
@@ -508,33 +516,43 @@ namespace CubeRover
 
     void MotorControlComponentImpl::initMotorControllers()
     {
+        mc_mutex.lock();
         m_motorControllerState = DISABLED;
         for (int i = 0; i < NUM_MOTORS; i++)
         {
             initMotorController(&m_motor_controllers[i], i);
         }
+        mc_mutex.unLock();
     }
-
-//    void MotorControlComponentImpl::powerOnMotors()
-//    {
-//        m_motorControllerState = ENABLED;
-//
-//        StateRegister_t state;
-//        MC_ERR_t err;
-//
-//        mc_mutex.lock();
-//        for (int i = 0; i < NUM_MOTORS; i++)
-//        {
-//            err = getMcState(&m_motor_controllers[i]);
-//        }
-//    }
 //
     void MotorControlComponentImpl::checkFaults()
     {
+        FaultRegister_t fault_test[NUM_MOTORS];
+        MC_ERR_t err_test[NUM_MOTORS];
+
+        mc_mutex.lock();
         for (int i = 0; i < NUM_MOTORS; i++)
         {
-            getMcFault(&m_motor_controllers[i]);
+            err_test[i] = getMcFault(&m_motor_controllers[i]);
+            fault_test[i] = m_motor_controllers[i].fault;
         }
+        mc_mutex.unLock();
+        return;
+    }
+
+    void MotorControlComponentImpl::checkStates()
+    {
+        StateRegister_t state_test[NUM_MOTORS];
+        MC_ERR_t err_test[NUM_MOTORS];
+
+        mc_mutex.lock();
+        for (int i = 0; i < NUM_MOTORS; i++)
+        {
+            err_test[i] = getMcFault(&m_motor_controllers[i]);
+            state_test[i] = m_motor_controllers[i].state;
+        }
+        mc_mutex.unLock();
+        return;
     }
 
     //    void MotorControlComponentImpl::runMcStateMachine()

@@ -132,10 +132,11 @@ namespace CubeRover
 
         //! Implementation for MC_SetParameter command handler
         //!
-        void MC_SetParameter_cmdHandler(const FwOpcodeType opCode,   /*!< The opcode*/
-                                        const U32 cmdSeq,            /*!< The command sequence number*/
-                                        MC_ParameterSelection Value, /*!<  Change internal parameters of the module */
-                                        U32 New_Value /*!<  The new value to be used in place */);
+        void MC_SetParameter_cmdHandler(const FwOpcodeType opCode,  /*!< The opcode*/
+                                        const U32 cmdSeq,           /*!< The command sequence number*/
+                                        U8 Motor_ID,                /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
+                                        U8 Param_RegAddr,           /*!<The register address of the parameter to update. */
+                                        U32 Param_NewValue          /*!<  The new value to be used in place */);
 
         //! Implementation for MC_UpdateTelemetry command handler
         //! Requests an update from each of the motor controllers
@@ -221,13 +222,13 @@ namespace CubeRover
 
         i2cBASE_t *m_i2c;
 
-        MCError_t sendAllMotorsData(const RegisterAddress_t id, void *_data);
+        MCError_t sendAllMotorsData(const MC_RegisterAddress id, void *_data);
 
         MCError_t motorControlTransfer(I2cSlaveAddress_t add,
-                                       RegisterAddress_t reg,
+                                       MC_RegisterAddress reg,
                                        void *_data);
 
-        uint32_t regSizeMap(RegisterAddress_t reg);
+        uint32_t regSizeMap(MC_RegisterAddress reg);
 
         bool checkMotorsStatus();
         bool startMotorMovement();

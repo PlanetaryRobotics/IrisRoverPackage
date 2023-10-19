@@ -30,5 +30,16 @@
 			<type>2</type>
 			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
 		</link>
+		<link>
+			<name>SharedConfigs</name>
+			<type>2</type>
+			<locationURI>PARENT-4-PROJECT_LOC/Libs/FlightSoftware</locationURI>
+		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>RC_ROOT_LOC</name>
+			<value>file:/home/iris/Desktop/Working_folders/RC</value>
+		</variable>
+	</variableList>
 </projectDescription>

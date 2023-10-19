@@ -26,10 +26,39 @@
 |MC_PowerBoost|7 (0x7)|| | |
 | | | |Motor_ID|U8|The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR |
 | | | |Value|U8|0x00 is On, 0xFF is Off |
-|MC_SetParameter|8 (0x8)|| | |
-| | | |ParamSelect|MC_ParameterSelection| Change internal parameters of the module |
-| | | |New_Value|U32| The new value to be used in place |
-|MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors| | |
+|MC_SetParameter|8 (0x8)|Update Parameters of a Motor Controller:
+            REG_TARGET_POSITION     = 1,    // RW - 4 Bytes
+            REG_TARGET_SPEED        = 2,    // RW - 1 Byte
+            REG_P_CURRENT           = 6,    // RW - 2 Bytes
+            REG_I_CURRENT           = 7,    // RW - 2 Bytes
+            REG_P_SPEED             = 8,    // RW - 2 Bytes
+            REG_I_SPEED             = 9,    // RW - 2 Bytes
+            REG_ACC_RATE            = 10,   // RW - 2 Bytes
+            REG_DEC_RATE            = 11,   // RW - 2 Bytes
+            REG_MC_CTRL             = 12,   // RW - 1 Byte| | |
+| | | |Motor_ID|U8|The motor id:
+            Motor 0 is all motors
+            Motors 1 - 4 are FL, FR, BL, BR
+          |
+| | | |Param_RegAddr|U8|The register address of the parameter to update.
+          |
+| | | |Param_NewValue|U32| The new value to send to the controller |
+|MC_UpdateTelemetry|16 (0x10)|Forces a telemetry update from the motors:
+        REG_I2C_ADDRESS         = 0,    // RO - 1 Byte
+        REG_TARGET_POSITION     = 1,    // RW - 4 Bytes
+        REG_TARGET_SPEED        = 2,    // RW - 1 Byte
+        REG_CURRENT_POSITION    = 3,    // RO - 4 Bytes
+        REG_CURRENT_SPEED       = 4,    // RO - 1 Bytes
+        REG_MOTOR_CURRENT       = 5,    // RO - 4 Bytes
+        REG_P_CURRENT           = 6,    // RW - 2 Bytes
+        REG_I_CURRENT           = 7,    // RW - 2 Bytes
+        REG_P_SPEED             = 8,    // RW - 2 Bytes
+        REG_I_SPEED             = 9,    // RW - 2 Bytes
+        REG_ACC_RATE            = 10,   // RW - 2 Bytes
+        REG_DEC_RATE            = 11,   // RW - 2 Bytes
+        REG_MC_CTRL             = 12,   // RW - 1 Byte
+        REG_MC_STATUS           = 13,   // RO - 1 Byte
+        REG_MC_FAULT            = 14,   // RO - 1 Byte| | |
 
 ## Telemetry Channel List
 

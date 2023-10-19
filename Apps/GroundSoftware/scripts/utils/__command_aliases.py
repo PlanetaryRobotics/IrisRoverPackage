@@ -865,6 +865,9 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
         DataPathway.WIRED
     ),
+
+# --- MOTOR CONTROL TEST FUNCTIONS ---
+# ---- wired ----
     'motor-control-get-telem': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -877,10 +880,35 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'MotorControl_McSpin',
         # Change this to whatever motor you want to control (0 is all)
+        OrderedDict(motor_id=0xFF, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-a-ticks': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Change this to whatever motor you want to control (0 is all)
         OrderedDict(motor_id=0x00, raw_ticks=20000),
         DataPathway.WIRED
     ),
+    'motor-control-spin-a': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Change this to whatever motor you want to control (0 is all)
+        OrderedDict(motor_id=0x00, raw_ticks=20000, speed=50),
+        DataPathway.WIRED
+    ),
+    'motor-control-update-a': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_MCSetParameter',
+        # Change this to whatever motor you want to control (0 is all)
+        OrderedDict(motor_id=0x00, param_regaddr=2, param_new_value=50),
+        DataPathway.WIRED
+    ),
 
+# --- OBSOLETE: NAVIGATION TEST FUNCTIONS ---
     'drive-fwd-200-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,

@@ -16,7 +16,7 @@ namespace CubeRover
 //        // mc_mutex.lock();
 
 
-        mc->i2c_addr = id + MC_SLAVE_I2C_ADDR_BASE;
+        mc->i2c_addr = MC_SLAVE_I2C_ADDR_BASE + id;
         mc->up_to_date = NO_UPDATES;
 
         mc->target_pos = 0;
@@ -33,16 +33,16 @@ namespace CubeRover
         mc->acc_val = 0;
         mc->dec_val = 0;
 
-        mc->ctrl = CMD_UNKNOWN;
+        mc->ctrl = MC_NO_CMD;
         mc->state = STATE_IDLE;
-        mc->fault = NO_FAULT;
+        mc->fault = MC_NO_FAULT;
 
 //        // mc_mutex.unLock();
     }
 
 
 
-    MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data)
+    MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, MC_RegisterAddress reg, uint32_t dataLen, void *_data)
     {
         MC_ERR_t err = NO_ERR;
 
@@ -61,16 +61,16 @@ namespace CubeRover
         return err;
     }
 
-    MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data)
+    MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, MC_RegisterAddress reg, uint32_t dataLen, void *_data)
     {
         switch (reg)
         {
-        case REG_I2C_ADDRESS:
-        case REG_CURRENT_POSITION:
-        case REG_CURRENT_SPEED:
-        case REG_MOTOR_CURRENT:
-        case REG_MC_STATUS:
-        case REG_MC_FAULT:
+        case MC_REG_I2C_ADDRESS:
+        case MC_REG_CURRENT_POSITION:
+        case MC_REG_CURRENT_SPEED:
+        case MC_REG_MOTOR_CURRENT:
+        case MC_REG_MC_STATUS:
+        case MC_REG_MC_FAULT:
             return ERR_WRITE_PROTECTED;
         default:
         }
@@ -99,7 +99,7 @@ namespace CubeRover
         MC_ERR_t err = NO_ERR;
         // mc_mutex.lock();
 
-        err = getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state));
 
         // mc_mutex.unLock();
         return err;
@@ -110,7 +110,7 @@ namespace CubeRover
         MC_ERR_t err = NO_ERR;
         // mc_mutex.lock();
 
-        err = getMcRegVal(mc->i2c_addr, REG_MC_FAULT, sizeof(mc->fault), &(mc->fault));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_FAULT, sizeof(mc->fault), &(mc->fault));
 
         // mc_mutex.unLock();
         return err;
@@ -124,7 +124,7 @@ namespace CubeRover
         // mc_mutex.lock();
 
         // Must be in IDLE or FAULT state before getting _all_ register data
-        err = getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_TARGET_POSITION, sizeof(mc->state), &(mc->state));
         if (err == NO_ERR && (mc->state != STATE_IDLE || mc->state != STATE_FAULT)) {
             err = ERR_BAD_STATE;
         }
@@ -134,48 +134,48 @@ namespace CubeRover
         }
 
         // Get ctrl, state, & fault regs
-        if (getMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(mc->ctrl), &(mc->ctrl)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(mc->ctrl), &(mc->ctrl)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_MC_FAULT, sizeof(mc->fault), &(mc->fault)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_MC_FAULT, sizeof(mc->fault), &(mc->fault)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
 
         // Get all other vals
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->target_pos), &(mc->target_pos)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_TARGET_POSITION, sizeof(mc->target_pos), &(mc->target_pos)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_TARGET_SPEED, sizeof(mc->target_vel), &(mc->target_vel)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_TARGET_SPEED, sizeof(mc->target_vel), &(mc->target_vel)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_CURRENT_POSITION, sizeof(mc->curr_pos), &(mc->curr_pos)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_CURRENT_POSITION, sizeof(mc->curr_pos), &(mc->curr_pos)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_CURRENT_SPEED, sizeof(mc->curr_vel), &(mc->curr_vel)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_CURRENT_SPEED, sizeof(mc->curr_vel), &(mc->curr_vel)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_MOTOR_CURRENT, sizeof(mc->curr_current), &(mc->curr_current)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_MOTOR_CURRENT, sizeof(mc->curr_current), &(mc->curr_current)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_P_CURRENT, sizeof(mc->current_p_val), &(mc->current_p_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_P_CURRENT, sizeof(mc->current_p_val), &(mc->current_p_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_I_CURRENT, sizeof(mc->current_i_val), &(mc->current_i_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_I_CURRENT, sizeof(mc->current_i_val), &(mc->current_i_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_P_SPEED, sizeof(mc->vel_p_val), &(mc->vel_p_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_P_SPEED, sizeof(mc->vel_p_val), &(mc->vel_p_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_I_SPEED, sizeof(mc->vel_i_val), &(mc->vel_i_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_I_SPEED, sizeof(mc->vel_i_val), &(mc->vel_i_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_ACC_RATE, sizeof(mc->acc_val), &(mc->acc_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_ACC_RATE, sizeof(mc->acc_val), &(mc->acc_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
-        if (getMcRegVal(mc->i2c_addr, REG_DEC_RATE, sizeof(mc->dec_val), &(mc->dec_val)) != NO_ERR) {
+        if (getMcRegVal(mc->i2c_addr, MC_REG_DEC_RATE, sizeof(mc->dec_val), &(mc->dec_val)) != NO_ERR) {
             err_cnt = err_cnt + 1;
         }
 
@@ -193,22 +193,22 @@ namespace CubeRover
 
         if (mc->up_to_date & UPDATE_TARGET_POS)
         {
-            if (setMcRegVal(mc->i2c_addr, REG_TARGET_POSITION, sizeof(mc->target_pos), &(mc->target_pos)) == NO_ERR) {
+            if (setMcRegVal(mc->i2c_addr, MC_REG_TARGET_POSITION, sizeof(mc->target_pos), &(mc->target_pos)) == NO_ERR) {
                 mc->up_to_date &= ~UPDATE_TARGET_POS;
             }
         }
 
         if (mc->up_to_date & UPDATE_TARGET_SPEED)
         {
-            if (setMcRegVal(mc->i2c_addr, REG_TARGET_SPEED, sizeof(mc->target_vel), &(mc->target_vel)) == NO_ERR) {
+            if (setMcRegVal(mc->i2c_addr, MC_REG_TARGET_SPEED, sizeof(mc->target_vel), &(mc->target_vel)) == NO_ERR) {
                 mc->up_to_date &= ~UPDATE_TARGET_SPEED;
             }
         }
 
         if (mc->up_to_date & UPDATE_CURRENT_PI)
         {
-            if (setMcRegVal(mc->i2c_addr, REG_P_CURRENT, sizeof(mc->current_p_val), &(mc->current_p_val)) == NO_ERR &&
-                setMcRegVal(mc->i2c_addr, REG_I_CURRENT, sizeof(mc->current_i_val), &(mc->current_i_val)) == NO_ERR)
+            if (setMcRegVal(mc->i2c_addr, MC_REG_P_CURRENT, sizeof(mc->current_p_val), &(mc->current_p_val)) == NO_ERR &&
+                setMcRegVal(mc->i2c_addr, MC_REG_I_CURRENT, sizeof(mc->current_i_val), &(mc->current_i_val)) == NO_ERR)
             {
                 mc->up_to_date &= ~UPDATE_CURRENT_PI;
             }
@@ -216,8 +216,8 @@ namespace CubeRover
 
         if (mc->up_to_date & UPDATE_VEL_PI)
         {
-            if (setMcRegVal(mc->i2c_addr, REG_P_SPEED, sizeof(mc->vel_p_val), &(mc->vel_p_val)) == NO_ERR &&
-                setMcRegVal(mc->i2c_addr, REG_I_SPEED, sizeof(mc->vel_i_val), &(mc->vel_i_val)) == NO_ERR)
+            if (setMcRegVal(mc->i2c_addr, MC_REG_P_SPEED, sizeof(mc->vel_p_val), &(mc->vel_p_val)) == NO_ERR &&
+                setMcRegVal(mc->i2c_addr, MC_REG_I_SPEED, sizeof(mc->vel_i_val), &(mc->vel_i_val)) == NO_ERR)
             {
                 mc->up_to_date &= ~UPDATE_VEL_PI;
             }
@@ -225,8 +225,8 @@ namespace CubeRover
 
         if (mc->up_to_date & UPDATE_ACC)
         {
-            if (setMcRegVal(mc->i2c_addr, REG_ACC_RATE, sizeof(mc->acc_val), &(mc->acc_val)) == NO_ERR &&
-                setMcRegVal(mc->i2c_addr, REG_DEC_RATE, sizeof(mc->dec_val), &(mc->dec_val)) == NO_ERR)
+            if (setMcRegVal(mc->i2c_addr, MC_REG_ACC_RATE, sizeof(mc->acc_val), &(mc->acc_val)) == NO_ERR &&
+                setMcRegVal(mc->i2c_addr, MC_REG_DEC_RATE, sizeof(mc->dec_val), &(mc->dec_val)) == NO_ERR)
             {
                 mc->up_to_date &= ~UPDATE_ACC;
             }
@@ -313,13 +313,13 @@ namespace CubeRover
         // mc_mutex.lock();
 
         // Get MC current state
-        err = getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state));
 
-        // Send CMD_UPDATE_CONFIG to go from IDLE to ENABLE
+        // Send MC_CMD_UPDATE_CONFIG to go from IDLE to ENABLE
         if (err == NO_ERR && mc->state == STATE_IDLE) {
 
-            CommandValue update_config = CMD_UPDATE_CONFIG;
-            err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(update_config), &update_config);
+            MC_CommandValue update_config = MC_CMD_UPDATE_CONFIG;
+            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(update_config), &update_config);
             if (err == NO_ERR) {
                 mc->state = STATE_ENABLED;
             }
@@ -343,11 +343,11 @@ namespace CubeRover
         // mc_mutex.lock();
 
         // Get MC current state
-        err = getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state));
 
         if (err == NO_ERR && mc->state == STATE_ENABLED) {
-            CommandValue enable_driver = CMD_ENABLE_DRIVER;
-            err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(enable_driver), &enable_driver);
+            MC_CommandValue enable_driver = MC_CMD_ENABLE_DRIVER;
+            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(enable_driver), &enable_driver);
             if (err == NO_ERR) {
                 mc->state = STATE_ARMED;
             }
@@ -371,11 +371,11 @@ namespace CubeRover
         // mc_mutex.lock();
 
         // Get MC current state
-        err = getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state));
 
         if (err == NO_ERR && mc->state == STATE_ARMED) {
-            CommandValue start_drive = CMD_EXECUTE_DRIVE;
-            err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(start_drive), &start_drive);
+            MC_CommandValue start_drive = MC_CMD_EXECUTE_DRIVE;
+            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(start_drive), &start_drive);
             if (err == NO_ERR) {
                 mc->state = STATE_RUNNING;
             }
@@ -398,8 +398,8 @@ namespace CubeRover
         MC_ERR_t err = NO_ERR;
         // mc_mutex.lock();
 
-        CommandValue stop = CMD_DISABLE_DRIVER;
-        err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(stop), &stop);
+        MC_CommandValue stop = MC_CMD_DISABLE_DRIVER;
+        err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(stop), &stop);
         if (err == NO_ERR) {
             mc->state = STATE_DISABLED;
         }
@@ -422,23 +422,23 @@ namespace CubeRover
         // mc_mutex.lock();
 
         // Get MC current state
-        err = getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state));
         if(err != NO_ERR) {
             // mc_mutex.unLock();
             return err;
         }
 
-        CommandValue disable = CMD_DISABLE_DRIVER;
-        CommandValue idle = CMD_IDLE;
+        MC_CommandValue disable = MC_CMD_DISABLE_DRIVER;
+        MC_CommandValue idle = MC_CMD_E_STOP;
 
         switch (mc->state)
         {
         case STATE_ARMED:
         case STATE_TARGET_REACHED:
-            err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(disable), &disable);
+            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(disable), &disable);
         case STATE_ENABLED:
         case STATE_DISABLED:
-            err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(idle), &idle);
+            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(idle), &idle);
         case STATE_IDLE:
             break;
         default:
@@ -459,7 +459,7 @@ namespace CubeRover
     MC_ERR_t mcClearFaults(MotorControllerStruct *mc)
     {
         MC_ERR_t err = getMcFault(mc);
-        if (err != NO_ERR || mc->fault == NO_FAULT) {
+        if (err != NO_ERR || mc->fault == MC_NO_FAULT) {
             return err;
         }
         // SEND MOTOR FAULTS EVENT
@@ -467,14 +467,14 @@ namespace CubeRover
         // mc_mutex.lock();
 
         // Get MC current state
-        err = getMcRegVal(mc->i2c_addr, REG_MC_STATUS, sizeof(mc->state), &(mc->state));
+        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->state), &(mc->state));
 
         if (err == NO_ERR && mc->state == STATE_IDLE) {
-            CommandValue clearFaults = CMD_CLEAR_FAULTS;
-            err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(clearFaults), &clearFaults);
+            MC_CommandValue clearFaults = MC_CMD_CLEAR_FAULTS;
+            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(clearFaults), &clearFaults);
         }
         if (err == NO_ERR) {
-            mc->fault = NO_FAULT;
+            mc->fault = MC_NO_FAULT;
         }
 
         // mc_mutex.unLock();
@@ -489,8 +489,8 @@ namespace CubeRover
         MC_ERR_t err = NO_ERR;
         // mc_mutex.lock();
 
-        CommandValue reset = CMD_RESET_CONTROLLER;
-        err = setMcRegVal(mc->i2c_addr, REG_MC_CTRL, sizeof(reset), &reset);
+        MC_CommandValue reset = MC_CMD_RESET_CONTROLLER;
+        err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(reset), &reset);
 
         if (err == NO_ERR) {
             mc->state = STATE_DISABLED;

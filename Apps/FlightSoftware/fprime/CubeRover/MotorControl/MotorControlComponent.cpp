@@ -515,20 +515,19 @@ namespace CubeRover
         }
     }
 
-    void MotorControlComponentImpl::powerOnMotors()
-    {
-        m_motorControllerState = ENABLED;
-
-        StateRegister_t state;
-        MC_ERR_t err;
-
-        mc_mutex.lock();
-        for (int i = 0; i < NUM_MOTORS; i++)
-        {
-            err = getMcState(&m_motor_controllers[i]);
-            if (&m_motor_controllers[i]->state != IDLE)
-        }
-    }
+//    void MotorControlComponentImpl::powerOnMotors()
+//    {
+//        m_motorControllerState = ENABLED;
+//
+//        StateRegister_t state;
+//        MC_ERR_t err;
+//
+//        mc_mutex.lock();
+//        for (int i = 0; i < NUM_MOTORS; i++)
+//        {
+//            err = getMcState(&m_motor_controllers[i]);
+//        }
+//    }
 //
     void MotorControlComponentImpl::checkFaults()
     {

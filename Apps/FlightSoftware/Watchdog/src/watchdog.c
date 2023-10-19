@@ -350,11 +350,11 @@ void safety_timer_handler(HerculesComms__State *hState,
             if (!details->m_safetyTimerParams.timerRebootControlOn)
             {
                 // Can't reboot b/c timer is not on.
-                DPRINTF("SAFETY TIMER: Timer expired at %d cs. NO REBOOT b/c control is OFF.", Time__getTimeInCentiseconds());
+                DPRINTF("SAFETY TIMER: Timer expired at %u cs. NO REBOOT b/c control is OFF.", Time__getTimeInCentiseconds());
             }
             else
             {
-                DPRINTF("SAFETY TIMER: Timer expired at %d cs. Performing Reboot . . .", Time__getTimeInCentiseconds());
+                DPRINTF("SAFETY TIMER: Timer expired at %u cs. Performing Reboot . . .", Time__getTimeInCentiseconds());
                 // Queue up both bits to trigger the first state of the full power reboot:
                 *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
                 *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
@@ -367,13 +367,13 @@ void safety_timer_handler(HerculesComms__State *hState,
         {
             // Timer hasn't expired but see if we should emit a countdown warning:
             // How many warning messages should we have emitted:
-            if(time_elapsed_cs > SAFETY_TIMER__COUNTDOWN_INTERVAL_CS*details->m_safetyTimerParams.countdownWarningCount)
+            if (time_elapsed_cs > SAFETY_TIMER__COUNTDOWN_INTERVAL_CS * details->m_safetyTimerParams.countdownWarningCount)
             {
                 // Emit a countdown warning message:
                 if (!details->m_safetyTimerParams.timerRebootControlOn)
                 {
                     DPRINTF(
-                        "SAFETY TIMER: %d/%d. Reboot Ctrl: ON. ROVER WILL REBOOT in %d cs. Send ACK to reset timer.",
+                        "SAFETY TIMER: %u/%u. Reboot Ctrl: ON. ROVER WILL REBOOT in %u cs. Send ACK to reset timer.",
                         time_elapsed_cs,
                         details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
                         (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
@@ -383,7 +383,7 @@ void safety_timer_handler(HerculesComms__State *hState,
                 {
                     // Slightly more low-key since we won't reboot if the timer expires.
                     DPRINTF(
-                        "SAFETY TIMER: %d/%d. Reboot Ctrl: OFF. Expires in %d cs. Send ACK to reset timer.",
+                        "SAFETY TIMER: %u/%u. Reboot Ctrl: OFF. Expires in %u cs. Send ACK to reset timer.",
                         time_elapsed_cs,
                         details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
                         (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //

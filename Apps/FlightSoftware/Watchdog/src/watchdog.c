@@ -245,27 +245,14 @@ void hercules_monitor(HerculesComms__State *hState,
     }             // Hercules Kick check
 }
 
-// Handler for Supervisor Safety Timer (called as sub-task of watchdog_monitor):
-void safety_timer_handler(HerculesComms__State *hState,
-                          volatile uint32_t *watchdogFlags,
-                          uint8_t *watchdogOpts,
-                          BOOL *writeIOExpander,
-                          WatchdogStateDetails *details,
-                          UART__State *uart0State)
+// Checks for and corrects any data irregularities, possibly due to a bitflip:
+void safety_timer__bitflip_check(HerculesComms__State *hState,
+                                 volatile uint32_t *watchdogFlags,
+                                 uint8_t *watchdogOpts,
+                                 BOOL *writeIOExpander,
+                                 WatchdogStateDetails *details,
+                                 UART__State *uart0State)
 {
-    // Statically allocate so this doesn't go on the stack:
-    static uint16_t time_elapsed_cs;
-
-    //*
-    //* Check for Preconditions:
-    // Hold timer at 0 if not in Mission (i.e. make sure we don't reset or
-    // emit countdown messages):
-    if (details->m_stateAsUint != ROVERSTATE_AS_UINT__MISSION)
-    {
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
-    }
-
     //*
     //* Check for bitflips (so we don't do any reboots accidentally or not do one when we should):
     // Make sure Reboot Control is in a safe state:
@@ -328,72 +315,136 @@ void safety_timer_handler(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
     }
 
+    if (
+        details->m_safetyTimerParams.tenthTimerExpirationCount > SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER)
+    {
+        // Shouldn't be possible w/out a bitflip.
+        // Don't *immediately* reboot but set the timer close to the end (-2) and let ground know:
+        DPRINTF(
+            "SAFETY TIMER: Bitflip in expiration count: 0x%x. Setting count to %d/%d.",
+            details->m_safetyTimerParams.tenthTimerExpirationCount,
+            SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - 2,
+            SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER //
+        );
+    }
+}
+
+// Check on the timer and update it, emit messages, or trigger the reset SM as needed:
+void safety_timer__process_timer(HerculesComms__State *hState,
+                                 volatile uint32_t *watchdogFlags,
+                                 uint8_t *watchdogOpts,
+                                 BOOL *writeIOExpander,
+                                 WatchdogStateDetails *details,
+                                 UART__State *uart0State)
+{
+    // Statically allocate so this doesn't go on the stack:
+    static uint16_t time_elapsed_cs;
+
     //*
     //* Check for timer kick:
     if (*watchdogFlags & WDFLAG_SAFETY_TIMER_KICK)
     {
         *watchdogFlags ^= WDFLAG_SAFETY_TIMER_KICK;
         // Reset the timer to now:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         DPRINTF("SAFETY TIMER: ACK Kick processed. Timer reset.");
     }
     else
     {
         // Haven't received a kick since the last monitor event.
-        time_elapsed_cs = (Time__getTimeInCentiseconds() - details->m_safetyTimerParams.centisecondsAtLastAck);
+        // How long has elapsed since the last kick / tenth-timer expiration:
+        time_elapsed_cs = (Time__getTimeInCentiseconds() - details->m_safetyTimerParams.centisecondsAtLastEvent);
 
-        // Check if the timer has expired:
-        if (time_elapsed_cs > details->m_safetyTimerParams.timerRebootCutoffCentiseconds)
+        // Check if the tenth-timer has expired:
+        if (time_elapsed_cs > details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth)
         {
-            // GND hasn't checked-in in a while. Need to reboot (if reboot control is on):
-            if (!details->m_safetyTimerParams.timerRebootControlOn)
+            // Increment the count of the number of times this has happened:
+            details->m_safetyTimerParams.tenthTimerExpirationCount += 1;
+
+            // Check if this was the final expiration:
+            if (details->m_safetyTimerParams.tenthTimerExpirationCount == SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER)
             {
-                // Can't reboot b/c timer is not on.
-                DPRINTF("SAFETY TIMER: Timer expired at 0x%x cs. NO REBOOT b/c control is OFF.", Time__getTimeInCentiseconds());
+                // REBOOT TIME: GND hasn't checked-in in a while. Need to reboot (if reboot control is on):
+                if (!details->m_safetyTimerParams.timerRebootControlOn)
+                {
+                    // Can't reboot b/c timer is not on.
+                    DPRINTF("SAFETY TIMER: Timer expired at 0x%x*%dcs. NO REBOOT b/c control is OFF.", Time__getTimeInCentiseconds(), details->m_safetyTimerParams.tenthTimerExpirationCount);
+                }
+                else
+                {
+                    DPRINTF("SAFETY TIMER: Timer expired at 0x%x*%dcs. Performing Reboot . . .", Time__getTimeInCentiseconds(), details->m_safetyTimerParams.tenthTimerExpirationCount);
+                    // Queue up both bits to trigger the first state of the full power reboot:
+                    *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
+                    *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
+                }
+                // Only reset the expiration count if this was the final expiration:
+                details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
             }
             else
             {
-                DPRINTF("SAFETY TIMER: Timer expired at 0x%x cs. Performing Reboot . . .", Time__getTimeInCentiseconds());
-                // Queue up both bits to trigger the first state of the full power reboot:
-                *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
-                *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
-            }
-            // Either way, reset the timer:
-            details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
-            details->m_safetyTimerParams.countdownWarningCount = 0;
-        }
-        else
-        {
-            // Timer hasn't expired but see if we should emit a countdown warning:
-            // How many warning messages should we have emitted:
-            if (time_elapsed_cs > SAFETY_TIMER__COUNTDOWN_INTERVAL_CS * details->m_safetyTimerParams.countdownWarningCount)
-            {
-                // Emit a countdown warning message:
-                if (!details->m_safetyTimerParams.timerRebootControlOn)
+                // Just emit a countdown warning:
+                if (details->m_safetyTimerParams.timerRebootControlOn)
                 {
                     DPRINTF(
-                        "SAFETY TIMER: 0x%x/0x%x. Reboot Ctrl: ON. ROVER WILL REBOOT in 0x%x cs. Send ACK to reset timer.",
+                        "SAFETY TIMER: Tenth-timer expired at 0x%x cs / 0x%x cs for the %d/10 time. Reboot Ctrl: ON. ROVER WILL REBOOT in 0x%x*%dcs. Send ACK to reset timer.",
                         time_elapsed_cs,
                         details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
-                        (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
+                        details->m_safetyTimerParams.tenthTimerExpirationCount,
+                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        (SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - details->m_safetyTimerParams.tenthTimerExpirationCount)
+                        //
                     );
                 }
                 else
                 {
                     // Slightly more low-key since we won't reboot if the timer expires.
                     DPRINTF(
-                        "SAFETY TIMER: 0x%x/0x%x. Reboot Ctrl: OFF. Expires in 0x%x cs. Send ACK to reset timer.",
+                        "SAFETY TIMER: Tenth-timer expired at 0x%x cs / 0x%x cs for the %d/10 time. Reboot Ctrl: OFF. Expires in 0x%x*%dcs. Send ACK to reset timer.",
                         time_elapsed_cs,
                         details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
-                        (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
+                        details->m_safetyTimerParams.tenthTimerExpirationCount,
+                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        (SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - details->m_safetyTimerParams.tenthTimerExpirationCount)
+                        //
                     );
                 }
-                details->m_safetyTimerParams.countdownWarningCount += 1;
-            } // warning count check
+            }
+
+            // Either way, reset the timer:
+            details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        }
+        else
+        {
+            // Timer hasn't expired but see if we should emit a final warning before reboot:
+            if (
+                // We will reboot on the final expiration:
+                details->m_safetyTimerParams.timerRebootControlOn &&
+                // The next expiration is the final expiration:
+                details->m_safetyTimerParams.tenthTimerExpirationCount == (SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - 1) &&
+                // And we're in the final countdown range:
+                (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) < SAFETY_TIMER__FINAL_COUNTDOWN_START_TIME_CS)
+            {
+                DPRINTF(
+                    "SAFETY TIMER: 0x%x/0x%x @ %d. FINAL COUNTDOWN! Reboot Ctrl: ON. ROVER WILL REBOOT in 0x%x cs. Send ACK to reset timer.",
+                    time_elapsed_cs,
+                    details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                    details->m_safetyTimerParams.tenthTimerExpirationCount,
+                    (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
+                );
+            } // final countdown check
         }     // timeout check
     }         // kick check
+}
 
+// Executor for the Reboot "State Machine":
+void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
+                                               volatile uint32_t *watchdogFlags,
+                                               uint8_t *watchdogOpts,
+                                               BOOL *writeIOExpander,
+                                               WatchdogStateDetails *details,
+                                               UART__State *uart0State)
+{
     //* Advance Full Power Reboot "State Machine":
     // Check states in parallel ifs, ordered with later stage power ups later
     // so in case poorly placed flips turned on early power off states, the
@@ -420,7 +471,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         // won't really matter).
 
         // Make sure timer stays off during this state:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
@@ -478,7 +529,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         *writeIOExpander = TRUE; // some of the above (mainly resets) require IOEX writes
 
         // Make sure timer stays off during this state:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
@@ -511,7 +562,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         // won't really matter and might even be beneficial).
 
         // Make sure timer stays off during this state:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
@@ -544,7 +595,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         // waits for I2C to complete, so we'll insert a new state here... (after IOEX and ~5s wait)
 
         // Make sure timer stays off during this state:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
@@ -571,7 +622,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         // waits for Radio connection or 25s... so, we'll insert a new state here (after IOEX and ~5s wait)
 
         // Make sure timer stays off during this transition:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
@@ -604,13 +655,38 @@ void safety_timer_handler(HerculesComms__State *hState,
         // Mission::handleTimerTick: Nothing.
 
         // Make sure timer stays off during this state:
-        details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
         // All done, so we can just stop at turning off these bits.
     }
+}
+
+// Handler for Supervisor Safety Timer (called as sub-task of watchdog_monitor):
+void safety_timer_handler(HerculesComms__State *hState,
+                          volatile uint32_t *watchdogFlags,
+                          uint8_t *watchdogOpts,
+                          BOOL *writeIOExpander,
+                          WatchdogStateDetails *details,
+                          UART__State *uart0State)
+{
+    //*
+    //* Check for Preconditions:
+    // Hold timer at 0 if not in Mission (i.e. make sure we don't reboot or
+    // emit countdown messages):
+    if (details->m_stateAsUint != ROVERSTATE_AS_UINT__MISSION)
+    {
+        details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
+    }
+
+    safety_timer__bitflip_check(hState, watchdogFlags, watchdogOpts, writeIOExpander, details, uart0State);
+
+    safety_timer__process_timer(hState, watchdogFlags, watchdogOpts, writeIOExpander, details, uart0State);
+
+    safety_timer__update_reboot_state_machine(hState, watchdogFlags, watchdogOpts, writeIOExpander, details, uart0State);
 }
 
 /**

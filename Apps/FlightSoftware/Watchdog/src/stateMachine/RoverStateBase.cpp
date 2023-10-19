@@ -1499,15 +1499,17 @@ namespace iris
                                                             (uint8_t *)&hb,
                                                             sizeof(hb));
 
-            // Send a (brief) status report on the Safety Timer:
+            // Send a (brief) Safety Timer Status Report:
             // (also incl. the watchdogFlags since issues could be caused by
             // SEUs there):
             DebugComms__tryPrintfToLanderNonblocking(
-                "[ST] ON:0x%x \t @: 0x%x/0x%x \tWF:0x%x",
+                "[ST] ON:0x%x \t @: 0x%x/0x%x %d/10 \tWF:0x%x:%x",
                 theContext.m_details.m_safetyTimerParams.timerRebootControlOn,
-                (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastAck),
-                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds,
-                theContext.m_watchdogFlags);
+                (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent),
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount,
+                (theContext.m_watchdogFlags >> 16) & 0xFFFF,
+                theContext.m_watchdogFlags & 0xFFFF);
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcHbStatus);
             if (LANDER_COMMS__STATUS__SUCCESS != lcHbStatus)
@@ -1901,27 +1903,43 @@ namespace iris
             DPRINTF("SAFETY TIMER: ACK received.");
             break;
         case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC:
-            if ((SAFETY_TIMER__CUTOFF_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
+            // Treat this as a kick (and reset the timer):
+            theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
+            if ((SAFETY_TIMER__CUTOFF_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
             {
                 // Inc will put this over max val. Stopping here.
-                DPRINTF("SAFETY TIMER: Cutoff NOT inc. Max would be exceeded. Val is: 0x%x cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff NOT inc. Max would be exceeded. Val is: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
             }
             else
             {
-                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds += SAFETY_TIMER__CUTOFF_INCREMENT_CS;
-                DPRINTF("SAFETY TIMER: Cutoff inc to: 0x%x cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth += SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS;
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff inc to: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
             }
             break;
         case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC:
-            if ((theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds - SAFETY_TIMER__CUTOFF_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
+            // Treat this as a kick (and reset the timer):
+            theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
+            if ((theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth - SAFETY_TIMER__CUTOFF_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
             {
                 // Inc will put this over max val. Stopping here.
-                DPRINTF("SAFETY TIMER: Cutoff NOT dec. Min would be exceeded. Val is: 0x%x cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff NOT dec. Min would be exceeded. Val is: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
             }
             else
             {
-                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds -= SAFETY_TIMER__CUTOFF_INCREMENT_CS;
-                DPRINTF("SAFETY TIMER: Cutoff dec to: 0x%x cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth -= SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS;
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff dec to: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
             }
             break;
 

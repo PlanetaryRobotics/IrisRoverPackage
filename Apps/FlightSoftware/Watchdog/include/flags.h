@@ -75,6 +75,12 @@ extern "C"
                 SAFETY_TIMER__REBOOT_CONTROL_ON = 0xFF
         } SafetyTimer_RebootControlValue;
 
+        // ! NOTE: The number of centiseconds that fit in a U16 is not enough
+        // (only 10 mins) and bumping the timer to a long (U32) isn't advisable
+        // (would screw w timing of all time checks), so we need to just count
+        // the number of expirations before a trigger. 5 would be sufficient
+        // but 10 makes the math easier on operators, so cutoffs values are now
+        // "tenths of a cutoff"
         typedef struct SafetyTimerParams
         {
                 // Is timer allowed to fully reboot the rover when the cutoff is reached:
@@ -82,27 +88,34 @@ extern "C"
                 SafetyTimer_RebootControlValue timerRebootControlOn;
                 // Centisecond threshold where the safety timer fully reboots
                 // the rover if it hasn't heard from us (received an ACK):
-                uint16_t timerRebootCutoffCentiseconds;
+                uint16_t timerRebootCutoffCentisecondsTenth;
+                // Number of times the timer has expired (needs to expire 10
+                // times to trigger a reset) - see note above for why.
+                // We need this to get the timeout to a reasonable value.
+                // We'll also emit a warning every time this expires.
+                uint8_t tenthTimerExpirationCount;
                 // System time in centiseconds at the last time we received an
-                // ACK from Ground. Tops out at 109mins.
+                // ACK from Ground (or when a tenth-timer expired).
+                // Tops out at 10.9mins.
                 // Make sure to check this in a rollover-safe way:
                 // (now-last) > cutoff.
-                uint16_t centisecondsAtLastAck;
-                // Count of how many countdown warning messages we've emitted:
-                // (reset this when you reset the centiseconds timer)
-                uint16_t countdownWarningCount;
+                uint16_t centisecondsAtLastEvent;
         } SafetyTimerParams;
 
-// Default safety timer cutoff in centiseconds (40 mins):
-#define SAFETY_TIMER__DEFAULT_CUTOFF_CS 24000
-// How much to increment or decrement the safety timer cutoff by when told to (5 mins):
-#define SAFETY_TIMER__CUTOFF_INCREMENT_CS 3000
-// How frequently to emit a countdown message (5 min) - should be longer than 2x roundtrip delay:
-#define SAFETY_TIMER__COUNTDOWN_INTERVAL_CS 3000
-// Maximum value the safety timer is allowed to have (~109min.):
-#define SAFETY_TIMER__CUTOFF_MAX_VAL_CS 0xFFFE
-// Minimum value the safety timer is allowed to have (5min.):
-#define SAFETY_TIMER__CUTOFF_MIN_VAL_CS 3000
+// Number of times the timer needs to expire to trigger a reboot:
+// CAN'T BE <2.
+#define SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER 10
+// Default safety timer cutoff/10 in centiseconds (4 mins -> 40min timer):
+#define SAFETY_TIMER__DEFAULT_CUTOFF_TENTH_CS 24000
+// How much to increment or decrement the safety timer/10 cutoff by when told to (0.5min. -> 5min. timer inc.):
+#define SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS 3000
+// How soon [in cs] before the final expiration before reboot to start emitting a warning message every tick (~5s):
+// Should be at least 2x roundtrip delay (set to 5min)
+#define SAFETY_TIMER__FINAL_COUNTDOWN_START_TIME_CS 30000
+// Maximum value the safety timer/10 is allowed to have (~10.9min.):
+#define SAFETY_TIMER__CUTOFF_TENTH_MAX_VAL_CS 0xFFFE
+// Minimum value the safety timer/10 is allowed to have (0.5min. -> 5min. timer):
+#define SAFETY_TIMER__CUTOFF_TENTH_MIN_VAL_CS 3000
 
         typedef enum Heater_ForceState
         {

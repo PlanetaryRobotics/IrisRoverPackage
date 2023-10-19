@@ -224,8 +224,8 @@ namespace iris
         // [CWC-10/18/2023] Need safety timer to be off in this mode too since it depends on Herc comms.
         DPRINTF("Defaulting SAFETY TIMER to OFF in MISSION for programming.");
         theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF;
-        theContext.m_details.m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
-        theContext.m_details.m_safetyTimerParams.countdownWarningCount = 0;
+        theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount = 0;
 #else
         DPRINTF("Defaulting MONITOR_HERCULES to ON in MISSION.");
         theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES; // default to monitoring Hercules for aliveness
@@ -235,8 +235,8 @@ namespace iris
         // is or should be up to do this...)
         DPRINTF("SAFETY TIMER: Activated in Mission.");
         theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
-        theContext.m_details.m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
-        theContext.m_details.m_safetyTimerParams.countdownWarningCount = 0;
+        theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount = 0;
 #endif
 
         return getState();

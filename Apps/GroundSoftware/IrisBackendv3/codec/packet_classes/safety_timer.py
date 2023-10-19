@@ -156,9 +156,9 @@ def humanize_safety_timer_status_report(data: bytes) -> bytes:
     return (
         b"[ST] SAFETY TIMER: " + on_str +
         b" \t " + timer + b" / " + cutoff +
-        b" \t @ " + exp_count + b"/" + exp_trigger +
+        b" @ " + exp_count + b"/" + exp_trigger +
         b" \t -> \t " + timer_real + b" / " + cutoff_real +
-        b" \t " + colored(time_left_str.upper()+" LEFT", attrs=['bold']).encode('utf-8') +
+        b" -> " + colored(time_left_str+" LEFT", attrs=['bold']).encode('utf-8') +
         b" \t WF: 0x" + b':'.join(b'%02X' % x for x in wf.to_bytes(4, 'big'))
     )
 
@@ -283,7 +283,7 @@ class WatchdogSafetyTimerPacket(WatchdogSafetyTimerPacketInterface[WatchdogSafet
         ):
             on_color = 'on_red'
         elif is_status_report:
-            on_color = 'on_black'
+            on_color = 'on_grey'
         elif b'ACK KICK PROCESSED' in data_upper:
             on_color = 'on_green'
         else:

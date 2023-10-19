@@ -1190,7 +1190,8 @@ gds_packets: Module = Module(
             ('WatchdogRadioDebugPacket', Event.SeverityLevel.ACTIVITY_HI),
             ('WatchdogResetSpecificAckPacket', Event.SeverityLevel.COMMAND),
             ('RadioDownlinkFlushPacket', Event.SeverityLevel.DIAGNOSTIC),
-            ('HerculesRadioUplinkAckPacket', Event.SeverityLevel.ACTIVITY_LO)
+            ('HerculesRadioUplinkAckPacket', Event.SeverityLevel.ACTIVITY_LO),
+            ('WatchdogSafetyTimerPacket', Event.SeverityLevel.WARNING_LO)
         ])
     ),
     telemetry=NameIdDict()

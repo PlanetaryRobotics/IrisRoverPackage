@@ -511,32 +511,32 @@ namespace CubeRover
     // User-defined helper functions
     // ----------------------------------------------------------------------
 
-    void MotorControlComponentImpl::initMotorControllers()
-    {
-        motorControllerState = DISABLED;
-//        for (int i = 0; i < NUM_MOTORS; i++)
+//    void MotorControlComponentImpl::initMotorControllers()
+//    {
+//        motorControllerState = DISABLED;
+////        for (int i = 0; i < NUM_MOTORS; i++)
+////        {
+////            motors[i].i2c_addr = MC_SLAVE_I2C_ADDR_0 + i;
+////        }
+//    }
+
+//    MotorControlComponentImpl::MCError_t
+//    MotorControlComponentImpl::updateMotorControllers(const RegisterAddress_t reg, void *_data)
+//    {
+//        MCError_t err = MC_NO_ERROR;
+//
+//
+//
+//
+//        for (int i = 0; i < NUM_MOTORS; ++i)
 //        {
-//            motors[i].i2c_addr = MC_SLAVE_I2C_ADDR_0 + i;
+////            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
+//            if (err != MC_NO_ERROR)
+//                return err;
 //        }
-    }
-
-    MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::updateMotorControllers(const RegisterAddress_t reg, void *_data)
-    {
-        MCError_t err = MC_NO_ERROR;
-
-
-
-
-        for (int i = 0; i < NUM_MOTORS; ++i)
-        {
-//            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
-            if (err != MC_NO_ERROR)
-                return err;
-        }
-
-        return MC_NO_ERROR;
-    }
+//
+//        return MC_NO_ERROR;
+//    }
 
 
 

@@ -17,12 +17,10 @@
 #include <Os/Mutex.hpp>
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
-#define ALL_MOTOR_ID 0x00
 #define MC_SLAVE_I2C_ADDR_BASE 0x48
 
 #define DEFAULT_TARG_POS    20000
 #define DEFAULT_TARG_VEL    80
-#define MAX_SPEED 100
 
 #define DEFAULT_VEL_P       1.5
 #define DEFAULT_VEL_I       0.0009
@@ -30,7 +28,6 @@
 #define DEFAULT_CURRENT_I   0.002
 
 
-#define START_MOTORS            32
 
 // STATUS Register Values
 
@@ -93,6 +90,7 @@ namespace CubeRover
             CMD_OVERRIDE_PROTECTED  = 64,
             CMD_IDLE                = 128
         } CommandValue;
+
         typedef uint8_t ControlRegister_t;
 
         // --- MC i2c STATE Register Values
@@ -126,8 +124,21 @@ namespace CubeRover
 
         typedef uint8_t FaultRegister_t;
 
-        // TODO : REMOVE
-        // MC i2c Status Register
+//        // TODO : REMOVE
+//        typedef union
+//        {
+//            uint8_t value;
+//            struct
+//            {
+//                uint8_t open_loop : 1;
+//                uint8_t clear_fault : 1;
+//                uint8_t fsm_disable : 1;
+//                uint8_t fsm_run : 1;
+//                uint8_t override_fault_detection : 1;
+//                uint8_t unused : 3;
+//            } bits;
+//        } ControlRegister_t;
+
         typedef union
         {
             uint8_t value;
@@ -141,6 +152,18 @@ namespace CubeRover
                 uint8_t unused : 3;
             } bits;
         } StatusRegister_t;
+//
+//        typedef union
+//        {
+//            uint8_t value;
+//            struct
+//            {
+//                uint8_t driver_fault : 1;
+//                uint8_t position_no_change : 1;
+//                uint8_t driving_wrong_direction : 1;
+//                uint8_t unused : 5;
+//            } bits;
+//        } FaultRegister_t;
 
 
         /**
@@ -169,39 +192,39 @@ namespace CubeRover
             int8_t dec_val;
 
             ControlRegister_t ctrl;
-            StateRegister_t state;
+            StatusRegister_t state;
             FaultRegister_t fault;
         };
 
-        void initMotorController(MotorController *mc, uint8_t id);
-
-        // NOT MUTEX SAFE
-        MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
-        MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
-
-        // MUTEX SAFE
-        MC_ERR_t getMcState(MotorController *mc);
-        MC_ERR_t getMcFault(MotorController *mc);
-        MC_ERR_t getMcAll(MotorController *mc);
-
-        MC_ERR_t setMcAll(MotorController *mc);
-
-        MC_ERR_t mcEnable(MotorController *mc);
-        MC_ERR_t mcArm(MotorController *mc);
-        MC_ERR_t mcDrive(MotorController *mc);
-        MC_ERR_t mcStop(MotorController *mc);
-        MC_ERR_t mcIdle(MotorController *mc);
-        MC_ERR_t mcClearFaults(MotorController *mc);
-        MC_ERR_t mcReset(MotorController *mc);
-
-        void setTargetPos(MotorController *mc, int32_t target_pos);
-        void setTargetVel(MotorController *mc, int16_t target_vel);
-        void setCurrentP(MotorController *mc, int8_t current_p_val);
-        void setCurrentI(MotorController *mc, int8_t current_i_val);
-        void setVelP(MotorController *mc, int8_t vel_p_val);
-        void setVelI(MotorController *mc, int8_t vel_i_val);
-        void setAccVal(MotorController *mc, int8_t acc_val);
-        void setDecVal(MotorController *mc, int8_t dec_val);
+//        void initMotorController(MotorController *mc, uint8_t id);
+//
+//        // NOT MUTEX SAFE
+//        MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
+//        MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
+//
+//        // MUTEX SAFE
+//        MC_ERR_t getMcState(MotorController *mc);
+//        MC_ERR_t getMcFault(MotorController *mc);
+//        MC_ERR_t getMcAll(MotorController *mc);
+//
+//        MC_ERR_t setMcAll(MotorController *mc);
+//
+//        MC_ERR_t mcEnable(MotorController *mc);
+//        MC_ERR_t mcArm(MotorController *mc);
+//        MC_ERR_t mcDrive(MotorController *mc);
+//        MC_ERR_t mcStop(MotorController *mc);
+//        MC_ERR_t mcIdle(MotorController *mc);
+//        MC_ERR_t mcClearFaults(MotorController *mc);
+//        MC_ERR_t mcReset(MotorController *mc);
+//
+//        void setTargetPos(MotorController *mc, int32_t target_pos);
+//        void setTargetVel(MotorController *mc, int16_t target_vel);
+//        void setCurrentP(MotorController *mc, int8_t current_p_val);
+//        void setCurrentI(MotorController *mc, int8_t current_i_val);
+//        void setVelP(MotorController *mc, int8_t vel_p_val);
+//        void setVelI(MotorController *mc, int8_t vel_i_val);
+//        void setAccVal(MotorController *mc, int8_t acc_val);
+//        void setDecVal(MotorController *mc, int8_t dec_val);
 
 
 }

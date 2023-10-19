@@ -147,7 +147,6 @@ namespace CubeRover
          */
         struct MotorControllerStruct
         {
-            // Mutex that should be locked anytime the status is read or modified:
             uint8_t up_to_date;
 
             I2cSlaveAddress_t i2c_addr;

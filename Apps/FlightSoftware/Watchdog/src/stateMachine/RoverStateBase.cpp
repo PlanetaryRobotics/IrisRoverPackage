@@ -144,10 +144,7 @@ namespace iris
         }
 
         // Also forward to lander if not deployed:
-        if (!*(theContext.m_persistentDeployed))
-        {
-            LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *)data, dataSize);
-        }
+        LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *)data, dataSize);
 
         return lcStatus;
     }

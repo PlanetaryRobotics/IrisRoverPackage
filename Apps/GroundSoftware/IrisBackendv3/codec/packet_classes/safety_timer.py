@@ -133,15 +133,32 @@ def humanize_safety_timer_status_report(data: bytes) -> bytes:
     # Process data:
     on = int(on_hex, 16)
     on_str = b"ON" if on == 0xFF else (b"OFF" if on == 0x00 else b"BAD")
-    timer = cs_time_to_human_time(int(timer_hex_cs, 16))
-    cutoff = cs_time_to_human_time(int(cutoff_hex_cs, 16))
+    timer_cs = int(timer_hex_cs, 16)
+    timer = cs_time_to_human_time(timer_cs)
+    cutoff_cs = int(cutoff_hex_cs, 16)
+    cutoff = cs_time_to_human_time(cutoff_cs)
+    exp_count_int = int(exp_count, 10)
+    exp_trigger_int = int(exp_trigger, 10)
+
+    # Compute the total timer state (and make human-readable):
+    # (How many times has the timer expired * expiration time + time in this timer):
+    timer_real_cs = cutoff_cs * exp_count_int + timer_cs
+    timer_real = cs_time_to_human_time(timer_real_cs)
+    # (How many times can the timer expire before triggering reboot * expiration time):
+    cutoff_real_cs = cutoff_cs * exp_trigger_int
+    cutoff_real = cs_time_to_human_time(cutoff_real_cs)
+    time_left_cs = (cutoff_real_cs - timer_real_cs)
+    time_left_str = cs_time_to_human_time(time_left_cs).decode('utf-8')
+
     # Combine two U16s of watchdogFlags:
     wf = (int(flags_hex_hi, 16) << 16) | int(flags_hex_lo, 16)
     # Build message:
     return (
         b"[ST] SAFETY TIMER: " + on_str +
-        b" \t @ " + timer + b" / " + cutoff +
-        b" \t w/ expiration count: " + exp_count + b"/" + exp_trigger +
+        b" \t " + timer + b" / " + cutoff +
+        b" \t @ " + exp_count + b"/" + exp_trigger +
+        b" \t -> \t " + timer_real + b" / " + cutoff_real +
+        b" \t " + colored(time_left_str.upper()+" LEFT", attrs=['bold']).encode('utf-8') +
         b" \t WF: 0x" + b':'.join(b'%02X' % x for x in wf.to_bytes(4, 'big'))
     )
 

@@ -19,25 +19,24 @@
 #include "MotorController_i2c.h"
 #include "MotorController.hpp"
 
-#define MOTOR_CONTROL_I2CREG i2cREG1
-#define ALL_MOTOR_ID 0x00
-#define MC_SLAVE_I2C_ADDR_BASE 0x48
+#define MOTOR_A 0
+#define MOTOR_B 1
+#define MOTOR_C 2
+#define MOTOR_D 3
 
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
 
-#define MAX_SPEED 100
-#define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
-#define START_MOTORS            32
-#define NUM_MOTORS  4
 
 namespace CubeRover
 {
 
     class MotorControlComponentImpl : public MotorControlComponentBase
     {
+
+    ::Os::Mutex mc_mutex;
 
     public:
         // ----------------------------------------------------------------------
@@ -143,6 +142,10 @@ namespace CubeRover
         void MC_UpdateTelemetry_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
                                            const U32 cmdSeq /*!< The command sequence number*/);
 
+
+
+
+
         /* Implementation specific declarations */
 
 
@@ -153,14 +156,6 @@ namespace CubeRover
          */
 
     private:
-
-        typedef enum
-        {
-            MOTOR_A = 0,
-            MOTOR_B = 1,
-            MOTOR_C = 2,
-            MOTOR_D = 3
-        }MCMotorID_t;
 
     public:
 
@@ -186,20 +181,14 @@ namespace CubeRover
         } MCState_t;
 
 
-
-
-
-
-
         /* --- FUNCTIONS --- */
-//        void initMotorControllers();
-//
-////        MCError_t updateMotorControllers(const RegisterAddress_t id, void *_data);
-//
-//
-//        /* --- Private Variables --- */
-//        MCState_t motorControllerState;
-//        MotorController motors[NUM_MOTORS];
+        void initMotorControllers();
+//        void runMcStateMachine();
+        void checkFaults();
+
+
+        /* --- Private Variables --- */
+        MCState_t m_motorControllerState;
 
 
 
@@ -281,6 +270,14 @@ namespace CubeRover
         int32_t m_RL_Encoder_Count_Offset;
         int32_t m_RR_Encoder_Count_Offset;
     };
+
+    static MotorControllerStruct m_motor_controllers[NUM_MOTORS] = {
+                                    MotorControllerStruct(),
+                                    MotorControllerStruct(),
+                                    MotorControllerStruct(),
+                                    MotorControllerStruct()
+    };
+
 
 } // end namespace CubeRover
 

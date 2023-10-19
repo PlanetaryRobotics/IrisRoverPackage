@@ -68,12 +68,7 @@ namespace CubeRover
     void MotorControlComponentImpl ::init(const NATIVE_INT_TYPE instance)
     {
         MotorControlComponentBase::init(instance);
-
-//        motorControllerState = IDLE;
-//        for (int i = 0; i < NUM_MOTORS; i++)
-//        {
-//            initMotorController(&motors[i], i);
-//        }
+        initMotorControllers();
     }
 
     /**
@@ -511,32 +506,57 @@ namespace CubeRover
     // User-defined helper functions
     // ----------------------------------------------------------------------
 
-//    void MotorControlComponentImpl::initMotorControllers()
-//    {
-//        motorControllerState = DISABLED;
-////        for (int i = 0; i < NUM_MOTORS; i++)
-////        {
-////            motors[i].i2c_addr = MC_SLAVE_I2C_ADDR_0 + i;
-////        }
-//    }
+    void MotorControlComponentImpl::initMotorControllers()
+    {
+        m_motorControllerState = DISABLED;
+        for (int i = 0; i < NUM_MOTORS; i++)
+        {
+            initMotorController(&m_motor_controllers[i], i);
+        }
+    }
 
-//    MotorControlComponentImpl::MCError_t
-//    MotorControlComponentImpl::updateMotorControllers(const RegisterAddress_t reg, void *_data)
-//    {
-//        MCError_t err = MC_NO_ERROR;
+    void MotorControlComponentImpl::powerOnMotors()
+    {
+        m_motorControllerState = ENABLED;
+
+        StateRegister_t state;
+        MC_ERR_t err;
+
+        mc_mutex.lock();
+        for (int i = 0; i < NUM_MOTORS; i++)
+        {
+            err = getMcState(&m_motor_controllers[i]);
+            if (&m_motor_controllers[i]->state != IDLE)
+        }
+    }
 //
-//
-//
-//
-//        for (int i = 0; i < NUM_MOTORS; ++i)
-//        {
-////            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
-//            if (err != MC_NO_ERROR)
-//                return err;
-//        }
-//
-//        return MC_NO_ERROR;
-//    }
+    void MotorControlComponentImpl::checkFaults()
+    {
+        for (int i = 0; i < NUM_MOTORS; i++)
+        {
+            getMcFault(&m_motor_controllers[i]);
+        }
+    }
+
+    //    void MotorControlComponentImpl::runMcStateMachine()
+    //    {
+    //
+    //        switch (m_motorControllerState)
+    //        {
+    //        case DISABLED:
+    //            return;
+    //        case IDLE:
+    //            checkFaults();
+    //            return;
+    //        case ENABLED:
+    //        case ARMED:
+    //        case RUNNING:
+    //        case TARGET_REACHED:
+    //        case FAULT:
+    //        default:
+    //            return;
+    //        }
+    //    }
 
 
 

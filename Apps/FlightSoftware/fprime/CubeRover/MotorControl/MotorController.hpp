@@ -18,21 +18,23 @@
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
 #define MC_SLAVE_I2C_ADDR_BASE 0x48
+#define ALL_MOTOR_ID 0x00
+
+
+#define MAX_SPEED 100
+#define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
+#define START_MOTORS            32
+#define NUM_MOTORS  4
+
 
 #define DEFAULT_TARG_POS    20000
 #define DEFAULT_TARG_VEL    80
 
 #define DEFAULT_VEL_P       1.5
-#define DEFAULT_VEL_I       0.0009
-#define DEFAULT_CURRENT_P   0.95
-#define DEFAULT_CURRENT_I   0.002
+#define DEFAULT_VEL_I       9 // (/1000)
+#define DEFAULT_CURRENT_P   9500 // (/1000)
+#define DEFAULT_CURRENT_I   20 // (/1000)
 
-
-
-// STATUS Register Values
-
-
-// FAULT Register Values
 
 namespace CubeRover
 {
@@ -124,8 +126,7 @@ namespace CubeRover
 
         typedef uint8_t FaultRegister_t;
 
-//        // TODO : REMOVE
-
+        // TODO : REMOVE
         typedef union
         {
             uint8_t value;
@@ -144,10 +145,9 @@ namespace CubeRover
         /**
          * @brief All important data related to the current motor controller state.
          */
-        struct MotorController
+        struct MotorControllerStruct
         {
             // Mutex that should be locked anytime the status is read or modified:
-            ::Os::Mutex mc_mutex;
             uint8_t up_to_date;
 
             I2cSlaveAddress_t i2c_addr;
@@ -170,36 +170,37 @@ namespace CubeRover
             StateRegister_t state;
             FaultRegister_t fault;
         };
+//
 
-        void initMotorController(MotorController *mc, uint8_t id);
+        void initMotorController(MotorControllerStruct *mc, uint8_t id);
 
         // NOT MUTEX SAFE
         MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
         MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
 
         // MUTEX SAFE
-        MC_ERR_t getMcState(MotorController *mc);
-        MC_ERR_t getMcFault(MotorController *mc);
-        MC_ERR_t getMcAll(MotorController *mc);
+        MC_ERR_t getMcState(MotorControllerStruct *mc);
+        MC_ERR_t getMcFault(MotorControllerStruct *mc);
+        MC_ERR_t getMcAll(MotorControllerStruct *mc);
 
-        MC_ERR_t setMcAll(MotorController *mc);
+        MC_ERR_t setMcAll(MotorControllerStruct *mc);
 
-        void setTargetPos(MotorController *mc, int32_t target_pos);
-        void setTargetVel(MotorController *mc, int16_t target_vel);
-        void setCurrentP(MotorController *mc, int8_t current_p_val);
-        void setCurrentI(MotorController *mc, int8_t current_i_val);
-        void setVelP(MotorController *mc, int8_t vel_p_val);
-        void setVelI(MotorController *mc, int8_t vel_i_val);
-        void setAccVal(MotorController *mc, int8_t acc_val);
-        void setDecVal(MotorController *mc, int8_t dec_val);
+        void setTargetPos(MotorControllerStruct *mc, int32_t target_pos);
+        void setTargetVel(MotorControllerStruct *mc, int16_t target_vel);
+        void setCurrentP(MotorControllerStruct *mc, int8_t current_p_val);
+        void setCurrentI(MotorControllerStruct *mc, int8_t current_i_val);
+        void setVelP(MotorControllerStruct *mc, int8_t vel_p_val);
+        void setVelI(MotorControllerStruct *mc, int8_t vel_i_val);
+        void setAccVal(MotorControllerStruct *mc, int8_t acc_val);
+        void setDecVal(MotorControllerStruct *mc, int8_t dec_val);
 
-        MC_ERR_t mcEnable(MotorController *mc);
-        MC_ERR_t mcArm(MotorController *mc);
-        MC_ERR_t mcDrive(MotorController *mc);
-        MC_ERR_t mcStop(MotorController *mc);
-        MC_ERR_t mcIdle(MotorController *mc);
-        MC_ERR_t mcClearFaults(MotorController *mc);
-        MC_ERR_t mcReset(MotorController *mc);
+        MC_ERR_t mcEnable(MotorControllerStruct *mc);
+        MC_ERR_t mcArm(MotorControllerStruct *mc);
+        MC_ERR_t mcDrive(MotorControllerStruct *mc);
+        MC_ERR_t mcStop(MotorControllerStruct *mc);
+        MC_ERR_t mcIdle(MotorControllerStruct *mc);
+        MC_ERR_t mcClearFaults(MotorControllerStruct *mc);
+        MC_ERR_t mcReset(MotorControllerStruct *mc);
 
 }
 

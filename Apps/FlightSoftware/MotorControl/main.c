@@ -81,6 +81,10 @@ uint8_t g_errorCounter = 0; // incremented every time inner control loop is reac
 
 bool g_readSensors = false;
 
+CommandValue mc_cmd;
+volatile StateValue mc_state;
+volatile FaultValue mc_fault;
+
 /**
  * @brief      Gets the speed.
  *
@@ -394,6 +398,10 @@ void initializeSensorVariables(void)
  */
 void initializeSoftwareControlVariables(void)
 {
+    mc_cmd = MC_NO_CMD;
+    mc_state = MC_STATE_IDLE;
+    mc_fault = MC_NO_FAULT;
+
     // software control related variables (rate groups, internal state machine)
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
     g_closedLoop = false;

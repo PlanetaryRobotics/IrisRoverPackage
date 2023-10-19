@@ -36,6 +36,10 @@ extern uint32_t g_drivingTimeoutCtr;
 extern uint16_t g_accelRate, g_decelRate;
 extern CmdState g_cmdState;
 
+extern CommandValue mc_cmd;
+extern StateValue mc_state;
+extern FaultValue mc_fault;
+
 
 /**
  * @brief      Disables i 2 c receive interrupt.
@@ -100,6 +104,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
       //-----------------------------------------------------------------
       // Commands requesting to send data to master
       //-----------------------------------------------------------------
+//      uint8_t *to_copy = (uint8_t *)&
       case I2C_ADDRESS:                        
         g_slaveMode = TX_DATA_MODE;
         g_txByteCtr = g_i2cCmdLength[cmd];

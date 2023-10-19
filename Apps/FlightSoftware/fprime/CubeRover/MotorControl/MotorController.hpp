@@ -30,10 +30,10 @@
 #define DEFAULT_TARG_POS    20000
 #define DEFAULT_TARG_VEL    80
 
-#define DEFAULT_VEL_P       1.5
-#define DEFAULT_VEL_I       9 // (/1000)
-#define DEFAULT_CURRENT_P   9500 // (/1000)
-#define DEFAULT_CURRENT_I   20 // (/1000)
+#define DEFAULT_VEL_P       1500    // (/1000)
+#define DEFAULT_VEL_I       9       // (/1000)
+#define DEFAULT_CURRENT_P   9500    // (/1000)
+#define DEFAULT_CURRENT_I   20      // (/1000)
 
 
 namespace CubeRover
@@ -53,9 +53,9 @@ namespace CubeRover
         typedef enum
         {
             REG_I2C_ADDRESS = 0,        // Read-only  - 1Byte
-            REG_TARGET_POSITION = 1,    // Write-only - 4Bytes
-            REG_TARGET_SPEED = 2,       // Write-only - 1Byte
-            REG_CURRENT_POSITION = 3,   // Read-only  - 4Bytes
+            REG_TARGET_POSITION = 1,    // Write-only - 1Bytes
+            REG_TARGET_SPEED = 2,       // Write-only - 2Byte
+            REG_CURRENT_POSITION = 3,   // Read-only  - 1Bytes
             REG_CURRENT_SPEED = 4,      // DEPRICATED - 2Bytes
             REG_MOTOR_CURRENT = 5,      // Read-only  - 4Bytes
             REG_P_CURRENT = 6,          // Write-only - 2Bytes
@@ -170,7 +170,6 @@ namespace CubeRover
             StateRegister_t state;
             FaultRegister_t fault;
         };
-//
 
         void initMotorController(MotorControllerStruct *mc, uint8_t id);
 

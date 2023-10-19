@@ -21,6 +21,7 @@
 #include "mod6_cnt.h"
 #include "impulse.h"
 #include <msp430.h>
+#include "mc_interface_defs.h"
 
 /* ============================================
  *          Bits of Registers
@@ -78,10 +79,14 @@
 #define FULLY_OPEN_LOOP_PWM 0.3   // PWM duty cycle ( 30% ) as decimal
 #define MAX_TARGET_SPEED 100U     // used to initialize g_maxSpeed
 
+
+
 /* ============================================
  *        Function/struct/enum definitions
  * ============================================
  */
+
+void initMcParams();
 
 bool read_driver_fault(); // function descriptions in main.c
 void clear_driver_fault();

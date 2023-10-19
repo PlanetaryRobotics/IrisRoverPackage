@@ -1905,7 +1905,7 @@ namespace iris
         case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC:
             // Treat this as a kick (and reset the timer):
             theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
-            if ((SAFETY_TIMER__CUTOFF_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
+            if ((SAFETY_TIMER__CUTOFF_TENTH_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
             {
                 // Inc will put this over max val. Stopping here.
                 DPRINTF(
@@ -1925,7 +1925,7 @@ namespace iris
         case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC:
             // Treat this as a kick (and reset the timer):
             theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
-            if ((theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth - SAFETY_TIMER__CUTOFF_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
+            if ((theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth - SAFETY_TIMER__CUTOFF_TENTH_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
             {
                 // Inc will put this over max val. Stopping here.
                 DPRINTF(

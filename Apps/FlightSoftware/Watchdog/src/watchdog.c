@@ -389,9 +389,9 @@ void safety_timer__process_timer(HerculesComms__State *hState,
                     DPRINTF(
                         "SAFETY TIMER: Tenth-timer expired at 0x%x cs / 0x%x cs for the %d/10 time. Reboot Ctrl: ON. ROVER WILL REBOOT in 0x%x*%dcs. Send ACK to reset timer.",
                         time_elapsed_cs,
-                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                         details->m_safetyTimerParams.tenthTimerExpirationCount,
-                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                         (SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - details->m_safetyTimerParams.tenthTimerExpirationCount)
                         //
                     );
@@ -402,9 +402,9 @@ void safety_timer__process_timer(HerculesComms__State *hState,
                     DPRINTF(
                         "SAFETY TIMER: Tenth-timer expired at 0x%x cs / 0x%x cs for the %d/10 time. Reboot Ctrl: OFF. Expires in 0x%x*%dcs. Send ACK to reset timer.",
                         time_elapsed_cs,
-                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                         details->m_safetyTimerParams.tenthTimerExpirationCount,
-                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                         (SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - details->m_safetyTimerParams.tenthTimerExpirationCount)
                         //
                     );
@@ -423,14 +423,14 @@ void safety_timer__process_timer(HerculesComms__State *hState,
                 // The next expiration is the final expiration:
                 details->m_safetyTimerParams.tenthTimerExpirationCount == (SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER - 1) &&
                 // And we're in the final countdown range:
-                (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) < SAFETY_TIMER__FINAL_COUNTDOWN_START_TIME_CS)
+                (details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth - time_elapsed_cs) < SAFETY_TIMER__FINAL_COUNTDOWN_START_TIME_CS)
             {
                 DPRINTF(
                     "SAFETY TIMER: 0x%x/0x%x @ %d. FINAL COUNTDOWN! Reboot Ctrl: ON. ROVER WILL REBOOT in 0x%x cs. Send ACK to reset timer.",
                     time_elapsed_cs,
-                    details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                    details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                     details->m_safetyTimerParams.tenthTimerExpirationCount,
-                    (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
+                    (details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth - time_elapsed_cs) //
                 );
             } // final countdown check
         }     // timeout check
@@ -472,7 +472,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
 
         // Make sure timer stays off during this state:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
@@ -530,7 +530,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
 
         // Make sure timer stays off during this state:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
@@ -563,7 +563,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
 
         // Make sure timer stays off during this state:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1B;
@@ -596,7 +596,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
 
         // Make sure timer stays off during this state:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2B;
@@ -623,7 +623,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
 
         // Make sure timer stays off during this transition:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3B;
@@ -656,7 +656,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
 
         // Make sure timer stays off during this state:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
-        details->m_safetyTimerParams.countdownWarningCount = 0;
+        details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
         // Turn off these bits:
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;

@@ -1458,7 +1458,7 @@ namespace iris
         }
     }
 
-    void RoverStateBase::sendDetailedReportToLander(RoverContext &theContext, bool alsoSendHeartbeats)
+    void RoverStateBase::sendDetailedReportToLander(RoverContext &theContext, bool sendSupplementalData)
     {
         /* send detailed report */
         static DetailedReport report = {0};
@@ -1482,8 +1482,10 @@ namespace iris
             //!< @todo Handling?
         }
 
-        if (alsoSendHeartbeats)
+        if (sendSupplementalData)
         {
+            // Allowing non-essential extra data to be sent (when requested):
+            // Send an extra Flight HB:
             static FlightEarthHeartbeat hb = {0};
             GroundMsgs__Status gcStatus =
                 GroundMsgs__generateFlightEarthHeartbeat(&(theContext.m_i2cReadings),
@@ -1496,6 +1498,16 @@ namespace iris
             LanderComms__Status lcHbStatus = txDownlinkData(theContext,
                                                             (uint8_t *)&hb,
                                                             sizeof(hb));
+
+            // Send a (brief) status report on the Safety Timer:
+            // (also incl. the watchdogFlags since issues could be caused by
+            // SEUs there):
+            DebugComms__tryPrintfToLanderNonblocking(
+                "[ST] ON:%d \t @: %d/%d \tWF:%d",
+                theContext.m_details.m_safetyTimerParams.timerRebootControlOn,
+                (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastAck),
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                theContext.m_watchdogFlags);
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcHbStatus);
             if (LANDER_COMMS__STATUS__SUCCESS != lcHbStatus)

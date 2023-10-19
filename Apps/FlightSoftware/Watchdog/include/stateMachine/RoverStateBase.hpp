@@ -233,7 +233,7 @@ namespace iris
 
         virtual void echoToLander(RoverContext &theContext, uint8_t numBytesToEcho, const uint8_t *bytesToEcho);
 
-        virtual void sendDetailedReportToLander(RoverContext &theContext, bool alsoSendHeartbeats = false);
+        virtual void sendDetailedReportToLander(RoverContext &theContext, bool sendSupplementalData = false);
 
         // Specific reset command handling
         void doConditionalResetSpecific(RoverContext &theContext,

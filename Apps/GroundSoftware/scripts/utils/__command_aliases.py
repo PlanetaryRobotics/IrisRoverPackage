@@ -1368,6 +1368,43 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'GroundInterface_SetNameAndMessagePeriod',
         OrderedDict(seconds=10),
         DataPathway.WIRED
+    ),
+
+    # Safety Timer:
+    'st-on': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_ON'),
+        DataPathway.WIRED
+    ),
+    'st-off': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_OFF'),
+        DataPathway.WIRED
+    ),
+    'st-ack': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_ACK'),
+        DataPathway.WIRED
+    ),
+    'st-inc': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_CUTOFF_INC'),
+        DataPathway.WIRED
+    ),
+    'st-dec': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_CUTOFF_DEC'),
+        DataPathway.WIRED
     )
 }
 

@@ -27,6 +27,7 @@ from IrisBackendv3.codec.packet_classes.watchdog_debug_important import Watchdog
 from IrisBackendv3.codec.packet_classes.watchdog_debug import WatchdogDebugPacket
 from IrisBackendv3.codec.packet_classes.radio_downlink_flush import RadioDownlinkFlushPacket
 from IrisBackendv3.codec.packet_classes.herc_radio_upl_ack import HerculesRadioUplinkAckPacket
+from IrisBackendv3.codec.packet_classes.safety_timer import WatchdogSafetyTimerPacket
 
 from typing import List, Optional, Type
 
@@ -65,6 +66,7 @@ def parse_packet(
             RadioDirectMessagePacket,
             WatchdogResetSpecificAckPacket,
             WatchdogHelloPacket,
+            WatchdogSafetyTimerPacket,
             HerculesRadioUplinkAckPacket,  # subtype of WatchdogRadioDebug
             WatchdogRadioDebugPacket,
             WatchdogDebugImportantPacket,

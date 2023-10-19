@@ -69,11 +69,11 @@ namespace CubeRover
     {
         MotorControlComponentBase::init(instance);
 
-        motorControllerState = IDLE;
-        for (int i = 0; i < NUM_MOTORS; i++)
-        {
-            initMotorController(&motors[i], i);
-        }
+//        motorControllerState = IDLE;
+//        for (int i = 0; i < NUM_MOTORS; i++)
+//        {
+//            initMotorController(&motors[i], i);
+//        }
     }
 
     /**

@@ -303,10 +303,6 @@ void constructApp(void)
                        ACTIVE_LOGGER_AFF,
                        ACTIVE_LOGGER_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
 
-    navigation.start(0,
-                     NAV_AFF,
-                     NAV_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
-
     watchDogInterface.start(0,
                             WATCHDOG_AFF,
                             WATCHDOG_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);

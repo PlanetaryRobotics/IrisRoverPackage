@@ -15,11 +15,20 @@
 #include "MotorController_i2c.h"
 
 #include <Os/Mutex.hpp>
-#include "FreeRTOS.h"
-#include "os_task.h"
 
 #define MOTOR_CONTROL_I2CREG i2cREG1
+#define ALL_MOTOR_ID 0x00
 #define MC_SLAVE_I2C_ADDR_BASE 0x48
+
+#define DEFAULT_TARG_POS    20000
+#define DEFAULT_TARG_VEL    80
+#define MAX_SPEED 100
+
+#define DEFAULT_VEL_P       1.5
+#define DEFAULT_VEL_I       0.0009
+#define DEFAULT_CURRENT_P   0.95
+#define DEFAULT_CURRENT_I   0.002
+
 
 #define START_MOTORS            32
 
@@ -37,6 +46,7 @@ namespace CubeRover
             ERR_i2c_WRITE,
             ERR_BAD_STATE,
             ERR_WRITE_PROTECTED,
+            ERR_UPDATING_ALL_PARAMS,
             UNKNOWN
         } MC_ERR_t;
 
@@ -60,6 +70,16 @@ namespace CubeRover
             REG_MC_FAULT = 14,          // Read-only  - 1Byte
         } RegisterAddress_t;
 
+        typedef enum
+        {
+            NO_UPDATES          = 0,
+            UPDATE_TARGET_POS   = 1,
+            UPDATE_TARGET_SPEED = 2,
+            UPDATE_CURRENT_PI   = 4,
+            UPDATE_VEL_PI       = 8,
+            UPDATE_ACC          = 16
+        } RegUpdateFlags;
+
         // --- MC i2c COMMAND Register Values
         typedef enum
         {
@@ -72,8 +92,8 @@ namespace CubeRover
             CMD_CLEAR_FAULTS        = 32,
             CMD_OVERRIDE_PROTECTED  = 64,
             CMD_IDLE                = 128
-        } ControlValue;
-        typedef ControlValue ControlRegister_t;
+        } CommandValue;
+        typedef uint8_t ControlRegister_t;
 
         // --- MC i2c STATE Register Values
         typedef enum
@@ -87,7 +107,8 @@ namespace CubeRover
             STATE_TARGET_REACHED    = 32,
             STATE_DISABLED          = 64
         } StateValue;
-        typedef StateValue StateRegister_t;
+
+        typedef uint8_t StateRegister_t;
 
         // --- MC i2c FAULT Register Values
         typedef enum
@@ -102,6 +123,7 @@ namespace CubeRover
             FAULT_MC_WATCHDOG       = 64,
             FAULT_OTHER             = 128
         } FaultValue;
+
         typedef uint8_t FaultRegister_t;
 
         // TODO : REMOVE
@@ -127,10 +149,10 @@ namespace CubeRover
         struct MotorController
         {
             // Mutex that should be locked anytime the status is read or modified:
-            ::Os::Mutex mutex;
+            ::Os::Mutex mc_mutex;
+            uint8_t up_to_date;
 
             I2cSlaveAddress_t i2c_addr;
-            bool up_to_date;
 
             int32_t target_pos;
             int16_t target_vel;
@@ -153,11 +175,16 @@ namespace CubeRover
 
         void initMotorController(MotorController *mc, uint8_t id);
 
+        // NOT MUTEX SAFE
         MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
         MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, RegisterAddress_t reg, uint32_t dataLen, void *_data);
 
-        MC_ERR_t getMotorState(MotorController *mc);
-        MC_ERR_t getMotorFault(MotorController *mc);
+        // MUTEX SAFE
+        MC_ERR_t getMcState(MotorController *mc);
+        MC_ERR_t getMcFault(MotorController *mc);
+        MC_ERR_t getMcAll(MotorController *mc);
+
+        MC_ERR_t setMcAll(MotorController *mc);
 
         MC_ERR_t mcEnable(MotorController *mc);
         MC_ERR_t mcArm(MotorController *mc);
@@ -167,8 +194,14 @@ namespace CubeRover
         MC_ERR_t mcClearFaults(MotorController *mc);
         MC_ERR_t mcReset(MotorController *mc);
 
-        MC_ERR_t setMotorTargetPos(MotorController *mc, uint32_t target_pos);
-        MC_ERR_t setAllMotorParams(MotorController *mc);
+        void setTargetPos(MotorController *mc, int32_t target_pos);
+        void setTargetVel(MotorController *mc, int16_t target_vel);
+        void setCurrentP(MotorController *mc, int8_t current_p_val);
+        void setCurrentI(MotorController *mc, int8_t current_i_val);
+        void setVelP(MotorController *mc, int8_t vel_p_val);
+        void setVelI(MotorController *mc, int8_t vel_i_val);
+        void setAccVal(MotorController *mc, int8_t acc_val);
+        void setDecVal(MotorController *mc, int8_t dec_val);
 
 
 }

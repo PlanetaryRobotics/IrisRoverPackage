@@ -17,11 +17,31 @@
   <!-- PORTS -->
   <ports>
   	<!-- Command ports -->
+    <!--
+    <port name="CmdDisp" data_type="Fw::Cmd" kind="guarded_input"  max_number="1" role="Cmd"></port>
+
+    <port name="CmdReg" data_type="Fw::CmdReg" kind="output" max_number="1" role="CmdRegistration"></port>
+
+    <port name="CmdStatus" data_type="Fw::CmdResponse" kind="output" max_number="1" role="CmdResponse"></port>
+    -->
+
+    <!-- Logging and telemetry ports -->
+    <!--
+    <port name="log" data_type="Fw::Log" kind="output"  max_number="1" role="LogEvent"></port>
+
+    <port name="tlmOut" data_type="Fw::Tlm" kind="output" role="Telemetry" max_number="1"></port>
+
+    <port name="timeCaller" data_type="Fw::Time" kind="output" max_number="1" role="TimeGet"></port>
+    -->
 
     <!-- Ping ports -->
     <port name="PingIn" data_type="Svc::Ping" kind="sync_input" max_number="1"></port>
 
     <port name="PingOut" data_type="Svc::Ping" kind="output" max_number="1"></port>
+
+    <!-- TODO -->
+    <!-- Still need Mode manager port(s)! -->
+    <!-- Or does Motor Control assume Navigation took care of it?-->
 
     <!-- Motor Data port -->
     <port name="motorDataOut" data_type="CubeRoverPorts::MotorData" kind="output" max_number="1"></port>
@@ -36,18 +56,6 @@
 
   <!-- COMMANDS -->
   <commands>
-    <command kind="guarded" opcode="0xAA" mnemonic="MC_All_Settings">
-      <comment>
-        Update Any settings
-      </comment>
-      <args>
-        <arg name="Motor_ID" type="U8">
-          <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
-        </arg>
-        <arg name="Raw_Ticks" type="U32"/>
-      </args>
-    </command>
-
     <command kind="guarded" opcode="0x00" mnemonic="MC_Current_PID">
       <args>
         <arg name="Motor_ID" type="U8">

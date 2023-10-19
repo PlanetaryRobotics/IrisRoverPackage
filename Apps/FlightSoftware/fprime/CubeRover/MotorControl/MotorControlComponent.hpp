@@ -19,15 +19,11 @@
 #include "MotorController_i2c.h"
 #include "MotorController.hpp"
 
-#define MOTOR_CONTROL_I2CREG i2cREG1
-#define ALL_MOTOR_ID 0x00
-
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
 
-#define MAX_SPEED 100
 #define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
 
 namespace CubeRover

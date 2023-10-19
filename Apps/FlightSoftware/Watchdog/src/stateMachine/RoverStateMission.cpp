@@ -7,6 +7,7 @@
 #include "drivers/bsp.h"
 
 #include "watchdog.h"
+#include "utils/time.h"
 
 #include <cassert>
 #include <msp430.h>

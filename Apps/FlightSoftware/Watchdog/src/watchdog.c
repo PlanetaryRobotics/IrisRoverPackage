@@ -10,10 +10,15 @@
 #include "drivers/adc.h"
 #include "drivers/uart.h"
 #include "drivers/bsp.h"
+#include "drivers/blimp.h"
 #include "event/event.h"
 #include "event/event_queue.h"
 #include "flags.h"
 #include "watchdog.h"
+#include "utils/time.h"
+
+// Make sure this matches enum in `stateMachine/RoverState.hpp` (can't just incl. that b/c it's C).
+#define ROVERSTATE_AS_UINT__MISSION 16
 
 // These two only exist so I can be 100% confident that the Ptr variables
 // below them will never be NULL. Since the Ptr values should be set
@@ -159,6 +164,20 @@ void hercules_monitor(HerculesComms__State *hState,
                       BOOL *writeIOExpander,
                       WatchdogStateDetails *details)
 {
+    // Quick and dirty parameters for tuning Hercules Monitoring:
+    // How many consequtive kicks has hercules missed since being reset:
+    static uint8_t herc_conseq_missed_kicks_since_reset = 0;
+    // How many consequtive missed kicks until a reset (testing has shown it has to be at least 2):
+    // -- setting this too low won't give Hercules time to reboot after a crash and reset before
+    // being reset again...
+    static const uint8_t HERC_CONSEQ_MISSED_KICK_THRESHOLD = 3;
+
+    // How many times have we reset Hercules (overall) since last power cycle:
+    static uint8_t herc_monitor_reset_count_since_power_cycle = 0;
+    // If we have needed to auto reset hercules too many times, it's possible
+    // something else is wrong and we should power cycle Hercules:
+    static const uint8_t HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD = 2;
+
     /* check if hercules has given a valid kick */
     if (*watchdogFlags & WDFLAG_HERCULES_KICK)
     {
@@ -236,13 +255,12 @@ void safety_timer_handler(HerculesComms__State *hState,
 {
     // Statically allocate so this doesn't go on the stack:
     static uint16_t time_elapsed_cs;
-    static uint16_t warning_count_target;
 
     //*
     //* Check for Preconditions:
     // Hold timer at 0 if not in Mission (i.e. make sure we don't reset or
     // emit countdown messages):
-    if (details->m_stateAsUint != static_cast<uint8_t>(RoverState::MISSION))
+    if (details->m_stateAsUint != ROVERSTATE_AS_UINT__MISSION)
     {
         details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.countdownWarningCount = 0;
@@ -255,7 +273,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         details->m_safetyTimerParams.timerRebootControlOn != SAFETY_TIMER__REBOOT_CONTROL_ON &&
         details->m_safetyTimerParams.timerRebootControlOn != SAFETY_TIMER__REBOOT_CONTROL_OFF)
     {
-        DPRINTF("SAFETY TIMER: Bitflip in Reboot Control: 0x%x. Defaulting to ON.", details->safetyTimerParams.timerRebootControlOn);
+        DPRINTF("SAFETY TIMER: Bitflip in Reboot Control: 0x%x. Defaulting to ON.", details->m_safetyTimerParams.timerRebootControlOn);
         details->m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
     }
     if ( // These bits should always agree. If XOR, they disagree and there's been a flip:
@@ -326,7 +344,7 @@ void safety_timer_handler(HerculesComms__State *hState,
         time_elapsed_cs = (Time__getTimeInCentiseconds() - details->m_safetyTimerParams.centisecondsAtLastAck);
 
         // Check if the timer has expired:
-        if (time_elapsed_cs > details->m_safetyTimerParams.timerResetCutoffCentiseconds)
+        if (time_elapsed_cs > details->m_safetyTimerParams.timerRebootCutoffCentiseconds)
         {
             // GND hasn't checked-in in a while. Need to reboot (if reboot control is on):
             if (!details->m_safetyTimerParams.timerRebootControlOn)
@@ -338,8 +356,8 @@ void safety_timer_handler(HerculesComms__State *hState,
             {
                 DPRINTF("SAFETY TIMER: Timer expired at %d cs. Performing Reboot . . .", Time__getTimeInCentiseconds());
                 // Queue up both bits to trigger the first state of the full power reboot:
-                watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
-                watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
+                *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
+                *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
             }
             // Either way, reset the timer:
             details->m_safetyTimerParams.centisecondsAtLastAck = Time__getTimeInCentiseconds();
@@ -349,30 +367,29 @@ void safety_timer_handler(HerculesComms__State *hState,
         {
             // Timer hasn't expired but see if we should emit a countdown warning:
             // How many warning messages should we have emitted:
-            warning_count_target = uint16_t(time_elapsed_cs / SAFETY_TIMER__COUNTDOWN_INTERVAL_CS);
-            if (warning_count_target != details->m_safetyTimerParams.countdownWarningCount)
+            if(time_elapsed_cs > SAFETY_TIMER__COUNTDOWN_INTERVAL_CS*details->m_safetyTimerParams.countdownWarningCount)
             {
                 // Emit a countdown warning message:
                 if (!details->m_safetyTimerParams.timerRebootControlOn)
                 {
                     DPRINTF(
-                        "SAFETY TIMER: %d/%d. Reboot Ctrl: ON. ROVER WILL REBOOT in %d minutes. Send ACK to reset timer.",
+                        "SAFETY TIMER: %d/%d. Reboot Ctrl: ON. ROVER WILL REBOOT in %d cs. Send ACK to reset timer.",
                         time_elapsed_cs,
-                        details->m_safetyTimerParams.timerResetCutoffCentiseconds,
-                        (details->m_safetyTimerParams.timerResetCutoffCentiseconds - time_elapsed_cs) / 600 //
+                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
                     );
                 }
                 else
                 {
                     // Slightly more low-key since we won't reboot if the timer expires.
                     DPRINTF(
-                        "SAFETY TIMER: %d/%d. Reboot Ctrl: OFF. Expires in %d minutes. Send ACK to reset timer.",
+                        "SAFETY TIMER: %d/%d. Reboot Ctrl: OFF. Expires in %d cs. Send ACK to reset timer.",
                         time_elapsed_cs,
-                        details->m_safetyTimerParams.timerResetCutoffCentiseconds,
-                        (details->m_safetyTimerParams.timerResetCutoffCentiseconds - time_elapsed_cs) / 600 //
+                        details->m_safetyTimerParams.timerRebootCutoffCentiseconds,
+                        (details->m_safetyTimerParams.timerRebootCutoffCentiseconds - time_elapsed_cs) //
                     );
                 }
-                details->m_safetyTimerParams.countdownWarningCount = warning_count_target;
+                details->m_safetyTimerParams.countdownWarningCount += 1;
             } // warning count check
         }     // timeout check
     }         // kick check
@@ -409,8 +426,8 @@ void safety_timer_handler(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
         // Move to the next state:
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
     }
 
     if (
@@ -467,8 +484,8 @@ void safety_timer_handler(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
         // Move to the next state:
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1A;
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1B;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1A;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1B;
     }
 
     if (
@@ -500,8 +517,8 @@ void safety_timer_handler(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1B;
         // Move to the next state:
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2A;
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2B;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2A;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2B;
     }
 
     if (
@@ -533,8 +550,8 @@ void safety_timer_handler(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2B;
         // Move to the next state:
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3A;
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3B;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3A;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3B;
     }
 
     if (
@@ -560,8 +577,8 @@ void safety_timer_handler(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3B;
         // Move to the next state:
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4A;
-        watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4B;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4A;
+        *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4B;
     }
 
     if (
@@ -613,20 +630,6 @@ int watchdog_monitor(HerculesComms__State *hState,
     DEBUG_LOG_NULL_CHECK_RETURN(watchdogOpts, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(writeIOExpander, "Parameter is NULL", -1);
     DEBUG_LOG_NULL_CHECK_RETURN(details, "Parameter is NULL", -1);
-
-    // Quick and dirty parameters for tuning Hercules Monitoring:
-    // How many consequtive kicks has hercules missed since being reset:
-    static uint8_t herc_conseq_missed_kicks_since_reset = 0;
-    // How many consequtive missed kicks until a reset (testing has shown it has to be at least 2):
-    // -- setting this too low won't give Hercules time to reboot after a crash and reset before
-    // being reset again...
-    static const uint8_t HERC_CONSEQ_MISSED_KICK_THRESHOLD = 3;
-
-    // How many times have we reset Hercules (overall) since last power cycle:
-    static uint8_t herc_monitor_reset_count_since_power_cycle = 0;
-    // If we have needed to auto reset hercules too many times, it's possible
-    // something else is wrong and we should power cycle Hercules:
-    static const uint8_t HERC_MONITOR_RESET_COUNT_POWER_CYCLE_THRESHOLD = 2;
 
     /* temporarily disable interrupts */
     __disable_interrupt();

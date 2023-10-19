@@ -1887,27 +1887,27 @@ namespace iris
             DPRINTF("SAFETY TIMER: ACK received.");
             break;
         case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC:
-            if ((SAFETY_TIMER__CUTOFF_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
+            if ((SAFETY_TIMER__CUTOFF_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
             {
                 // Inc will put this over max val. Stopping here.
-                DPRINTF("SAFETY TIMER: Cutoff NOT inc. Max would be exceeded. Val is: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+                DPRINTF("SAFETY TIMER: Cutoff NOT inc. Max would be exceeded. Val is: %d cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
             }
             else
             {
-                theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds += SAFETY_TIMER__CUTOFF_INCREMENT_CS;
-                DPRINTF("SAFETY TIMER: Cutoff inc to: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds += SAFETY_TIMER__CUTOFF_INCREMENT_CS;
+                DPRINTF("SAFETY TIMER: Cutoff inc to: %d cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
             }
             break;
         case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC:
-            if ((theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds - SAFETY_TIMER__CUTOFF_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
+            if ((theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds - SAFETY_TIMER__CUTOFF_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_INCREMENT_CS)
             {
                 // Inc will put this over max val. Stopping here.
-                DPRINTF("SAFETY TIMER: Cutoff NOT dec. Min would be exceeded. Val is: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+                DPRINTF("SAFETY TIMER: Cutoff NOT dec. Min would be exceeded. Val is: %d cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
             }
             else
             {
-                theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds -= SAFETY_TIMER__CUTOFF_INCREMENT_CS;
-                DPRINTF("SAFETY TIMER: Cutoff dec to: %d cs.", theContext.m_details.m_safetyTimerParams.timerResetCutoffCentiseconds);
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds -= SAFETY_TIMER__CUTOFF_INCREMENT_CS;
+                DPRINTF("SAFETY TIMER: Cutoff dec to: %d cs.", theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentiseconds);
             }
             break;
 

@@ -82,7 +82,7 @@ extern "C"
                 SafetyTimer_RebootControlValue timerRebootControlOn;
                 // Centisecond threshold where the safety timer fully reboots
                 // the rover if it hasn't heard from us (received an ACK):
-                uint16_t timerResetCutoffCentiseconds;
+                uint16_t timerRebootCutoffCentiseconds;
                 // System time in centiseconds at the last time we received an
                 // ACK from Ground. Tops out at 109mins.
                 // Make sure to check this in a rollover-safe way:

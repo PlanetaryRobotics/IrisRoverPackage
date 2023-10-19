@@ -134,8 +134,8 @@ namespace iris
     {
         LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
 
-        // !! TODO !!: Is this the condition we want here?
-        if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState) && !fromHercules)
+        // Forward comms to Hercules if you can (and it's not from Hercules):
+        if (HerculesComms__isInitialized(theContext.m_hcState) && !fromHercules)
         {
             HerculesComms__Status hcStatus = HerculesComms__txDownlinkData(theContext.m_hcState,
                                                                            (uint8_t *)data,
@@ -143,7 +143,12 @@ namespace iris
             lcStatus = (LanderComms__Status)hcStatus;
         }
 
-        LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *)data, dataSize);
+        // Also forward to lander if not deployed:
+        if (!*(theContext.m_persistentDeployed))
+        {
+            LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *)data, dataSize);
+        }
+
         return lcStatus;
     }
 

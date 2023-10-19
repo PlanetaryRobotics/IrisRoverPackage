@@ -1502,14 +1502,20 @@ namespace iris
             // Send a (brief) Safety Timer Status Report:
             // (also incl. the watchdogFlags since issues could be caused by
             // SEUs there):
-            DebugComms__tryPrintfToLanderNonblocking(
-                "[ST] ON:0x%x \t @: 0x%x/0x%x %d/10 \tWF:0x%x:%x",
-                theContext.m_details.m_safetyTimerParams.timerRebootControlOn,
-                (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent),
-                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
-                theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount,
-                (theContext.m_watchdogFlags >> 16) & 0xFFFF,
-                theContext.m_watchdogFlags & 0xFFFF);
+            if (
+                theContext.m_details.m_stateAsUint > static_cast<uint8_t>(RoverState::KEEP_ALIVE))
+            {
+                // Safety Timer is inactive in KA b/c `watchdog_monitor` is
+                // inactive in KA (nothing to WD).
+                DebugComms__tryPrintfToLanderNonblocking(
+                    "[ST] ON:0x%x \t @: 0x%x/0x%x %d/10 \tWF:0x%x:%x",
+                    theContext.m_details.m_safetyTimerParams.timerRebootControlOn,
+                    (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent),
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount,
+                    (theContext.m_watchdogFlags >> 16) & 0xFFFF,
+                    theContext.m_watchdogFlags & 0xFFFF);
+            }
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcHbStatus);
             if (LANDER_COMMS__STATUS__SUCCESS != lcHbStatus)

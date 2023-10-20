@@ -58,7 +58,7 @@ namespace iris
                 DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %d\n", (int)count);
             }
         }
-        else if ((theContext.m_details.m_outputPinBits & OPSBI__HERCULES_ON))
+        else if ((theContext.m_details.m_outputPinBits & OPSBI_MASK(OPSBI__HERCULES_ON)))
         {
             // Enable Hercules UART if Hercules is ON:
             // Hercules Power ON but Comms not initialized

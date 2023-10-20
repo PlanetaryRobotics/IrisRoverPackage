@@ -62,10 +62,12 @@ namespace iris
         }
 
         // Enable Hercules UART if Hercules is ON:
-        if ((theContext.m_details.m_outputPinBits & OPSBI__HERCULES_ON) && !(HerculesComms__isInitialized(theContext.m_hcState)))
+        if ((theContext.m_details.m_outputPinBits & OPSBI_MASK(OPSBI__HERCULES_ON)) && !(HerculesComms__isInitialized(theContext.m_hcState)))
         {
             // We should hopefully never be here during Mission...
-            DebugComms__tryPrintfToLanderNonblocking("Trying to establish UART between WD and Hercules\n");
+            // ... but we will if Hercules (and everything else) is reset by
+            // the Safety Timer, in which case this is desired behavior (and counted on)
+            DebugComms__tryPrintfToLanderNonblocking("Trying to (re)establish UART between WD and Hercules\n");
             enableHerculesComms(theContext);
         }
 

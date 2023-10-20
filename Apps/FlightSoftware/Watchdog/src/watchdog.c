@@ -197,7 +197,7 @@ void hercules_monitor(HerculesComms__State *hState,
             // Hercules is on:
             // Ground doesn't really need to know about this but it could be
             // in some hypothetical edge case.
-            if (details->m_outputPinBits & OPSBI__HERCULES_ON)
+            if (details->m_outputPinBits & OPSBI_MASK(OPSBI__HERCULES_ON))
             {
                 DPRINTF("Hercules Unresponsive. Hercules ON. Hercules Monitoring OFF.");
             }

@@ -18,11 +18,11 @@
 
 
 #define DEFAULT_TARGET_POS  20000
-#define DEFAULT_TARGET_VEL  70
-#define MAX_TARGET_VEL      100
+#define DEFAULT_TARGET_SPEED  70
+#define MAX_TARGET_SPEED      100
 
-#define DEFAULT_VEL_P       15000   // e-4 (1.5000) (0x3A98)
-#define DEFAULT_VEL_I       9       // e-4 (0.0009) (0x0009)
+#define DEFAULT_SPEED_P       15000   // e-4 (1.5000) (0x3A98)
+#define DEFAULT_SPEED_I       9       // e-4 (0.0009) (0x0009)
 #define DEFAULT_CURRENT_P   9500    // e-4 (0.9500) (0x005F)
 #define DEFAULT_CURRENT_I   20      // e-4 (0.0020) (0x0014)
 
@@ -33,7 +33,7 @@ namespace CubeRover
 #endif
 
     // --- MC i2c Register
-    typedef enum MC_RegisterAddress
+    typedef enum MC_ICD_RegAddr
     {
         MC_REG_I2C_ADDRESS         = 0,    // RO - 1 Byte
         MC_REG_TARGET_POSITION     = 1,    // RW - 4 Bytes
@@ -51,7 +51,7 @@ namespace CubeRover
         MC_REG_MC_STATUS           = 13,   // RO - 1 Byte
         MC_REG_MC_FAULT            = 14,   // RO - 1 Byte
         MC_REG_MAX                 = 16
-    } MC_RegisterAddress;
+    } MC_ICD_RegAddr;
 
     //uint8_t mc_i2cCmdLen[MC_REG_MAX] = {
     //                                 1, // MC_REG_I2C_ADDRESS
@@ -62,8 +62,8 @@ namespace CubeRover
     //                                 2, // MC_REG_MOTOR_CURRENT
     //                                 2, // MC_REG_P_CURRENT
     //                                 2, // MC_REG_I_CURRENT
-    //                                 2, // MC_REG_P_VEL
-    //                                 2, // MC_REG_I_VEL
+    //                                 2, // MC_REG_P_SPEED
+    //                                 2, // MC_REG_I_SPEED
     //                                 2, // MC_REG_ACC_RATE
     //                                 2, // MC_REG_DEC_RATE
     //                                 1, // MC_REG_MC_CTRL
@@ -73,7 +73,7 @@ namespace CubeRover
     //};
 
     // --- MC i2c COMMAND Register Values
-    typedef enum MC_CommandValue
+    typedef enum MC_ICD_CmdVal
     {
         MC_NO_CMD                  = 0,
         MC_CMD_UPDATE_CONFIG       = 1,    // if STATE_ENABLED : goto STATE_IDLE
@@ -82,37 +82,55 @@ namespace CubeRover
         MC_CMD_DISABLE_DRIVER      = 8,    // Disable Drivers , goto STATE_IDLE
         MC_CMD_RESET_CONTROLLER    = 16,   // Reset Controller
         MC_CMD_EXECUTE_DRIVE       = 32,   // if STATE_ENABLED : goto STATE_RUNNING
-        MC_CMD_OVERRIDE_PROTECTED  = 64,   // ...?
-        MC_CMD_E_STOP              = 128   // Disable Drivers , set Targets = 0 , goto STATE_IDLE
-    } MC_CommandValue;
+        MC_CMD_OVERRIDE_PROTECTED  = 64,   // Updates FaultRegFlags via FaultReg
+        MC_CMD_E_STOP              = 128   // Disable Drivers, etc
+    } MC_ICD_CmdVal;
 
     // --- MC i2c STATE Register Values
-    typedef enum MC_StateValue
+    typedef enum MC_ICD_StateVal
     {
-        MC_STATE_IDLE              = 0,    // 0: Driver Disabled
-                                        //    Updating Parameters
-        MC_STATE_ENABLED           = 1,    // 1: Driver Enabled
-                                        //    Waiting for MC_CMD_EXECUTE_DRIVE
-        MC_STATE_RUNNING           = 2,    // (2: FAULT_UNEXPECTED_STATE ?)
-                                        // 3: Driving
-        MC_STATE_TARGET_REACHED    = 4,    // 4: Target reached (Driver Disabled)
-                                        // (5,6,7: FAULT_UNEXPECTED_STATE ?)
-        MC_STATE_FAULT             = 128,  // 128: Fault Detected
-    } MC_StateValue;
+        MC_STATE_IDLE               = 0,    // Driver Disabled
+                                            //      Periodically Checks w/StateMachine:
+                                            //          MC_CMD_UPDATE_CONFIG, MC_CMD_ENABLE_DRIVER,
+                                            //          MC_CMD_RESET_CONTROLLER, MC_CMD_OVERRIDE_PROTECTED
+                                            //      Standard param vals may be updated
+        MC_STATE_ENABLED            = 1,    // Driver Enabled
+                                            //      Periodically Checks w/StateMachine:
+                                            //          MC_CMD_UPDATE_CONFIG, MC_CMD_DISABLE_DRIVER,
+                                            //          MC_CMD_RESET_CONTROLLER
+                                            //      Target vals may be updated
+        MC_STATE_ARMED              = 2,    // Vigilant for MC_CMD_EXECUTE_DRIVE
+                                            //      If timeout: check MC_CMD_DISABLE_DRIVER,
+                                            //          MC_CMD_RESET_CONTROLLER, MC_CMD_E_STOP
+                                            //          Else: MC_FAULT_UNEXPECTED_STATE
+        MC_STATE_RUNNING            = 4,    // In Drive Loop
+                                            //      Driver Enabled + Driving
+                                            //      Waiting for target_reached, timeout (MC_FAULT_STALL),
+                                            //      or MC_CMD_E_STOP (goto STATE_DISABLE)
+        MC_STATE_TARGET_REACHED     = 8,    // Target reached
+                                            //      goto STATE_DISABLE
+        MC_STATE_DISABLE            = 16,   // Disable Drivers, update Targets, etc
+                                            //      if MC_NOFAULT goto STATE_IDLE, else goto MC_STATE_FAULT
+        MC_STATE_SUDO_UPDATE        = 64,   // Updates all params received from Herc
+                                            //      Waiting for MC_NO_CMD to goto STATE_IDLE
+                                            //      Periodically Checks w/StateMachine:
+                                            //      MC_CMD_CLEAR_FAULTS,
+        MC_STATE_FAULT              = 128   // Fault Detected
+    } MC_ICD_StateVal;
 
     // --- MC i2c FAULT Register Values
-    typedef enum MC_FaultValue
+    typedef enum MC_IDC_FaultMask
     {
         MC_NO_FAULT                = 0,
         MC_FAULT_I2C_ERROR         = 1,
         MC_FAULT_BAD_CONFIG_VAL    = 2,
         MC_FAULT_UNEXPECTED_STATE  = 4,
         MC_FAULT_OVERCURRENT       = 8,
-        MC_FAULT_STALL             = 16,
+        MC_FAULT_STALL             = 16,    // Target Not Reached by Timeout
         MC_FAULT_POS_SENSOR_FAULT  = 32,
         MC_FAULT_MC_WATCHDOG       = 64,
         MC_FAULT_OTHER             = 128
-    } MC_FaultValue;
+    } MC_IDC_FaultMask;
 
     typedef struct MC_Instance
     {
@@ -121,22 +139,22 @@ namespace CubeRover
         uint8_t i2c_addr;
 
         int32_t target_pos; // ticks
-        uint8_t target_vel; // 0-100%
+        uint8_t target_speed; // 0-100%
 
         int32_t curr_pos; // ticks
-        uint8_t curr_vel; // 0-100%
+        uint8_t curr_speed; // 0-100%
         int16_t curr_current; // mA
 
         uint16_t current_p_val; // Linear Format
         uint16_t current_i_val;
-        uint16_t vel_p_val;
-        uint16_t vel_i_val;
+        uint16_t speed_p_val;
+        uint16_t speed_i_val;
         uint16_t acc_val; // ticks*s-2
         uint16_t dec_val;
 
-        uint8_t ctrl;
-        uint8_t state;
-        uint8_t fault;
+        uint8_t ctrlReg;
+        uint8_t stateReg;
+        uint8_t faultReg;
     } MC_Instance;
 
 #ifdef FPRIME_BUILD

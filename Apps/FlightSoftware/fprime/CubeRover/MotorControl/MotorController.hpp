@@ -30,7 +30,6 @@
 
 namespace CubeRover
 {
-        MC_RegisterAddress test_regAddr;
 
         typedef enum
         {
@@ -48,9 +47,12 @@ namespace CubeRover
             NO_UPDATES          = 0,
             UPDATE_TARGET_POS   = 1,
             UPDATE_TARGET_SPEED = 2,
-            UPDATE_CURRENT_PI   = 4,
-            UPDATE_VEL_PI       = 8,
-            UPDATE_ACC          = 16
+            UPDATE_CURRENT_P    = 4,
+            UPDATE_CURRENT_I    = 8,
+            UPDATE_SPEED_P      = 16,
+            UPDATE_SPEED_I      = 32,
+            UPDATE_ACC_RATE     = 64,
+            UPDATE_DEC_RATE     = 128
         } RegUpdateFlags;
 
         // --- MC i2c STATE Register Values
@@ -96,29 +98,30 @@ namespace CubeRover
             I2cSlaveAddress_t i2c_addr;
 
             int32_t target_pos;
-            int16_t target_vel;
+            int16_t target_speed;
 
             int32_t curr_pos; // encoder ticks
-            int16_t curr_vel;
+            int16_t curr_speed;
             uint32_t curr_current;
 
             int8_t current_p_val;
             int8_t current_i_val;
-            int8_t vel_p_val;
-            int8_t vel_i_val;
+            int8_t speed_p_val;
+            int8_t speed_i_val;
             int8_t acc_val;
             int8_t dec_val;
 
-            ControlRegister_t ctrl;
-            StateRegister_t state;
-            FaultRegister_t fault;
+            ControlRegister_t ctrlReg;
+            StateRegister_t stateReg;
+            FaultRegister_t faultReg;
         };
 
         void initMotorController(MotorControllerStruct *mc, uint8_t id);
 
+
         // NOT MUTEX SAFE
-        MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, MC_RegisterAddress reg, uint32_t dataLen, void *_data);
-        MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, MC_RegisterAddress reg, uint32_t dataLen, void *_data);
+        MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, MC_ICD_RegAddr reg, uint32_t dataLen, void *_data);
+        MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, MC_ICD_RegAddr reg, uint32_t dataLen, void *_data);
 
         // MUTEX SAFE
         MC_ERR_t getMcState(MotorControllerStruct *mc);
@@ -127,14 +130,47 @@ namespace CubeRover
 
         MC_ERR_t setMcAll(MotorControllerStruct *mc);
 
-        void setTargetPos(MotorControllerStruct *mc, int32_t target_pos);
-        void setTargetVel(MotorControllerStruct *mc, int16_t target_vel);
-        void setCurrentP(MotorControllerStruct *mc, int8_t current_p_val);
-        void setCurrentI(MotorControllerStruct *mc, int8_t current_i_val);
-        void setVelP(MotorControllerStruct *mc, int8_t vel_p_val);
-        void setVelI(MotorControllerStruct *mc, int8_t vel_i_val);
-        void setAccVal(MotorControllerStruct *mc, int8_t acc_val);
-        void setDecVal(MotorControllerStruct *mc, int8_t dec_val);
+
+        inline void setTargetPos(MotorControllerStruct *mc, int32_t target_pos)
+        {
+            mc->target_pos = target_pos;
+            mc->up_to_date |= UPDATE_TARGET_POS;
+        }
+        inline void setTargetSpeed(MotorControllerStruct *mc, int8_t target_speed)
+        {
+            mc->target_speed = target_speed;
+            mc->up_to_date |= UPDATE_TARGET_SPEED;
+        }
+        inline void setCurrentP(MotorControllerStruct *mc, int8_t current_p_val)
+        {
+            mc->current_p_val = current_p_val;
+            mc->up_to_date |= UPDATE_CURRENT_P;
+        }
+        inline void setCurrentI(MotorControllerStruct *mc, int8_t current_i_val)
+        {
+            mc->current_i_val = current_i_val;
+            mc->up_to_date |= UPDATE_CURRENT_I;
+        }
+        inline void setSpeedP(MotorControllerStruct *mc, int8_t speed_p_val)
+        {
+            mc->speed_p_val = speed_p_val;
+            mc->up_to_date |= UPDATE_SPEED_P;
+        }
+        inline void setSpeedI(MotorControllerStruct *mc, int8_t speed_i_val)
+        {
+            mc->speed_p_val = speed_i_val;
+            mc->up_to_date |= UPDATE_SPEED_I;
+        }
+        inline void setAccVal(MotorControllerStruct *mc, int8_t acc_val)
+        {
+            mc->acc_val = acc_val;
+            mc->up_to_date |= UPDATE_ACC_RATE;
+        }
+        inline void setDecVal(MotorControllerStruct *mc, int8_t dec_val)
+        {
+            mc->dec_val = dec_val;
+            mc->up_to_date |= UPDATE_DEC_RATE;
+        }
 
         MC_ERR_t mcEnable(MotorControllerStruct *mc);
         MC_ERR_t mcArm(MotorControllerStruct *mc);
@@ -143,6 +179,10 @@ namespace CubeRover
         MC_ERR_t mcIdle(MotorControllerStruct *mc);
         MC_ERR_t mcClearFaults(MotorControllerStruct *mc);
         MC_ERR_t mcReset(MotorControllerStruct *mc);
+
+        MC_ERR_t mcTestSetSpeed(MotorControllerStruct *mc);
+        MC_ERR_t mcTestSetPos(MotorControllerStruct *mc);
+        MC_ERR_t mcTestDrive(MotorControllerStruct *mc);
 
 }
 

@@ -44,160 +44,293 @@ html {
 	<tbody>
 
 		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_Current_PID</td>
-			<td rowspan="3">3584 (0xe00)</td>
-			<td rowspan="3"></td>
+			<td rowspan="1">MC_UpdateTelemetry</td>
+			<td rowspan="1">3584 (0xe00)</td>
+			<td rowspan="1">Forces a telemetry update from the motors:
+                REG_I2C_ADDRESS         = 0,    // RO - uint8   1 Byte
+                REG_TARGET_POSITION     = 1,    // RW - int32   4 Bytes
+                REG_TARGET_SPEED        = 2,    // RW - uint8   1 Byte
+                REG_CURRENT_POSITION    = 3,    // RO - int32   4 Bytes
+                REG_CURRENT_SPEED       = 4,    // RO - uint8   1 Bytes
+                REG_MOTOR_CURRENT       = 5,    // RO - int32   4 Bytes
+                REG_P_CURRENT           = 6,    // RW - uint16  2 Bytes
+                REG_I_CURRENT           = 7,    // RW - uint16  2 Bytes
+                REG_P_SPEED             = 8,    // RW - uint16  2 Bytes
+                REG_I_SPEED             = 9,    // RW - uint16  2 Bytes
+                REG_ACC_RATE            = 10,   // RW - uint16  2 Bytes
+                REG_DEC_RATE            = 11,   // RW - uint16  2 Bytes
+                REG_MC_CTRL             = 12,   // RW - uint8   1 Byte
+                REG_MC_STATUS           = 13,   // RO - uint8   1 Byte
+                REG_MC_FAULT            = 14,   // RO - uint8   1 Byte</td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="33">MC_SetAllParams</td>
+			<td rowspan="33">3600 (0xe10)</td>
+			<td rowspan="33">Sets ALL RW params for EVERY motor
+                REG_TARGET_POSITION     = 1,    // int32
+                REG_TARGET_SPEED        = 2,    // uint8
+                REG_P_CURRENT           = 6,    // uint16
+                REG_I_CURRENT           = 7,    // uint16
+                REG_P_SPEED             = 8,    // uint16
+                REG_I_SPEED             = 9,    // uint16
+                REG_ACC_RATE            = 10,   // uint16
+                REG_DEC_RATE            = 11,   // uint16
+                ( REG_MC_CTRL = MC_CMD_UPDATE_CONFIG )</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
-						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
-					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>PI_Values</td>
+						<td>MotorA_TargetPosition</td>
 						<td>U32</td>
 						<td></td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_Speed_PID</td>
-			<td rowspan="3">3585 (0xe01)</td>
-			<td rowspan="3"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_TargetSpeed</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
+						<td></td>
 					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>PID_Values</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Current_P_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Current_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Speed_P_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Speed_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Accel_Rate</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Decel_Rate</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_TargetPosition</td>
 						<td>U32</td>
 						<td></td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_Acceleration</td>
-			<td rowspan="3">3587 (0xe03)</td>
-			<td rowspan="3"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_TargetSpeed</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
+						<td></td>
 					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Rate_Values</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Current_P_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Current_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Speed_P_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Speed_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Accel_Rate</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Decel_Rate</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_TargetPosition</td>
 						<td>U32</td>
 						<td></td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_StallDetection</td>
-			<td rowspan="3">3588 (0xe04)</td>
-			<td rowspan="3"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_TargetSpeed</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
+						<td></td>
 					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Value</td>
-						<td>U8</td>
-						<td>0x00 is disabled, 0xFF is enabled </td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Current_P_Val</td>
+						<td>U16</td>
+						<td></td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="2">MC_ResetPosition</td>
-			<td rowspan="2">3589 (0xe05)</td>
-			<td rowspan="2"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>Motor_ID</td>
-						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Current_I_Val</td>
+						<td>U16</td>
+						<td></td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_Spin</td>
-			<td rowspan="3">3590 (0xe06)</td>
-			<td rowspan="3"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
-						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Speed_P_Val</td>
+						<td>U16</td>
+						<td></td>
 					</tr>
-					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Raw_Ticks</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Speed_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Accel_Rate</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Decel_Rate</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_TargetPosition</td>
 						<td>U32</td>
 						<td></td>
 					</tr>
-		</tr>
-		<tr style = "border: 2px solid black;">
-			<td rowspan="3">MC_PowerBoost</td>
-			<td rowspan="3">3591 (0xe07)</td>
-			<td rowspan="3"></td>
-					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
-						<td>Motor_ID</td>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_TargetSpeed</td>
 						<td>U8</td>
-						<td>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Current_P_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Current_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Speed_P_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Speed_I_Val</td>
+						<td>U16</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Accel_Rate</td>
+						<td>U16</td>
+						<td></td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
-						<td>Value</td>
-						<td>U8</td>
-						<td>0x00 is On, 0xFF is Off </td>
+						<td>MotorD_Decel_Rate</td>
+						<td>U16</td>
+						<td></td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
 			<td rowspan="4">MC_SetParameter</td>
-			<td rowspan="4">3592 (0xe08)</td>
-			<td rowspan="4">Update Parameters of a Motor Controller:
-            REG_TARGET_POSITION     = 1,    // RW - 4 Bytes
-            REG_TARGET_SPEED        = 2,    // RW - 1 Byte
-            REG_P_CURRENT           = 6,    // RW - 2 Bytes
-            REG_I_CURRENT           = 7,    // RW - 2 Bytes
-            REG_P_SPEED             = 8,    // RW - 2 Bytes
-            REG_I_SPEED             = 9,    // RW - 2 Bytes
-            REG_ACC_RATE            = 10,   // RW - 2 Bytes
-            REG_DEC_RATE            = 11,   // RW - 2 Bytes
-            REG_MC_CTRL             = 12,   // RW - 1 Byte</td>
+			<td rowspan="4">3601 (0xe11)</td>
+			<td rowspan="4">Update single parameter of selected motor controller(s).</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>Motor_ID</td>
 						<td>U8</td>
-						<td>The motor id:
-            Motor 0 is all motors
-            Motors 1 - 4 are FL, FR, BL, BR
-          </td>
+						<td>Bitmask of motors to update.
+                        MotorA    : 0x01
+                        MotorB    : 0x02
+                        MotorC    : 0x04
+                        MotorD    : 0x08
+                        (eg. AllMotors = MotorA + MotorB + MotorC + MotorD = 0x0F)
+                    </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;">
 						<td>Param_RegAddr</td>
 						<td>U8</td>
-						<td>The register address of the parameter to update.
-          </td>
+						<td>The register address of the parameter to set.
+                        REG_TARGET_POSITION     = 1,    // int32
+                        REG_TARGET_SPEED        = 2,    // uint8
+                        REG_P_CURRENT           = 6,    // uint16
+                        REG_I_CURRENT           = 7,    // uint16
+                        REG_P_SPEED             = 8,    // uint16
+                        REG_I_SPEED             = 9,    // uint16
+                        REG_ACC_RATE            = 10,   // uint16
+                        REG_DEC_RATE            = 11,   // uint16
+                        ( REG_MC_CTRL = MC_CMD_UPDATE_CONFIG )
+                    </td>
 					</tr>
 					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
 						<td>Param_NewValue</td>
 						<td>U32</td>
-						<td> The new value to send to the controller </td>
+						<td> The new value of the parameter. 
+                        (Registers will be type-cast from U32)
+                    </td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_UpdateTelemetry</td>
-			<td rowspan="1">3600 (0xe10)</td>
-			<td rowspan="1">Forces a telemetry update from the motors:
-        REG_I2C_ADDRESS         = 0,    // RO - 1 Byte
-        REG_TARGET_POSITION     = 1,    // RW - 4 Bytes
-        REG_TARGET_SPEED        = 2,    // RW - 1 Byte
-        REG_CURRENT_POSITION    = 3,    // RO - 4 Bytes
-        REG_CURRENT_SPEED       = 4,    // RO - 1 Bytes
-        REG_MOTOR_CURRENT       = 5,    // RO - 4 Bytes
-        REG_P_CURRENT           = 6,    // RW - 2 Bytes
-        REG_I_CURRENT           = 7,    // RW - 2 Bytes
-        REG_P_SPEED             = 8,    // RW - 2 Bytes
-        REG_I_SPEED             = 9,    // RW - 2 Bytes
-        REG_ACC_RATE            = 10,   // RW - 2 Bytes
-        REG_DEC_RATE            = 11,   // RW - 2 Bytes
-        REG_MC_CTRL             = 12,   // RW - 1 Byte
-        REG_MC_STATUS           = 13,   // RO - 1 Byte
-        REG_MC_FAULT            = 14,   // RO - 1 Byte</td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="3">MC_Spin</td>
+			<td rowspan="3">3616 (0xe20)</td>
+			<td rowspan="3">The new value of the parameter.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>One or All motors to update.
+                MotorA    : 0x00
+                MotorB    : 0x01
+                MotorC    : 0x02
+                MotorD    : 0x03
+                AllMotors : 0xFF
+              </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Raw_Ticks</td>
+						<td>U32</td>
+						<td>Distance to spin in ticks.
+                (Default = 20000)
+              </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">MC_Spin_Configured</td>
+			<td rowspan="4">3617 (0xe21)</td>
+			<td rowspan="4">The new value of the parameter.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>Motor_ID</td>
+						<td>U8</td>
+						<td>Bitmask of motors to update.
+                      MotorA : 0x01
+                      MotorB : 0x02
+                      MotorC : 0x04
+                      MotorD : 0x08
+                      (eg. "Left"-side motors = MotorA + MotorD = 0x09
+                      and "Right"-side motors = MotorB + MotorC = 0x06)
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>Raw_Ticks</td>
+						<td>U32</td>
+						<td>Distance to spin in ticks.
+                      (Default = 20000)
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>Percent_Speed</td>
+						<td>U8</td>
+						<td>Speed set by percent of MAX_SPEED.
+                      (Default = 70)
+                    </td>
+					</tr>
 		</tr>
 	</tbody>
 </table>

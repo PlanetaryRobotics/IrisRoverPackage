@@ -875,7 +875,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(),
         DataPathway.WIRED
     ),
-    'motor-control-spin-all': (
+    'motor-control-spin-all-ticks': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpin',
@@ -891,20 +891,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(motor_id=0x00, raw_ticks=20000),
         DataPathway.WIRED
     ),
-    'motor-control-spin-a': (
+    'motor-control-spin-a-configured': (
         DataPathway.WIRED,
         Magic.COMMAND,
-        'MotorControl_McSpin',
+        'MotorControl_McSpinConfigured',
         # Change this to whatever motor you want to control (0 is all)
-        OrderedDict(motor_id=0x00, raw_ticks=20000, speed=50),
+        OrderedDict(motor_id=0x01, raw_ticks=7000, percent_speed=60),
         DataPathway.WIRED
     ),
-    'motor-control-update-a': (
+    'motor-control-update-a-speed': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_MCSetParameter',
         # Change this to whatever motor you want to control (0 is all)
-        OrderedDict(motor_id=0x00, param_regaddr=2, param_new_value=50),
+        OrderedDict(motor_id=0x01, param_regaddr=2, param_new_value=50),
         DataPathway.WIRED
     ),
 

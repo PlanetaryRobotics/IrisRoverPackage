@@ -355,7 +355,7 @@ void safety_timer__process_timer(HerculesComms__State *hState,
         // Reset the timer to now:
         details->m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
         details->m_safetyTimerParams.tenthTimerExpirationCount = 0;
-        DPRINTF("SAFETY TIMER: ACK Kick processed. Timer reset.");
+        DPRINTF("SAFETY TIMER: Kick processed. Timer reset.");
     }
     else
     {

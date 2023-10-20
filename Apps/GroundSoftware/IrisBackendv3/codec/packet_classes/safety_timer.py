@@ -263,7 +263,7 @@ class WatchdogSafetyTimerPacket(WatchdogSafetyTimerPacketInterface[WatchdogSafet
         else:
             # Just a message.
             # Humanize any hex centisecond times in here:
-            data = humanize_all_hex_cs_times(data[5:])
+            data = humanize_all_hex_cs_times(data)
 
         # Format the result:
         try:

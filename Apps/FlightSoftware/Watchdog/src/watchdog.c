@@ -456,9 +456,9 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
                                                UART__State *uart0State)
 {
     //* Advance Full Power Reboot "State Machine":
-    // Check states in parallel ifs, ordered with later stage power ups later
-    // so in case poorly placed flips turned on early power off states, the
-    // desired power on state will still run.
+    // Check states in order of OFF -> ON so in case a bitflip turns on a stage
+    // errantly, the worst that will happen is that we restart the reboot
+    // process earlier (as opposed to skipping a power-on step).
     if (
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_1A) &&
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_1B) //
@@ -489,6 +489,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         // Move to the next state:
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
+        return;
     }
 
     if (
@@ -550,6 +551,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         // Move to the next state:
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1A;
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_1B;
+        return;
     }
 
     if (
@@ -583,6 +585,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         // Move to the next state:
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2A;
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_2B;
+        return;
     }
 
     if (
@@ -616,6 +619,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         // Move to the next state:
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3A;
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_3B;
+        return;
     }
 
     if (
@@ -643,6 +647,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         // Move to the next state:
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4A;
         *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_ON_4B;
+        return;
     }
 
     if (
@@ -674,6 +679,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
         // All done, so we can just stop at turning off these bits.
+        return;
     }
 }
 

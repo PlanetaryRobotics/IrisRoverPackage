@@ -242,6 +242,9 @@ void hercules_monitor(HerculesComms__State *hState,
                         HerculesComms__Status hcStatus = HerculesComms__resetState(hState);
 
                         //!< @todo Replace with returning watchdog error code once that is implemented.
+                        // This will reset WD if resetting Herc comms fails. Bold but maybe necessary
+                        // since the problem *could* be on our side. If we're in Mission, we'll come
+                        // back up in Mission, so this is probably okay.
                         DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
                     }
 
@@ -521,7 +524,10 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         {
             DebugComms__registerHerculesComms(NULL);
             HerculesComms__Status hcStatus = HerculesComms__uninitialize(&(hState));
-            DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
+            // DON'T DEBUG-ASSERT here b/c we don't want to reset the WD during
+            // a safety timer event if uninitializing fails b/c, say, it was
+            // already uninitalized.
+            // DEBUG_ASSERT_EQUAL(HERCULES_COMMS__STATUS__SUCCESS, hcStatus);
         }
         UART__uninit0(&(uart0State));
         // EnteringKeepAlive::transitionToFinishUpSetup: Nothing.

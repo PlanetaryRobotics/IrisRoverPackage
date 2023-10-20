@@ -452,7 +452,7 @@ namespace iris
         // as the
         CmdMsgs__Status cmdStatus = CmdMsgs__deserializeHeader(rxDataBuffer, rxDataLen, &(wdMessage.commonHeader));
 
-        DEBUG_ASSERT_EQUAL(CMD_MSGS__STATUS__SUCCESS, cmdStatus);
+        DEBUG_LOG_CHECK_STATUS(CMD_MSGS__STATUS__SUCCESS, cmdStatus, "ERROR: Header deserialize failed.");
         if (CMD_MSGS__STATUS__SUCCESS != cmdStatus)
         {
             // This should only really happen if rxDataLen is the wrong size
@@ -471,7 +471,7 @@ namespace iris
                                                                           &wdMessage,
                                                                           FALSE); // Don't reparse the header
 
-            DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
+            DEBUG_LOG_CHECK_STATUS(CMD_MSGS__STATUS__SUCCESS, wdCmdStatus, "ERROR: Message deserialize failed.");
             if (WD_CMD_MSGS__STATUS__SUCCESS != wdCmdStatus)
             {
                 // This should only really happen if rxDataLen is the wrong size
@@ -970,7 +970,7 @@ namespace iris
                                                                            responseSerializationBuffer,
                                                                            sizeof(responseSerializationBuffer));
 
-        DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
+        DEBUG_LOG_CHECK_STATUS(CMD_MSGS__STATUS__SUCCESS, wdCmdStatus, "ERROR: Response serialize failed.");
 
         LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                       responseSerializationBuffer,

@@ -64,7 +64,7 @@ def parse_packet(
             RadioBgApiPacket,
             RadioUartBytePacket,
             RadioDirectMessagePacket,
-            # needs to be above safety timer (so safety timer RS ack doesn't get treated as a Safety Timer msg)
+            # RS ACK needs to be above safety timer (so safety timer RS ack doesn't get treated as a Safety Timer msg)
             WatchdogResetSpecificAckPacket,
             WatchdogHelloPacket,
             WatchdogSafetyTimerPacket,

@@ -28,6 +28,7 @@
         "Centisecond",
         "Centiseconds",
         "CONSEQ",
+        "deser",
         "DLATCH",
         "downsampled",
         "heatshrink",
@@ -40,7 +41,9 @@
         "ROVERSTATE",
         "Substate",
         "telbuf",
+        "uninitalized",
         "uninitialize",
+        "uninitializing",
         "Unreset",
         "WDFLAG",
         "WDOPT"

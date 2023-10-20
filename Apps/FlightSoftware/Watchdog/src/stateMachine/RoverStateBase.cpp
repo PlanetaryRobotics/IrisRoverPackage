@@ -1503,7 +1503,11 @@ namespace iris
             // (also incl. the watchdogFlags since issues could be caused by
             // SEUs there):
             if (
-                theContext.m_details.m_stateAsUint > static_cast<uint8_t>(RoverState::KEEP_ALIVE))
+                theContext.m_details.m_stateAsUint != static_cast<uint8_t>(RoverState::INIT) &&
+                theContext.m_details.m_stateAsUint != static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE) &&
+                theContext.m_details.m_stateAsUint != static_cast<uint8_t>(RoverState::KEEP_ALIVE)
+                //
+            )
             {
                 // Safety Timer is inactive in KA b/c `watchdog_monitor` is
                 // inactive in KA (nothing to WD).

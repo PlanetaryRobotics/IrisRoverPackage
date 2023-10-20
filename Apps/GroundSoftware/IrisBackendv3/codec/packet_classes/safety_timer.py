@@ -287,5 +287,5 @@ class WatchdogSafetyTimerPacket(WatchdogSafetyTimerPacketInterface[WatchdogSafet
         elif b'ACK KICK PROCESSED' in data_upper:
             on_color = 'on_green'
         else:
-            on_color = 'on_orange'
+            on_color = 'on_yellow'
         return colored(formatted_data, 'white', on_color)

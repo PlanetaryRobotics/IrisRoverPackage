@@ -193,7 +193,14 @@ void hercules_monitor(HerculesComms__State *hState,
         if (!(*watchdogOpts & WDOPT_MONITOR_HERCULES))
         {
             // missed a kick, but don't reset the hercules.
-            DPRINTF("Hercules Unresponsive. No reset b/c monitoring off.");
+            // If monitoring is off, only notify ground about this event if
+            // Hercules is on:
+            // Ground doesn't really need to know about this but it could be
+            // in some hypothetical edge case.
+            if (details->m_outputPinBits & OPSBI__HERCULES_ON)
+            {
+                DPRINTF("Hercules Unresponsive. Hercules ON. Hercules Monitoring OFF.");
+            }
         }
         else
         {

@@ -10,6 +10,7 @@
 // ======================================================================
 
 #include "i2c.h"
+#include "ICD_MotorControl.c"
 
 uint8_t g_rxBuffer[I2C_RX_BUFFER_MAX_SIZE];
 uint8_t g_txBuffer[I2C_TX_BUFFER_MAX_SIZE];
@@ -21,21 +22,6 @@ I2cMode g_slaveMode;
 uint8_t g_i2cSlaveAddress;
 uint8_t g_readRegAddr;
 uint8_t g_i2cCmdLength[MAX_NB_CMDS];
-
-// external variables that are written and read to
-extern volatile _iq g_currentSpeed;
-extern volatile int32_t g_currentPosition;
-extern volatile int32_t g_targetPosition;
-extern volatile struct PI_CONTROLLER g_piSpd;
-extern volatile struct PI_CONTROLLER g_piCur;
-extern volatile uint16_t g_maxSpeed;
-extern uint8_t g_statusRegister;
-extern uint8_t g_controlRegister;
-extern uint8_t g_faultRegister;
-extern uint32_t g_drivingTimeoutCtr;
-extern uint16_t g_accelRate, g_decelRate;
-extern CmdState g_cmdState;
-
 
 /**
  * @brief      Disables i 2 c receive interrupt.
@@ -218,15 +204,15 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
         g_currentPosition = 0; // reset because target pos is relative
-        g_statusRegister &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
+        g_statusRegister &= ~MC_STATE_TARGET_REACHED; // likely no longer converged (if still converged, control loop will correct for that)
         g_drivingTimeoutCtr = 0; //reset timeout counter
         g_faultRegister = 0; // reset fault register
         break;
       case TARGET_SPEED:
       {
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_maxSpeed,
-                  sizeof(g_maxSpeed));
+                  (uint8_t*)&g_targetSpeed,
+                  sizeof(g_targetSpeed));
         break;
       }
       case P_CURRENT:
@@ -268,9 +254,9 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
             g_statusRegister |= DRIVE_OPEN_LOOP;
         }
 
-        if(g_controlRegister & CLEAR_DRIVER_FAULT){
+        if(g_controlRegister & MC_CMD_CLEAR_FAULTS){
             clear_driver_fault();
-            g_statusRegister |= CLEAR_DRIVER_FAULT; // indicates an attempt to clear fault was made
+            g_statusRegister |= MC_CMD_CLEAR_FAULTS; // indicates an attempt to clear fault was made
         }
         // update state machine if requested
         if(g_controlRegister & STATE_MACHINE_DISABLE){
@@ -299,12 +285,12 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
     }
 }
 
-
 /**
  * @brief      Initializes the command length
  *              (expected # of bytes to read/write for each register)
  */
-void initializeCmdLength(){
+void initializeCmdLength()
+{
   g_i2cCmdLength[I2C_ADDRESS] = 1;
   g_i2cCmdLength[TARGET_POSITION] = 4;
   g_i2cCmdLength[TARGET_SPEED] = 1;
@@ -322,24 +308,16 @@ void initializeCmdLength(){
   g_i2cCmdLength[FAULT_REGISTER] = 1;
 }
 
-
 /**
  * @brief      Initializes i2c module.
  */
-void initializeI2cModule(){
-  g_rxBufferIdx = 0;
-  g_txBufferIdx = 0;
-  g_slaveMode = RX_REG_ADDRESS_MODE;
-  g_readRegAddr = 0;
-
-  initializeCmdLength();
-
+McI2cAddr_t initializeI2cModule()
+{
   // Configure I2C interface for slave interface
   EUSCI_B_I2C_initSlaveParam param = {0};
-  param.slaveAddress = I2C_SLAVE_ADDRESS_BASE;
+  param.slaveAddress = MC_SLAVE_I2C_ADDR_BASE;
   param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
   param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
-  g_i2cSlaveAddress = param.slaveAddress; // [DEBUG]
   param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
   param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
   EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
@@ -353,6 +331,16 @@ void initializeI2cModule(){
   EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
                               EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                               EUSCI_B_I2C_STOP_INTERRUPT);
+
+  g_i2cSlaveAddress = param.slaveAddress; // Possibly Debug
+  g_rxBufferIdx = 0;
+  g_txBufferIdx = 0;
+  g_slaveMode = RX_REG_ADDRESS_MODE;
+  g_readRegAddr = 0;
+
+  initializeCmdLength();
+
+  return param.slaveAddress;
 }
 
 

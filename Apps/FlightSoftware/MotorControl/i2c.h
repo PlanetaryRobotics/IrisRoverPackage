@@ -14,10 +14,10 @@
 #define I2C_RX_BUFFER_MAX_SIZE      8
 #define I2C_TX_BUFFER_MAX_SIZE      8
 #define I2C_MAX_DATA_SIZE           4
-#define I2C_SLAVE_ADDRESS_BASE      0x48
 #define I2C_PACKET_HEADER           0xAA
 
 #include "driverlib.h"
+#include "MotorControl.h"
 #include "main.h"
 
 // Register ids for i2c communication with Hercules
@@ -50,6 +50,6 @@ typedef enum I2cMode{
     RX_DATA_MODE = 2
 }I2cMode;
 
-void initializeI2cModule();
+McI2cAddr_t initializeI2cModule();
 
 #endif /* I2C_H_ */

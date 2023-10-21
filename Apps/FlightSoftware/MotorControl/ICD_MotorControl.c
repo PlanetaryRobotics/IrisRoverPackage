@@ -19,10 +19,10 @@ void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr)
     mcReg->mc_curr_speed = 0; // 0-100%
     mcReg->mc_curr_current = 0; // mA
 
-    mcReg->mc_current_p_val = DEFAULT_CURRENT_P; // Linear Format
-    mcReg->mc_current_i_val = DEFAULT_CURRENT_I;
-    mcReg->mc_speed_p_val = DEFAULT_SPEED_P;
-    mcReg->mc_speed_i_val = DEFAULT_SPEED_I;
+    mcReg->mc_piCurKp = DEFAULT_CURRENT_P; // Linear Format
+    mcReg->mc_piCurKi = DEFAULT_CURRENT_I;
+    mcReg->mc_piSpdKp = DEFAULT_SPEED_P;
+    mcReg->mc_piSpdKi = DEFAULT_SPEED_I;
     mcReg->mc_acc_val = 0; // ticks*s-2
     mcReg->mc_dec_val = 0;
 
@@ -43,47 +43,47 @@ McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID)
     {
     case MC_REG_TARGET_POSITION:
         val = mcReg->mc_target_pos;
-        dataPkt.dataLen = sizeof(int32_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_target_pos);
         break;
     case MC_REG_TARGET_SPEED:
         val = mcReg->mc_target_speed;
-        dataPkt.dataLen = sizeof(uint8_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_target_speed);
         break;
     case MC_REG_CURRENT_POSITION:
         val = mcReg->mc_curr_pos;
-        dataPkt.dataLen = sizeof(int32_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_curr_pos);
         break;
     case MC_REG_CURRENT_SPEED:
         val = mcReg->mc_curr_speed;
-        dataPkt.dataLen = sizeof(uint8_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_curr_speed);
         break;
     case MC_REG_MOTOR_CURRENT:
         val = mcReg->mc_curr_current;
-        dataPkt.dataLen = sizeof(int16_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_curr_current);
         break;
     case MC_REG_P_CURRENT:
-        val = mcReg->mc_current_p_val;
-        dataPkt.dataLen = sizeof(uint16_t);
+        val = mcReg->mc_piCurKp;
+        dataPkt.dataLen = sizeof(mcReg->mc_piCurKp);
         break;
     case MC_REG_I_CURRENT:
-        val = mcReg->mc_current_i_val;
-        dataPkt.dataLen = sizeof(uint16_t);
+        val = mcReg->mc_piCurKi;
+        dataPkt.dataLen = sizeof(mcReg->mc_piCurKi);
         break;
     case MC_REG_P_SPEED:
-        val = mcReg->mc_speed_p_val;
-        dataPkt.dataLen = sizeof(uint16_t);
+        val = mcReg->mc_piSpdKp;
+        dataPkt.dataLen = sizeof(mcReg->mc_piSpdKp);
         break;
     case MC_REG_I_SPEED:
-        val = mcReg->mc_speed_i_val;
-        dataPkt.dataLen = sizeof(uint16_t);
+        val = mcReg->mc_piSpdKi;
+        dataPkt.dataLen = sizeof(mcReg->mc_piSpdKi);
         break;
     case MC_REG_ACC_RATE:
         val = mcReg->mc_acc_val;
-        dataPkt.dataLen = sizeof(uint16_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_acc_val);
         break;
     case MC_REG_DEC_RATE:
         val = mcReg->mc_dec_val;
-        dataPkt.dataLen = sizeof(uint16_t);
+        dataPkt.dataLen = sizeof(mcReg->mc_dec_val);
         break;
     case MC_REG_MC_CTRL:
         val = mcReg->mc_ctrlReg;
@@ -216,16 +216,16 @@ void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data)
         data = &(mcReg->mc_curr_current);
         break;
     case MC_REG_P_CURRENT:
-        data = &(mcReg->mc_current_p_val);
+        data = &(mcReg->mc_piCurKp);
         break;
     case MC_REG_I_CURRENT:
-        data = &(mcReg->mc_current_i_val);
+        data = &(mcReg->mc_piCurKi);
         break;
     case MC_REG_P_SPEED:
-        data = &(mcReg->mc_speed_p_val);
+        data = &(mcReg->mc_piSpdKp);
         break;
     case MC_REG_I_SPEED:
-        data = &(mcReg->mc_speed_i_val);
+        data = &(mcReg->mc_piSpdKi);
         break;
     case MC_REG_ACC_RATE:
         data = &(mcReg->mc_acc_val);
@@ -268,16 +268,16 @@ void setReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data)
         mcReg->mc_curr_current = *(int16_t *)data;
         break;
     case MC_REG_P_CURRENT:
-        mcReg->mc_current_p_val = *(uint16_t *)data;
+        mcReg->mc_piCurKp = *(uint16_t *)data;
         break;
     case MC_REG_I_CURRENT:
-        mcReg->mc_current_i_val = *(uint16_t *)data;
+        mcReg->mc_piCurKi = *(uint16_t *)data;
         break;
     case MC_REG_P_SPEED:
-        mcReg->mc_speed_p_val = *(uint16_t *)data;
+        mcReg->mc_piSpdKp = *(uint16_t *)data;
         break;
     case MC_REG_I_SPEED:
-        mcReg->mc_speed_i_val = *(uint16_t *)data;
+        mcReg->mc_piSpdKi = *(uint16_t *)data;
         break;
     case MC_REG_ACC_RATE:
         mcReg->mc_acc_val = *(uint16_t *)data;

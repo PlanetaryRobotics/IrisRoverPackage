@@ -27,5 +27,8 @@ typedef struct PI_CONTROLLER{  _iq  Ref;   			// Input: reference set-point
 				  uint8_t  w1;		    // Data: saturation record: [u(k-1) - v(k-1)]
 				} PI_CONTROLLER;
 
+volatile PI_CONTROLLER g_piSpd;
+volatile PI_CONTROLLER g_piCur;
+
 #endif // __PI_H__
 

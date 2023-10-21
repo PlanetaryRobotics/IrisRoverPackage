@@ -30,10 +30,15 @@ extern "C" {
 #define DEFAULT_TARGET_SPEED  70
 #define MAX_TARGET_SPEED      100
 
-#define DEFAULT_SPEED_P       15000   // e-4 (1.5000) (0x3A98)
-#define DEFAULT_SPEED_I       9       // e-4 (0.0009) (0x0009)
-#define DEFAULT_CURRENT_P   9500    // e-4 (0.9500) (0x005F)
-#define DEFAULT_CURRENT_I   20      // e-4 (0.0020) (0x0014)
+#define DEFAULT_SPD_KP      1.5
+#define DEFAULT_SPD_KI      0.0009
+#define DEFAULT_CUR_KP      0.95
+#define DEFAULT_CUR_KI      0.002
+
+#define DEFAULT_SPEED_P     
+#define DEFAULT_SPEED_I     
+#define DEFAULT_CURRENT_P   
+#define DEFAULT_CURRENT_I   
 
 
 typedef uint8_t McI2cAddr_t;
@@ -151,12 +156,12 @@ typedef struct MC_ICD_RegStruct
 
     int32_t mc_curr_pos; // ticks
     uint8_t mc_curr_speed; // 0-100%
-    int16_t mc_curr_current; // mA
+    int32_t mc_curr_current; // mA
 
-    uint16_t mc_current_p_val; // Linear Format
-    uint16_t mc_current_i_val;
-    uint16_t mc_speed_p_val;
-    uint16_t mc_speed_i_val;
+    uint32_t mc_piCurKp; // Linear Format
+    uint32_t mc_piCurKi;
+    uint32_t mc_piSpdKp;
+    uint32_t mc_piSpdKi;
     uint16_t mc_acc_val; // ticks*s-2
     uint16_t mc_dec_val;
 

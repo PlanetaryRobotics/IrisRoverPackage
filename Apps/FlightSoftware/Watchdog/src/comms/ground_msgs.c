@@ -243,7 +243,7 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2c
     report->iSysAllSense = (uint16_t)((adcValues->iSysAllSense) & 0x1FF);     // Bottom 9 bits of 12
     report->vBattSense = (uint16_t)(((adcValues->vBattSense) >> 3) & 0x1FF);  // Top 9 bits of 12
     report->vcc24 = (uint8_t)(((adcValues->vcc24) >> 5) & 0x7F);              // Top 7 bits of 12
-    report->heatingControlEnabled = (details->m_hParams.m_heatingControlEnabled) ? 1 : 0;
+    report->heatingControlEnabled = (details->m_hParams.persistent->m_heatingControlEnabled) ? 1 : 0;
     report->heating = (details->m_hParams.m_heating) ? 1 : 0;
 
     uint32_t data32 = 0;
@@ -251,7 +251,7 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2c
     data32 |= (uint32_t)(((uint32_t)((adcValues->iSysAllSense) & 0x1FF)) << 18);
     data32 |= (uint32_t)(((uint32_t)(((adcValues->vBattSense) >> 3) & 0x1FF)) << 9);
     data32 |= (uint32_t)(((uint32_t)(((adcValues->vcc24) >> 5) & 0x7F)) << 2);
-    data32 |= (uint32_t)(((details->m_hParams.m_heatingControlEnabled) ? 1 : 0) << 1);
+    data32 |= (uint32_t)(((details->m_hParams.persistent->m_heatingControlEnabled) ? 1 : 0) << 1);
     data32 |= (uint32_t)((details->m_hParams.m_heating) ? 1 : 0);
 
     serializationResult = Serialization__serializeAs32Bit(&(data32), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
@@ -271,41 +271,41 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2c
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(data16);
 
-    report->kpHeater = details->m_hParams.m_kpHeater;
-    report->heaterPwmLimit = details->m_hParams.m_pwmLimit;
-    report->heaterSetpoint = details->m_hParams.m_heaterSetpoint;
-    report->heaterOnValue = details->m_hParams.m_heaterOnVal;
-    report->heaterOffValue = details->m_hParams.m_heaterOffVal;
-    report->heaterDutyCyclePeriod = details->m_hParams.m_heaterDutyCyclePeriod;
-    report->heaterPwmValue = details->m_hParams.m_heaterDutyCycle;
+    report->kpHeater = details->m_hParams.persistent->m_kpHeater;
+    report->heaterPwmLimit = details->m_hParams.persistent->m_pwmLimit;
+    report->heaterSetpoint = details->m_hParams.persistent->m_heaterSetpoint;
+    report->heaterOnValue = details->m_hParams.persistent->m_heaterOnVal;
+    report->heaterOffValue = details->m_hParams.persistent->m_heaterOffVal;
+    report->heaterDutyCyclePeriod = details->m_hParams.persistent->m_heaterDutyCyclePeriod;
+    report->heaterPwmValue = details->m_hParams.persistent->m_heaterDutyCycle;
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_kpHeater), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_kpHeater), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_kpHeater);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_kpHeater);
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_pwmLimit), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_pwmLimit), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_pwmLimit);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_pwmLimit);
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_heaterSetpoint), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_heaterSetpoint), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_heaterSetpoint);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_heaterSetpoint);
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_heaterOnVal), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_heaterOnVal), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_heaterOnVal);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_heaterOnVal);
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_heaterOffVal), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_heaterOffVal), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_heaterOffVal);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_heaterOffVal);
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_heaterDutyCyclePeriod), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_heaterDutyCyclePeriod), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_heaterDutyCyclePeriod);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_heaterDutyCyclePeriod);
 
-    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.m_heaterDutyCycle), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
+    serializationResult = Serialization__serializeAs16Bit(&(details->m_hParams.persistent->m_heaterDutyCycle), dstIntPtr, SERIALIZATION__LITTLE_ENDIAN);
     CHECK_SERIALIZATION_RESULT(serializationResult);
-    dstIntPtr += sizeof(details->m_hParams.m_heaterDutyCycle);
+    dstIntPtr += sizeof(details->m_hParams.persistent->m_heaterDutyCycle);
 
     memcpy(report->rawBatteryCharge, i2cReadings->raw_battery_charge, sizeof(report->rawBatteryCharge));
     memcpy(report->rawBatteryVoltage, i2cReadings->raw_battery_voltage, sizeof(report->rawBatteryVoltage));

@@ -39,6 +39,7 @@
         "OPSBI",
         "REGE",
         "ROVERSTATE",
+        "setpoints",
         "Substate",
         "telbuf",
         "uninitalized",

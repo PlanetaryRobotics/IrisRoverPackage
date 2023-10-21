@@ -555,9 +555,9 @@ inline void enableHeater(void)
 {
     // For safety against some register having been bitflipped, just reaffirm
     // all heater (P2.2) related settings when turning on:
-    TB0CCR0 = detailsPtr->m_hParams.m_heaterDutyCyclePeriod - 1;
+    TB0CCR0 = detailsPtr->m_hParams.persistent->m_heaterDutyCyclePeriod - 1;
     TB0CCTL2 = OUTMOD_7;
-    TB0CCR2 = detailsPtr->m_hParams.m_heaterDutyCycle;
+    TB0CCR2 = detailsPtr->m_hParams.persistent->m_heaterDutyCycle;
     TB0CTL |= MC__UP;
     P2DIR |= BIT2;
     P2OUT &= ~BIT2;
@@ -703,10 +703,13 @@ void setFPGAReset(void)
  */
 uint8_t toggleFPGAReset(void)
 {
-    if(detailsPtr->m_outputPinBits & OPSBI_MASK(OPSBI__FPGA_N_RST)){ // active low. HIGH = not in reset.
+    if (detailsPtr->m_outputPinBits & OPSBI_MASK(OPSBI__FPGA_N_RST))
+    { // active low. HIGH = not in reset.
         setFPGAReset();
         return true;
-    } else {
+    }
+    else
+    {
         releaseFPGAReset();
         return false;
     }

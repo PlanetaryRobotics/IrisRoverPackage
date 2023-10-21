@@ -136,7 +136,12 @@ extern "C"
                 HEATER_CONTROL_INPUT_CHARGER = 0x55, // Power up the Charging IC, Don't Charge, and use the Charging Thermistor (only as a last ditch effort)
         } HeaterControl_InputSource;
 
-        typedef struct HeaterParams
+        // Core heater settings that we want to be persistent (e.g. we DO want
+        // setpoints to persist but we DON'T want flags to persist - good for
+        // those to reset on reboot in case they somehow cause a crash):
+        // ... basically only persist variables that are changed *directly*
+        // in response to a command.
+        typedef struct HeaterParamsPersistent
         {
                 uint16_t m_kpHeater;
                 uint16_t m_pwmLimit;
@@ -144,11 +149,20 @@ extern "C"
                 uint16_t m_heaterWindow;
                 uint16_t m_heaterOnVal;  // heater transitions to ON when T ADC < this value
                 uint16_t m_heaterOffVal; // heater transitions to OFF when T ADC > this value
-                BOOL m_heating;
                 BOOL m_heatingControlEnabled;
                 uint16_t m_heaterDutyCyclePeriod;
                 uint16_t m_heaterDutyCycle;
-                BOOL m_thresholdsChanged;                // flag that the on or off thresholds have changed since they were last checked
+        } HeaterParamsPersistent;
+
+        typedef struct HeaterParams
+        {
+                HeaterParamsPersistent *persistent;
+                BOOL m_heating;
+                BOOL m_thresholdsChanged; // flag that the on or off thresholds have changed since they were last checked
+                // Intentionally don't persist input source and force state b/c
+                // it's potentially dangerous and we want this to be a last
+                // resort measure, so it's okay for this to be manually
+                // activated after every reboot:
                 Heater_ForceState m_forceState;          // force the heater to always be on or off (at whatever duty) - using specific enums to make it hard to be bitflipped into this state.
                 HeaterControl_InputSource m_inputSource; // what sensor should drive the heater controller (note, changing this should be accompanied by changing thresholds)
         } HeaterParams;

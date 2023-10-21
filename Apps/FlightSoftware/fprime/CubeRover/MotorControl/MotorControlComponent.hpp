@@ -37,6 +37,7 @@ namespace CubeRover
     {
 
     ::Os::Mutex mc_mutex;
+    
     inline uint8_t containsMotorID(uint8_t motor_ids_mask, uint8_t motor_id)
     {
         return motor_ids_mask & (1 << motor_id);
@@ -304,7 +305,7 @@ namespace CubeRover
          * UNSAFE TEST functions
          * ------------------------------------------
          */
-        MCError_t MotorControlComponentImpl::testSpin();
+        MCError_t testSpin();
 
 
 
@@ -359,8 +360,6 @@ namespace CubeRover
 
         // Stall detection
         bool m_stallDetectectionEnabled[4];
-
-        StatusRegister_t m_currStatus[NUM_MOTORS];
 
         // Does a positive setpoint drive the rover forward or backwards
         // Set this flag to rotate the wheels accordingly

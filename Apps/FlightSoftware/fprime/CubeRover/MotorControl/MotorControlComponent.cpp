@@ -47,30 +47,24 @@ namespace CubeRover
     {
         m_i2c = MOTOR_CONTROL_I2CREG;
         m_updateParams = false;
-        m_motor_controllers[0] = MotorControllerStruct();
-        m_motor_controllers[0].msp430_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[0].herc_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[1] = MotorControllerStruct();
-        m_motor_controllers[1].msp430_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[1].herc_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[2] = MotorControllerStruct();
-        m_motor_controllers[2].msp430_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[2].herc_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[3] = MotorControllerStruct();
-        m_motor_controllers[3].msp430_McRegStruct = MC_ICD_RegStruct();
-        m_motor_controllers[3].herc_McRegStruct = MC_ICD_RegStruct();
-        m_stallDetectectionEnabled[0] = true;
-        m_stallDetectectionEnabled[1] = true;
-        m_stallDetectectionEnabled[2] = true;
-        m_stallDetectectionEnabled[3] = true;
-        m_FL_Encoder_Count_Offset = 0;
-        m_FR_Encoder_Count_Offset = 0;
-        m_RR_Encoder_Count_Offset = 0;
-        m_RL_Encoder_Count_Offset = 0;
-        m_FL_Encoder_Count = 0;
-        m_FR_Encoder_Count = 0;
-        m_RR_Encoder_Count = 0;
-        m_RL_Encoder_Count = 0;
+
+        for (int i =0; i < NUM_MOTORS; i++) {
+            m_motor_controllers[i] = MotorControllerStruct();
+            m_motor_controllers[i].msp430_McRegStruct = MC_ICD_RegStruct();
+            m_motor_controllers[i].herc_McRegStruct = MC_ICD_RegStruct();
+        }
+        // m_motor_controllers[0] = MotorControllerStruct();
+        // m_motor_controllers[0].msp430_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[0].herc_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[1] = MotorControllerStruct();
+        // m_motor_controllers[1].msp430_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[1].herc_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[2] = MotorControllerStruct();
+        // m_motor_controllers[2].msp430_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[2].herc_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[3] = MotorControllerStruct();
+        // m_motor_controllers[3].msp430_McRegStruct = MC_ICD_RegStruct();
+        // m_motor_controllers[3].herc_McRegStruct = MC_ICD_RegStruct();
     }
 
     /**
@@ -450,318 +444,6 @@ namespace CubeRover
 
 
 
-
-
-
-
-
-
-    // ----------------------------------------------------------------------
-    // OBSOLETE Command handler implementations
-    //      To be used as Helper Functions
-    // ----------------------------------------------------------------------
-
-    /**
-     * @brief      Command handler implementation to change PI values
-     *
-     * @param[in]  opCode          The operation code
-     * @param[in]  cmdSeq          The command sequence
-     * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  PI_Values       The new PI values
-     */
-//    void MotorControlComponentImpl ::MC_Current_PID_cmdHandler(
-    void MotorControlComponentImpl ::MC_Current_PID_set(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U8 Motor_ID,
-            U32 PI_Values)
-    {
-        MCError_t err;
-        uint16_t P_Value = (uint16_t)((PI_Values & (uint32_t)0x00ff) >> 0);
-        uint16_t I_Value = (uint16_t)((PI_Values & (uint32_t)0xff00) >> 16);
-
-        if (Motor_ID == ALL_MOTOR_ID)
-        {
-            err = sendAllMotorsData(MC_REG_P_CURRENT, &P_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = sendAllMotorsData(MC_REG_I_CURRENT, &I_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        else
-        {
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_P_CURRENT, &P_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_I_CURRENT, &I_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-    }
-
-    /**
-     * @brief      Command handler implementation to change PID values
-     *
-     * @param[in]  opCode          The operation code
-     * @param[in]  cmdSeq          The command sequence
-     * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  PID_Values      The new PID values
-     */
-//    void MotorControlComponentImpl ::MC_Speed_PID_cmdHandler(
-    void MotorControlComponentImpl ::MC_Speed_PID_set(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U8 Motor_ID,
-            U32 PID_Values)
-    {
-        MCError_t err;
-        uint16_t P_Value = (uint16_t)((PID_Values & (uint32_t)0x00ff) >> 0);
-        uint16_t I_Value = (uint16_t)((PID_Values & (uint32_t)0xff00) >> 16);
-
-        if (Motor_ID == ALL_MOTOR_ID)
-        {
-            err = sendAllMotorsData(MC_REG_P_SPEED, &P_Value);
-
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = sendAllMotorsData(MC_REG_I_SPEED, &I_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        else
-        {
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_P_SPEED, &P_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_I_SPEED, &I_Value);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-    }
-
-    /**
-     * @brief      Command handler implementation to change accel/deceleration
-     *                  This function does nothing since the MC doesn't have
-     *                  this code
-     *
-     * @param[in]  opCode          The operation code
-     * @param[in]  cmdSeq          The command sequence
-     * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  Rate_Values     Acceleration and Decelleration rates
-     */
-//    void MotorControlComponentImpl ::MC_Acceleration_cmdHandler(
-    void MotorControlComponentImpl ::MC_Acceleration_set(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U8 Motor_ID,
-            U32 Rate_Values)
-    {
-        MCError_t err;
-        uint16_t accel = (uint16_t)((Rate_Values & (uint32_t)0x00ff) >> 0);
-        uint16_t decel = (uint16_t)((Rate_Values & (uint32_t)0xff00) >> 16);
-
-        if (Motor_ID == ALL_MOTOR_ID)
-        {
-            err = sendAllMotorsData(MC_REG_ACC_RATE, &accel);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = sendAllMotorsData(MC_REG_DEC_RATE, &decel);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        else
-        {
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_ACC_RATE, &accel);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_DEC_RATE, &decel);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-    }
-
-    /**
-     * @brief      Command handler implementation to control stall detection
-     *
-     * @param[in]  opCode          The operation code
-     * @param[in]  cmdSeq          The command sequence
-     * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  Spin_Type       A value to enable or disable powerbost
-     */
-//    void MotorControlComponentImpl ::MC_StallDetection_cmdHandler(
-    void MotorControlComponentImpl ::MC_StallDetection_set(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U8 Motor_ID,
-            U8 Value)
-    {
-        // TODO: KEEP OR DEPRACATE? What does this do
-        if ((Value != 0x00 && Value != 0xFF) | Motor_ID > 4)
-        {
-            // Not a valid option
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-            return;
-        }
-
-        if (Value == 4)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (Value == 0xFF)
-                    m_stallDetectectionEnabled[i] = true;
-                else
-                    m_stallDetectectionEnabled[i] = false;
-            }
-        }
-
-        else
-        {
-            if (Value == 0xFF)
-                m_stallDetectectionEnabled[Motor_ID] = true;
-            else
-                m_stallDetectectionEnabled[Motor_ID] = false;
-        }
-
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-    }
-
-    /**
-     * @brief      Command handler implementation to reset encoder counts
-     *
-     * @param[in]  opCode          The operation code
-     * @param[in]  cmdSeq          The command sequence
-     * @param[in]  Motor_ID        The motor(s) ID
-     */
-//    void MotorControlComponentImpl ::MC_ResetPosition_cmdHandler(
-    void MotorControlComponentImpl ::MC_ResetPosition_set(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U8 Motor_ID)
-    {
-        // TODO: DEPRACATE THIS? What does this actually do?
-        switch (Motor_ID)
-        {
-        // Motor 0 (FL)
-        case 0:
-            m_FL_Encoder_Count_Offset = -m_FL_Encoder_Count;
-            break;
-
-        // Motor 1 (FR)
-        case 1:
-            m_FR_Encoder_Count_Offset = -m_FR_Encoder_Count;
-            break;
-
-        // Motor 2 (RR)
-        case 2:
-            m_RR_Encoder_Count_Offset = -m_RR_Encoder_Count;
-            break;
-
-        // Motor 3 (RL)
-        case 3:
-            m_RL_Encoder_Count_Offset = -m_RL_Encoder_Count;
-            break;
-
-        // All motors
-        case 4:
-            m_FL_Encoder_Count_Offset = -m_FL_Encoder_Count;
-            m_FR_Encoder_Count_Offset = -m_FR_Encoder_Count;
-            m_RR_Encoder_Count_Offset = -m_RR_Encoder_Count;
-            m_RL_Encoder_Count_Offset = -m_RL_Encoder_Count;
-            break;
-
-        // Not a valid option
-        default:
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-            return;
-        }
-
-        // If all else goes well, we succeeded
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-    }
-
-    /**
-     * @brief      Command handler implementation to control power limits
-     *
-     * @param[in]  opCode          The operation code
-     * @param[in]  cmdSeq          The command sequence
-     * @param[in]  Motor_ID        The motor(s) ID
-     * @param[in]  Value           A value to enable or disable powerbost
-     */
-//    void MotorControlComponentImpl ::MC_PowerBoost_cmdHandler(
-    void MotorControlComponentImpl ::MC_PowerBoost_set(
-            const FwOpcodeType opCode,
-            const U32 cmdSeq,
-            U8 Motor_ID,
-            U8 Value)
-    {
-        // TODO
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // ----------------------------------------------------------------------
     // User-defined helper functions
     // ----------------------------------------------------------------------
@@ -776,7 +458,7 @@ namespace CubeRover
         }
         mc_mutex.unLock();
     }
-//
+
     void MotorControlComponentImpl::checkFaults()
     {
 //        FaultRegister_t fault_test[NUM_MOTORS];
@@ -806,26 +488,6 @@ namespace CubeRover
 //        mc_mutex.unLock();
         return;
     }
-
-    //    void MotorControlComponentImpl::runMcStateMachine()
-    //    {
-    //
-    //        switch (m_motorControllerState)
-    //        {
-    //        case DISABLED:
-    //            return;
-    //        case IDLE:
-    //            checkFaults();
-    //            return;
-    //        case ENABLED:
-    //        case ARMED:
-    //        case RUNNING:
-    //        case TARGET_REACHED:
-    //        case FAULT:
-    //        default:
-    //            return;
-    //        }
-    //    }
 
 
 
@@ -863,55 +525,18 @@ namespace CubeRover
         }
     }
 
-
-
     MotorControlComponentImpl::MCError_t
     MotorControlComponentImpl::sendAllMotorsData(const MC_ICD_RegAddr reg, void *_data)
     {
-        uint8_t *data = static_cast<uint8_t *>(_data);
-
         for (int i = 0; i < NUM_MOTORS; ++i)
         {
-            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, data);
+            MCError_t err = motorControlTransfer(motorIdAddressMap[i], reg, _data);
             if (err != MC_NO_ERROR)
                 return err;
         }
         // TODO: What if one latched up? Should we check status here and issue STOP?
 
         return MC_NO_ERROR;
-    }
-
-    bool MotorControlComponentImpl::checkMotorsStatus()
-    {
-        MCError_t err;
-        for (int i = 0; i < NUM_MOTORS; ++i)
-        {
-            err = motorControlTransfer(motorIdAddressMap[i], MC_REG_MC_STATUS, &m_currStatus[i].value);
-            if (err != MC_NO_ERROR)
-            {
-                // I2C Communication Error
-                // TODO: Replace this function with whatever the new working one that gets made is. Reference NetworkManager.cpp for how to do this
-                watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
-                // TODO: Reset our I2C too
-                return false;
-            }
-            else if (m_currStatus[i].bits.controller_error)
-            {
-                // TODO: Send STOP general call
-                // TODO: Need to check mappping between resetting one motor and which one is connected to watchdog
-                // TODO: Check status again after reset
-                // TODO: Replace this function with whatever the new working one that gets made is. Reference NetworkManager.cpp for how to do this
-                watchdogResetRequest_out(0, CubeRoverPorts::motorsReset);
-                return false;
-                // XXX: Do we need to update our tlm counter?
-            }
-            else if (!m_currStatus[i].bits.position_converged)
-            {
-                // TODO: Do we... wait?
-                return false;
-            }
-        }
-        return true;
     }
 
     bool MotorControlComponentImpl::startMotorMovement()
@@ -930,154 +555,6 @@ namespace CubeRover
             }
         }
         return true;
-    }
-
-    /**
-     * @brief
-     *
-     *
-     *
-     * @param[in]  Distance       The distance to travel in motor ticks
-     * @param[in]  Speed          The speed to travel in normalized speed
-     */
-    MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::moveAllMotorsStraight(int32_t distance, int16_t speed)
-    {
-        MCError_t err;
-
-        checkMotorsStatus(); // TODO: se the return value here ...
-
-        // Enforce speed always positive. Direction set by distance
-        if (speed > 0)
-        {
-//          uint8_t motor_speed = groundSpeedToSpeedPrecent(speed);
-
-            // Send the speed to all the motors
-            // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
-            err = sendAllMotorsData(MC_REG_TARGET_SPEED, &speed);
-            if (err != MC_NO_ERROR)
-                return err;
-        }
-        else
-        {
-            return MC_BAD_COMMAND_INPUT;
-        }
-
-        int32_t Right_Wheels_Relative_ticks, Left_Wheels_Relative_ticks, Relative_ticks;
-        Relative_ticks = distance;
-        // Ensure the sides are traveling the right direction
-        if (m_forward_is_positive)
-        {
-            Right_Wheels_Relative_ticks = Relative_ticks;
-            Left_Wheels_Relative_ticks = -1 * Relative_ticks;
-        }
-        else
-        {
-            Right_Wheels_Relative_ticks = -1 * Relative_ticks;
-            Left_Wheels_Relative_ticks = Relative_ticks;
-        }
-
-        taskENTER_CRITICAL();
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Left_Wheels_Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Right_Wheels_Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Right_Wheels_Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Left_Wheels_Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        taskEXIT_CRITICAL();
-        if (!startMotorMovement())
-        {
-            return MC_UNEXPECTED_ERROR;
-        }
-
-        return err;
-    }
-
-    /**
-     * @brief      Helper function to rotate all motors simultaneously
-     *
-     * @param[in]  Distance       The distance to travel in motor ticks
-     * @param[in]  Speed          The speed to travel in normalized speed
-     */
-    MotorControlComponentImpl::MCError_t
-    MotorControlComponentImpl::rotateAllMotors(int16_t distance, int16_t speed)
-    {
-        MCError_t err;
-
-        checkMotorsStatus();
-
-        // Enforce speed always positive. Direction set by distance
-        if (speed > 0)
-        {
-//            uint8_t motor_speed = m_angularToLinear * groundSpeedToSpeedPrecent(speed);
-
-            // Send the speed to all the motors
-            // Required to send this before the setpoint (or else the MC will start spinning before speed was set)
-            err = sendAllMotorsData(MC_REG_TARGET_SPEED, &speed);
-            if (err != MC_NO_ERROR)
-                return err;
-        }
-        else
-        {
-            return err;
-        }
-
-        int32_t Relative_ticks = m_angularToLinear * distance;
-
-        taskENTER_CRITICAL();
-        StatusRegister_t status;
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, MC_REG_MC_STATUS, &status.value);
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, MC_REG_MC_STATUS, &status.value);
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, MC_REG_MC_STATUS, &status.value);
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, MC_REG_MC_STATUS, &status.value);
-
-        err = motorControlTransfer(FRONT_LEFT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        err = motorControlTransfer(FRONT_RIGHT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        err = motorControlTransfer(REAR_RIGHT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Relative_ticks);
-        if (err != MC_NO_ERROR)
-        {
-            taskEXIT_CRITICAL();
-            return err;
-        }
-
-        err = motorControlTransfer(REAR_LEFT_MC_I2C_ADDR, MC_REG_TARGET_POSITION, &Relative_ticks);
-        taskEXIT_CRITICAL();
-
-        return err;
     }
 
     MotorControlComponentImpl::MCError_t
@@ -1177,32 +654,6 @@ namespace CubeRover
         if (err != MC_NO_ERROR)
             asm(" nop");
         // resetMotorControllers();
-
-        return true;
-    }
-
-    bool MotorControlComponentImpl::pollStatus()
-    {
-        StatusRegister_t status;
-        status.value = 0xff;
-        int loop_count = 10;
-        do
-        {
-            unsigned delay = 55000000;
-            while (delay) // Delay 0.5s to give the motors a chance to converge. 0.5 / (1/ 110e6)
-                delay--;
-
-            uint8_t reg = MC_REG_MC_STATUS;
-            for (int i = 0; i < 4; ++i)
-            {
-                StatusRegister_t this_status;
-                i2cMasterReadData(m_i2c, FRONT_LEFT_MC_I2C_ADDR + i, reg, 1, &this_status.value);
-                status.value &= this_status.value;
-            }
-            loop_count--;
-            if (loop_count <= 0)
-                return false;
-        } while (!(status.bits.position_converged));
 
         return true;
     }

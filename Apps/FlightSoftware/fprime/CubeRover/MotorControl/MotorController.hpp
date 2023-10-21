@@ -69,21 +69,6 @@ namespace CubeRover
             UPDATE_DEC_RATE = 128
         } UpdateMask;
 
-        // TODO : REMOVE
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t open_loop : 1;
-                uint8_t clear_fault : 1;
-                uint8_t fsm_disable : 1;
-                uint8_t position_converged : 1;
-                uint8_t controller_error : 1;
-                uint8_t unused : 3;
-            } bits;
-        } StatusRegister_t;
-
         typedef uint8_t ControlRegister_t;
         typedef uint8_t StateRegister_t;
         typedef uint8_t FaultRegister_t;
@@ -94,6 +79,8 @@ namespace CubeRover
          */
         struct MotorControllerStruct
         {
+            I2cSlaveAddress_t i2c_addr;
+            
             // PROTECTED
             MC_ICD_RegStruct msp430_McRegStruct; // latest msp430 values
             MC_ICD_RegStruct herc_McRegStruct;   // expected values
@@ -103,7 +90,6 @@ namespace CubeRover
 
             // TODO: Remove all below here
 
-            uint8_t up_to_date;
             uint8_t target_dir;
 
             // Expected Set Values
@@ -170,18 +156,9 @@ namespace CubeRover
             mc->herc_McRegStruct.mc_dec_val = dec_val;
         }
 
-//        MC_ERR_t mcEnable(MotorControllerStruct *mc);
-//        MC_ERR_t mcArm(MotorControllerStruct *mc);
-//        MC_ERR_t mcDrive(MotorControllerStruct *mc);
-//        MC_ERR_t mcStop(MotorControllerStruct *mc);
-//        MC_ERR_t mcIdle(MotorControllerStruct *mc);
-//        MC_ERR_t mcClearFaults(MotorControllerStruct *mc);
-//        MC_ERR_t mcReset(MotorControllerStruct *mc);
-
         MC_ERR_t mcTestSetSpeed(MotorControllerStruct *mc);
         MC_ERR_t mcTestSetPos(MotorControllerStruct *mc);
         MC_ERR_t mcTestDrive(MotorControllerStruct *mc);
-
 }
 
 

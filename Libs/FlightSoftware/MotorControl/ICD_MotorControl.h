@@ -177,6 +177,12 @@ McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID);
 uint8_t checkRegWritePermission(MC_ICD_RegAddr reg);
 uint8_t checkCmdExecPermission(MC_ICD_Ctrl cmd);
 
+
+
+uint32_t regSizeMap(MC_ICD_RegAddr reg);
+void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data);
+void setReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data);
+
 #ifdef __cplusplus
 }
 #endif

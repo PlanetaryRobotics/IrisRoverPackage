@@ -13,9 +13,8 @@ namespace CubeRover
 {
     void initMotorController(MotorControllerStruct *mc, uint8_t id)
     {
-//        // mc_mutex.lock();
-
-        initMcRegStruct(&(mc->msp430_McRegStruct), MC_SLAVE_I2C_ADDR_BASE + id);
+        mc->i2c_addr = MC_SLAVE_I2C_ADDR_BASE + id;
+        initMcRegStruct(&(mc->msp430_McRegStruct), mc->i2c_addr);
         initMcRegStruct(&(mc->herc_McRegStruct), MC_SLAVE_I2C_ADDR_BASE + id);
 
         mc->updateConfigVals = false;
@@ -32,8 +31,6 @@ namespace CubeRover
         mc->ctrlReg = MC_NO_CMD;
         mc->stateReg = MC_STATE_IDLE;
         mc->faultReg = MC_NO_FAULT;
-
-//        // mc_mutex.unLock();
     }
 
 
@@ -43,42 +40,26 @@ namespace CubeRover
 
     MC_ERR_t readMcRegVal(MotorControllerStruct *mc, MC_ICD_RegAddr reg)
     {
-        McI2cDataPkt mcRegPkt = makeMcI2cDataPkt(&(mc->msp430_McRegStruct), reg);
+        I2cSlaveAddress_t addr = mc->i2c_addr;
+        uint8_t reg_buffer = static_cast<uint8_t>(reg);
+        uint32_t dataLen = regSizeMap(reg);
+        uint8_t *data;
+        getReg(&(mc->msp430_McRegStruct), reg, data);
 
-        if (mcRegPkt.dataLen == 0) {
+        if (data == NULL) {
             return ERR_GETTING_PARAMS;
         }
 
         MC_ERR_t err = NO_ERR;
         taskENTER_CRITICAL();
         if (!i2cMasterReadData(MOTOR_CONTROL_I2CREG,
-                               mcRegPkt.addr, mcRegPkt.regID,
-                               mcRegPkt.dataLen, mcRegPkt.data))
+                               addr, reg_buffer, dataLen, data))
         {
             err = ERR_i2c_READ;
         }
         taskEXIT_CRITICAL();
-
         return err;
     }
-
-//    MC_ERR_t readMcRegI2c(McI2cAddr_t i2c_addr, MC_ICD_RegAddr reg, uint16_t dataLen, void *_data)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//        uint8_t *data = static_cast<uint8_t *>(_data);
-//        uint8_t reg_buffer = static_cast<uint8_t>(reg);
-//
-//        taskENTER_CRITICAL();
-//        if (!i2cMasterReadData(MOTOR_CONTROL_I2CREG,
-//                               i2c_addr, reg_buffer,
-//                               dataLen, data))
-//        {
-//            err = ERR_i2c_READ;
-//        }
-//        taskEXIT_CRITICAL();
-//
-//        return err;
-//    }
 
     MC_ERR_t writeMcRegVal(MotorControllerStruct *mc, MC_ICD_RegAddr reg)
     {
@@ -95,21 +76,28 @@ namespace CubeRover
             return ERR_WRITE_PROTECTED;
         }
 
-        McI2cDataPkt mcRegPkt = makeMcI2cDataPkt(&(mc->herc_McRegStruct), reg);
-        if (mcRegPkt.dataLen == 0) {
+        I2cSlaveAddress_t addr = mc->i2c_addr;
+        uint8_t reg_buffer = static_cast<uint8_t>(reg);
+        uint32_t dataLen = regSizeMap(reg);;
+        uint8_t *data;
+        getReg(&(mc->herc_McRegStruct), reg, &data);
+
+        if (data == NULL) {
             return ERR_GETTING_PARAMS;
         }
 
         MC_ERR_t err = NO_ERR;
         taskENTER_CRITICAL();
         if (!i2cMasterTransmit(MOTOR_CONTROL_I2CREG,
-                               mcRegPkt.addr, mcRegPkt.regID,
-                               mcRegPkt.dataLen, mcRegPkt.data))
+                               addr, reg_buffer, dataLen, data))
         {
             err = ERR_i2c_WRITE;
         }
         taskEXIT_CRITICAL();
 
+        if(err == NO_ERR) {
+            setReg(&(mc->msp430_McRegStruct), reg, &data);
+        }
 
         return err;
     }
@@ -119,7 +107,60 @@ namespace CubeRover
     // Safe Motor Controller Data Transfers/Updates
     // ----------------------------------------------------------------------
 
-    MC_ERR_t assertHercConfigState(MotorControllerStruct *mc)
+    
+
+    MC_ERR_t getMcRegAll(MotorControllerStruct *mc)
+    {
+        MC_ERR_t err = NO_ERR;
+
+        return err;
+    }
+
+    MC_ERR_t setMcRegAll(MotorControllerStruct *mc)
+    {
+        MC_ERR_t err = NO_ERR;
+        int errs = 0;
+
+        mc->herc_McRegStruct.mc_ctrlReg = MC_CMD_UPDATE_CONFIG;
+
+        err = writeMcRegVal(mc, MC_REG_MC_CTRL);
+        if (err != NO_ERR) {
+            return err;
+        }
+
+        errs += writeMcRegVal(mc, MC_REG_TARGET_POSITION);
+        errs += writeMcRegVal(mc, MC_REG_TARGET_SPEED);
+        errs += writeMcRegVal(mc, MC_REG_P_CURRENT);
+        errs += writeMcRegVal(mc, MC_REG_I_CURRENT);
+        errs += writeMcRegVal(mc, MC_REG_P_SPEED);
+        errs += writeMcRegVal(mc, MC_REG_I_SPEED);
+        errs += writeMcRegVal(mc, MC_REG_ACC_RATE);
+        errs += writeMcRegVal(mc, MC_REG_DEC_RATE);
+
+        if (errs != 0)
+        {
+           err = ERR_SETTING_PARAMS;
+        }
+
+        return err;
+    }
+
+
+   // ----------------------------------------------------------------------
+   // Set Herc MC Vals
+   // ----------------------------------------------------------------------
+
+
+
+
+
+
+
+   // ----------------------------------------------------------------------
+   // Command handler implementations
+   // ----------------------------------------------------------------------
+
+   MC_ERR_t assertHercConfigState(MotorControllerStruct *mc)
     {
         MC_ERR_t err = NO_ERR;
         switch(mc->currState)
@@ -180,296 +221,6 @@ namespace CubeRover
         }
         return err;
     }
-
-    MC_ERR_t getMcRegAll(MotorControllerStruct *mc)
-    {
-        MC_ERR_t err = NO_ERR;
-
-        return err;
-    }
-
-    MC_ERR_t setMcRegAll(MotorControllerStruct *mc)
-    {
-//        MC_ERR_t err = mcEnable(mc);
-//        if (err != NO_ERR) { return err; }
-//
-//        if (mc->up_to_date & UPDATE_TARGET_POS)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_TARGET_POSITION, sizeof(mc->target_pos), &(mc->target_pos)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_TARGET_POS;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_TARGET_SPEED)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_TARGET_SPEED, sizeof(mc->target_speed), &(mc->target_speed)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_TARGET_SPEED;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_CURRENT_P)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_P_CURRENT, sizeof(mc->current_p_val), &(mc->current_p_val)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_CURRENT_P;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_CURRENT_I)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_I_CURRENT, sizeof(mc->current_i_val), &(mc->current_i_val)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_CURRENT_I;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_SPEED_P)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_P_SPEED, sizeof(mc->speed_p_val), &(mc->speed_p_val)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_SPEED_P;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_SPEED_I)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_I_SPEED, sizeof(mc->speed_i_val), &(mc->speed_i_val)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_SPEED_I;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_ACC_RATE)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_ACC_RATE, sizeof(mc->acc_val), &(mc->acc_val)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_ACC_RATE;
-//            }
-//        }
-//
-//        if (mc->up_to_date & UPDATE_DEC_RATE)
-//        {
-//            if (setMcRegVal(mc->i2c_addr, MC_REG_DEC_RATE, sizeof(mc->dec_val), &(mc->dec_val)) == NO_ERR) {
-//                mc->up_to_date &= ~UPDATE_DEC_RATE;
-//            }
-//        }
-//
-//        if (mc->up_to_date != 0)
-//        {
-//            err = ERR_UPDATING_ALL_PARAMS;
-//        }
-
-//        return err;
-    }
-
-
-//    // ----------------------------------------------------------------------
-//    // Set Herc MC Vals
-//    // ----------------------------------------------------------------------
-//
-//    MC_ERR_t setMcParam(MotorControllerStruct *mc);
-//
-//
-//
-//
-//
-//
-//
-//
-//    // ----------------------------------------------------------------------
-//    // Command handler implementations
-//    // ----------------------------------------------------------------------
-//
-//    /**
-//     * mcEnable - Allow parameter updates
-//     */
-//    MC_ERR_t mcEnable(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//        // mc_mutex.lock();
-//
-//        // Get MC current state
-//        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->stateReg), &(mc->stateReg));
-//
-//        // Send MC_CMD_UPDATE_CONFIG to go from IDLE to ENABLE
-//        if (err == NO_ERR && mc->stateReg == STATE_IDLE) {
-//
-//            MC_ICD_CmdVal update_config = MC_CMD_UPDATE_CONFIG;
-//            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(update_config), &update_config);
-//            if (err == NO_ERR) {
-//                mc->stateReg = STATE_ENABLED;
-//            }
-//
-//        }
-//
-//        if (err == NO_ERR && mc->stateReg != STATE_ENABLED) {
-//            err = ERR_BAD_STATE;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
-//
-//    /**
-//     * mcArm - Wait for drive command
-//     */
-//    MC_ERR_t mcArm(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//        // mc_mutex.lock();
-//
-//        // Get MC current state
-//        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->stateReg), &(mc->stateReg));
-//
-//        if (err == NO_ERR && mc->stateReg == STATE_ENABLED) {
-//            MC_ICD_CmdVal enable_driver = MC_CMD_ENABLE_DRIVER;
-//            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(enable_driver), &enable_driver);
-//            if (err == NO_ERR) {
-//                mc->stateReg = STATE_ARMED;
-//            }
-//
-//        }
-//
-//        if (err == NO_ERR && mc->stateReg != STATE_ARMED) {
-//            err = ERR_BAD_STATE;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
-//
-//    /**
-//     * mcDrive - start movement
-//     */
-//    MC_ERR_t mcDrive(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//        // mc_mutex.lock();
-//
-//        // Get MC current state
-//        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->stateReg), &(mc->stateReg));
-//
-//        if (err == NO_ERR && mc->stateReg == STATE_ARMED) {
-//            MC_ICD_CmdVal start_drive = MC_CMD_EXECUTE_DRIVE;
-//            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(start_drive), &start_drive);
-//            if (err == NO_ERR) {
-//                mc->stateReg = STATE_RUNNING;
-//            }
-//
-//        }
-//
-//        if (err == NO_ERR && mc->stateReg != STATE_RUNNING) {
-//            err = ERR_BAD_STATE;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
-//
-//    /**
-//     * mcStop - stop movement
-//     */
-//    MC_ERR_t mcStop(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//        // mc_mutex.lock();
-//
-//        MC_ICD_CmdVal stop = MC_CMD_DISABLE_DRIVER;
-//        err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(stop), &stop);
-//        if (err == NO_ERR) {
-//            mc->stateReg = STATE_DISABLED;
-//        }
-//
-//        if (err == NO_ERR && mc->stateReg != STATE_DISABLED) {
-//            err = ERR_BAD_STATE;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
-//
-//    /**
-//     * mcIdle - goto Idle
-//     */
-//    MC_ERR_t mcIdle(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//
-//        // mc_mutex.lock();
-//
-//        // Get MC current state
-//        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->stateReg), &(mc->stateReg));
-//        if(err != NO_ERR) {
-//            // mc_mutex.unLock();
-//            return err;
-//        }
-//
-//        MC_ICD_CmdVal disable = MC_CMD_DISABLE_DRIVER;
-//        MC_ICD_CmdVal idle = MC_CMD_E_STOP;
-//
-//        switch (mc->stateReg)
-//        {
-//        case STATE_ARMED:
-//        case STATE_TARGET_REACHED:
-//            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(disable), &disable);
-//        case STATE_ENABLED:
-//        case STATE_DISABLED:
-//            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(idle), &idle);
-//        case STATE_IDLE:
-//            break;
-//        default:
-//            err = ERR_BAD_STATE;
-//        }
-//
-//        if (err == NO_ERR) {
-//            mc->stateReg = STATE_IDLE;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
-//
-//    /**
-//     * mcClearFaults
-//     */
-//    MC_ERR_t mcClearFaults(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = getMcFault(mc);
-//        if (err != NO_ERR || mc->faultReg == MC_NO_FAULT) {
-//            return err;
-//        }
-//        // SEND MOTOR FAULTS EVENT
-//
-//        // mc_mutex.lock();
-//
-//        // Get MC current state
-//        err = getMcRegVal(mc->i2c_addr, MC_REG_MC_STATUS, sizeof(mc->stateReg), &(mc->stateReg));
-//
-//        if (err == NO_ERR && mc->stateReg == STATE_IDLE) {
-//            MC_ICD_CmdVal clearFaults = MC_CMD_CLEAR_FAULTS;
-//            err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(clearFaults), &clearFaults);
-//        }
-//        if (err == NO_ERR) {
-//            mc->faultReg = MC_NO_FAULT;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
-//
-//    /**
-//     * mcReset
-//     */
-//    MC_ERR_t mcReset(MotorControllerStruct *mc)
-//    {
-//        MC_ERR_t err = NO_ERR;
-//        // mc_mutex.lock();
-//
-//        MC_ICD_CmdVal reset = MC_CMD_RESET_CONTROLLER;
-//        err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(reset), &reset);
-//
-//        if (err == NO_ERR) {
-//            mc->stateReg = STATE_DISABLED;
-//        }
-//
-//        // mc_mutex.unLock();
-//        return err;
-//    }
 
 
     /**

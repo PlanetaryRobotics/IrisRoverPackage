@@ -16,7 +16,7 @@ static bool i2cSendWithTimeout(i2cBASE_t *i2c, uint32 length, uint8 * data, unsi
         while ((i2c->STR & (uint32)I2C_TX_INT) == 0U)
         {
             if (!timeout)
-                // return false;
+                // return false; // TODO: ...do we not have Timeout??????
             timeout--;
         } /* Wait */
         /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
@@ -40,7 +40,7 @@ static bool i2cReceiveWithTimeout(i2cBASE_t *i2c, uint32 length, uint8 * data, u
         while ((i2c->STR & (uint32)I2C_RX_INT) == 0U)
         {
             if (!timeout)
-                // return false;
+                // return false; // TODO: ...do we not have Timeout??????
             timeout--;
         } /* Wait */
         /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */

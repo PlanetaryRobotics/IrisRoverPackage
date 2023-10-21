@@ -1961,6 +1961,11 @@ namespace iris
             }
             break;
 
+        case WD_CMD_MSGS__RESET_ID__REQUEST_STATUS_REPORT:
+            // Request a Detailed Status Report on the next cycle:
+            theContext.m_sendDetailedReport = true;
+            break;
+
         case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE:
             if (allowPowerOn)
             {

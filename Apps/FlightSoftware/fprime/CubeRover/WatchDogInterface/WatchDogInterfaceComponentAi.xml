@@ -167,6 +167,7 @@
                         <item name="Safety_Timer_ACK" value = "0x4C" comment="Acknowledge the safety timer, setting the count back to 0." />
                         <item name="Safety_Timer_Cutoff_Inc" value = "0x4D" comment="Increment the safety timer cutoff by a fixed number of minutes." />
                         <item name="Safety_Timer_Cutoff_Dec" value = "0x4E" comment="Decrement the safety timer cutoff by a fixed number of minutes." />
+                        <item name="Request_Status_Report" value = "0x95" comment="Request Status Report (Report Status: Detailed Status Packet + other suppl. info). Additional way to request a status report via Reset Specific (for use through Hercules in MISSION mode)." />
 					</enum>
 					<comment>
                     	ENUM Value that specifies which components or hardware need to be reset

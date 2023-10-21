@@ -196,7 +196,12 @@ extern "C"
         WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_OFF = 0x4B, //!< Don't allow the safety timer to reboot the system
         WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_ACK = 0x4C,             //!< Acknowledge the safety timer, setting the count back to 0
         WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC = 0x4D,      //!< Increment the safety timer cutoff by a fixed number of minutes.
-        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC = 0x4E       //!< Decrement the safety timer cutoff by a fixed number of minutes.
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC = 0x4E,      //!< Decrement the safety timer cutoff by a fixed number of minutes.
+
+        // Additional way to request a status report via Reset Specific, so we
+        // can do that through the Hercules even while non-RS WD commands don't
+        // work.
+        WD_CMD_MSGS__RESET_ID__REQUEST_STATUS_REPORT = 0x95 //!< Request Status Report (Report Status: Detailed Status Packet + other suppl. info).
     } WdCmdMsgs__ResetSpecificId;
 
     /**

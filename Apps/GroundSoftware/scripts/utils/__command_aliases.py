@@ -499,6 +499,14 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(confirm='CONFIRM_REQUEST'),
         DataPathway.WIRED
     ),
+    'ReportStatus-ViaHercules': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        # Use Reset-Specific pathway for this:
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(confirm='REQUEST_STATUS_REPORT'),
+        DataPathway.WIRED
+    ),
     'disable-heater-control-via-herc': (
         DataPathway.WIRED,
         # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)

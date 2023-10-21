@@ -515,6 +515,10 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
                                                WatchdogStateDetails *details,
                                                UART__State *uart0State)
 {
+    // We have to turn off Hercules monitoring during the Reboot, so we store
+    // the status at the start here:
+    static bool herc_mon_status_at_reboot_start = 0;
+
     //* Advance Full Power Reboot "State Machine":
     // Check states in order of OFF -> ON so in case a bitflip turns on a stage
     // errantly, the worst that will happen is that we restart the reboot
@@ -525,6 +529,18 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
     )
     {
         DPRINTF("\t SAFETY TIMER: PWR_OFF_1");
+        // Store Hercules monitoring status at start then disable it so it
+        // doesn't interfere:
+        if (*watchdogOpts & WDOPT_MONITOR_HERCULES)
+        {
+            herc_mon_status_at_reboot_start = true;
+            DPRINTF("\t\t SAFETY TIMER: Disabling Hercules Monitor for Reboot.");
+        }
+        else
+        {
+            herc_mon_status_at_reboot_start = false;
+        }
+
         // Perform MISSION -> SERVICE power transitions:
         // transition to EnteringService: Nothing.
         // EnteringService::transitionTo: Nothing.
@@ -720,6 +736,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         powerOnHercules();
         releaseMotorsReset();
         releaseHerculesReset();
+        *writeIOExpander = TRUE; // some of the above require IOEX writes
         // *waits for I2C to complete, then:
         // RoverStateBase::enableHerculesComms: We don't have to this here b/c
         // next timer MISSION tick will notice that herc is on but comms are
@@ -739,6 +756,19 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
         // All done, so we can just stop at turning off these bits.
+
+        // Restore original Hercules Monitor state:
+        if (herc_mon_status_at_reboot_start)
+        {
+            *watchdogOpts |= WDOPT_MONITOR_HERCULES;
+            DPRINTF("\t\t SAFETY TIMER: Restoring Hercules Monitor after Reboot.");
+        }
+        else
+        {
+            *watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+        }
+
+        DPRINTF("\t SAFETY TIMER: REBOOT COMPLETE.");
         return;
     }
 }

@@ -48,9 +48,17 @@ namespace CubeRover
         m_i2c = MOTOR_CONTROL_I2CREG;
         m_updateParams = false;
         m_motor_controllers[0] = MotorControllerStruct();
+        m_motor_controllers[0].msp430_McRegStruct = MC_ICD_RegStruct();
+        m_motor_controllers[0].herc_McRegStruct = MC_ICD_RegStruct();
         m_motor_controllers[1] = MotorControllerStruct();
+        m_motor_controllers[1].msp430_McRegStruct = MC_ICD_RegStruct();
+        m_motor_controllers[1].herc_McRegStruct = MC_ICD_RegStruct();
         m_motor_controllers[2] = MotorControllerStruct();
+        m_motor_controllers[2].msp430_McRegStruct = MC_ICD_RegStruct();
+        m_motor_controllers[2].herc_McRegStruct = MC_ICD_RegStruct();
         m_motor_controllers[3] = MotorControllerStruct();
+        m_motor_controllers[3].msp430_McRegStruct = MC_ICD_RegStruct();
+        m_motor_controllers[3].herc_McRegStruct = MC_ICD_RegStruct();
         m_stallDetectectionEnabled[0] = true;
         m_stallDetectectionEnabled[1] = true;
         m_stallDetectectionEnabled[2] = true;
@@ -147,6 +155,7 @@ namespace CubeRover
     void MotorControlComponentImpl ::MC_SetAllParams_cmdHandler(
             const FwOpcodeType opCode, /*!< The opcode*/
             const U32 cmdSeq, /*!< The command sequence number*/
+            U8 MotorA_TargetDir,
             U32 MotorA_TargetPosition,
             U8 MotorA_TargetSpeed,
             U16 MotorA_Current_P_Val,
@@ -155,6 +164,7 @@ namespace CubeRover
             U16 MotorA_Speed_I_Val,
             U16 MotorA_Accel_Rate,
             U16 MotorA_Decel_Rate,
+            U8 MotorB_TargetDir,
             U32 MotorB_TargetPosition,
             U8 MotorB_TargetSpeed,
             U16 MotorB_Current_P_Val,
@@ -163,6 +173,7 @@ namespace CubeRover
             U16 MotorB_Speed_I_Val,
             U16 MotorB_Accel_Rate,
             U16 MotorB_Decel_Rate,
+            U8 MotorC_TargetDir,
             U32 MotorC_TargetPosition,
             U8 MotorC_TargetSpeed,
             U16 MotorC_Current_P_Val,
@@ -171,6 +182,7 @@ namespace CubeRover
             U16 MotorC_Speed_I_Val,
             U16 MotorC_Accel_Rate,
             U16 MotorC_Decel_Rate,
+            U8 MotorD_TargetDir,
             U32 MotorD_TargetPosition,
             U8 MotorD_TargetSpeed,
             U16 MotorD_Current_P_Val,
@@ -184,6 +196,7 @@ namespace CubeRover
 
         MotorControllerStruct *mc = &m_motor_controllers[MOTOR_A];
         mc->target_pos = MotorA_TargetPosition;
+        mc->target_dir = MotorA_TargetDir;
         mc->target_speed = MotorA_TargetSpeed;
         mc->current_p_val = MotorA_Current_P_Val;
         mc->current_i_val = MotorA_Current_I_Val;
@@ -195,6 +208,7 @@ namespace CubeRover
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         mc = &m_motor_controllers[MOTOR_B];
+        mc->target_dir = MotorB_TargetDir;
         mc->target_pos = MotorB_TargetPosition;
         mc->target_speed = MotorB_TargetSpeed;
         mc->current_p_val = MotorB_Current_P_Val;
@@ -207,6 +221,7 @@ namespace CubeRover
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         mc = &m_motor_controllers[MOTOR_C];
+        mc->target_dir = MotorC_TargetDir;
         mc->target_pos = MotorC_TargetPosition;
         mc->target_speed = MotorC_TargetSpeed;
         mc->current_p_val = MotorC_Current_P_Val;
@@ -219,6 +234,7 @@ namespace CubeRover
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         mc = &m_motor_controllers[MOTOR_D];
+        mc->target_dir = MotorD_TargetDir;
         mc->target_pos = MotorD_TargetPosition;
         mc->target_speed = MotorD_TargetSpeed;
         mc->current_p_val = MotorD_Current_P_Val;
@@ -271,6 +287,7 @@ namespace CubeRover
             const FwOpcodeType opCode,
             const U32 cmdSeq,
             U8 Motor_ID,
+            U8 Dir,
             U32 Raw_Ticks)
     {
 
@@ -339,33 +356,45 @@ namespace CubeRover
             const FwOpcodeType opCode,
             const U32 cmdSeq,
             U8 Motor_ID,
+            U8 Dir,
             U32 Raw_Ticks,
             U8 Percent_speed)
     {
         MCError_t err;
-
-        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        int32_t distance = (int32_t) Raw_Ticks;
 
 //        mc_mutex.lock();
         if (containsMotorID(Motor_ID, MOTOR_A)) {
+//            if (containsMotorID(Dir, MOTOR_A)) {
+//                distance = -1 * Raw_Ticks;
+//            }
             setTargetPos(&m_motor_controllers[MOTOR_A], Raw_Ticks);
             setTargetSpeed(&m_motor_controllers[MOTOR_A], Percent_speed);
 
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
         }
         if (containsMotorID(Motor_ID, MOTOR_B)) {
+//            if (containsMotorID(Dir, MOTOR_B)) {
+//                distance = -1 * Raw_Ticks;
+//            }
             setTargetPos(&m_motor_controllers[MOTOR_B], Raw_Ticks);
             setTargetSpeed(&m_motor_controllers[MOTOR_B], Percent_speed);
 
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
         }
         if (containsMotorID(Motor_ID, MOTOR_C)) {
+//            if (containsMotorID(Dir, MOTOR_C)) {
+//                distance = -1 * Raw_Ticks;
+//            }
             setTargetPos(&m_motor_controllers[MOTOR_C], Raw_Ticks);
             setTargetSpeed(&m_motor_controllers[MOTOR_C], Percent_speed);
 
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
         }
         if (containsMotorID(Motor_ID, MOTOR_D)) {
+//            if (containsMotorID(Dir, MOTOR_D)) {
+//                distance = -1 * Raw_Ticks;
+//            }
             setTargetPos(&m_motor_controllers[MOTOR_D], Raw_Ticks);
             setTargetSpeed(&m_motor_controllers[MOTOR_D], Percent_speed);
 
@@ -750,31 +779,31 @@ namespace CubeRover
 //
     void MotorControlComponentImpl::checkFaults()
     {
-        FaultRegister_t fault_test[NUM_MOTORS];
-        MC_ERR_t err_test[NUM_MOTORS];
-
-        mc_mutex.lock();
-        for (int i = 0; i < NUM_MOTORS; i++)
-        {
-            err_test[i] = getMcRegFault(&m_motor_controllers[i]);
-            fault_test[i] = m_motor_controllers[i].faultReg;
-        }
-        mc_mutex.unLock();
+//        FaultRegister_t fault_test[NUM_MOTORS];
+//        MC_ERR_t err_test[NUM_MOTORS];
+//
+//        mc_mutex.lock();
+//        for (int i = 0; i < NUM_MOTORS; i++)
+//        {
+//            err_test[i] = getMcRegFault(&m_motor_controllers[i]);
+//            fault_test[i] = m_motor_controllers[i].faultReg;
+//        }
+//        mc_mutex.unLock();
         return;
     }
 
     void MotorControlComponentImpl::checkStates()
     {
-        StateRegister_t state_test[NUM_MOTORS];
-        MC_ERR_t err_test[NUM_MOTORS];
-
-        mc_mutex.lock();
-        for (int i = 0; i < NUM_MOTORS; i++)
-        {
-            err_test[i] = getMcRegFault(&m_motor_controllers[i]);
-            state_test[i] = m_motor_controllers[i].stateReg;
-        }
-        mc_mutex.unLock();
+//        StateRegister_t state_test[NUM_MOTORS];
+//        MC_ERR_t err_test[NUM_MOTORS];
+//
+//        mc_mutex.lock();
+//        for (int i = 0; i < NUM_MOTORS; i++)
+//        {
+//            err_test[i] = getMcRegFault(&m_motor_controllers[i]);
+//            state_test[i] = m_motor_controllers[i].stateReg;
+//        }
+//        mc_mutex.unLock();
         return;
     }
 

@@ -105,33 +105,65 @@ McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID)
     return dataPkt;
 }
 
-bool assertRegWrite(MC_ICD_RegAddr reg)
+uint8_t checkRegWritePermission(MC_ICD_RegAddr reg)
 {
-    bool writePermission = false;
+    uint8_t writePermission = 0;
 
     switch(reg)
     {
+    // Always Allowed
+    case MC_REG_MC_CTRL:
+        writePermission = 4;
+    // In WriteProtected, Idle, Enabled
     case MC_REG_TARGET_POSITION:
     case MC_REG_TARGET_SPEED:
+        writePermission = 3;
+    // In WriteProtected, Idle
     case MC_REG_P_CURRENT:
     case MC_REG_I_CURRENT:
     case MC_REG_P_SPEED:
     case MC_REG_I_SPEED:
     case MC_REG_ACC_RATE:
     case MC_REG_DEC_RATE:
-    case MC_REG_MC_CTRL
-        writePermission = true;
-        break;
-    case MC_REG_I2C_ADDRESS:
+        writePermission = 2;
+    // In WriteProtected
+    case MC_REG_MC_FAULT:
     case MC_REG_CURRENT_POSITION:
     case MC_REG_CURRENT_SPEED:
     case MC_REG_MOTOR_CURRENT:
+        writePermission = 1;
+    // Never
     case MC_REG_MC_STATUS:
-    case MC_REG_MC_FAULT:
+    case MC_REG_I2C_ADDRESS:
     default:
-        writePermission = false;
+        writePermission = 0;
         break;
     }
     
     return writePermission;
+}
+
+uint8_t checkCmdExecPermission(MC_ICD_Ctrl cmd)
+{
+    uint8_t execPermission = 0;
+
+    switch(cmd)
+    {
+    // Always Allowed
+    case MC_CMD_E_STOP:             // goto Fault ?
+    case MC_CMD_DISABLE_DRIVER:     // goto Disable
+    case MC_CMD_RESET_CONTROLLER:   // goto Fault ?
+    case MC_NO_CMD:                 // do nothing
+        execPermission = 4;
+    // In Fault
+    case MC_CMD_CLEAR_FAULTS:       // goto Idle
+    // In Idle Only
+    case MC_CMD_OVERRIDE_PROTECTED: // goto WriteProtected
+    // In Idle or Enabled
+    case MC_CMD_ENABLE_DRIVER:      // goto Enable
+    case MC_CMD_UPDATE_CONFIG:      // Possibly goto Idle
+    // In Armed Only
+    case MC_CMD_EXECUTE_DRIVE:      // goto Running
+    default:
+    }
 }

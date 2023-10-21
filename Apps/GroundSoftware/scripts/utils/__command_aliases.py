@@ -880,7 +880,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'MotorControl_McSpin',
         # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
-        OrderedDict(motor_id=0x00, raw_ticks=20000),
+        OrderedDict(motor_id=0x00, dir=0x0F, raw_ticks=20000),
         DataPathway.WIRED
     ),
     'motor-control-spin-all': (
@@ -888,7 +888,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'MotorControl_McSpin',
         # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
-        OrderedDict(motor_id=0xFF, raw_ticks=20000),
+        OrderedDict(motor_id=0xFF, dir=0x0F, raw_ticks=20000),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-a': (
@@ -897,7 +897,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'MotorControl_McSpinConfigured',
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
-        OrderedDict(motor_id=0x01, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x01, dir=0x0F, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-ad': (
@@ -907,7 +907,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # MotorA + MotorD: 0x09
-        OrderedDict(motor_id=0x09, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x09, dir=0x0F, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-all': (
@@ -917,7 +917,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # All Motors: 0x0F
-        OrderedDict(motor_id=0x0F, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x0F, dir=0x0F, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-all-back': (

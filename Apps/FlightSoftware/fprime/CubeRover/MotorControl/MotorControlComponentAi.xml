@@ -82,7 +82,7 @@
             </comment>
             <args>
                 <!-- Motor A Params -->
-                <arg name="MotorA_TargetDir" type="u8"/>
+                <arg name="MotorA_TargetDir" type="U8"/>
                 <arg name="MotorA_TargetPosition" type="U32"/>
                 <arg name="MotorA_TargetSpeed" type="U8"/>
                 <arg name="MotorA_Current_P_Val" type="U16"/>
@@ -92,7 +92,7 @@
                 <arg name="MotorA_Accel_Rate" type="U16"/>
                 <arg name="MotorA_Decel_Rate" type="U16"/>
                 <!-- Motor B Params -->
-                <arg name="MotorB_TargetDir" type="u8"/>
+                <arg name="MotorB_TargetDir" type="U8"/>
                 <arg name="MotorB_TargetPosition" type="U32"/>
                 <arg name="MotorB_TargetSpeed" type="U8"/>
                 <arg name="MotorB_Current_P_Val" type="U16"/>
@@ -102,7 +102,7 @@
                 <arg name="MotorB_Accel_Rate" type="U16"/>
                 <arg name="MotorB_Decel_Rate" type="U16"/>
                 <!-- Motor C Params -->
-                <arg name="MotorC_TargetDir" type="u8"/>
+                <arg name="MotorC_TargetDir" type="U8"/>
                 <arg name="MotorC_TargetPosition" type="U32"/>
                 <arg name="MotorC_TargetSpeed" type="U8"/>
                 <arg name="MotorC_Current_P_Val" type="U16"/>
@@ -112,7 +112,7 @@
                 <arg name="MotorC_Accel_Rate" type="U16"/>
                 <arg name="MotorC_Decel_Rate" type="U16"/>
                 <!-- Motor D Params -->
-                <arg name="MotorD_TargetDir" type="u8"/>
+                <arg name="MotorD_TargetDir" type="U8"/>
                 <arg name="MotorD_TargetPosition" type="U32"/>
                 <arg name="MotorD_TargetSpeed" type="U8"/>
                 <arg name="MotorD_Current_P_Val" type="U16"/>
@@ -209,7 +209,7 @@
                         and "Right"-side motors = MotorB + MotorC = 0x06)
                     </comment>
                 </arg>
-                <arg name="Dir" type="U32">
+                <arg name="Dir" type="U8">
                     <comment>Direction motor movement
                         Positive Ticks : 0 , Negative Ticks : 1
                     </comment>
@@ -236,7 +236,7 @@
                         and "Right"-side motors = MotorB + MotorC = 0x06)
                     </comment>
                 </arg>
-                <arg name="Dir" type="U32">
+                <arg name="Dir" type="U8">
                     <comment>Bitmask of direction of each motor
                         Positive Ticks : 0 , Negative Ticks : 1
                     </comment>

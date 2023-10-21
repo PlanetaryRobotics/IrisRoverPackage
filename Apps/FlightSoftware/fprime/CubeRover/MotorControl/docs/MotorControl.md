@@ -23,6 +23,7 @@
                 REG_MC_STATUS           = 13,   // RO - uint8   1 Byte
                 REG_MC_FAULT            = 14,   // RO - uint8   1 Byte| | |
 |MC_SetAllParams|16 (0x10)|Sets ALL RW params for EVERY motor
+                TargetDir : 0 Positive Position, 1 Negative Position
                 REG_TARGET_POSITION     = 1,    // int32
                 REG_TARGET_SPEED        = 2,    // uint8
                 REG_P_CURRENT           = 6,    // uint16
@@ -32,6 +33,7 @@
                 REG_ACC_RATE            = 10,   // uint16
                 REG_DEC_RATE            = 11,   // uint16
                 ( REG_MC_CTRL = MC_CMD_UPDATE_CONFIG )| | |
+| | | |MotorA_TargetDir|U8||
 | | | |MotorA_TargetPosition|U32||
 | | | |MotorA_TargetSpeed|U8||
 | | | |MotorA_Current_P_Val|U16||
@@ -40,6 +42,7 @@
 | | | |MotorA_Speed_I_Val|U16||
 | | | |MotorA_Accel_Rate|U16||
 | | | |MotorA_Decel_Rate|U16||
+| | | |MotorB_TargetDir|U8||
 | | | |MotorB_TargetPosition|U32||
 | | | |MotorB_TargetSpeed|U8||
 | | | |MotorB_Current_P_Val|U16||
@@ -48,6 +51,7 @@
 | | | |MotorB_Speed_I_Val|U16||
 | | | |MotorB_Accel_Rate|U16||
 | | | |MotorB_Decel_Rate|U16||
+| | | |MotorC_TargetDir|U8||
 | | | |MotorC_TargetPosition|U32||
 | | | |MotorC_TargetSpeed|U8||
 | | | |MotorC_Current_P_Val|U16||
@@ -56,6 +60,7 @@
 | | | |MotorC_Speed_I_Val|U16||
 | | | |MotorC_Accel_Rate|U16||
 | | | |MotorC_Decel_Rate|U16||
+| | | |MotorD_TargetDir|U8||
 | | | |MotorD_TargetPosition|U32||
 | | | |MotorD_TargetSpeed|U8||
 | | | |MotorD_Current_P_Val|U16||
@@ -73,6 +78,7 @@
                         (eg. AllMotors = MotorA + MotorB + MotorC + MotorD = 0x0F)
                     |
 | | | |Param_RegAddr|U8|The register address of the parameter to set.
+                        Target_Dir              = 16    // bool
                         REG_TARGET_POSITION     = 1,    // int32
                         REG_TARGET_SPEED        = 2,    // uint8
                         REG_P_CURRENT           = 6,    // uint16
@@ -87,24 +93,31 @@
                         (Registers will be type-cast from U32)
                     |
 |MC_Spin|32 (0x20)|The new value of the parameter.| | |
-| | | |Motor_ID|U8|One or All motors to update.
-                MotorA    : 0x00
-                MotorB    : 0x01
-                MotorC    : 0x02
-                MotorD    : 0x03
-                AllMotors : 0xFF
-              |
+| | | |Motor_ID|U8|Bitmask of motors to update.
+                        MotorA : 0x01
+                        MotorB : 0x02
+                        MotorC : 0x04
+                        MotorD : 0x08
+                        (eg. "Left"-side motors = MotorA + MotorD = 0x09
+                        and "Right"-side motors = MotorB + MotorC = 0x06)
+                    |
+| | | |Dir|U8|Direction motor movement
+                        Positive Ticks : 0 , Negative Ticks : 1
+                    |
 | | | |Raw_Ticks|U32|Distance to spin in ticks.
-                (Default = 20000)
-              |
+                        (Default = 20000)
+                    |
 |MC_Spin_Configured|33 (0x21)|The new value of the parameter.| | |
 | | | |Motor_ID|U8|Bitmask of motors to update.
-                      MotorA : 0x01
-                      MotorB : 0x02
-                      MotorC : 0x04
-                      MotorD : 0x08
-                      (eg. "Left"-side motors = MotorA + MotorD = 0x09
-                      and "Right"-side motors = MotorB + MotorC = 0x06)
+                        MotorA : 0x01
+                        MotorB : 0x02
+                        MotorC : 0x04
+                        MotorD : 0x08
+                        (eg. "Left"-side motors = MotorA + MotorD = 0x09
+                        and "Right"-side motors = MotorB + MotorC = 0x06)
+                    |
+| | | |Dir|U8|Bitmask of direction of each motor
+                        Positive Ticks : 0 , Negative Ticks : 1
                     |
 | | | |Raw_Ticks|U32|Distance to spin in ticks.
                       (Default = 20000)

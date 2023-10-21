@@ -95,11 +95,16 @@ namespace CubeRover
         struct MotorControllerStruct
         {
             // PROTECTED
-            MC_ICD_RegStruct *msp430_McRegStruct; // latest msp430 values
-            MC_ICD_RegStruct *herc_McRegStruct;   // expected values
+            MC_ICD_RegStruct msp430_McRegStruct; // latest msp430 values
+            MC_ICD_RegStruct herc_McRegStruct;   // expected values
 
             bool updateConfigVals;      // request sent to update config vals at next opp
             MC_STATE_t currState;
+
+            // TODO: Remove all below here
+
+            uint8_t up_to_date;
+            uint8_t target_dir;
 
             // Expected Set Values
             int32_t target_pos;
@@ -134,44 +139,44 @@ namespace CubeRover
 
         inline void setTargetPos(MotorControllerStruct *mc, int32_t target_pos)
         {
-            mc->herc_McRegStruct->mc_target_pos = target_pos;
+            mc->herc_McRegStruct.mc_target_pos = target_pos;
         }
         inline void setTargetSpeed(MotorControllerStruct *mc, int8_t target_speed)
         {
-            mc->herc_McRegStruct->mc_target_speed = target_speed;
+            mc->herc_McRegStruct.mc_target_speed = target_speed;
         }
         inline void setCurrentP(MotorControllerStruct *mc, int8_t current_p_val)
         {
-            mc->herc_McRegStruct->mc_current_p_val = current_p_val;
+            mc->herc_McRegStruct.mc_current_p_val = current_p_val;
         }
         inline void setCurrentI(MotorControllerStruct *mc, int8_t current_i_val)
         {
-            mc->herc_McRegStruct->mc_current_i_val = current_i_val;
+            mc->herc_McRegStruct.mc_current_i_val = current_i_val;
         }
         inline void setSpeedP(MotorControllerStruct *mc, int8_t speed_p_val)
         {
-            mc->herc_McRegStruct->mc_speed_p_val = speed_p_val;
+            mc->herc_McRegStruct.mc_speed_p_val = speed_p_val;
         }
         inline void setSpeedI(MotorControllerStruct *mc, int8_t speed_i_val)
         {
-            mc->herc_McRegStruct->mc_speed_p_val = speed_i_val;
+            mc->herc_McRegStruct.mc_speed_p_val = speed_i_val;
         }
         inline void setAccVal(MotorControllerStruct *mc, int8_t acc_val)
         {
-            mc->herc_McRegStruct->mc_acc_val = acc_val;
+            mc->herc_McRegStruct.mc_acc_val = acc_val;
         }
         inline void setDecVal(MotorControllerStruct *mc, int8_t dec_val)
         {
-            mc->herc_McRegStruct->mc_dec_val = dec_val;
+            mc->herc_McRegStruct.mc_dec_val = dec_val;
         }
 
-        MC_ERR_t mcEnable(MotorControllerStruct *mc);
-        MC_ERR_t mcArm(MotorControllerStruct *mc);
-        MC_ERR_t mcDrive(MotorControllerStruct *mc);
-        MC_ERR_t mcStop(MotorControllerStruct *mc);
-        MC_ERR_t mcIdle(MotorControllerStruct *mc);
-        MC_ERR_t mcClearFaults(MotorControllerStruct *mc);
-        MC_ERR_t mcReset(MotorControllerStruct *mc);
+//        MC_ERR_t mcEnable(MotorControllerStruct *mc);
+//        MC_ERR_t mcArm(MotorControllerStruct *mc);
+//        MC_ERR_t mcDrive(MotorControllerStruct *mc);
+//        MC_ERR_t mcStop(MotorControllerStruct *mc);
+//        MC_ERR_t mcIdle(MotorControllerStruct *mc);
+//        MC_ERR_t mcClearFaults(MotorControllerStruct *mc);
+//        MC_ERR_t mcReset(MotorControllerStruct *mc);
 
         MC_ERR_t mcTestSetSpeed(MotorControllerStruct *mc);
         MC_ERR_t mcTestSetPos(MotorControllerStruct *mc);

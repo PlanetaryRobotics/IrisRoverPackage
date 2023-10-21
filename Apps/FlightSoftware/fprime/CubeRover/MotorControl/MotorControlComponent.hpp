@@ -104,6 +104,7 @@ namespace CubeRover
         void MC_SetAllParams_cmdHandler(
                 const FwOpcodeType opCode, /*!< The opcode*/
                 const U32 cmdSeq, /*!< The command sequence number*/
+                U8 MotorA_TargetDir,
                 U32 MotorA_TargetPosition,
                 U8 MotorA_TargetSpeed,
                 U16 MotorA_Current_P_Val,
@@ -112,6 +113,7 @@ namespace CubeRover
                 U16 MotorA_Speed_I_Val,
                 U16 MotorA_Accel_Rate,
                 U16 MotorA_Decel_Rate,
+                U8 MotorB_TargetDir,
                 U32 MotorB_TargetPosition,
                 U8 MotorB_TargetSpeed,
                 U16 MotorB_Current_P_Val,
@@ -120,6 +122,7 @@ namespace CubeRover
                 U16 MotorB_Speed_I_Val,
                 U16 MotorB_Accel_Rate,
                 U16 MotorB_Decel_Rate,
+                U8 MotorC_TargetDir,
                 U32 MotorC_TargetPosition,
                 U8 MotorC_TargetSpeed,
                 U16 MotorC_Current_P_Val,
@@ -128,6 +131,7 @@ namespace CubeRover
                 U16 MotorC_Speed_I_Val,
                 U16 MotorC_Accel_Rate,
                 U16 MotorC_Decel_Rate,
+                U8 MotorD_TargetDir,
                 U32 MotorD_TargetPosition,
                 U8 MotorD_TargetSpeed,
                 U16 MotorD_Current_P_Val,
@@ -155,6 +159,8 @@ namespace CubeRover
                 const U32 cmdSeq, /*!< The command sequence number*/
                 U8 Motor_ID, /*!< One or All motors to update.
                     MotorA:0x00 , MotorB:0x01 , MotorC:0x02 , MotorB:0x03 , AllMotors:0xFF*/
+                U8 Dir, /*!< Direction motor movement
+                                Positive Ticks : 0 , Negative Ticks : 1*/
                 U32 Raw_Ticks /*!< Distance to spin in ticks. (Default = 20000)*/
         );
 
@@ -165,6 +171,8 @@ namespace CubeRover
                 const U32 cmdSeq, /*!< The command sequence number*/
                 U8 Motor_ID, /*!< Bitmask of motors to update.
                     MotorA:0x01 , MotorB:0x02 , MotorC:0x04 , MotorD:0x08 , AllMotors:0x0F*/
+                U8 Dir, /*!< Direction motor movement
+                                Positive Ticks : 0 , Negative Ticks : 1*/
                 U32 Raw_Ticks, /*!< Distance to spin in ticks. (Default = 20000)*/
                 U8 Percent_Speed /*!< Speed set by percent of MAX_SPEED. (Default = 70)*/
         );

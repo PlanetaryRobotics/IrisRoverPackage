@@ -174,6 +174,8 @@ typedef struct McI2cDataPkt
 
 void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr);
 McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID);
+uint8_t checkRegWritePermission(MC_ICD_RegAddr reg);
+uint8_t checkCmdExecPermission(MC_ICD_Ctrl cmd);
 
 #ifdef __cplusplus
 }

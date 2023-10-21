@@ -353,6 +353,22 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_FPGA'),
         DataPathway.WIRED
     ),
+    'power-on-fpga': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRED
+    ),
+    'power-off-fpga': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
+        DataPathway.WIRED
+    ),
     'reset-fpga-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
@@ -361,20 +377,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_FPGA'),
         DataPathway.WIRELESS
     ),
-    'power-off-fpga-wifi': (
-        DataPathway.WIRELESS,
-        Magic.COMMAND,
-        'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
-        OrderedDict(reset_value='FPGA_POWER_OFF'),
-        DataPathway.WIRELESS
-    ),
     'power-on-fpga-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
         # Change this to whatever you want to reset.
         OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRELESS
+    ),
+    'power-off-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
         DataPathway.WIRELESS
     ),
     '3v3-on': (
@@ -897,7 +913,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'MotorControl_McSpinConfigured',
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
-        OrderedDict(motor_id=0x01, dir=0x0F, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x01, dir=0x00, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-ad': (
@@ -907,7 +923,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # MotorA + MotorD: 0x09
-        OrderedDict(motor_id=0x09, dir=0x0F, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x09, dir=0x00, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-all': (
@@ -917,7 +933,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # All Motors: 0x0F
-        OrderedDict(motor_id=0x0F, dir=0x0F, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x0F, dir=0x00, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-all-back': (

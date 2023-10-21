@@ -36,10 +36,6 @@ extern uint32_t g_drivingTimeoutCtr;
 extern uint16_t g_accelRate, g_decelRate;
 extern CmdState g_cmdState;
 
-extern CommandValue mc_cmd;
-extern StateValue mc_state;
-extern FaultValue mc_fault;
-
 
 /**
  * @brief      Disables i 2 c receive interrupt.

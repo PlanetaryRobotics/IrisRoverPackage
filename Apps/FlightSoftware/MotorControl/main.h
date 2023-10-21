@@ -21,7 +21,7 @@
 #include "mod6_cnt.h"
 #include "impulse.h"
 #include <msp430.h>
-#include "mc_interface_defs.h"
+#include "ICD_MotorControl.h"
 
 /* ============================================
  *          Bits of Registers

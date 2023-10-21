@@ -58,7 +58,7 @@ typedef enum MC_ICD_RegAddr
     MC_REG_MC_CTRL             = 12,   // RW - 1 Byte
     MC_REG_MC_STATUS           = 13,   // RO - 1 Byte
     MC_REG_MC_FAULT            = 14,   // RO - 1 Byte
-    MC_REG_MAX                 = 16
+    MC_REG_MAX
 } MC_ICD_RegAddr;
 
 //uint8_t mc_i2cCmdLen[MC_REG_MAX] = {

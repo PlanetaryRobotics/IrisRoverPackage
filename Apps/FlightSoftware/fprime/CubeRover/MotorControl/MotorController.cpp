@@ -15,7 +15,7 @@ namespace CubeRover
     {
         mc->i2c_addr = MC_SLAVE_I2C_ADDR_BASE + id;
         initMcRegStruct(&(mc->msp430_McRegStruct), mc->i2c_addr);
-        initMcRegStruct(&(mc->herc_McRegStruct), MC_SLAVE_I2C_ADDR_BASE + id);
+        initMcRegStruct(&(mc->herc_McRegStruct), mc->i2c_addr);
 
         mc->updateConfigVals = false;
         mc->currState = STATE_POWERED_OFF;
@@ -76,11 +76,11 @@ namespace CubeRover
             return ERR_WRITE_PROTECTED;
         }
 
-        I2cSlaveAddress_t addr = mc->i2c_addr;
-        uint8_t reg_buffer = static_cast<uint8_t>(reg);
-        uint32_t dataLen = regSizeMap(reg);;
-        uint8_t *data;
-        getReg(&(mc->herc_McRegStruct), reg, &data);
+        McI2cDataPkt pkt = makeMcI2cDataPkt(&(mc->herc_McRegStruct), reg);
+        I2cSlaveAddress_t addr = pkt.addr;
+        uint8_t reg_buffer = pkt.regID;
+        uint32_t dataLen = pkt.dataLen;
+        uint8_t *data = pkt.data;
 
         if (data == NULL) {
             return ERR_GETTING_PARAMS;

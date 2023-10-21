@@ -328,7 +328,7 @@ namespace CubeRover
          * ------------------------------------------
          */
 
-        MCError_t OG_Spin_Handler(const FwOpcodeType opCode, const U32 cmdSeq,
+        bool OG_Spin_Handler(const FwOpcodeType opCode, const U32 cmdSeq,
                     U8 Motor_ID, U8 Dir, U32 Raw_Ticks);
 
         // Tightly coupled to *_ADDR and *_ID defines

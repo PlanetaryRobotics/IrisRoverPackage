@@ -162,7 +162,8 @@ void hercules_monitor(HerculesComms__State *hState,
                       volatile uint32_t *watchdogFlags,
                       uint8_t *watchdogOpts,
                       BOOL *writeIOExpander,
-                      WatchdogStateDetails *details)
+                      WatchdogStateDetails *details,
+                      UART__State *uart0State)
 {
     // Quick and dirty parameters for tuning Hercules Monitoring:
     // How many consequtive kicks has hercules missed since being reset:
@@ -945,11 +946,12 @@ int watchdog_monitor(HerculesComms__State *hState,
         *watchdogFlags ^= WDFLAG_ADC_READY;
     }
 
+    /* Check if hercules has given a valid kick: */
+    hercules_monitor(hState, watchdogFlags, watchdogOpts, writeIOExpander, details, uart0State);
+
     /* Handle Updating the Safety Timer: */
     safety_timer_handler(hState, watchdogFlags, watchdogOpts, writeIOExpander, details, uart0State);
 
-    /* Check if hercules has given a valid kick: */
-    hercules_monitor(hState, watchdogFlags, watchdogOpts, writeIOExpander, details);
 
     /* re-enable interrupts */
     __enable_interrupt();

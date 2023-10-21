@@ -877,6 +877,7 @@ int watchdog_monitor(HerculesComms__State *hState,
     {
         powerOnHercules();
         SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_POWER_ON);
+        watchdogFlags ^= WDFLAG_POWER_ON_HERCULES;
         DPRINTF("(Re)booted Hercules.");
     }
 

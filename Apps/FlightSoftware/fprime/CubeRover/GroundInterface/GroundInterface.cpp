@@ -355,10 +355,11 @@ namespace CubeRover
                 packet->payload0.file.header.totalBlocks = numBlocks;
                 packet->payload0.file.header.blockNumber = blockNum;
                 FswPacket::FileLength_t blockLength;
-                if (blockNum < numBlocks)
+                if (blockNum <= numBlocks)
                 { // Send full datagram fragment
                     blockLength = readStride;
-                    dataSize -= blockLength;
+                    FW_ASSERT(dataSize > 0);
+                    blockLength =  blockLength < static_cast<FswPacket::FileLength_t>(dataSize) ? blockLength : static_cast<FswPacket::FileLength_t>(dataSize);
                     packet->payload0.file.header.length = blockLength;
                     memcpy(&packet->payload0.file.file.byte0, data, blockLength);
                     FswPacket::Length_t datagramLength = sizeof(struct FswPacket::FswPacketHeader) + sizeof(struct FswPacket::FswFileHeader) + blockLength;
@@ -369,6 +370,12 @@ namespace CubeRover
                     downlink(downlinkBuffer, datagramLength);
                     haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
                     data += blockLength;
+
+                    if(blockNum == numBlocks){
+                        flushTlmDownlinkBuffer(); // TESTING!! DOWNLINK FINAL BLOCK WITHOUT INTERRUPTION
+                        haltIdleUntilPacketDownlinkComplete(startUdpTxCount);
+                        haltIdleUntilRoomForImageLine();           // Make sure there's room before sending anything
+                    }
                 }
                 else
                 { // Final Fragment is written to the member buffer to downlink with other objects

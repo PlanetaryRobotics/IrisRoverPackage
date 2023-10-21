@@ -235,8 +235,8 @@ void hercules_monitor(HerculesComms__State *hState,
                     *watchdogFlags |= WDFLAG_UNRESET_HERCULES;
                     SET_RABI_IN_UINT(details->m_resetActionBits, RABI__HERCULES_WATCHDOG_RESET);
 
-                    // if the issue was due to a comms breakdown, reset the comms state
-                    if (NULL != hState)
+                    // if the issue was due to a comms MPSM breakdown, reset the comms state
+                    if (NULL != hState && UART__isInitialized(uart0State))
                     {
                         DPRINTF("\t Resetting Hercules Comms . . .");
                         HerculesComms__Status hcStatus = HerculesComms__resetState(hState);

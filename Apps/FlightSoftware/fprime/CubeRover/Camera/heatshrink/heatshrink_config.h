@@ -18,7 +18,7 @@
 // NOTE: Lesser values for WINDOW_BITS are acceptable if necessary to save
 // space.
 #define HEATSHRINK_STATIC_WINDOW_BITS 8
-#define HEATSHRINK_STATIC_LOOKAHEAD_BITS 4
+#define HEATSHRINK_STATIC_LOOKAHEAD_BITS 3
 #endif
 
 /* Turn on logging for debugging. */

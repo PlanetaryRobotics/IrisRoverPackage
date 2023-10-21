@@ -1058,7 +1058,7 @@ namespace iris
                                                             WdCmdMsgs__Response &deployNotificationResponse,
                                                             bool &sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
+        theContext.m_details.m_hParams.persistent->m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
         // Flag that the thresholds have changed:
         theContext.m_details.m_hParams.m_thresholdsChanged = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
@@ -1071,7 +1071,7 @@ namespace iris
                                                              WdCmdMsgs__Response &deployNotificationResponse,
                                                              bool &sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
+        theContext.m_details.m_hParams.persistent->m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
         // Flag that the thresholds have changed:
         theContext.m_details.m_hParams.m_thresholdsChanged = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
@@ -1086,10 +1086,10 @@ namespace iris
     {
         const uint16_t &newDutyCycle = msg.body.setHeaterDutyCycle.dutyCycle;
         // NOTE: TB0CCR0 (max count) is set to m_heaterDutyCyclePeriod-1 (so we need to be < that).
-        if (newDutyCycle < theContext.m_details.m_hParams.m_heaterDutyCyclePeriod)
+        if (newDutyCycle < theContext.m_details.m_hParams.persistent->m_heaterDutyCyclePeriod)
         {
             TB0CCR2 = newDutyCycle;
-            theContext.m_details.m_hParams.m_heaterDutyCycle = newDutyCycle;
+            theContext.m_details.m_hParams.persistent->m_heaterDutyCycle = newDutyCycle;
             response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         }
         else
@@ -1106,7 +1106,7 @@ namespace iris
                                                                 bool &sendDeployNotificationResponse)
     {
         TB0CCR0 = msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
-        theContext.m_details.m_hParams.m_heaterDutyCyclePeriod =
+        theContext.m_details.m_hParams.persistent->m_heaterDutyCyclePeriod =
             msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
@@ -2042,13 +2042,13 @@ namespace iris
             break;
 
         case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
-            theContext.m_details.m_hParams.m_heatingControlEnabled = true;
+            theContext.m_details.m_hParams.persistent->m_heatingControlEnabled = true;
             enableHeater();
             SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_ENABLE);
             break;
 
         case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_DISABLE:
-            theContext.m_details.m_hParams.m_heatingControlEnabled = false;
+            theContext.m_details.m_hParams.persistent->m_heatingControlEnabled = false;
             /**
              * @warning TB0CCR2 should ~NOT~ be set here. It should only be set in two places: when Timer_B is
              *          initialized (where TB0CCR2 is set to its default value), and in the handler for the

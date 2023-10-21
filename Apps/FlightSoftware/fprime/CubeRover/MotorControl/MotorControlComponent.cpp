@@ -191,7 +191,7 @@ namespace CubeRover
         mc->speed_p_val = MotorA_Speed_I_Val;
         mc->acc_val = MotorA_Accel_Rate;
         mc->dec_val = MotorA_Decel_Rate;
-        mc->up_to_date = 0xFF;
+//        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         mc = &m_motor_controllers[MOTOR_B];
@@ -203,7 +203,7 @@ namespace CubeRover
         mc->speed_p_val = MotorB_Speed_I_Val;
         mc->acc_val = MotorB_Accel_Rate;
         mc->dec_val = MotorB_Decel_Rate;
-        mc->up_to_date = 0xFF;
+//        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         mc = &m_motor_controllers[MOTOR_C];
@@ -215,7 +215,7 @@ namespace CubeRover
         mc->speed_p_val = MotorC_Speed_I_Val;
         mc->acc_val = MotorC_Accel_Rate;
         mc->dec_val = MotorC_Decel_Rate;
-        mc->up_to_date = 0xFF;
+//        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         mc = &m_motor_controllers[MOTOR_D];
@@ -227,7 +227,7 @@ namespace CubeRover
         mc->speed_p_val = MotorD_Speed_I_Val;
         mc->acc_val = MotorD_Accel_Rate;
         mc->dec_val = MotorD_Decel_Rate;
-        mc->up_to_date = 0xFF;
+//        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         m_updateParams = true;
@@ -250,7 +250,9 @@ namespace CubeRover
                                                                 U8 Param_RegAddr,
                                                                 U32 Param_NewValue)
     {
-        // TODO
+        if (containsMotorID(Motor_ID, MOTOR_A)) {
+            setTargetPos(&m_motor_controllers[MOTOR_A], Param_NewValue);
+        }
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
@@ -754,7 +756,7 @@ namespace CubeRover
         mc_mutex.lock();
         for (int i = 0; i < NUM_MOTORS; i++)
         {
-            err_test[i] = getMcFault(&m_motor_controllers[i]);
+            err_test[i] = getMcRegFault(&m_motor_controllers[i]);
             fault_test[i] = m_motor_controllers[i].faultReg;
         }
         mc_mutex.unLock();
@@ -769,7 +771,7 @@ namespace CubeRover
         mc_mutex.lock();
         for (int i = 0; i < NUM_MOTORS; i++)
         {
-            err_test[i] = getMcFault(&m_motor_controllers[i]);
+            err_test[i] = getMcRegFault(&m_motor_controllers[i]);
             state_test[i] = m_motor_controllers[i].stateReg;
         }
         mc_mutex.unLock();

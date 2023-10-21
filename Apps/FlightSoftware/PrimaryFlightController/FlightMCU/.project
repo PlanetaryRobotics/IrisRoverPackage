@@ -30,11 +30,6 @@
 			<type>2</type>
 			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
 		</link>
-		<link>
-			<name>SharedConfigs</name>
-			<type>2</type>
-			<locationURI>PARENT-4-PROJECT_LOC/Libs/FlightSoftware</locationURI>
-		</link>
 	</linkedResources>
 	<variableList>
 		<variable>

@@ -13,7 +13,7 @@
 
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 #include "MotorController_i2c.h"
-#include "Include/Shared_Libs/MotorControl/IrisMotorControlConfig.h"
+#include "ICD_MotorControl.h"
 
 #include <Os/Mutex.hpp>
 
@@ -36,37 +36,38 @@ namespace CubeRover
             NO_ERR,
             ERR_i2c_READ,
             ERR_i2c_WRITE,
+            ERR_BAD_REG_ADDR,
             ERR_BAD_STATE,
             ERR_WRITE_PROTECTED,
-            ERR_UPDATING_ALL_PARAMS,
+            ERR_GETTING_PARAMS,
+            ERR_SETTING_PARAMS,
             UNKNOWN
         } MC_ERR_t;
 
         typedef enum
         {
-            NO_UPDATES          = 0,
-            UPDATE_TARGET_POS   = 1,
-            UPDATE_TARGET_SPEED = 2,
-            UPDATE_CURRENT_P    = 4,
-            UPDATE_CURRENT_I    = 8,
-            UPDATE_SPEED_P      = 16,
-            UPDATE_SPEED_I      = 32,
-            UPDATE_ACC_RATE     = 64,
-            UPDATE_DEC_RATE     = 128
-        } RegUpdateFlags;
+            STATE_POWERED_OFF,
+            STATE_IDLE,
+            STATE_ENABLED,
+            STATE_ARMED,
+            STATE_RUNNING,
+            STATE_WRITE_PROTECTED,
+            STATE_FAULT,
+            STATE_UNKNOWN
+        }MC_STATE_t;
 
-        // --- MC i2c STATE Register Values
-        typedef enum StateValue
+        typedef enum
         {
-            STATE_UNKNOWN           = 0,
-            STATE_FAULT             = 1,
-            STATE_IDLE              = 2,
-            STATE_ENABLED           = 4,
-            STATE_ARMED             = 8,
-            STATE_RUNNING           = 16,
-            STATE_TARGET_REACHED    = 32,
-            STATE_DISABLED          = 64
-        } StateValue;
+            NO_UPDATES = 0,
+            UPDATE_TARGET_POS = 1,
+            UPDATE_TARGET_SPEED = 2,
+            UPDATE_CURRENT_P = 4,
+            UPDATE_CURRENT_I = 8,
+            UPDATE_SPEED_P = 16,
+            UPDATE_SPEED_I = 32,
+            UPDATE_ACC_RATE = 64,
+            UPDATE_DEC_RATE = 128
+        } UpdateMask;
 
         // TODO : REMOVE
         typedef union
@@ -93,16 +94,16 @@ namespace CubeRover
          */
         struct MotorControllerStruct
         {
-            uint8_t up_to_date;
+            // PROTECTED
+            MC_ICD_RegStruct *msp430_McRegStruct; // latest msp430 values
+            MC_ICD_RegStruct *herc_McRegStruct;   // expected values
 
-            I2cSlaveAddress_t i2c_addr;
+            bool updateConfigVals;      // request sent to update config vals at next opp
+            MC_STATE_t currState;
 
+            // Expected Set Values
             int32_t target_pos;
             int16_t target_speed;
-
-            int32_t curr_pos; // encoder ticks
-            int16_t curr_speed;
-            uint32_t curr_current;
 
             int8_t current_p_val;
             int8_t current_i_val;
@@ -111,65 +112,57 @@ namespace CubeRover
             int8_t acc_val;
             int8_t dec_val;
 
-            ControlRegister_t ctrlReg;
-            StateRegister_t stateReg;
-            FaultRegister_t faultReg;
+            McCtrlVal_t ctrlReg;
+            McStateVal_t stateReg;
+            McFaultMask_t faultReg;
         };
 
         void initMotorController(MotorControllerStruct *mc, uint8_t id);
 
-
         // NOT MUTEX SAFE
-        MC_ERR_t getMcRegVal(I2cSlaveAddress_t i2c_addr, MC_ICD_RegAddr reg, uint32_t dataLen, void *_data);
-        MC_ERR_t setMcRegVal(I2cSlaveAddress_t i2c_addr, MC_ICD_RegAddr reg, uint32_t dataLen, void *_data);
+        MC_ERR_t readMcRegVal(MotorControllerStruct *mc, MC_ICD_RegAddr reg);
+        MC_ERR_t writeMcRegVal(MotorControllerStruct *mc, MC_ICD_RegAddr reg);
+//        MC_ERR_t readMcRegI2c(McI2cAddr_t i2c_addr, MC_ICD_RegAddr reg, uint32_t dataLen, void *_data);
 
         // MUTEX SAFE
-        MC_ERR_t getMcState(MotorControllerStruct *mc);
-        MC_ERR_t getMcFault(MotorControllerStruct *mc);
-        MC_ERR_t getMcAll(MotorControllerStruct *mc);
+        MC_ERR_t assertHercConfigState(MotorControllerStruct *mc);
 
-        MC_ERR_t setMcAll(MotorControllerStruct *mc);
+        MC_ERR_t setMcRegAll(MotorControllerStruct *mc);
+
+        MC_ERR_t setMcParam(MotorControllerStruct *mc, MC_ICD_RegAddr param, uint32_t val);
 
 
         inline void setTargetPos(MotorControllerStruct *mc, int32_t target_pos)
         {
-            mc->target_pos = target_pos;
-            mc->up_to_date |= UPDATE_TARGET_POS;
+            mc->herc_McRegStruct->mc_target_pos = target_pos;
         }
         inline void setTargetSpeed(MotorControllerStruct *mc, int8_t target_speed)
         {
-            mc->target_speed = target_speed;
-            mc->up_to_date |= UPDATE_TARGET_SPEED;
+            mc->herc_McRegStruct->mc_target_speed = target_speed;
         }
         inline void setCurrentP(MotorControllerStruct *mc, int8_t current_p_val)
         {
-            mc->current_p_val = current_p_val;
-            mc->up_to_date |= UPDATE_CURRENT_P;
+            mc->herc_McRegStruct->mc_current_p_val = current_p_val;
         }
         inline void setCurrentI(MotorControllerStruct *mc, int8_t current_i_val)
         {
-            mc->current_i_val = current_i_val;
-            mc->up_to_date |= UPDATE_CURRENT_I;
+            mc->herc_McRegStruct->mc_current_i_val = current_i_val;
         }
         inline void setSpeedP(MotorControllerStruct *mc, int8_t speed_p_val)
         {
-            mc->speed_p_val = speed_p_val;
-            mc->up_to_date |= UPDATE_SPEED_P;
+            mc->herc_McRegStruct->mc_speed_p_val = speed_p_val;
         }
         inline void setSpeedI(MotorControllerStruct *mc, int8_t speed_i_val)
         {
-            mc->speed_p_val = speed_i_val;
-            mc->up_to_date |= UPDATE_SPEED_I;
+            mc->herc_McRegStruct->mc_speed_p_val = speed_i_val;
         }
         inline void setAccVal(MotorControllerStruct *mc, int8_t acc_val)
         {
-            mc->acc_val = acc_val;
-            mc->up_to_date |= UPDATE_ACC_RATE;
+            mc->herc_McRegStruct->mc_acc_val = acc_val;
         }
         inline void setDecVal(MotorControllerStruct *mc, int8_t dec_val)
         {
-            mc->dec_val = dec_val;
-            mc->up_to_date |= UPDATE_DEC_RATE;
+            mc->herc_McRegStruct->mc_dec_val = dec_val;
         }
 
         MC_ERR_t mcEnable(MotorControllerStruct *mc);

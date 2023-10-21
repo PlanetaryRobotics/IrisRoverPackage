@@ -1517,14 +1517,14 @@ namespace iris
                     (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent),
                     theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                     theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount,
-                    (uint8_t)((*watchdogFlags >> 28) & 0xF),
-                    (uint8_t)((*watchdogFlags >> 24) & 0xF),
-                    (uint8_t)((*watchdogFlags >> 20) & 0xF),
-                    (uint8_t)((*watchdogFlags >> 16) & 0xF),
-                    (uint8_t)((*watchdogFlags >> 12) & 0xF),
-                    (uint8_t)((*watchdogFlags >> 8) & 0xF),
-                    (uint8_t)((*watchdogFlags >> 4) & 0xF),
-                    (uint8_t)(*watchdogFlags & 0xF)
+                    (uint8_t)((theContext.m_watchdogFlags >> 28) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 24) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 20) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 16) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 12) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 8) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 4) & 0xF),
+                    (uint8_t)(theContext.m_watchdogFlags & 0xF)
                     //
                 );
             }

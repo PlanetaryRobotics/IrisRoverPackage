@@ -51,11 +51,11 @@ app.setLogLevel('VERBOSE')
 OUTPUT_DIR_ROOT: Final[str] = './out/image_file_decodings/'
 
 # Prefix to apply to all files:
-FILE_PREFIX: Final[str] = 'RC9_Test_Img'
+FILE_PREFIX_DEFAULT: Final[str] = 'RC9_Test_Img'
 
 # Default number of lines in an image:
 DEFAULT_IMAGE_LINE_COUNT: Final[int] = 1944
-DEFAULT_IMAGE_WIDTH: Final[int] = 2592
+DEFAULT_IMAGE_WIDTH: Final[int] = 512*6  # 2592  (all 6 pages now)
 
 FileIdType: TypeAlias = int
 
@@ -417,6 +417,8 @@ _LIP_T: TypeAlias = OrderedDict[int, ImageLine]
 
 @dataclass
 class Image:
+    FILE_PREFIX = FILE_PREFIX_DEFAULT
+
     # Ordered Map of image line numbers to the `ImageLine` objects built.
     # Using an OrderedDict instead of just a list b/c it will preserve both
     # received order and intended order and doesn't have to keep changing size
@@ -468,7 +470,7 @@ class Image:
         """Unique prefix to start all file names with.
         ULID before FGID so the names are lexicographically sortable:
         """
-        return f"img_{FILE_PREFIX}__{self.ulid_start}__{self.file_group_id}"
+        return f"img_{self.FILE_PREFIX}__{self.ulid_start}__{self.file_group_id}"
 
     @property
     def num_lines_found(self) -> int:
@@ -887,6 +889,99 @@ class Image:
             f"Lines with Corrupted Data:\t {num_corrupted_lines}",
         ]
 
+    def _check_save_dir(self) -> str:
+        # Make sure the save directory exists. Returns the save directory path.
+        if not os.path.exists(OUTPUT_DIR_ROOT):
+            os.makedirs(OUTPUT_DIR_ROOT)
+        # Make the directory for all the files in this image:
+        OUTPUT_DIR: Final = os.path.join(OUTPUT_DIR_ROOT, self.file_name_base)
+        if not os.path.exists(OUTPUT_DIR):
+            os.makedirs(OUTPUT_DIR)
+        return OUTPUT_DIR
+
+    def save_raw(self) -> None:
+        """Most basic save operation to just save the raw data of this File and
+        a pickle representation of this Image for later use."""
+        app.logger.notice(f"Saving Raw {self.file_name_base} . . .")
+        # Validate file first:
+        if not self.validate():
+            app.logger.warning(
+                f"Saving file {self.file_name_base} but it's not valid and "
+                f"likely contains corruption. "
+                f"Other warnings should have been logged earlier "
+                f"providing more details. "
+                f"File: `{self}`"
+            )
+
+        # Log status report:
+        full_report = (
+            f"\tReport for Image {self.file_group_id}: \n\t\t"
+            + ',\n\t\t'.join(self.report())
+        )
+        app.logger.info(full_report)
+
+        # Get data for all lines:
+        app.logger.info("Assembling Image . . .")
+        lines_data: List[bytes] = \
+            self.assemble(equalize_lengths=True, pad_byte=b'\xAA')
+
+        # Build 2D integer array (split byte streams):
+        app.logger.info("Building Integer Image . . .")
+        lines_arr = [[int(x) for x in l] for l in lines_data]
+
+        # Build raw file stream:
+        app.logger.info("Building Raw File . . .")
+        raw_file_data = b''.join(lines_data)
+
+        # Build raw (greyscale, possibly bayered) image:
+        app.logger.info("Building Raw Image . . .")
+        raw_img = np.array(lines_arr, dtype=np.uint8)
+
+        OUTPUT_DIR: Final = self._check_save_dir()
+
+        # Save file report:
+        report_file_name = self.file_name_base + ".report.txt"
+        report_file_path = os.path.join(OUTPUT_DIR, report_file_name)
+        app.logger.notice(
+            f"\tSaving file report to {report_file_path} . . ."
+        )
+        with open(report_file_path, "w") as report_file:
+            report_file.write(full_report + '\n')
+
+        # Save a pickle of the entire Image object (an exact clone of this
+        # object will allow us to retroactively investigate data that doesn't
+        # make it into the final copy of the image, e.g. multiple copies of
+        # image line blocks):
+        pickle_file_name = self.file_name_base + ".image.pkl"
+        pickle_file_path = os.path.join(OUTPUT_DIR, pickle_file_name)
+        app.logger.notice(
+            f"\tSaving Image pickle to {pickle_file_path} . . ."
+        )
+        with open(pickle_file_path, 'wb') as handle:
+            pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        # Save raw file data:
+        raw_file_name = self.file_name_base + ".raw"
+        raw_file_path = os.path.join(OUTPUT_DIR, raw_file_name)
+        app.logger.notice(
+            f"\tSaving raw file to {raw_file_path} . . ."
+        )
+        with open(raw_file_path, "wb") as raw_file:
+            # Write bytes to file
+            raw_file.write(raw_file_data)
+
+        # Save raw (greyscale, possibly bayered) image:
+        raw_img_name = self.file_name_base + ".raw.png"
+        raw_img_path = os.path.join(OUTPUT_DIR, raw_img_name)
+        app.logger.notice(
+            f"\tSaving {' x '.join(str(x) for x in raw_img.shape)} "
+            f"raw (greyscale, possibly bayered) image "
+            f"to {raw_img_path} . . ."
+        )
+        cv2.imwrite(raw_img_path, raw_img)
+
+        app.logger.success(f"Saved {self.file_name_base}.")
+
     def save(self, interp: bool = True, debayer: bool = True) -> None:
         app.logger.notice(f"Saving {self.file_name_base} . . .")
 
@@ -949,7 +1044,7 @@ class Image:
                 + txt_file_data[i]
             )
 
-        # Building  image:
+        # Building image:
         if interp:
             app.logger.info("Building Interpolated Image (very long) . . .")
             interp_image = self.interim_build(interpolate_unknown=True)
@@ -966,13 +1061,7 @@ class Image:
             app.logger.info("Building Debayered Color Image . . .")
             color_img = cv2.cvtColor(raw_img, cv2.COLOR_BAYER_BG2BGR)
 
-        # Make sure the save directory exists:
-        if not os.path.exists(OUTPUT_DIR_ROOT):
-            os.makedirs(OUTPUT_DIR_ROOT)
-        # Make the directory for all the files in this image:
-        OUTPUT_DIR: Final = os.path.join(OUTPUT_DIR_ROOT, self.file_name_base)
-        if not os.path.exists(OUTPUT_DIR):
-            os.makedirs(OUTPUT_DIR)
+        OUTPUT_DIR: Final = self._check_save_dir()
 
         # Save file report:
         report_file_name = self.file_name_base + ".report.txt"
@@ -1111,6 +1200,7 @@ class Image:
 
 @dataclass
 class BasicImageDecoder:
+    FILE_PREFIX = FILE_PREFIX_DEFAULT
     images_in_progress: Dict[FileIdType, Image]
 
     @classmethod
@@ -1132,6 +1222,7 @@ class BasicImageDecoder:
         file_group_id = block.file_group_id
         if file_group_id not in self.images_in_progress:
             self.images_in_progress[file_group_id] = Image.new_blank()
+            self.images_in_progress[file_group_id].FILE_PREFIX = self.FILE_PREFIX
 
         image = self.images_in_progress[file_group_id]
 
@@ -1143,6 +1234,11 @@ class BasicImageDecoder:
             )
             image.save()
             self.finish_image(file_group_id)
+
+    def export_all_raw(self):
+        """Forces an export of just raw data for all current in-process images."""
+        for image in self.images_in_progress.values():
+            image.save_raw()
 
     def export_all(self, interp: bool = True, debayer: bool = True):
         """Forces an export of all current in-process images."""

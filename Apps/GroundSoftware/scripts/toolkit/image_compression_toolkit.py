@@ -16,7 +16,7 @@ from typing import Final, Tuple, List, Dict
 N_BIN_DEFAULT: Final[int] = 7
 # Heatshrink settings, shown by heatshrink test sandbox to be optimal values
 # for our images:
-HS_WINDOW: Final[int] = 10
+HS_WINDOW: Final[int] = 8
 HS_LOOKAHEAD: Final[int] = 3
 
 

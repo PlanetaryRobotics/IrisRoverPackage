@@ -281,15 +281,14 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         // very long windows we want this to be off than deactivated a bit
         // during the short window where we have both on, so default to off.
         DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_1X: 0x%x%x:%x%x:%x%x:%x%x. Turning bits off.",
-                // More advanced hex sprintf don't work in this env, so we have to do this:
-                (*watchdogFlags >> 28) & 0xF,
-                (*watchdogFlags >> 24) & 0xF,
-                (*watchdogFlags >> 20) & 0xF,
-                (*watchdogFlags >> 16) & 0xF,
-                (*watchdogFlags >> 12) & 0xF,
-                (*watchdogFlags >> 8) & 0xF,
-                (*watchdogFlags >> 4) & 0xF,
-                *watchdogFlags & 0xF
+                (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                (uint8_t)(*watchdogFlags & 0xF)
                 //
         );
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
@@ -300,14 +299,14 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2B))
     {
         DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_2X: 0x%x%x:%x%x:%x%x:%x%x. Turning bits off.",
-                (*watchdogFlags >> 28) & 0xF,
-                (*watchdogFlags >> 24) & 0xF,
-                (*watchdogFlags >> 20) & 0xF,
-                (*watchdogFlags >> 16) & 0xF,
-                (*watchdogFlags >> 12) & 0xF,
-                (*watchdogFlags >> 8) & 0xF,
-                (*watchdogFlags >> 4) & 0xF,
-                *watchdogFlags & 0xF
+                (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                (uint8_t)(*watchdogFlags & 0xF)
                 //
         );
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
@@ -318,14 +317,14 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1B))
     {
         DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_1X: 0x%x%x:%x%x:%x%x:%x%x. Turning bits off.",
-                (*watchdogFlags >> 28) & 0xF,
-                (*watchdogFlags >> 24) & 0xF,
-                (*watchdogFlags >> 20) & 0xF,
-                (*watchdogFlags >> 16) & 0xF,
-                (*watchdogFlags >> 12) & 0xF,
-                (*watchdogFlags >> 8) & 0xF,
-                (*watchdogFlags >> 4) & 0xF,
-                *watchdogFlags & 0xF
+                (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                (uint8_t)(*watchdogFlags & 0xF)
                 //
         );
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
@@ -336,14 +335,14 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2B))
     {
         DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_2X: 0x%x%x:%x%x:%x%x:%x%x. Turning bits off.",
-                (*watchdogFlags >> 28) & 0xF,
-                (*watchdogFlags >> 24) & 0xF,
-                (*watchdogFlags >> 20) & 0xF,
-                (*watchdogFlags >> 16) & 0xF,
-                (*watchdogFlags >> 12) & 0xF,
-                (*watchdogFlags >> 8) & 0xF,
-                (*watchdogFlags >> 4) & 0xF,
-                *watchdogFlags & 0xF
+                (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                (uint8_t)(*watchdogFlags & 0xF)
                 //
         );
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
@@ -354,14 +353,14 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3B))
     {
         DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_3X: 0x%x%x:%x%x:%x%x:%x%x. Turning bits off.",
-                (*watchdogFlags >> 28) & 0xF,
-                (*watchdogFlags >> 24) & 0xF,
-                (*watchdogFlags >> 20) & 0xF,
-                (*watchdogFlags >> 16) & 0xF,
-                (*watchdogFlags >> 12) & 0xF,
-                (*watchdogFlags >> 8) & 0xF,
-                (*watchdogFlags >> 4) & 0xF,
-                *watchdogFlags & 0xF
+                (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                (uint8_t)(*watchdogFlags & 0xF)
                 //
         );
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
@@ -372,14 +371,14 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4B))
     {
         DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_4X: 0x%x%x:%x%x:%x%x:%x%x. Turning bits off.",
-                (*watchdogFlags >> 28) & 0xF,
-                (*watchdogFlags >> 24) & 0xF,
-                (*watchdogFlags >> 20) & 0xF,
-                (*watchdogFlags >> 16) & 0xF,
-                (*watchdogFlags >> 12) & 0xF,
-                (*watchdogFlags >> 8) & 0xF,
-                (*watchdogFlags >> 4) & 0xF,
-                *watchdogFlags & 0xF
+                (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                (uint8_t)(*watchdogFlags & 0xF)
                 //
         );
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;

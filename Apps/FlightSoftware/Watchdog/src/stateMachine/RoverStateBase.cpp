@@ -1512,13 +1512,21 @@ namespace iris
                 // Safety Timer is inactive in KA b/c `watchdog_monitor` is
                 // inactive in KA (nothing to WD).
                 DebugComms__tryPrintfToLanderNonblocking(
-                    "[ST] ON:0x%x \t @: 0x%x/0x%x %d/10 \tWF:0x%x:%x",
+                    "[ST] ON:0x%x \t @: 0x%x/0x%x %d/10 \tWF:0x%x%x:%x%x:%x%x:%x%x",
                     theContext.m_details.m_safetyTimerParams.timerRebootControlOn,
                     (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent),
                     theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
                     theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount,
-                    (theContext.m_watchdogFlags >> 16) & 0xFFFF,
-                    theContext.m_watchdogFlags & 0xFFFF);
+                    (uint8_t)((*watchdogFlags >> 28) & 0xF),
+                    (uint8_t)((*watchdogFlags >> 24) & 0xF),
+                    (uint8_t)((*watchdogFlags >> 20) & 0xF),
+                    (uint8_t)((*watchdogFlags >> 16) & 0xF),
+                    (uint8_t)((*watchdogFlags >> 12) & 0xF),
+                    (uint8_t)((*watchdogFlags >> 8) & 0xF),
+                    (uint8_t)((*watchdogFlags >> 4) & 0xF),
+                    (uint8_t)(*watchdogFlags & 0xF)
+                    //
+                );
             }
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcHbStatus);

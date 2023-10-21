@@ -577,6 +577,11 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         DPRINTF("\t SAFETY TIMER: PWR_OFF_2");
         // Perform SERVICE -> KA power transitions:
 
+        // Having Hercules Monitor on during this can cause a sec violation.
+        // So, to be EXTRA sure it's off and stays off (even against bitflips),
+        // let's re-disable it at the start of every reboot state:
+        *watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+
         // transition to EnteringKeepAlive: Nothing.
         // EnteringKeepAlive::transitionTo: Nothing.
         // EnteringKeepAlive::transitionToWaitingForIoExpanderWrite:
@@ -639,6 +644,9 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         DPRINTF("\t SAFETY TIMER: PWR_ON_1");
         // Perform KA -> SERVICE power transitions:
 
+        // Be EXTRA sure Hercules Monitoring is still off:
+        *watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+
         // transition to EnteringService: Nothing.
         // EnteringService::transitionTo: Nothing.
         // EnteringService::spinOnce: Nothing.
@@ -673,6 +681,9 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         DPRINTF("\t SAFETY TIMER: PWR_ON_2");
         // Perform SERVICE -> MISSION power transitions:
 
+        // Be EXTRA sure Hercules Monitoring is still off:
+        *watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+
         // transition to EnteringMission: Nothing.
         // EnteringMission::transitionTo: Nothing.
         // EnteringMission::transitionToWaitingForI2cDone: Nothing.
@@ -705,6 +716,10 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
     )
     {
         DPRINTF("\t SAFETY TIMER: PWR_ON_3");
+
+        // Be EXTRA sure Hercules Monitoring is still off:
+        *watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+
         // EnteringMission::transitionToWaitingForIoExpanderWrite2:
         powerOffFpga();   // Keep Peripherals off here
         powerOffMotors(); // Keep Peripherals off here

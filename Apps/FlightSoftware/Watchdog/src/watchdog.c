@@ -280,7 +280,7 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         // Probable bit flip. More likely to have activated one bit during the
         // very long windows we want this to be off than deactivated a bit
         // during the short window where we have both on, so default to off.
-        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_1X: 0x%x. Turning bits off.", *watchdogFlags);
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_1X: 0x%04x:%04x. Turning bits off.", (*watchdogFlags >> 16) & 0xFFFF, *watchdogFlags & 0xFFFF);
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_1B;
     }
@@ -288,7 +288,7 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2A) ^
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_OFF_2B))
     {
-        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_2X: 0x%x. Turning bits off.", *watchdogFlags);
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_OFF_2X: 0x%04x:%04x. Turning bits off.", (*watchdogFlags >> 16) & 0xFFFF, *watchdogFlags & 0xFFFF);
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_OFF_2B;
     }
@@ -296,7 +296,7 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1A) ^
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_1B))
     {
-        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_1X: 0x%x. Turning bits off.", *watchdogFlags);
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_1X: 0x%04x:%04x. Turning bits off.", (*watchdogFlags >> 16) & 0xFFFF, *watchdogFlags & 0xFFFF);
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_1B;
     }
@@ -304,7 +304,7 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2A) ^
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_2B))
     {
-        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_2X: 0x%x. Turning bits off.", *watchdogFlags);
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_2X: 0x%04x:%04x. Turning bits off.", (*watchdogFlags >> 16) & 0xFFFF, *watchdogFlags & 0xFFFF);
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_2B;
     }
@@ -312,7 +312,7 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3A) ^
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_3B))
     {
-        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_3X: 0x%x. Turning bits off.", *watchdogFlags);
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_3X: 0x%04x:%04x. Turning bits off.", (*watchdogFlags >> 16) & 0xFFFF, *watchdogFlags & 0xFFFF);
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_3B;
     }
@@ -320,7 +320,7 @@ void safety_timer__bitflip_check(HerculesComms__State *hState,
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4A) ^
         (*watchdogFlags & WDFLAG_SAFETY_TIMER__PWR_ON_4B))
     {
-        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_4X: 0x%x. Turning bits off.", *watchdogFlags);
+        DPRINTF("SAFETY TIMER: Bitflip in WD Flags PWR_ON_4X: 0x%04x:%04x. Turning bits off.", (*watchdogFlags >> 16) & 0xFFFF, *watchdogFlags & 0xFFFF);
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4A;
         *watchdogFlags &= ~WDFLAG_SAFETY_TIMER__PWR_ON_4B;
     }
@@ -379,11 +379,11 @@ void safety_timer__process_timer(HerculesComms__State *hState,
                 if (!details->m_safetyTimerParams.timerRebootControlOn)
                 {
                     // Can't reboot b/c timer is not on.
-                    DPRINTF("SAFETY TIMER: Timer expired at 0x%x*%dcs. NO REBOOT b/c control is OFF.", Time__getTimeInCentiseconds(), details->m_safetyTimerParams.tenthTimerExpirationCount);
+                    DPRINTF("SAFETY TIMER: Timer expired at 0x%x*%dcs. NO REBOOT b/c control is OFF.", details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth, details->m_safetyTimerParams.tenthTimerExpirationCount);
                 }
                 else
                 {
-                    DPRINTF("SAFETY TIMER: Timer expired at 0x%x*%dcs. Performing Reboot . . .", Time__getTimeInCentiseconds(), details->m_safetyTimerParams.tenthTimerExpirationCount);
+                    DPRINTF("SAFETY TIMER: Timer expired at 0x%x*%dcs. Performing Reboot . . .", details->m_safetyTimerParams.timerRebootCutoffCentisecondsTenth, details->m_safetyTimerParams.tenthTimerExpirationCount);
                     // Queue up both bits to trigger the first state of the full power reboot:
                     *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1A;
                     *watchdogFlags |= WDFLAG_SAFETY_TIMER__PWR_OFF_1B;

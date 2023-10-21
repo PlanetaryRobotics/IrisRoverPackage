@@ -95,6 +95,5 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             DataPathway.WIRELESS,
             Magic.COMMAND,
             comment=f"Quickly Read & downlink from Flash a binned & compressed copy of frame_idx=2 frame."
-        ),
-
+        )
     }

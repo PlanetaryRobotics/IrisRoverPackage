@@ -24,7 +24,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
         'ReportStatus-ViaHercules': PreparedCommand(
             # Use Reset-Specific pathway for this:
             'WatchDogInterface_ResetSpecific',
-            OrderedDict(confirm='REQUEST_STATUS_REPORT'),
+            OrderedDict(reset_value='REQUEST_STATUS_REPORT'),
             DataPathway.WIRED,
             Magic.COMMAND,
             comment="Tell WD to downlink a detailed status, a flight heartbeat, & Safety Timer status via Hercules."

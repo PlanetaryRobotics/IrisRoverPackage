@@ -504,7 +504,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         # Use Reset-Specific pathway for this:
         'WatchDogInterface_ResetSpecific',
-        OrderedDict(confirm='REQUEST_STATUS_REPORT'),
+        OrderedDict(reset_value='REQUEST_STATUS_REPORT'),
         DataPathway.WIRED
     ),
     'disable-heater-control-via-herc': (

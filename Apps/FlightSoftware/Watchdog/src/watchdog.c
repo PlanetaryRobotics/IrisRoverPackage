@@ -534,6 +534,7 @@ void safety_timer__update_reboot_state_machine(HerculesComms__State *hState,
         if (*watchdogOpts & WDOPT_MONITOR_HERCULES)
         {
             herc_mon_status_at_reboot_start = true;
+            *watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
             DPRINTF("\t\t SAFETY TIMER: Disabling Hercules Monitor for Reboot.");
         }
         else

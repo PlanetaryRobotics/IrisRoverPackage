@@ -19,10 +19,10 @@
 #include "MotorController_i2c.h"
 #include "MotorController.hpp"
 
-#define MOTOR_A 0
-#define MOTOR_B 1
-#define MOTOR_C 2
-#define MOTOR_D 3
+#define MOTOR_A 1
+#define MOTOR_B 2
+#define MOTOR_C 4
+#define MOTOR_D 8
 
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
@@ -38,10 +38,14 @@ namespace CubeRover
 
     ::Os::Mutex mc_mutex;
     
-    inline uint8_t containsMotorID(uint8_t motor_ids_mask, uint8_t motor_id)
-    {
-        return motor_ids_mask & (1 << motor_id);
+    inline uint8_t idToMask(uint8_t motor_id) {
+        return 1 << motor_id;
     }
+
+//    inline uint8_t containsMotorID(uint8_t motor_ids_mask, uint8_t motor_id)
+//    {
+//        return motor_ids_mask & (1 << motor_id);
+//    }
 
     public:
         // ----------------------------------------------------------------------
@@ -284,7 +288,6 @@ namespace CubeRover
         void checkFaults();
         void checkStates();
 
-//        void runMcStateMachine();
 
         /* --- Private Variables --- */
 
@@ -306,7 +309,8 @@ namespace CubeRover
          * ------------------------------------------
          */
         MCError_t testSpin();
-
+        bool setSpinParams(uint8_t motor_mask, uint8_t dir_mask,
+                                int32_t dist, uint8_t speed);
 
 
 
@@ -323,6 +327,9 @@ namespace CubeRover
          * OBSOLETE MC DEFINITIONS
          * ------------------------------------------
          */
+
+        MCError_t OG_Spin_Handler(const FwOpcodeType opCode, const U32 cmdSeq,
+                    U8 Motor_ID, U8 Dir, U32 Raw_Ticks);
 
         // Tightly coupled to *_ADDR and *_ID defines
         static const uint8_t motorIdAddressMap[NUM_MOTORS];

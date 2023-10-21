@@ -260,7 +260,15 @@ namespace CubeRover
                                                                 U8 Param_RegAddr,
                                                                 U32 Param_NewValue)
     {
-        if (containsMotorID(Motor_ID, MOTOR_A)) {
+        uint8_t motor_mask = Motor_ID;
+        MC_ICD_RegAddr reg = Param_RegAddr;
+        int32_t data = Param_NewValue;
+        for (int i = 0; i < NUM_MOTORS; i++){
+            if (motor_mask & idToMask(i)) {
+                setReg(&(m_motor_controllers[i]->herc_McRegStruct), Param_RegAddr, &data)
+            }
+        }
+        if (motor_Mask) {
             setTargetPos(&m_motor_controllers[MOTOR_A], Param_NewValue);
         }
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
@@ -285,54 +293,51 @@ namespace CubeRover
             U32 Raw_Ticks)
     {
 
-        // TODO: Should this force open loop control as well?
-        MCError_t err;
-        uint8_t speed = MAX_SPEED;
-        uint32_t ticks = Raw_Ticks;
+        MCError_t err = err;
 
-        if (Motor_ID == ALL_MOTOR_ID)
-        {
-            err = sendAllMotorsData(MC_REG_TARGET_SPEED, &speed);
-            if (err != MC_NO_ERROR)
-            {
+        if (OG_Spin_Handler(opCode, cmdSeq, Motor_ID, Raw_Ticks) != MC_NO_ERROR) {
                 this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
                 return;
-            }
-
-            err = sendAllMotorsData(MC_REG_TARGET_POSITION, &Raw_Ticks);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-        }
-        else
-        {
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_TARGET_SPEED, &speed);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
-
-            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_TARGET_POSITION, &Raw_Ticks);
-            if (err != MC_NO_ERROR)
-            {
-                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-                return;
-            }
         }
 
-        checkStates();
-        checkFaults();
+        uint8_t motor_mask = Motor_ID;
+        uint8_t dir_mask = Dir;
+        int32_t dist = Raw_Ticks;
+        uint8_t speed = DEFAULT_TARGET_SPEED;
 
-        if (!startMotorMovement())
-        {
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
-            return;
-        }
+        setSpinParams(motor_mask, dir_mask, dist, speed);
+
+        testSpin();
 
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+
+    }
+
+    bool MotorControlComponentImpl::setSpinParams(uint8_t motor_mask, uint8_t dir_mask,
+                        int32_t dist, uint8_t speed)
+    {
+        uint8_t iMotor = 0;
+        int32_t iDist = 0;
+        uint8_t iSpeed = 0;
+
+        for (int i = 0; i<NUM_MOTORS; i++)
+        {
+            iMotor = idToMask(i);
+            iDist = 0;
+            iSpeed = 0;
+            if (motor_mask & iMotor)
+            {
+                if (dir_mask & iMotor)
+                {
+                    iDist = dist * -1;
+                } else {
+                    iDist = dist;
+                }
+                iSpeed = speed;
+            }
+            setTargetPos(&m_motor_controllers[i], iDist);
+            setTargetSpeed(&m_motor_controllers[i], iSpeed);
+        }
     }
 
     /**
@@ -523,6 +528,56 @@ namespace CubeRover
             default:
                 return 0;
         }
+    }
+
+    MCError_t OG_Spin_Handler(const FwOpcodeType opCode, const U32 cmdSeq,
+            U8 Motor_ID, U8 Dir, U32 Raw_Ticks)
+    {
+        MCError_t err = NO_ERR;
+
+        uint8_t speed = MAX_SPEED;
+        uint32_t ticks = Raw_Ticks;
+
+        if (Motor_ID == ALL_MOTOR_ID)
+        {
+            err = sendAllMotorsData(MC_REG_TARGET_SPEED, &speed);
+            if (err != MC_NO_ERROR)
+            {
+                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
+                return err;
+            }
+
+            err = sendAllMotorsData(MC_REG_TARGET_POSITION, &Raw_Ticks);
+            if (err != MC_NO_ERROR)
+            {
+                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
+                return err;
+            }
+        }
+        else
+        {
+            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_TARGET_SPEED, &speed);
+            if (err != MC_NO_ERROR)
+            {
+                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
+                return err;
+            }
+
+            err = motorControlTransfer(motorIdAddressMap[Motor_ID], MC_REG_TARGET_POSITION, &Raw_Ticks);
+            if (err != MC_NO_ERROR)
+            {
+                this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
+                return err;
+            }
+        }
+
+        if (!startMotorMovement())
+        {
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
+            return err;
+        }
+
+        return err;
     }
 
     MotorControlComponentImpl::MCError_t

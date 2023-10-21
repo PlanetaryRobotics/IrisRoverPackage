@@ -83,23 +83,23 @@ GroundMsgs__Status GroundMsgs__generateFullEarthHeartbeat(I2C_Sensors__Readings 
     hb->raw_fuel_gauge_temp[1] = i2cReadings->raw_fuel_gauge_temp[1];
 
     // send heater info Kp
-    hb->kpHeater = hParams->m_kpHeater;
+    hb->kpHeater = hParams->persistent->m_kpHeater;
 
     // send heater info setpoint
-    hb->heaterSetpoint = hParams->m_heaterSetpoint;
+    hb->heaterSetpoint = hParams->persistent->m_heaterSetpoint;
 
     // send heater info window ?
-    hb->heaterWindow = hParams->m_heaterWindow;
+    hb->heaterWindow = hParams->persistent->m_heaterWindow;
 
     // send pwm value limit
-    hb->pwmLimit = hParams->m_pwmLimit;
+    hb->pwmLimit = hParams->persistent->m_pwmLimit;
 
     // send the current rover state
     hb->stateAsUint = stateAsUint;
 
     // send the current heating status
     hb->heating = hParams->m_heating;
-    hb->heatingControlEnabled = hParams->m_heatingControlEnabled;
+    hb->heatingControlEnabled = hParams->persistent->m_heatingControlEnabled;
 
     // send pwm value
     hb->pwmValue = TB0CCR2;

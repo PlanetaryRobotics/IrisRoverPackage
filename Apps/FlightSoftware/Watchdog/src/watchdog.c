@@ -134,7 +134,7 @@ int watchdog_init(volatile uint32_t *watchdogFlags,
     // This determines the period of the PWM output. With this set to 10000 and the timer clock
     // frequency of 8000000, the period of the PWM is 10000 / 8000000 = 0.00125 seconds, or 1.25 ms.
     // We subtract one from the desired value because the timer counts starting at 0, rather than 1.
-    TB0CCR0 = hParams->m_heaterDutyCyclePeriod - 1;
+    TB0CCR0 = hParams->persistent->m_heaterDutyCyclePeriod - 1;
 
     // Set the output mode of capture/compare block 2 to "Reset/Set". This means that the output is
     // reset (i.e. made low) when Timer_B counts to the value in TB0CCR2, and the output is set (i.e.
@@ -144,7 +144,7 @@ int watchdog_init(volatile uint32_t *watchdogFlags,
     // Set the initial duty cycle of the PWM. Specifically, this is the counter value at which the output
     // will reset, or go low. When this has a value of zero, it means that the heater is effectively
     // disabled.
-    TB0CCR2 = hParams->m_heaterDutyCycle;
+    TB0CCR2 = hParams->persistent->m_heaterDutyCycle;
 
     // Finished setting up Timer_B, so we start the timer in "Up" mode (i.e. timer will count up to the
     // value in TB0CL0 (which is set automatically from the value in TB0CCR0), then overflow to zero).

@@ -291,11 +291,11 @@ namespace iris
         {
             // Ground operators changed the thresholds. Re-evaluate against
             // thresholds:
-            if (thermReading > hParams.m_heaterOnVal)
+            if (thermReading > hParams.persistent->m_heaterOnVal)
             {
                 enableHeater();
             }
-            else if (thermReading < hParams.m_heaterOffVal)
+            else if (thermReading < hParams.persistent->m_heaterOffVal)
             {
                 disableHeater();
             }
@@ -335,7 +335,7 @@ namespace iris
             if (hParams.m_heating)
             {
                 // In the HEATER_ON state...
-                if (thermReading < hParams.m_heaterOffVal)
+                if (thermReading < hParams.persistent->m_heaterOffVal)
                 {
                     // if we should turn OFF and we're not being forced ON, transition to HEATER_OFF
                     // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
@@ -346,7 +346,7 @@ namespace iris
             else
             {
                 // In the HEATER_OFF state...
-                if (thermReading > hParams.m_heaterOnVal)
+                if (thermReading > hParams.persistent->m_heaterOnVal)
                 {
                     // if we should turn ON and we're not being forced OFF, transition to HEATER_ON
                     // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a

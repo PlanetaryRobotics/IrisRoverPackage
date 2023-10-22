@@ -32,7 +32,6 @@ extern "C" {
 // _iq15 = int32_t but can fit in uint16_t
 
 // control related constants (gains, thresholds, setpoints, default values)
-#ifdef USE_IQ_LIB
     #define DEFAULT_TARGET_SPEED  0.7
     #define MAX_TARGET_SPEED      1.0
 
@@ -40,12 +39,7 @@ extern "C" {
     #define DEFAULT_KI_SPD 0.0009
     #define DEFAULT_KP_CUR 0.95
     #define DEFAULT_KI_CUR 0.002
-    #define PI_OUTPUT_BOUNDS 1.0
-    #define OPEN_LOOP_TORQUE 0.15   // for kick-starting into closed loop (normalized to 1.0, 1.0 being maximum current system can produce)
-    #define CLOSE_LOOP_THRESHOLD 0.01   // Close loop threshold from open to close loop -> threshold for current speed
-    #define PI_CURRENT_IL 0.5
-    #define FULLY_OPEN_LOOP_PWM 0.3   // PWM duty cycle ( 30% ) as decimal
-#endif
+
     #define DEFAULT_TARGET_SPEED_IQ 0x5999  // 0.7
     #define DEFAULT_MAX_SPEED_IQ    0x8000  // 1.0
 
@@ -53,13 +47,6 @@ extern "C" {
     #define DEFAULT_SPEED_KI_IQ     0x001D  // 0.0009
     #define DEFAULT_CURRENT_KP_IQ   0x7999  // 0.95
     #define DEFAULT_CURRENT_KI_IQ   0x0041  // 0.002
-
-    #define PI_OUTPUT_BOUNDS_IQ     0x8000  // 1.0
-    #define OPEN_LOOP_TORQUE_IQ     0x1333  // 0.15
-    #define CLOSE_LOOP_THRESHOLD_IQ 0x0CCC  // 0.01
-    #define PI_CURRENT_IL_IQ        0x4000  // 0.5
-    #define FULLY_OPEN_LOOP_PWM_IQ  0x2666  // 0.3
-
 
 typedef uint8_t McI2cAddr_t;
 typedef uint8_t McCtrlVal_t;

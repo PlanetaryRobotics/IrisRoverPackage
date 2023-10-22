@@ -8,6 +8,21 @@
 #ifndef ALLVARS_H_
 #define ALLVARS_H_
 
+#include "ICD_MotorControl.h"
+
+/* Include the IQmath header file. */
+#define GLOBAL_IQ 15
+#include "IQmathLib.h"
+
+#include "driverlib.h"
+#include "bsp.h"
+#include "i2c.h"
+#include "hallsensor.h"
+#include "pi.h"
+#include "mod6_cnt.h"
+#include "impulse.h"
+
+#include <msp430.h>
 
 /* ============================================
  *          Bits of Registers
@@ -24,7 +39,9 @@
  *          Constants
  * ============================================
  */
+
 #define DRIVE_ON_BOOT_START_DELAY (20 * DELAY_100_ms) /*2 sec*/
+
 
 // TO INCREASE MAX SPEED:
 //   - increase 'PI_OUTPUT_BOUNDS'
@@ -42,6 +59,19 @@
 
 #define PERIOD_IMPULSE 150        //   ^ also used to kick-start, see impulse.h for details
 #define OPEN_LOOP_TICKS 10        // distance in hall sensor ticks motor covers in open loop mode per 1/15.6 sec
+
+#define PI_OUTPUT_BOUNDS 1.0
+#define OPEN_LOOP_TORQUE 0.15   // for kick-starting into closed loop (normalized to 1.0, 1.0 being maximum current system can produce)
+#define CLOSE_LOOP_THRESHOLD 0.01   // Close loop threshold from open to close loop -> threshold for current speed
+#define PI_CURRENT_IL 0.5
+#define FULLY_OPEN_LOOP_PWM 0.3   // PWM duty cycle ( 30% ) as decimal
+
+#define PI_OUTPUT_BOUNDS_IQ     0x8000  // 1.0
+#define OPEN_LOOP_TORQUE_IQ     0x1333  // 0.15
+#define CLOSE_LOOP_THRESHOLD_IQ 0x0CCC  // 0.01
+#define PI_CURRENT_IL_IQ        0x4000  // 0.5
+#define FULLY_OPEN_LOOP_PWM_IQ  0x2666  // 0.3
+
 
 
 
@@ -67,6 +97,21 @@ _iq g_openLoopTorque;
 uint16_t g_controlPrescaler;
 
 // State Variables Theoretically...
+// internal state machine for motor
+typedef enum StateMachine
+{
+    IDLE,   // motor driver turned off, target & current position reset to 0
+    RUNNING // actively trying to converge to target positions
+} StateMachine;
+
+// possible transition options for internal state machine
+typedef enum CmdState
+{
+    RUN,     // if in IDLE, switch to RUNNING
+    DISABLE, // if in RUNNING, switch to IDLE
+    NO_CMD   // don't change state
+} CmdState;
+
 volatile StateMachine g_state;
 volatile CmdState g_cmdState;
 
@@ -78,6 +123,14 @@ volatile uint8_t g_faultRegister;
 volatile uint32_t g_drivingTimeoutCtr;
 uint8_t g_errorCounter; // incremented every time inner control loop is reached and motor is acting strange
                             // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
+
+
+
+_iq g_feedforwardFW;
+_iq g_closeLoopThreshold;
+
+volatile MOD6CNT g_mod6cnt;
+volatile IMPULSE g_impulse;
 
 void initAllVars();
 

@@ -9,6 +9,7 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
+#include "allVars.h"
 #include "MotorControl.h"
 
 /* ============================================
@@ -16,7 +17,6 @@
  * ============================================
  */
 
-void initMcParams();
 
 bool read_driver_fault(); // function descriptions in main.c
 void clear_driver_fault();

@@ -21,15 +21,7 @@
 // #define MOTOR_C
 // #define MOTOR_D
 
-// **SETTINGS:**
 
-_iq g_feedforwardFW;
-
-
-_iq g_closeLoopThreshold;
-
-volatile IMPULSE g_impulse;
-volatile MOD6CNT g_mod6cnt;
 
 /**
  * @brief      Gets the speed.
@@ -213,21 +205,6 @@ inline void readHallSensor(void)
     }
 }
 
-/**
- * @brief      Initializes the hall interface.
- */
-void initializeHallInterface(void)
-{
-    g_hallMap[0] = 0xff;
-    g_hallMap[7] = 0xff;
-
-    g_hallMap[5] = 0;
-    g_hallMap[1] = 1;
-    g_hallMap[3] = 2;
-    g_hallMap[2] = 3;
-    g_hallMap[6] = 4;
-    g_hallMap[4] = 5;
-}
 
 /**
  * @brief      Reset the PI controller
@@ -325,39 +302,6 @@ bool read_driver_fault(void)
 {
     return !(PJIN & 0x02);
 }
-
-
-
-/*
- * @breif   initialize motor controller related variables (PI controllers for speed and current)
- */
-void initializeControllerVariables(void)
-{
-#ifdef USE_IQ_LIB
-    g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
-#else
-    g_openLoopTorque = OPEN_LOOP_TORQUE_IQ;
-#endif
-    g_impulse.Period = PERIOD_IMPULSE;
-
-    resetPiController(&g_piSpd);
-    resetPiController(&g_piCur);
-#ifdef USE_IQ_LIB
-    g_piSpd.Kp = _IQ(DEFAULT_KP_SPD);
-    g_piSpd.Ki = _IQ(DEFAULT_KI_SPD);
-    g_piCur.Kp = _IQ(DEFAULT_KP_CUR);
-    g_piCur.Ki = _IQ(DEFAULT_KI_CUR);
-    g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
-#else
-    g_piSpd.Kp = DEFAULT_SPEED_KP_IQ;
-    g_piSpd.Ki = DEFAULT_SPEED_KI_IQ;
-    g_piCur.Kp = DEFAULT_CURRENT_KP_IQ;
-    g_piCur.Ki = DEFAULT_CURRENT_KI_IQ;
-    g_closeLoopThreshold = CLOSE_LOOP_THRESHOLD_IQ;
-#endif
-    g_closedLoop = false;
-}
-
 
 
 /*
@@ -658,12 +602,11 @@ void initController(void)
 
     // Initialize variables
     initMotorControl(i2c_addr);
-    initializeControllerVariables();
+    initAllVars();
 
     // initialize hardware components
     initializePwmModules();
     initializeAdcModule();
-    initializeHallInterface();
 
     currentOffsetCalibration(); // get initial estimate of current offsets
     __bis_SR_register(GIE);     // enable interrupts (timer & i2c)

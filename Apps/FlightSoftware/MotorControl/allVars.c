@@ -5,6 +5,8 @@
  *      Author: iris
  */
 
+#include "allVars.h"
+
 /*
  * @brief       TODO
  */
@@ -19,18 +21,19 @@ void initializeSensorVariables(void)
 
     g_currentPosition = 0;
     g_oldPosition = g_currentPosition;
-
     g_targetDirection = 1;
     g_targetPosition = 0;
-    g_targetSpeed = DEFAULT_TARGET_SPEED_IQ;
+
+    g_targetSpeed = _IQ(DEFAULT_TARGET_SPEED);
 
     g_readSensors = false;
     g_drivingTimeoutCtr = 0;
-
-    g_readSensors = false;
     g_errorCounter = 0;
 }
 
+/*
+ * @brief       TODO
+ */
 void initializeSoftwareControlVariables(void)
 {
     // software control related variables (rate groups, internal state machine)
@@ -41,7 +44,48 @@ void initializeSoftwareControlVariables(void)
     g_controlRegister = 0; // see main.h for bits
 }
 
+/*
+ * @breif   initialize motor controller related variables (PI controllers for speed and current)
+ */
+void initializeControllerVariables(void)
+{
+    g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
+    g_impulse.Period = PERIOD_IMPULSE;
+
+    resetPiController(&g_piSpd);
+    resetPiController(&g_piCur);
+
+    g_piSpd.Kp = _IQ(DEFAULT_KP_SPD);
+    g_piSpd.Ki = _IQ(DEFAULT_KI_SPD);
+    g_piCur.Kp = _IQ(DEFAULT_KP_CUR);
+    g_piCur.Ki = _IQ(DEFAULT_KI_CUR);
+
+    g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
+    g_closedLoop = false;
+}
+
+
+/**
+ * @brief      Initializes the hall interface.
+ */
+void initializeHallInterface(void)
+{
+    g_hallMap[0] = 0xff;
+    g_hallMap[7] = 0xff;
+
+    g_hallMap[5] = 0;
+    g_hallMap[1] = 1;
+    g_hallMap[3] = 2;
+    g_hallMap[2] = 3;
+    g_hallMap[6] = 4;
+    g_hallMap[4] = 5;
+}
+
+
 void initAllVars()
 {
     initializeSensorVariables();
+    initializeSoftwareControlVariables();
+    initializeControllerVariables();
+    initializeHallInterface();
 }

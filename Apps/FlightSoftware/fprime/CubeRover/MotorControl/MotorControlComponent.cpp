@@ -119,7 +119,7 @@ namespace CubeRover
      */
     void MotorControlComponentImpl ::MC_UpdateTelemetry_cmdHandler(
             const FwOpcodeType opCode,
-            const U32 cmdSeq)
+            const U32 cmdSeq )
     {
         if (updateTelemetry()) {
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
@@ -173,7 +173,7 @@ namespace CubeRover
             U16 MotorD_Speed_P_Val,
             U16 MotorD_Speed_I_Val,
             U16 MotorD_Accel_Rate,
-            U16 MotorD_Decel_Rate)
+            U16 MotorD_Decel_Rate )
     {
         mc_mutex.lock();
 
@@ -247,7 +247,7 @@ namespace CubeRover
                                                                 const U32 cmdSeq,
                                                                 U8 Motor_ID,
                                                                 U8 Param_RegAddr,
-                                                                U32 Param_NewValue)
+                                                                U32 Param_NewValue )
     {
         uint8_t motor_mask = Motor_ID;
         MC_ICD_RegAddr reg = static_cast<MC_ICD_RegAddr>(Param_RegAddr);
@@ -279,7 +279,7 @@ namespace CubeRover
             const U32 cmdSeq,
             U8 Motor_ID,
             U8 Dir,
-            U32 Raw_Ticks)
+            U32 Raw_Ticks )
     {
 
       if (Dir == 0xFF) {
@@ -302,7 +302,7 @@ namespace CubeRover
     }
 
     bool MotorControlComponentImpl::setSpinParams(uint8_t motor_mask, uint8_t dir_mask,
-                        int32_t dist, uint8_t speed)
+                        int32_t dist, uint8_t speed )
     {
         bool setMotors = false;
         uint8_t iMotor = 0;
@@ -350,7 +350,7 @@ namespace CubeRover
             U8 Motor_ID,
             U8 Dir,
             U32 Raw_Ticks,
-            U8 Percent_speed)
+            U8 Percent_speed )
     {
 //        mc_mutex.lock();
         if (!setSpinParams(Motor_ID, Dir, Raw_Ticks, Percent_speed)) {
@@ -364,6 +364,16 @@ namespace CubeRover
 
         testSpin();
 
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+    }
+
+    void MotorControlComponentImpl ::MC_Spin_Full_Custom_cmdHandler(
+            const FwOpcodeType opCode, const U32 cmdSeq,
+            U8 MotorA_Dir, U32 MotorA_Ticks, U8 MotorA_Speed,
+            U8 MotorB_Dir, U32 MotorB_Ticks, U8 MotorB_Speed,
+            U8 MotorC_Dir, U32 MotorC_Ticks, U8 MotorC_Speed,
+            U8 MotorD_Dir, U32 MotorD_Ticks, U8 MotorD_Speed )
+    {
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
@@ -622,60 +632,83 @@ namespace CubeRover
         }
     }
 
+    uint8_t MotorControlComponentImpl::updateTelemSpecific(MC_ICD_RegAddr regID, uint32_t *buffer)
+    {
+        MCError_t rxErr = MC_NO_ERROR;
+        uint8_t maskErrMotorIDs = 0;
+
+        for (int i = 0; i<NUM_MOTORS; i++)
+        {
+            rxErr = motorControlTransfer(m_motor_controllers[i].i2c_addr, regID, &buffer[i]);
+            if (rxErr != MC_NO_ERROR)
+            {
+                maskErrMotorIDs |= idToMask(i);
+            }
+        }
+        log_ACTIVITY_HI_MC_RegTelemEvent(regID, (uint32_t)buffer[0], (uint32_t)buffer[1],
+                                         (uint32_t)buffer[2], (uint32_t)buffer[3], maskErrMotorIDs);
+        return maskErrMotorIDs;
+    }
 
     bool MotorControlComponentImpl::updateTelemetry()
-    {
-        MCError_t err = MC_NO_ERROR;
-        uint32_t buffer[NUM_MOTORS];
-
-        for (int i = 0; i < NUM_MOTORS; ++i)
         {
-            err = motorControlTransfer(motorIdAddressMap[i], MC_REG_MOTOR_CURRENT, &buffer[i]);
-            if (err != MC_NO_ERROR)
-            {
-                // resetMotorControllers();
-                // TODO: THIS LOG REALLY SHOULD INDICATE WHICH FAILED??
-                log_WARNING_HI_MC_MSPNotResponding();
-            }
+            MCError_t err = MC_NO_ERROR;
+            uint8_t maskErrMotorIDs = 0;
+            uint32_t buffer[NUM_MOTORS];
+
+            maskErrMotorIDs |= updateTelemSpecific(MC_REG_MOTOR_CURRENT, buffer);
+
+    //        for (int i = 0; i < NUM_MOTORS; ++i)
+    //        {
+    //            err = motorControlTransfer(motorIdAddressMap[i], MC_REG_MOTOR_CURRENT, &buffer[i]);
+    //            if (err != MC_NO_ERROR)
+    //            {
+    //                // resetMotorControllers();
+    //                // TODO: THIS LOG REALLY SHOULD INDICATE WHICH FAILED??
+    //                log_WARNING_HI_MC_MSPNotResponding();
+    //            }
+    //        }
+
+            if (maskErrMotorIDs > 0)
+                asm(" nop");
+            // resetMotorControllers();
+
+            tlmWrite_MC_FL_Current((uint32_t)buffer[0]);
+            tlmWrite_MC_FR_Current((uint32_t)buffer[1]);
+            tlmWrite_MC_RR_Current((uint32_t)buffer[2]);
+            tlmWrite_MC_RL_Current((uint32_t)buffer[3]);
+
+
+            maskErrMotorIDs |= updateTelemSpecific(MC_REG_CURRENT_POSITION, buffer);
+
+    //        for (int i = 0; i < NUM_MOTORS; ++i)
+    //        {
+    //            err = motorControlTransfer(motorIdAddressMap[i], MC_REG_CURRENT_POSITION, &buffer[i]);
+    //            if (err != MC_NO_ERROR)
+    //            {
+    //                // resetMotorControllers();
+    //                // TODO: THIS LOG REALLY SHOULD INDICATE WHICH FAILED??
+    //                log_WARNING_HI_MC_MSPNotResponding();
+    //            }
+    //        }
+
+            // If we got all the values we need, then we can update telemetry
+            m_FL_Encoder_Count += (uint16_t)buffer[0];
+            m_FR_Encoder_Count += (uint16_t)buffer[1];
+            m_RR_Encoder_Count += (uint16_t)buffer[2];
+            m_RL_Encoder_Count += (uint16_t)buffer[3];
+            tlmWrite_MC_FL_Encoder_Ticks(m_FL_Encoder_Count + m_FR_Encoder_Count_Offset);
+            tlmWrite_MC_FR_Encoder_Ticks(m_FR_Encoder_Count + m_FL_Encoder_Count_Offset);
+            tlmWrite_MC_RR_Encoder_Ticks(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
+            tlmWrite_MC_RL_Encoder_Ticks(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
+
+            if (maskErrMotorIDs > 0)
+                asm(" nop");
+            // resetMotorControllers();
+
+
+
+            return true;
         }
-
-        tlmWrite_MC_FL_Current((uint32_t)buffer[0]);
-        tlmWrite_MC_FR_Current((uint32_t)buffer[1]);
-        tlmWrite_MC_RR_Current((uint32_t)buffer[2]);
-        tlmWrite_MC_RL_Current((uint32_t)buffer[3]);
-
-        if (err != MC_NO_ERROR)
-            asm(" nop");
-        // resetMotorControllers();
-
-        for (int i = 0; i < NUM_MOTORS; ++i)
-        {
-            err = motorControlTransfer(motorIdAddressMap[i], MC_REG_CURRENT_POSITION, &buffer[i]);
-            if (err != MC_NO_ERROR)
-            {
-                // resetMotorControllers();
-                // TODO: THIS LOG REALLY SHOULD INDICATE WHICH FAILED??
-                log_WARNING_HI_MC_MSPNotResponding();
-            }
-        }
-
-        // If we got all the values we need, then we can update telemetry
-        m_FL_Encoder_Count += (uint16_t)buffer[0];
-        m_FR_Encoder_Count += (uint16_t)buffer[1];
-        m_RR_Encoder_Count += (uint16_t)buffer[2];
-        m_RL_Encoder_Count += (uint16_t)buffer[3];
-        tlmWrite_MC_FL_Encoder_Ticks(m_FL_Encoder_Count + m_FR_Encoder_Count_Offset);
-        tlmWrite_MC_FR_Encoder_Ticks(m_FR_Encoder_Count + m_FL_Encoder_Count_Offset);
-        tlmWrite_MC_RR_Encoder_Ticks(m_RR_Encoder_Count + m_RL_Encoder_Count_Offset);
-        tlmWrite_MC_RL_Encoder_Ticks(m_RL_Encoder_Count + m_RR_Encoder_Count_Offset);
-
-        if (err != MC_NO_ERROR)
-            asm(" nop");
-        // resetMotorControllers();
-
-
-
-        return true;
-    }
 
 } // end namespace CubeRover

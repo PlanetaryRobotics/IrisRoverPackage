@@ -890,6 +890,39 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(motor_id=0x01, dir=0x00, raw_ticks=20000),
         DataPathway.WIRED
     ),
+    'motor-control-spin-b-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x02, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-c-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x04, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-d-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x08, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
     'motor-control-spin-a-dir1': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -898,7 +931,31 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(motor_id=0x01, dir=0x0F, raw_ticks=20000),
         DataPathway.WIRED
     ),
-    'motor-control-spin-configured-a': (
+    'motor-control-spin-b-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x02, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-c-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x04, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-d-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x08, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-a-0-70': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpinConfigured',
@@ -907,46 +964,38 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(motor_id=0x01, dir=0x00, raw_ticks=7000, percent_speed=70),
         DataPathway.WIRED
     ),
-    'motor-control-spin-configured-ad': (
+    'motor-control-spin-configured-ad-0': (
+        # MotorA MotorD positive, MotorB MotorC
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpinConfigured',
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # MotorA + MotorD: 0x09
-        OrderedDict(motor_id=0x09, dir=0x00, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x09, dir=0x00, raw_ticks=7000, percent_speed=100),
         DataPathway.WIRED
     ),
-    'motor-control-spin-configured-all': (
+    'motor-control-spin-configured-left': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpinConfigured',
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # All Motors: 0x0F
-        OrderedDict(motor_id=0x0F, dir=0x00, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x0F, dir=0x00, raw_ticks=7000, percent_speed=100),
         DataPathway.WIRED
     ),
-    'motor-control-spin-configured-a-back': (
+    'motor-control-spin-configured-ad-0-bc-1': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpinConfigured',
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # All Motors: 0x0F
-        OrderedDict(motor_id=0x01, dir=0x0F, raw_ticks=7000, percent_speed=70),
+        OrderedDict(motor_id=0x0F, dir=0x06, raw_ticks=7000, percent_speed=100),
         DataPathway.WIRED
     ),
-    'motor-control-spin-configured-all-back': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'MotorControl_McSpinConfigured',
-        # Bitmask of motor_ids
-        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
-        # All Motors: 0x0F
-        OrderedDict(motor_id=0x0F, dir=0x0F, raw_ticks=7000, percent_speed=70),
-        DataPathway.WIRED
-    ),
+    #unknown if update individual params working
     'motor-control-update-a-speed': (
         DataPathway.WIRED,
         Magic.COMMAND,

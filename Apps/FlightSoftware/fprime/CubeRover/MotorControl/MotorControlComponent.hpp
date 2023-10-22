@@ -182,6 +182,23 @@ namespace CubeRover
                 U8 Percent_Speed /*!< Speed set by percent of MAX_SPEED. (Default = 70)*/
         );
 
+        void MC_Spin_Full_Custom_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq, /*!< The command sequence number*/
+                U8 MotorA_Dir,
+                U32 MotorA_Ticks,
+                U8 MotorA_Speed,
+                U8 MotorB_Dir,
+                U32 MotorB_Ticks,
+                U8 MotorB_Speed,
+                U8 MotorC_Dir,
+                U32 MotorC_Ticks,
+                U8 MotorC_Speed,
+                U8 MotorD_Dir,
+                U32 MotorD_Ticks,
+                U8 MotorD_Speed
+        );
+
 
 
         // ----------------------------------------------------------------------
@@ -348,6 +365,7 @@ namespace CubeRover
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
 
+        uint8_t updateTelemSpecific(MC_ICD_RegAddr regID, uint32_t *buffer);
         bool updateTelemetry();
 
         bool pollStatus();

@@ -76,8 +76,6 @@
                 REG_I_CURRENT           = 7,    // uint16
                 REG_P_SPEED             = 8,    // uint16
                 REG_I_SPEED             = 9,    // uint16
-                REG_ACC_RATE            = 10,   // uint16
-                REG_DEC_RATE            = 11,   // uint16
                 ( REG_MC_CTRL = MC_CMD_UPDATE_CONFIG )
             </comment>
             <args>
@@ -168,30 +166,6 @@
                 </arg>
             </args>
         </command> -->
-        <!-- <command kind="guarded" opcode="0x13" mnemonic="MC_Current_PID">
-            <args>
-                <arg name="Motor_ID" type="U8">
-                    <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
-                </arg>
-                <arg name="PI_Values" type="U32"/>
-            </args>
-        </command> -->
-        <!-- <command kind="guarded" opcode="0x14" mnemonic="MC_Speed_PID">
-            <args>
-                <arg name="Motor_ID" type="U8">
-                  <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
-                </arg>
-                <arg name="PID_Values" type="U32"/>
-            </args>
-        </command> -->
-        <!-- <command kind="guarded" opcode="0x15" mnemonic="MC_Acceleration">
-            <args>
-                <arg name="Motor_ID" type="U8">
-                    <comment>The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR </comment>
-                </arg>
-                <arg name="Rate_Values" type="U32"/>
-            </args>
-        </command> -->
 
         <!-- MOVEMENT COMMANDS                      opcodes 0x20 to 0x2F -->
         <!-- Spin Motor -->
@@ -248,9 +222,28 @@
                 </arg>
                 <arg name="Percent_Speed" type="U8">
                     <comment>Speed set by percent of MAX_SPEED.
-                      (Default = 70)
+                      (Default = 100)
                     </comment>
                 </arg>
+            </args>
+        </command>
+        <!-- Spin Configured -->
+        <command kind="guarded" opcode="0x22" mnemonic="MC_Spin_Full_Custom">
+            <comment> The new value of the parameter.
+            </comment>
+            <args>
+                <arg name="MotorA_Dir" type="U8"/>
+                <arg name="MotorA_Ticks" type="U32"/>
+                <arg name="MotorA_Speed" type="U8"/>
+                <arg name="MotorB_Dir" type="U8"/>
+                <arg name="MotorB_Ticks" type="U32"/>
+                <arg name="MotorB_Speed" type="U8"/>
+                <arg name="MotorC_Dir" type="U8"/>
+                <arg name="MotorC_Ticks" type="U32"/>
+                <arg name="MotorC_Speed" type="U8"/>
+                <arg name="MotorD_Dir" type="U8"/>
+                <arg name="MotorD_Ticks" type="U32"/>
+                <arg name="MotorD_Speed" type="U8"/>
             </args>
         </command>
 
@@ -287,24 +280,75 @@
             <comment> A notification a move sequence has finished </comment>
         </event>
 
-        <event id="2" name="MC_MSPFaultDetected" severity="WARNING_HI" format_string="Motor controller has detected a fault">
+        <event id="2" name="MC_MSPFaultDetected" severity="WARNING_HI" format_string="Motor controller motorId=%d has detected a fault=%d">
             <comment> A notification an MSP has thrown a fault </comment>
+            <args>
+                <arg name="motorID" type="U8"/>
+                <arg name="faultMask" type="U8"/>
+            </args>
         </event>
 
-        <event id="3" name="MC_MSPNotResponding" severity="WARNING_HI" format_string="Motor controller not responding">
+        <event id="3" name="MC_MSPNotResponding" severity="WARNING_HI" format_string="Motor controller motorID=%d is not responding">
             <comment> A notification an MSP is not communicating </comment>
+            <args>
+                <arg name="motorID" type="U8"/>
+            </args>
         </event>
 
-        <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller not communicating requested data">
+        <event id="4" name="MC_MSPNotReporting" severity="WARNING_HI" format_string="Motor controller motorID=%d is not communicating requested data">
             <comment> A notification an MSP is not reporting data </comment>
+            <args>
+                <arg name="motorID" type="U8"/>
+            </args>
         </event>
 
-        <event id="5" name="MC_ParameterChanged" severity="COMMAND" format_string="A Motor controller parameter has been changed">
-            <comment> A notification that an MC parameter has been modified </comment>
+        <event id="5" name="MC_ParameterChanged" severity="COMMAND" format_string="Motor Controller motorID=%d parameter regID=%d has been modified to %d">
+            <comment> A notification that an MC parameter RegID has been modified </comment>
+            <args>
+                <arg name="motorID" type="U8"/>
+                <arg name="regID" type="U8"/>
+                <arg name="val" type="U32"/>
+            </args>
         </event>
 
-        <event id="6" name="MC_EncoderReset" severity="COMMAND" format_string="A Motor encoder count has been reset">
+        <event id="6" name="MC_EncoderReset" severity="COMMAND" format_string="Motor Contorller motorID=%d encoder count has been reset">
             <comment> A notification that an MC parameter has been modified </comment>
+            <args>
+                <arg name="motorID" type="U8"/>
+            </args>
+        </event>
+
+        <event id="0xA1" name="MC_RegTelemEvent" severity="ACTIVITY_HI" format_string="Telemetry RegID=%d : MotorA=%d MotorB=%d MotorC=%d MotorD=%d (possible errors on MotorMask=%d)">
+            <comment>
+                Generic Telemetry update for any register and all motors, with data cast as U32 (which may be problematic for neg numbers?)
+            </comment>
+            <args>
+                <arg name="regID" type="U8"/>
+                <arg name="motorA_Val" type="U32"/>
+                <arg name="motorB_Val" type="U32"/>
+                <arg name="motorC_Val" type="U32"/>
+                <arg name="motorD_Val" type="U32"/>
+                <arg name="motorsMask" type="U8"/>
+            </args>
+        </event>
+
+        <event id="0xF1" name="MC_I2cGroupEvent" severity="WARNING_HI" format_string="Event %s with Register %d occurred %d times, involving Motors (Masked) %d.">
+            <comment>
+                Counting i2c communication failures during batch register writes (parameters and commands) and reads (telem).
+            </comment>
+            <args>
+                <arg name="errorType" type="ENUM">
+                    <enum name="i2cCommError">
+                        <item name="i2c_READ_TELEM_ERR" />
+                        <item name="i2c_WRITE_PARAM_ERR" />
+                        <item name="i2c_TIMEOUT" />
+                        <item name="BAD_PARAMETER" />
+                    </enum>
+                </arg>
+                <arg name="regID" type="U8"/>
+                <arg name="totalErrors" type="U16"/>
+                <arg name="motorsMask" type="U16"/>
+            </args>
         </event>
     </events>
 

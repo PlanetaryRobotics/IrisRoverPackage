@@ -30,8 +30,6 @@
                 REG_I_CURRENT           = 7,    // uint16
                 REG_P_SPEED             = 8,    // uint16
                 REG_I_SPEED             = 9,    // uint16
-                REG_ACC_RATE            = 10,   // uint16
-                REG_DEC_RATE            = 11,   // uint16
                 ( REG_MC_CTRL = MC_CMD_UPDATE_CONFIG )| | |
 | | | |MotorA_TargetDir|U8||
 | | | |MotorA_TargetPosition|U32||
@@ -123,8 +121,21 @@
                       (Default = 20000)
                     |
 | | | |Percent_Speed|U8|Speed set by percent of MAX_SPEED.
-                      (Default = 70)
+                      (Default = 100)
                     |
+|MC_Spin_Full_Custom|34 (0x22)|The new value of the parameter.| | |
+| | | |MotorA_Dir|U8||
+| | | |MotorA_Ticks|U32||
+| | | |MotorA_Speed|U8||
+| | | |MotorB_Dir|U8||
+| | | |MotorB_Ticks|U32||
+| | | |MotorB_Speed|U8||
+| | | |MotorC_Dir|U8||
+| | | |MotorC_Ticks|U32||
+| | | |MotorC_Speed|U8||
+| | | |MotorD_Dir|U8||
+| | | |MotorD_Ticks|U32||
+| | | |MotorD_Speed|U8||
 
 ## Telemetry Channel List
 
@@ -150,7 +161,27 @@
 |MC_moveStarted|0 (0x0)|A notification a move sequence has started| | | | |
 |MC_moveComplete|1 (0x1)|A notification a move sequence has finished| | | | |
 |MC_MSPFaultDetected|2 (0x2)|A notification an MSP has thrown a fault| | | | |
+| | | |motorID|U8|||
+| | | |faultMask|U8|||
 |MC_MSPNotResponding|3 (0x3)|A notification an MSP is not communicating| | | | |
+| | | |motorID|U8|||
 |MC_MSPNotReporting|4 (0x4)|A notification an MSP is not reporting data| | | | |
-|MC_ParameterChanged|5 (0x5)|A notification that an MC parameter has been modified| | | | |
+| | | |motorID|U8|||
+|MC_ParameterChanged|5 (0x5)|A notification that an MC parameter RegID has been modified| | | | |
+| | | |motorID|U8|||
+| | | |regID|U8|||
+| | | |val|U32|||
 |MC_EncoderReset|6 (0x6)|A notification that an MC parameter has been modified| | | | |
+| | | |motorID|U8|||
+|MC_RegTelemEvent|161 (0xa1)|Generic Telemetry update for any register and all motors, with data cast as U32 (which may be problematic for neg numbers?)| | | | |
+| | | |regID|U8|||
+| | | |motorA_Val|U32|||
+| | | |motorB_Val|U32|||
+| | | |motorC_Val|U32|||
+| | | |motorD_Val|U32|||
+| | | |motorsMask|U8|||
+|MC_I2cGroupEvent|241 (0xf1)|Counting i2c communication failures during batch register writes (parameters and commands) and reads (telem).| | | | |
+| | | |errorType|i2cCommError|||
+| | | |regID|U8|||
+| | | |totalErrors|U16|||
+| | | |motorsMask|U16|||

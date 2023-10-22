@@ -77,8 +77,6 @@ html {
                 REG_I_CURRENT           = 7,    // uint16
                 REG_P_SPEED             = 8,    // uint16
                 REG_I_SPEED             = 9,    // uint16
-                REG_ACC_RATE            = 10,   // uint16
-                REG_DEC_RATE            = 11,   // uint16
                 ( REG_MC_CTRL = MC_CMD_UPDATE_CONFIG )</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
 						<td>MotorA_TargetDir</td>
@@ -365,8 +363,73 @@ html {
 						<td>Percent_Speed</td>
 						<td>U8</td>
 						<td>Speed set by percent of MAX_SPEED.
-                      (Default = 70)
+                      (Default = 100)
                     </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="13">MC_Spin_Full_Custom</td>
+			<td rowspan="13">3618 (0xe22)</td>
+			<td rowspan="13">The new value of the parameter.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>MotorA_Dir</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Ticks</td>
+						<td>U32</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorA_Speed</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Dir</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Ticks</td>
+						<td>U32</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorB_Speed</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Dir</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Ticks</td>
+						<td>U32</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorC_Speed</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Dir</td>
+						<td>U8</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>MotorD_Ticks</td>
+						<td>U32</td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>MotorD_Speed</td>
+						<td>U8</td>
+						<td></td>
 					</tr>
 		</tr>
 	</tbody>

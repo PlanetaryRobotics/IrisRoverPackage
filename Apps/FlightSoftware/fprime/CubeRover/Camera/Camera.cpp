@@ -726,6 +726,7 @@ namespace CubeRover
   bool deploymentImage_checkForTrigger(DeploymentImageSettings &settings)
   {
     static int16_t accRawData[3];
+    static bool imuXAcc_trig, imuYAcc_trig, imuZAcc_trig, wdi28V_trig;
     if (!settings.waitingForTrigger)
     {
       return false;
@@ -736,7 +737,7 @@ namespace CubeRover
 
     // Check trigger conditions:
     // IMU XAcc Settings:
-    bool imuXAcc_trig = deploymentImage_checkSensorForTrigger(
+    imuXAcc_trig = deploymentImage_checkSensorForTrigger(
         accRawData[0],
         settings.imuXAcc_on,
         settings.imuXAcc_triggerMode,
@@ -744,7 +745,7 @@ namespace CubeRover
         settings.imuXAcc_max //
     );
     // IMU YAcc Settings:
-    bool imuYAcc_trig = deploymentImage_checkSensorForTrigger(
+    imuYAcc_trig = deploymentImage_checkSensorForTrigger(
         accRawData[1],
         settings.imuYAcc_on,
         settings.imuYAcc_triggerMode,
@@ -752,7 +753,7 @@ namespace CubeRover
         settings.imuYAcc_max //
     );
     // IMU ZAcc Settings:
-    bool imuZAcc_trig = deploymentImage_checkSensorForTrigger(
+    imuZAcc_trig = deploymentImage_checkSensorForTrigger(
         accRawData[2],
         settings.imuZAcc_on,
         settings.imuZAcc_triggerMode,
@@ -760,7 +761,7 @@ namespace CubeRover
         settings.imuZAcc_max //
     );
     // WDI 28V Settings:
-    bool wdi28V_trig = deploymentImage_checkSensorForTrigger(
+    wdi28V_trig = deploymentImage_checkSensorForTrigger(
         watchDogInterface.getExt28VRaw(),
         settings.wdi28V_on,
         settings.wdi28V_triggerMode,

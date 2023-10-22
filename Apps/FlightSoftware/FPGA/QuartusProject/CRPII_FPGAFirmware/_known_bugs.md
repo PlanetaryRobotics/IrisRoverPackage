@@ -1,0 +1,6 @@
+- 11.00.03-01: Camera resets based on Cam Sel don't work (transaction FSM buggy)
+- 11.00.03-02: Camera Transaction FSM times out and resets even in IDLE and BOOT (shouldn't)
+- 11.00.03-03: Getting an image first requires taking a "pre-image" that's all black - likely Flash FSM bug.
+  - Don't have to downlink this whole thing, though. Been doing just 50 lines.
+- 11.00.03-04: First X downlinked lines (up to ~200) of image are 0x00 (might be within Flash FSM or might be in the way it hands off control back to Hercules... SCK issue?)
+- 11.00.03-05: Flash FSM only writes first 32b of the wrong page. Has the effect of skipping a page. Always skips the same page, suggesting the page counter de-syncs (off-by-X). Only happens occasionally (not all images), suggesting a stability issue in Flash FSM, particularly surrounding the changes introduced in RC11.0.x.

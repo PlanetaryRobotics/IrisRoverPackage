@@ -740,7 +740,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     ####################################################################################################################
     ###
-    ###    MOTOR RESET FUNCTIONS
+    # MOTOR RESET FUNCTIONS
     ###
     ####################################################################################################################
     'reset-motors': (
@@ -889,7 +889,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     ####################################################################################################################
     ###
-    ###    MOTOR CONTROL TEST FUNCTIONS
+    # MOTOR CONTROL TEST FUNCTIONS
     ###
     ####################################################################################################################
     'motor-control-get-telem': (
@@ -1010,7 +1010,8 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # MotorA + MotorD: 0x09
-        OrderedDict(motor_id=0x09, dir=0x00, raw_ticks=7000, percent_speed=100),
+        OrderedDict(motor_id=0x09, dir=0x00,
+                    raw_ticks=7000, percent_speed=100),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-left': (
@@ -1020,7 +1021,8 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # All Motors: 0x0F
-        OrderedDict(motor_id=0x0F, dir=0x00, raw_ticks=7000, percent_speed=100),
+        OrderedDict(motor_id=0x0F, dir=0x00,
+                    raw_ticks=7000, percent_speed=100),
         DataPathway.WIRED
     ),
     'motor-control-spin-configured-ad-0-bc-1': (
@@ -1030,10 +1032,11 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Bitmask of motor_ids
         # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
         # All Motors: 0x0F
-        OrderedDict(motor_id=0x0F, dir=0x06, raw_ticks=7000, percent_speed=100),
+        OrderedDict(motor_id=0x0F, dir=0x06,
+                    raw_ticks=7000, percent_speed=100),
         DataPathway.WIRED
     ),
-    #unknown if update individual params working
+    # unknown if update individual params working
     'motor-control-update-a-speed': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -1060,7 +1063,7 @@ prepared_commands: Dict[str, PreparedCommandType] = {
     ),
     ####################################################################################################################
     ###
-    ###    DEPRICATED NAV FUNCTIONS
+    # DEPRICATED NAV FUNCTIONS
     ###
     ####################################################################################################################
     # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
@@ -1432,6 +1435,22 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         'ActiveLogger_Alogseteventreportfilter',
         OrderedDict(filter_level='INPUTWARNINGHI',
                     filter_enable='INPUTDISABLED'),
+        DataPathway.WIRED
+    ),
+    'active-logger-allow-diagnostic-in': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'ActiveLogger_Alogseteventreportfilter',
+        OrderedDict(filter_level='INPUTDIAGNOSTIC',
+                    filter_enable='INPUTENABLED'),
+        DataPathway.WIRED
+    ),
+    'active-logger-allow-diagnostic-out': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'ActiveLogger_Alogseteventsendfilter',
+        OrderedDict(filter_level='SENDDIAGNOSTIC',
+                    filter_enable='SENDENABLED'),
         DataPathway.WIRED
     ),
 

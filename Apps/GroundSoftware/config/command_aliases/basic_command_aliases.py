@@ -19,7 +19,15 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             OrderedDict(confirm='CONFIRM_REQUEST'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
-            comment="Tell WD to downlink a detailed status & a flight heartbeat."
+            comment="Tell WD to downlink a detailed status, a flight heartbeat, & Safety Timer status."
+        ),
+        'ReportStatus-ViaHercules': PreparedCommand(
+            # Use Reset-Specific pathway for this:
+            'WatchDogInterface_ResetSpecific',
+            OrderedDict(reset_value='REQUEST_STATUS_REPORT'),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Tell WD to downlink a detailed status, a flight heartbeat, & Safety Timer status via Hercules."
         ),
         'transit': PreparedCommand(
             'WatchDogInterface_SwitchToKeepAliveMode',

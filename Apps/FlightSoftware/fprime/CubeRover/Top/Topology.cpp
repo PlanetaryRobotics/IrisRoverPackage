@@ -91,12 +91,12 @@ CubeRover::MotorControlComponentImpl motorControl(
 #endif
 );
 
-// --------------------------------------------------------------------------
-CubeRover::NavigationComponentImpl navigation(
-#if FW_OBJECT_NAMES == 1
-    "Navigation"
-#endif
-);
+// // --------------------------------------------------------------------------
+// CubeRover::NavigationComponentImpl navigation(
+// #if FW_OBJECT_NAMES == 1
+//     "Navigation"
+// #endif
+// );
 
 // --------------------------------------------------------------------------
 CubeRover::GroundInterfaceComponentImpl groundInterface(
@@ -226,8 +226,8 @@ void constructApp(void)
     // Initialize the Motor control interface (passive)
     motorControl.init();
 
-    // Initialize the navigation component (active)
-    navigation.init(NAV_QUEUE_DEPTH, NAV_ID);
+    // // Initialize the navigation component (active)
+    // navigation.init(NAV_QUEUE_DEPTH, NAV_ID);
 
     // Construct the application and make all connections between components
     constructCubeRoverArchitecture();
@@ -236,7 +236,7 @@ void constructApp(void)
     watchDogInterface.regCommands();
     cmdDispatcher.regCommands();
     camera.regCommands();
-    navigation.regCommands();
+    // navigation.regCommands();
     IMU.regCommands();
     motorControl.regCommands();
     groundInterface.regCommands();
@@ -303,9 +303,9 @@ void constructApp(void)
                        ACTIVE_LOGGER_AFF,
                        ACTIVE_LOGGER_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
 
-    navigation.start(0,
-                         NAV_AFF,
-                         NAV_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
+    // navigation.start(0,
+    //                  NAV_AFF,
+    //                  NAV_QUEUE_DEPTH * MIN_STACK_SIZE_WORDS);
 
     watchDogInterface.start(0,
                             WATCHDOG_AFF,

@@ -1,0 +1,217 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 2020  Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions 
+# and other software and tools, and any partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Intel Program License 
+# Subscription Agreement, the Intel Quartus Prime License Agreement,
+# the Intel FPGA IP License Agreement, or other applicable license
+# agreement, including, without limitation, that your use is for
+# the sole purpose of programming logic devices manufactured by
+# Intel and sold by Intel or its authorized distributors.  Please
+# refer to the applicable agreement for further details, at
+# https://fpgasoftware.intel.com/eula.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus Prime
+# Version 20.1.0 Build 711 06/05/2020 SJ Lite Edition
+# Date created = 01:54:32  September 20, 2020
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		CRPII_FPGAFirmware_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus Prime software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone 10 LP"
+set_global_assignment -name DEVICE 10CL025YU256I7G
+set_global_assignment -name TOP_LEVEL_ENTITY CRPII_FPGAFirmware_Release
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 20.1.0
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:54:32  SEPTEMBER 20, 2020"
+set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.2 Standard Edition"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP "-40"
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 100
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
+set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
+set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
+set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_boundary_scan
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_location_assignment PIN_L2 -to LED0
+set_location_assignment PIN_N1 -to LED1
+set_location_assignment PIN_K1 -to LED2
+set_location_assignment PIN_E1 -to clk
+set_location_assignment PIN_C2 -to flash_CS1
+set_location_assignment PIN_C3 -to flash_CS2
+set_location_assignment PIN_A2 -to flash_HOLD
+set_location_assignment PIN_B4 -to flash_SCK
+set_location_assignment PIN_B3 -to flash_SI
+set_location_assignment PIN_D1 -to flash_SO
+set_location_assignment PIN_D3 -to flash_WP
+set_location_assignment PIN_B1 -to flash_reset
+set_location_assignment PIN_R1 -to hercules_SCK
+set_location_assignment PIN_P2 -to hercules_SS
+set_location_assignment PIN_K2 -to hercules_MOSI
+set_location_assignment PIN_L1 -to hercules_MISO
+set_location_assignment PIN_C9 -to camera_1_FV
+set_location_assignment PIN_A10 -to camera_1_LV
+set_location_assignment PIN_D9 -to camera_1_pixel_clock
+set_location_assignment PIN_C8 -to camera_1_pixel_in[11]
+set_location_assignment PIN_E9 -to camera_1_pixel_in[10]
+set_location_assignment PIN_A7 -to camera_1_pixel_in[9]
+set_location_assignment PIN_A6 -to camera_1_pixel_in[8]
+set_location_assignment PIN_B7 -to camera_1_pixel_in[7]
+set_location_assignment PIN_D8 -to camera_1_pixel_in[6]
+set_location_assignment PIN_B6 -to camera_1_pixel_in[5]
+set_location_assignment PIN_E6 -to camera_1_pixel_in[4]
+set_location_assignment PIN_A4 -to camera_1_pixel_in[3]
+set_location_assignment PIN_D6 -to camera_1_pixel_in[2]
+set_location_assignment PIN_A3 -to camera_1_pixel_in[1]
+set_location_assignment PIN_B5 -to camera_1_pixel_in[0]
+set_location_assignment PIN_B10 -to camera_1_reset_bar
+set_location_assignment PIN_E11 -to camera_1_standby_bar
+set_location_assignment PIN_A11 -to camera_1_trigger
+set_location_assignment PIN_P1 -to flash_SPI_controller_indicator
+set_location_assignment PIN_R4 -to camera_2_FV
+set_location_assignment PIN_T3 -to camera_2_LV
+set_location_assignment PIN_T4 -to camera_2_pixel_clock
+set_location_assignment PIN_R3 -to camera_2_reset_bar
+set_location_assignment PIN_P3 -to camera_2_standby_bar
+set_location_assignment PIN_T2 -to camera_2_trigger
+set_location_assignment PIN_P8 -to camera_2_pixel_in[0]
+set_location_assignment PIN_N5 -to camera_2_pixel_in[11]
+set_location_assignment PIN_R5 -to camera_2_pixel_in[10]
+set_location_assignment PIN_T5 -to camera_2_pixel_in[8]
+set_location_assignment PIN_T6 -to camera_2_pixel_in[6]
+set_location_assignment PIN_M6 -to camera_2_pixel_in[5]
+set_location_assignment PIN_R7 -to camera_2_pixel_in[4]
+set_location_assignment PIN_N8 -to camera_2_pixel_in[2]
+set_location_assignment PIN_L4 -to camera_select
+set_location_assignment PIN_R6 -to camera_2_pixel_in[9]
+set_location_assignment PIN_N6 -to camera_2_pixel_in[7]
+set_location_assignment PIN_T7 -to camera_2_pixel_in[3]
+set_location_assignment PIN_M8 -to camera_2_pixel_in[1]
+set_global_assignment -name VERILOG_FILE CRPII_FPGAFirmware_Release.v
+set_global_assignment -name VERILOG_FILE Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface_address_swap.v
+set_global_assignment -name VERILOG_FILE SPI/spi_slave.v
+set_global_assignment -name QIP_FILE FIFO/FIFO.qip
+set_global_assignment -name QIP_FILE PLL/PLL.qip
+set_global_assignment -name VERILOG_FILE Cypress_S70FL01GS/S70FL01GS_Flash_Memory_Interface.v
+set_global_assignment -name VERILOG_FILE SPI/spi_master.v
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LED0
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LED1
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to LED2
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_FV
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_LV
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_clock
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[11]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[10]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[9]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_pixel_in[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_reset_bar
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_standby_bar
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_1_trigger
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clk
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_CS1
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_CS2
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_HOLD
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_SCK
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_SI
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_SO
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_WP
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_reset
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hercules_MISO
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hercules_MOSI
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hercules_SCK
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hercules_SS
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to flash_SPI_controller_indicator
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_FV
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_LV
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_clock
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[11]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[10]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[9]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[8]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_pixel_in[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_reset_bar
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_standby_bar
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to camera_2_trigger
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to camera_select
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[8]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[9]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[10]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_in[11]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[8]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[9]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[10]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_in[11]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_LV
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_pixel_clock
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_standby_bar
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_trigger
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_FV
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_LV
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_pixel_clock
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_reset_bar
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_standby_bar
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_2_trigger
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_select
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to camera_1_FV
+set_global_assignment -name VERILOG_FILE image_metadata_mux.v
+set_global_assignment -name VERILOG_FILE version.v
+set_global_assignment -name VERILOG_FILE camera_interface.v
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

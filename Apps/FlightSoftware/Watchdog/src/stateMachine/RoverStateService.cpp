@@ -58,7 +58,7 @@ namespace iris
                 DebugComms__tryPrintfToLanderNonblocking("New Hercules UART Rx Rb failures, total count = %d\n", (int)count);
             }
         }
-        else if ((theContext.m_details.m_outputPinBits & OPSBI__HERCULES_ON))
+        else if ((theContext.m_details.m_outputPinBits & OPSBI_MASK(OPSBI__HERCULES_ON)))
         {
             // Enable Hercules UART if Hercules is ON:
             // Hercules Power ON but Comms not initialized
@@ -86,7 +86,7 @@ namespace iris
             //!< @todo Handling?
         }
 
-        if (theContext.m_details.m_hParams.m_heatingControlEnabled)
+        if (theContext.m_details.m_hParams.persistent->m_heatingControlEnabled)
         {
             // Update the Heater State (PWM remains unchanged here):
             heaterControl(theContext);
@@ -97,7 +97,8 @@ namespace iris
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
                          &writeIOExpander,
-                         &(theContext.m_details));
+                         &(theContext.m_details),
+                         theContext.m_uart0State);
 
         if (writeIOExpander)
         {

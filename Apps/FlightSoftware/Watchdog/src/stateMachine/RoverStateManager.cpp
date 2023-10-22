@@ -32,6 +32,20 @@ namespace iris
     static bool persistentInMission = false;
 #pragma PERSISTENT
     static bool persistentDeployed = false;
+#pragma PERSISTENT
+    static HeaterParamsPersistent persistentHeaterSettings = {
+        // Initial defaults:
+        .m_kpHeater = DEFAULT_KP_HEATER,
+        .m_pwmLimit = DEFAULT_PWM_LIMIT,
+        .m_heaterSetpoint = DEFAULT_HEATER_SETPOINT,
+        .m_heaterWindow = DEFAULT_HEATER_WINDOW,
+        .m_heaterOnVal = DEFAULT_HEATER_ON_VAL,
+        .m_heaterOffVal = DEFAULT_HEATER_OFF_VAL,
+        .m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED,
+        .m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD,
+        .m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE
+        //
+    };
 
     RoverStateManager::RoverStateManager(const char *resetReasonString)
         : m_stateEnteringKeepAlive(),
@@ -65,18 +79,18 @@ namespace iris
         m_context.m_uartConfig.uart1Buffers.rxBuffer = uart1RxBuffer;
         m_context.m_uartConfig.uart1Buffers.rxBufferSize = sizeof(uart1RxBuffer);
 
-        m_context.m_details.m_hParams.m_kpHeater = DEFAULT_KP_HEATER;
-        m_context.m_details.m_hParams.m_pwmLimit = DEFAULT_PWM_LIMIT;
-        m_context.m_details.m_hParams.m_heaterSetpoint = DEFAULT_HEATER_SETPOINT;
-        m_context.m_details.m_hParams.m_heaterWindow = DEFAULT_HEATER_WINDOW;
-        m_context.m_details.m_hParams.m_heaterOnVal = DEFAULT_HEATER_ON_VAL;
-        m_context.m_details.m_hParams.m_heaterOffVal = DEFAULT_HEATER_OFF_VAL;
-        m_context.m_details.m_hParams.m_heatingControlEnabled = DEFAULT_HEATING_CONTROL_ENABLED;
-        m_context.m_details.m_hParams.m_heaterDutyCyclePeriod = DEFAULT_HEATER_DUTY_CYCLE_PERIOD;
-        m_context.m_details.m_hParams.m_heaterDutyCycle = DEFAULT_HEATER_DUTY_CYCLE;
+        m_context.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF; // starts off, doesn't come on until Mission.
+        m_context.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth = SAFETY_TIMER__DEFAULT_CUTOFF_TENTH_CS;
+        m_context.m_details.m_safetyTimerParams.tenthTimerExpirationCount = 0;
+        m_context.m_details.m_safetyTimerParams.centisecondsAtLastEvent = 0;
+
+        // Load Persistent Heater Settings:
+        m_context.m_details.m_hParams.persistent = &persistentHeaterSettings;
+        // Set heater context data:
         m_context.m_details.m_hParams.m_thresholdsChanged = true;
         m_context.m_details.m_hParams.m_forceState = HEATER_FORCE_NOTHING;
         m_context.m_details.m_hParams.m_inputSource = HEATER_CONTROL_INPUT_BATT_RT;
+
         m_context.m_details.m_stateAsUint = static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE);
         m_context.m_details.m_inputPinAndStateBits = 0;
         m_context.m_details.m_outputPinBits = 0;

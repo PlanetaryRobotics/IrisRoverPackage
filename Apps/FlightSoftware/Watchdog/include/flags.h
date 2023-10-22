@@ -21,25 +21,101 @@ extern "C"
 #define FLAG_POWER_ISSUE 0x40
 #define FLAG_I2C_GAUGE_READING_ACTIVE 0x80
 
-#define WDFLAG_RADIO_KICK 0x0001
-#define WDFLAG_ADC_READY 0x0002
-#define WDFLAG_UNRESET_RADIO1 0x0004
-#define WDFLAG_UNRESET_RADIO2 0x0008
-#define WDFLAG_UNRESET_HERCULES 0x0010
-#define WDFLAG_UNRESET_MOTOR1 0x0020
-#define WDFLAG_UNRESET_MOTOR2 0x0040
-#define WDFLAG_UNRESET_MOTOR3 0x0080
-#define WDFLAG_UNRESET_MOTOR4 0x0100
-#define WDFLAG_UNRESET_FPGA 0x0200
-#define WDFLAG_UNRESET_3V3 0x0400
-#define WDFLAG_POWER_ON_V_SYS_ALL 0x0800
-#define WDFLAG_HERCULES_KICK 0x1000
-#define WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE 0x2000
+// All flags need to be 1-hot:
+#define WDFLAG_RADIO_KICK 0x0000'0001
+#define WDFLAG_ADC_READY 0x0000'0002
+#define WDFLAG_UNRESET_RADIO1 0x0000'0004
+#define WDFLAG_UNRESET_RADIO2 0x0000'0008
+#define WDFLAG_UNRESET_HERCULES 0x0000'0010
+#define WDFLAG_UNRESET_MOTOR1 0x0000'0020
+#define WDFLAG_UNRESET_MOTOR2 0x0000'0040
+#define WDFLAG_UNRESET_MOTOR3 0x0000'0080
+#define WDFLAG_UNRESET_MOTOR4 0x0000'0100
+#define WDFLAG_UNRESET_FPGA 0x0000'0200
+#define WDFLAG_UNRESET_3V3 0x0000'0400
+#define WDFLAG_POWER_ON_V_SYS_ALL 0x0000'0800
+#define WDFLAG_HERCULES_KICK 0x0000'1000
+#define WDFLAG_WAITING_FOR_IO_EXPANDER_WRITE 0x0000'2000
+#define WDFLAG_POWER_ON_HERCULES 0x0000'4000
+#define WDFLAG_FULL_POWER_REBOOT 0x0000'8000
+#define WDFLAG_SAFETY_TIMER_KICK 0x0001'0000
+// Require two non-adjacent bits (A and B) to be set to trigger full power
+// reboot stages (more bitflip resilient):
+#define WDFLAG_SAFETY_TIMER__PWR_OFF_1A 0x0002'0000
+#define WDFLAG_SAFETY_TIMER__PWR_OFF_2A 0x0004'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_1A 0x0008'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_2A 0x0010'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_3A 0x0020'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_4A 0x0040'0000
+#define WDFLAG_SAFETY_TIMER__PWR_OFF_1B 0x0080'0000
+#define WDFLAG_SAFETY_TIMER__PWR_OFF_2B 0x0100'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_1B 0x0200'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_2B 0x0400'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_3B 0x0800'0000
+#define WDFLAG_SAFETY_TIMER__PWR_ON_4B 0x1000'0000
 
 #define WDOPT_MONITOR_HERCULES 0x0001
 
 #define ENTER_DEFAULT_LPM LPM1
 #define EXIT_DEFAULT_LPM LPM1_EXIT
+
+        //* Safety Timer:
+        // If GND doesn't check in with us (WD) through the whole comms pipeline
+        // by sending an ACK command every X minutes (reasonably large number),
+        // WD assumes something bad has happened (locked Radio, Herc, etc),
+        // possibly severing contact with GND and that GND isn't able to
+        // recover it. So, to recover, WD gracefully powers everything but the
+        // batteries down and then boots back up into a safe state with all
+        // non-communication peripherals (camera, motors) OFF.
+
+        typedef enum SafetyTimer_RebootControlValue
+        {
+                // Only allow two values so we can detect a bitflip here:
+                SAFETY_TIMER__REBOOT_CONTROL_OFF = 0x00,
+                SAFETY_TIMER__REBOOT_CONTROL_ON = 0xFF
+        } SafetyTimer_RebootControlValue;
+
+        // ! NOTE: The number of centiseconds that fit in a U16 is not enough
+        // (only 10 mins) and bumping the timer to a long (U32) isn't advisable
+        // (would screw w timing of all time checks), so we need to just count
+        // the number of expirations before a trigger. 5 would be sufficient
+        // but 10 makes the math easier on operators, so cutoffs values are now
+        // "tenths of a cutoff"
+        typedef struct SafetyTimerParams
+        {
+                // Is timer allowed to fully reboot the rover when the cutoff is reached:
+                // (if an invalid enum value, there's been a bitflip and value is reset to ON).
+                SafetyTimer_RebootControlValue timerRebootControlOn;
+                // Centisecond threshold where the safety timer fully reboots
+                // the rover if it hasn't heard from us (received an ACK):
+                uint16_t timerRebootCutoffCentisecondsTenth;
+                // Number of times the timer has expired (needs to expire 10
+                // times to trigger a reset) - see note above for why.
+                // We need this to get the timeout to a reasonable value.
+                // We'll also emit a warning every time this expires.
+                uint8_t tenthTimerExpirationCount;
+                // System time in centiseconds at the last time we received an
+                // ACK from Ground (or when a tenth-timer expired).
+                // Tops out at 10.9mins.
+                // Make sure to check this in a rollover-safe way:
+                // (now-last) > cutoff.
+                uint16_t centisecondsAtLastEvent;
+        } SafetyTimerParams;
+
+// Number of times the timer needs to expire to trigger a reboot:
+// CAN'T BE <2.
+#define SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER 10
+// Default safety timer cutoff/10 in centiseconds (4 mins -> 40min timer):
+#define SAFETY_TIMER__DEFAULT_CUTOFF_TENTH_CS 24000
+// How much to increment or decrement the safety timer/10 cutoff by when told to (0.5min. -> 5min. timer inc.):
+#define SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS 3000
+// How soon [in cs] before the final expiration before reboot to start emitting a warning message every tick (~5s):
+// Should be at least 2x roundtrip delay (set to 5min)
+#define SAFETY_TIMER__FINAL_COUNTDOWN_START_TIME_CS 30000
+// Maximum value the safety timer/10 is allowed to have (~10.9min.):
+#define SAFETY_TIMER__CUTOFF_TENTH_MAX_VAL_CS 0xFFFE
+// Minimum value the safety timer/10 is allowed to have (0.5min. -> 5min. timer):
+#define SAFETY_TIMER__CUTOFF_TENTH_MIN_VAL_CS 3000
 
         typedef enum Heater_ForceState
         {
@@ -60,7 +136,12 @@ extern "C"
                 HEATER_CONTROL_INPUT_CHARGER = 0x55, // Power up the Charging IC, Don't Charge, and use the Charging Thermistor (only as a last ditch effort)
         } HeaterControl_InputSource;
 
-        typedef struct HeaterParams
+        // Core heater settings that we want to be persistent (e.g. we DO want
+        // setpoints to persist but we DON'T want flags to persist - good for
+        // those to reset on reboot in case they somehow cause a crash):
+        // ... basically only persist variables that are changed *directly*
+        // in response to a command.
+        typedef struct HeaterParamsPersistent
         {
                 uint16_t m_kpHeater;
                 uint16_t m_pwmLimit;
@@ -68,11 +149,20 @@ extern "C"
                 uint16_t m_heaterWindow;
                 uint16_t m_heaterOnVal;  // heater transitions to ON when T ADC < this value
                 uint16_t m_heaterOffVal; // heater transitions to OFF when T ADC > this value
-                BOOL m_heating;
                 BOOL m_heatingControlEnabled;
                 uint16_t m_heaterDutyCyclePeriod;
                 uint16_t m_heaterDutyCycle;
-                BOOL m_thresholdsChanged;                // flag that the on or off thresholds have changed since they were last checked
+        } HeaterParamsPersistent;
+
+        typedef struct HeaterParams
+        {
+                HeaterParamsPersistent *persistent;
+                BOOL m_heating;
+                BOOL m_thresholdsChanged; // flag that the on or off thresholds have changed since they were last checked
+                // Intentionally don't persist input source and force state b/c
+                // it's potentially dangerous and we want this to be a last
+                // resort measure, so it's okay for this to be manually
+                // activated after every reboot:
                 Heater_ForceState m_forceState;          // force the heater to always be on or off (at whatever duty) - using specific enums to make it hard to be bitflipped into this state.
                 HeaterControl_InputSource m_inputSource; // what sensor should drive the heater controller (note, changing this should be accompanied by changing thresholds)
         } HeaterParams;
@@ -235,6 +325,8 @@ extern "C"
                 uint64_t m_resetActionBits;
                 uint8_t m_stateAsUint;
                 HeaterParams m_hParams;
+                SafetyTimerParams m_safetyTimerParams;
+
         } WatchdogStateDetails;
 
 #ifdef __cplusplus

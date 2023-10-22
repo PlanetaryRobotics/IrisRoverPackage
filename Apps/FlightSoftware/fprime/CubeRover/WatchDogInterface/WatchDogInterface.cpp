@@ -113,13 +113,15 @@ namespace CubeRover
         Fw::Time now = getTime();
         uint32_t nowMillis = static_cast<uint32_t>(now.get_time_ms());
 
-        if((nowMillis - m_lastThermistorReadTime) > ADC_THERMISTOR_READ_PERIOD_MS){
+        if ((nowMillis - m_lastThermistorReadTime) > ADC_THERMISTOR_READ_PERIOD_MS)
+        {
             // Update Thermistor Telemetry no more frequently than `ADC_THERMISTOR_READ_PERIOD_MS`:
             m_lastThermistorReadTime = nowMillis;
             Read_Temp();
         }
 
-        if((nowMillis - m_lastCurrentReadTime) > ADC_CURRENT_READ_PERIOD_MS){
+        if ((nowMillis - m_lastCurrentReadTime) > ADC_CURRENT_READ_PERIOD_MS)
+        {
             // Update Current Telemetry no more frequently than `ADC_CURRENT_READ_PERIOD_MS`:
             m_lastCurrentReadTime = nowMillis;
             Read_Current();
@@ -136,7 +138,6 @@ namespace CubeRover
             // debugPrintfToWatchdog("Failed to send stroke\n");
             //  TODO: Add logging error
         }
-
 
         if (nowMillis - lastFailedStrokeMsgSendTime >= 10000)
         {
@@ -231,17 +232,22 @@ namespace CubeRover
         Reset_Specific_Handler(
             int reset_enum_number)
     {
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
+
+        sloppyResourceProtectionMutex.lock();
         // Convert int into reset_values_possible
         reset_values_possible reset_value = (reset_values_possible)reset_enum_number;
         // Check that reset_value is correct
         if (reset_value >= reset_values_possible_MAX)
         {
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
+            sloppyResourceProtectionMutex.unLock();
             return false;
         }
         // Send command to watchdog, put 0 for opcode and cmdseq
         bool success = logAndSendResetSpecific(WatchDogInterfaceComponentBase::OPCODE_RESET_SPECIFIC, 0, reset_value, false);
 
+        sloppyResourceProtectionMutex.unLock();
         return success;
     }
 
@@ -261,14 +267,12 @@ namespace CubeRover
                                          static_cast<reset_values_possible>(Disengage),
                                          true);
 
-        if (success)
-        {
-            // Set Deployment Bit High
-            // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
-            // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
-            gioSetBit(spiPORT3, deploy_bit, 1);
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-        }
+        debugPrintfToWatchdog("Hercules Asserting Deployment Interlock...");
+        // Set Deployment Bit High
+        // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+        // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
+        gioSetBit(spiPORT3, deploy_bit, 1);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     void WatchDogInterfaceComponentImpl ::
@@ -283,14 +287,12 @@ namespace CubeRover
 
         bool success = sendResetSpecific(opCode - this->getIdBase(), cmdSeq, HDRM_Off, true);
 
-        if (success)
-        {
-            // Set Deployment Bit low
-            // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
-            // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
-            gioSetBit(spiPORT3, deploy_bit, 0);
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-        }
+        debugPrintfToWatchdog("Hercules Releasing Deployment Interlock...");
+        // Set Deployment Bit low
+        // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+        // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
+        gioSetBit(spiPORT3, deploy_bit, 0);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     bool WatchDogInterfaceComponentImpl::logAndSendResetSpecific(FwOpcodeType opCode,
@@ -298,14 +300,18 @@ namespace CubeRover
                                                                  reset_values_possible resetValue,
                                                                  bool sendResponse)
     {
-        // Send Activity Log/tlm to know watchdog received command
-        char command_type[24] = "Reset Specific:";
+        static char command_type[24] = "Reset Specific:";
+        static Os::Mutex sloppyResourceProtectionMutex; // quick and dirty. keeps multiple tasks from doing this at once.
+
+        sloppyResourceProtectionMutex.lock();
+        // Send Activity Log/tlm to know watchdog received command:
         char reset_val_char[8];
         sprintf(reset_val_char, "%u", resetValue);
         strcat(command_type, reset_val_char);
         Fw::LogStringArg command_type_log = command_type;
         this->log_ACTIVITY_HI_WatchDogCmdReceived(command_type_log);
 
+        sloppyResourceProtectionMutex.unLock();
         return sendResetSpecific(opCode, cmdSeq, resetValue, sendResponse);
     }
 
@@ -315,7 +321,7 @@ namespace CubeRover
                                                            bool sendResponse)
     {
         // Check that reset_value is correct
-        if (resetValue >= reset_values_possible_MAX)
+        if (resetValue >= reset_values_possible_MAX && resetValue >= hdrm_deploy_signal_power_on)  // reset_values_possible_MAX is not actually max, just last + 1
         {
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
             return false;
@@ -589,7 +595,7 @@ namespace CubeRover
 
         // Check if all ADC Conversions are done
         // From testing tries ALMOST ALWAYS ~= 10 - 12  ==>  38 - 40 cycles to convert data.. OK to poll
-        int tries = 135;  // Num thermistors bumped from 6 to 16, so bumped this up from 50 accordingly
+        int tries = 135; // Num thermistors bumped from 6 to 16, so bumped this up from 50 accordingly
         while (--tries && !adcIsConversionComplete(adcREG1, adcGROUP1))
             ;
 
@@ -646,14 +652,13 @@ namespace CubeRover
         return true;
     }
 
-
     bool WatchDogInterfaceComponentImpl::Read_Current()
     {
         // Start ADC Conversions for all thermistors
         adcStartConversion(adcREG2, adcGROUP1);
 
         // Check if all ADC Conversions are done
-        int tries = 60;  // Based on data used in Read_Temp. 50 was sufficient for 6 inputs, we're reading 7 here, so we'll max out at 60
+        int tries = 60; // Based on data used in Read_Temp. 50 was sufficient for 6 inputs, we're reading 7 here, so we'll max out at 60
         while (--tries && !adcIsConversionComplete(adcREG2, adcGROUP1))
             ;
 
@@ -674,13 +679,13 @@ namespace CubeRover
             {
                 // Emit a Current Readings Report:
                 log_ACTIVITY_HI_AdcCurrentSensorReadingsReport(
-                    m_current_buffer[0].value,  // CURRENT_3V3_FPGA
-                    m_current_buffer[1].value,  // CURRENT_3V3_RADIO
-                    m_current_buffer[2].value,  // CURRENT_3V3
-                    m_current_buffer[3].value,  // CURRENT_3V3_HERCULES
-                    m_current_buffer[4].value,  // CURRENT_1V2_HERCULES
-                    m_current_buffer[5].value,  // CURRENT_1V2_FPGA
-                    m_current_buffer[6].value   // CURRENT_24V
+                    m_current_buffer[0].value, // CURRENT_3V3_FPGA
+                    m_current_buffer[1].value, // CURRENT_3V3_RADIO
+                    m_current_buffer[2].value, // CURRENT_3V3
+                    m_current_buffer[3].value, // CURRENT_3V3_HERCULES
+                    m_current_buffer[4].value, // CURRENT_1V2_HERCULES
+                    m_current_buffer[5].value, // CURRENT_1V2_FPGA
+                    m_current_buffer[6].value  // CURRENT_24V
                 );
             }
             else
@@ -950,16 +955,16 @@ namespace CubeRover
         struct WatchdogTelemetry *buff =
             reinterpret_cast<struct WatchdogTelemetry *>(msg.dataBuffer);
 
-//        this->tlmWrite_VOLTAGE_2_5V(buff->voltage_2V5); // DEPRECATED TELEM FIELD (see note in XML)
-//        this->tlmWrite_VOLTAGE_2_8V(buff->voltage_2V8); // DEPRECATED TELEM FIELD (see note in XML)
-//        this->tlmWrite_VOLTAGE_24V(buff->voltage_24V); // DEPRECATED TELEM FIELD (see note in XML)
+        //        this->tlmWrite_VOLTAGE_2_5V(buff->voltage_2V5); // DEPRECATED TELEM FIELD (see note in XML)
+        //        this->tlmWrite_VOLTAGE_2_8V(buff->voltage_2V8); // DEPRECATED TELEM FIELD (see note in XML)
+        //        this->tlmWrite_VOLTAGE_24V(buff->voltage_24V); // DEPRECATED TELEM FIELD (see note in XML)
         this->tlmWrite_VOLTAGE_28V(buff->voltage_28V);
         this->tlmWrite_BATTERY_THERMISTOR(buff->battery_thermistor);
         // this->tlmWrite_SYSTEM_STATUS(buff->sys_status);        // Not currently impl. (we get this from WD->Herc packet forwarding anyway).
         // this->tlmWrite_BATTERY_LEVEL(buff->battery_level);     //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
         // this->tlmWrite_BATTERY_CURRENT(buff->battery_current); //  Not currently impl. (we get this from WD->Herc packet forwarding anyway).
         // this->tlmWrite_BATTERY_VOLTAGE(buff->battery_voltage); // Not currently impl. (we get this from WD->Herc packet forwarding anyway)
-
+        setExt28VRaw(buff->voltage_28V);
         return;
     }
 
@@ -1321,6 +1326,22 @@ namespace CubeRover
 
         resourceProtectionMutex.unLock();
         return true;
+    }
+
+    void WatchDogInterfaceComponentImpl::setExt28VRaw(int16_t voltage)
+    {
+        this->m_extDataMutex.lock();
+        this->m_extVoltage28VRaw = voltage;
+        this->m_extDataMutex.unLock();
+    }
+
+    int16_t WatchDogInterfaceComponentImpl::getExt28VRaw()
+    {
+        int16_t reading;
+        this->m_extDataMutex.lock();
+        reading = this->m_extVoltage28VRaw;
+        this->m_extDataMutex.unLock();
+        return reading;
     }
 
 } // end namespace CubeRover

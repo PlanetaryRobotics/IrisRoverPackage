@@ -101,8 +101,8 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
         else:
             try:
                 # Formatting is correct. Extract data:
-                self._resetId = int(fields[0])
-                self._resultStatusCode = int(fields[2])
+                self._resetId = int(fields[0], 16)
+                self._resultStatusCode = int(fields[2], 16)
                 resetConditions = int(fields[-1], 16)
                 self._allowPowerOn = bool(resetConditions & 0b1000)
                 self._allowDisableRS422 = bool(resetConditions & 0b0100)
@@ -183,9 +183,9 @@ class WatchdogResetSpecificAckPacket(WatchdogResetSpecificAckPacketInterface[Wat
         if self._raw is None or len(self._raw) < len(FIXED_PREFIX):
             msg = ''
         else:
-            msg = self._raw.decode().strip()
+            msg = self._raw[5:].decode().strip()
         return (
-            colored(f" {msg} ", 'white', 'on_yellow', ['bold']) +
+            colored(f"{msg} ", 'white', 'on_yellow', ['bold']) +
             colored(f": {self.resetFieldName} -> {self.resetResult}", 'yellow', attrs=['bold']) +
             colored(
                 f", allowing\t "

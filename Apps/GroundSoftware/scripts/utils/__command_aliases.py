@@ -9,7 +9,7 @@ NOTE: THIS FILE IS DEPRECATED AS OF 03/10/2023. Don't use for new code. Use
 `IrisBackendv3/config/command_aliases`.
 
 Created: 10/29/2021
-Last Update: 04/11/2023
+Last Update: 10/22/2023
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
@@ -255,6 +255,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(confirm='CONFIRM_DEPLOY'),
         DataPathway.WIRELESS
     ),
+    'hdrm-interlock-off-wd': (  # tell WD to turn off its HDRM interlock
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HDRM_OFF'),
+        DataPathway.WIRELESS
+    ),
+    'clear-deploy-wd': (  # clear the persistent deployment bit in the WD
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='CLEAR_PERSISTENT_DEPLOY'),
+        DataPathway.WIRELESS
+    ),
     'undeploy': (
         DataPathway.WIRED,
         Magic.COMMAND,  # "normal" command is for Hercules
@@ -393,6 +407,22 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='FPGA_POWER_OFF'),
         DataPathway.WIRELESS
     ),
+    'power-off-fpga': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
+        DataPathway.WIRED
+    ),
+    'power-on-fpga': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRED
+    ),
     '3v3-on': (
         DataPathway.WIRED,
         # intentionally telling the WD to tell Herc to tell the WD to enable heater control (same path as deployment command but a quick pretest)
@@ -497,6 +527,14 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.WATCHDOG_COMMAND,
         'WatchDogInterface_RequestStatusReport',
         OrderedDict(confirm='CONFIRM_REQUEST'),
+        DataPathway.WIRED
+    ),
+    'ReportStatus-ViaHercules': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        # Use Reset-Specific pathway for this:
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='REQUEST_STATUS_REPORT'),
         DataPathway.WIRED
     ),
     'disable-heater-control-via-herc': (
@@ -1505,6 +1543,43 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         Magic.COMMAND,
         'GroundInterface_SetNameAndMessagePeriod',
         OrderedDict(seconds=10),
+        DataPathway.WIRED
+    ),
+
+    # Safety Timer:
+    'st-on': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_ON'),
+        DataPathway.WIRED
+    ),
+    'st-off': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_OFF'),
+        DataPathway.WIRED
+    ),
+    'st-ack': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_ACK'),
+        DataPathway.WIRED
+    ),
+    'st-inc': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_CUTOFF_INC'),
+        DataPathway.WIRED
+    ),
+    'st-dec': (  # Tell the Watchdog to switch into service mode
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='SAFETY_TIMER_CUTOFF_DEC'),
         DataPathway.WIRED
     )
 }

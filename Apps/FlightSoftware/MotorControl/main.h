@@ -19,7 +19,7 @@
 
 bool read_driver_fault(); // function descriptions in main.c
 void clear_driver_fault();
-void updateStateMachine();
+void updateDriverStateMachine();
 
 
 #endif /* MAIN_H_ */

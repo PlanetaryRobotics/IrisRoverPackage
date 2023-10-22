@@ -229,17 +229,14 @@ void resetPiController(volatile PI_CONTROLLER *pi)
  */
 inline void disable(void)
 {
-    if (g_state == IDLE)
-    {
-        return; // already in IDLE, nothing to do
-    }
-
-    __disable_interrupt();
+    // disableGateDriver() already handles interrupt safety
+    // __disable_interrupt();
     disableGateDriver();
-    g_state = IDLE;
     g_targetPosition = 0;
     g_currentPosition = 0;
-    __enable_interrupt();
+    g_state = IDLE;
+    g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
+    // __enable_interrupt();
 }
 
 /**
@@ -251,27 +248,29 @@ inline void run(void)
     {
         return; // already in RUNNING, nothing to do
     }
-    __disable_interrupt();
+    
+    // disableGateDriver() already handles interrupt safety
+    // __disable_interrupt();
     enableGateDriver();
     g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
     g_currentPosition = 0;
     g_targetReached = false;
     g_state = RUNNING;
-    __enable_interrupt();
+    // __enable_interrupt();
 }
 
 /**
  * @brief      Update the drive state machine
  */
-void updateStateMachine(void)
+void updateDriverStateMachine(void)
 {
-    if (g_cmdState == RUN && g_state == IDLE)
-    {
-        run();
-    }
-    else if (g_cmdState == DISABLE && g_state == RUNNING)
+    if (g_cmdState == DISABLE)
     {
         disable();
+    }
+    else if (g_cmdState == RUN && g_state == IDLE)
+    {
+        run();
     }
     g_cmdState = NO_CMD;
 }

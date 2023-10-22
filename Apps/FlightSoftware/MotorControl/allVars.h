@@ -52,7 +52,6 @@
  *          Constants
  * ============================================
  */
-
 // TO INCREASE MAX SPEED:
 //   - increase 'PI_OUTPUT_BOUNDS'
 //   - increase 'MAX_TARGET_SPEED'

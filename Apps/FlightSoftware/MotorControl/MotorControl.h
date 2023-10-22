@@ -15,4 +15,9 @@ void initMotorControl(McI2cAddr_t i2cAddr);
 
 void updateMotorController();
 
+
+McFaultMask_t g_mcIgnoredFaults;
+uint8_t g_mcDefinedMaxSpeed;
+//bool updateProtectedVar(MC_IDC_Protected_Var var, int32_t new_val);
+
 #endif /* MOTORCONTROL_H_ */

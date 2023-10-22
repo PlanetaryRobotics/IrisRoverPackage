@@ -189,13 +189,6 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           __no_operation();
           return;
   }
-
-//    // Send requested data
-//    g_slaveMode = TX_DATA_MODE;
-//    g_txByteCtr = g_i2cCmdLength[cmd];
-//    copyArray(txData, (uint8_t*)g_txBuffer, g_txByteCtr);
-//    disableI2cRxInterrupt();
-//    enableI2cTxInterrupt();
 }
 
 
@@ -206,7 +199,8 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
  * @param[in]  cmd   The command
  */
 inline void i2cSlaveTransactionDone(const uint8_t cmd){
-    switch(cmd){
+    switch(cmd)
+    {
       case I2C_ADDRESS:
       case CURRENT_POSITION:
       case MOTOR_CURRENT:
@@ -217,6 +211,7 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
+        /* FIND ANOTHER SPOT */
         g_currentPosition = 0; // reset because target pos is relative
         g_statusRegister &= ~MC_STATE_TARGET_REACHED; // likely no longer converged (if still converged, control loop will correct for that)
         g_drivingTimeoutCtr = 0; //reset timeout counter
@@ -262,11 +257,13 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_controlRegister,
                    sizeof(g_controlRegister));
-//        if(g_controlRegister & MC_CMD_E_STOP) {
-//            g_sendTelem = true;
-//        } else {
-//            g_sendTelem = false;
-//        }
+        // E-STOP CHECK
+        if(g_controlRegister & STATE_MACHINE_DISABLE)
+        {
+            g_cmdState = DISABLE;
+            disable();
+        }
+        /* FIND ANOTHER SPOT */
         // update status register if told to drive in open loop
         if(g_controlRegister & DRIVE_OPEN_LOOP){
             g_statusRegister |= DRIVE_OPEN_LOOP;
@@ -277,13 +274,9 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
             g_statusRegister |= MC_CMD_CLEAR_FAULTS; // indicates an attempt to clear fault was made
         }
         // update state machine if requested
-        if(g_controlRegister & STATE_MACHINE_DISABLE){
-            g_cmdState = DISABLE;
-            updateStateMachine();
-            g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
-        } else if (g_controlRegister & STATE_MACHINE_RUN){
+        if (g_controlRegister & STATE_MACHINE_RUN){
             g_cmdState = RUN;
-            updateStateMachine();
+            updateDriverStateMachine();
             g_statusRegister &= ~STATE_MACHINE_DISABLE;
         }
 

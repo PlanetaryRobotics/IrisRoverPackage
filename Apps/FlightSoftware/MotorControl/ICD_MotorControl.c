@@ -19,16 +19,21 @@ void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr)
     mcReg->mc_curr_speed = 0; // 0-100%
     mcReg->mc_curr_current = 0; // mA
 
-    mcReg->mc_piCurKp = DEFAULT_CURRENT_KP_IQ; // Linear Format
-    mcReg->mc_piCurKi = DEFAULT_CURRENT_KI_IQ;
-    mcReg->mc_piSpdKp = DEFAULT_SPEED_KP_IQ;
-    mcReg->mc_piSpdKi = DEFAULT_SPEED_KI_IQ;
-    mcReg->mc_acc_val = 0; // ticks*s-2
-    mcReg->mc_dec_val = 0;
 
     mcReg->mc_ctrlReg = MC_NO_CMD;
     mcReg->mc_stateReg = MC_STATE_IDLE;
     mcReg->mc_faultReg = MC_NO_FAULT;
+
+    // PROTECTED => MC_CMD_OVERRIDE_PROTECTED;
+    // ONLY WRITE IF (mc_stateReg & MC_STATUS_WRITE_PROTECTED);
+    mcReg->mc_piCurKp = DEFAULT_CURRENT_KP_IQ; // Linear Format
+    mcReg->mc_piCurKi = DEFAULT_CURRENT_KI_IQ;
+    mcReg->mc_piSpdKp = DEFAULT_SPEED_KP_IQ;
+    mcReg->mc_piSpdKi = DEFAULT_SPEED_KI_IQ;
+    // mcReg->mc_acc_val = 0; // ticks*s-2
+    // mcReg->mc_dec_val = 0;
+    mcReg->mc_maxCurrent = 0;   // UNKNOWN
+    mcReg->mc_ignoreFaults = 0xFF; // mask so 0 will ignore fault
 }
 
 McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID)
@@ -40,61 +45,85 @@ McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID)
 
     switch(regID)
     {
+    case MC_REG_I2C_ADDRESS:
+        dataPkt.data = &(mcReg->mc_i2c_addr);
+        dataPkt.dataLen = sizeof(mcReg->mc_i2c_addr);
+        dataPkt.access = READ_ONLY;
     case MC_REG_TARGET_POSITION:
         dataPkt.data = &(mcReg->mc_target_pos);
         dataPkt.dataLen = sizeof(mcReg->mc_target_pos);
+        dataPkt.access = READ_WRITE;
         break;
     case MC_REG_TARGET_SPEED:
         dataPkt.data = &(mcReg->mc_target_speed);
         dataPkt.dataLen = sizeof(mcReg->mc_target_speed);
+        dataPkt.access = READ_WRITE;
         break;
     case MC_REG_CURRENT_POSITION:
         dataPkt.data = &(mcReg->mc_curr_pos);
         dataPkt.dataLen = sizeof(mcReg->mc_curr_pos);
+        dataPkt.access = READ_ONLY;
         break;
     case MC_REG_CURRENT_SPEED:
         dataPkt.data = &(mcReg->mc_curr_speed);
         dataPkt.dataLen = sizeof(mcReg->mc_curr_speed);
+        dataPkt.access = READ_ONLY;
         break;
     case MC_REG_MOTOR_CURRENT:
         dataPkt.data = &(mcReg->mc_curr_current);
         dataPkt.dataLen = sizeof(mcReg->mc_curr_current);
+        dataPkt.access = READ_ONLY;
         break;
     case MC_REG_P_CURRENT:
         dataPkt.data = &(mcReg->mc_piCurKp);
         dataPkt.dataLen = sizeof(mcReg->mc_piCurKp);
+        dataPkt.access = PROTECTED_WRITE;
         break;
     case MC_REG_I_CURRENT:
         dataPkt.data = &(mcReg->mc_piCurKi);
         dataPkt.dataLen = sizeof(mcReg->mc_piCurKi);
+        dataPkt.access = PROTECTED_WRITE;
         break;
     case MC_REG_P_SPEED:
         dataPkt.data = &(mcReg->mc_piSpdKp);
         dataPkt.dataLen = sizeof(mcReg->mc_piSpdKp);
+        dataPkt.access = PROTECTED_WRITE;
         break;
     case MC_REG_I_SPEED:
         dataPkt.data = &(mcReg->mc_piSpdKi);
         dataPkt.dataLen = sizeof(mcReg->mc_piSpdKi);
+        dataPkt.access = PROTECTED_WRITE;
         break;
-    case MC_REG_ACC_RATE:
-        dataPkt.data = &(mcReg->mc_acc_val);
-        dataPkt.dataLen = sizeof(mcReg->mc_acc_val);
-        break;
-    case MC_REG_DEC_RATE:
-        dataPkt.data = &(mcReg->mc_dec_val);
-        dataPkt.dataLen = sizeof(mcReg->mc_dec_val);
-        break;
+    // case MC_REG_ACC_RATE:
+    //     dataPkt.data = &(mcReg->mc_acc_val);
+    //     dataPkt.dataLen = sizeof(mcReg->mc_acc_val);
+    //     break;
+    // case MC_REG_DEC_RATE:
+    //     dataPkt.data = &(mcReg->mc_dec_val);
+    //     dataPkt.dataLen = sizeof(mcReg->mc_dec_val);
+    //     break;
+    case MC_REG_MAX_CURRENT:
+        dataPkt.data = &(mcReg->mc_maxCurrent);
+        dataPkt.dataLen = sizeof(mcReg->mc_ctrlReg);
+        dataPkt.access = PROTECTED_WRITE;
+    case MC_REG_IGNORE_FAULT_MASK:
+        dataPkt.data = &(mcReg->mc_ignoreFaults);
+        dataPkt.dataLen = sizeof(mcReg->mc_ignoreFaults);
+        dataPkt.access = PROTECTED_WRITE;
     case MC_REG_MC_CTRL:
         dataPkt.data = &(mcReg->mc_ctrlReg);
         dataPkt.dataLen = sizeof(McCtrlVal_t);
+        dataPkt.access = READ_WRITE;
         break;
     case MC_REG_MC_STATUS:
         dataPkt.data = &(mcReg->mc_stateReg);
         dataPkt.dataLen = sizeof(McStateVal_t);
+        dataPkt.access = READ_ONLY;
         break;
     case MC_REG_MC_FAULT:
         dataPkt.data = &(mcReg->mc_faultReg);
         dataPkt.dataLen = sizeof(McFaultMask_t);
+        dataPkt.access = READ_ONLY;
         break;
     default:
         // error so *data = NULL and datalen = 0
@@ -121,8 +150,8 @@ uint8_t checkRegWritePermission(MC_ICD_RegAddr reg)
     case MC_REG_I_CURRENT:
     case MC_REG_P_SPEED:
     case MC_REG_I_SPEED:
-    case MC_REG_ACC_RATE:
-    case MC_REG_DEC_RATE:
+    // case MC_REG_ACC_RATE:
+    // case MC_REG_DEC_RATE:
         writePermission = 2;
     // In WriteProtected
     case MC_REG_MC_FAULT:
@@ -141,31 +170,6 @@ uint8_t checkRegWritePermission(MC_ICD_RegAddr reg)
     return writePermission;
 }
 
-uint8_t checkCmdExecPermission(MC_ICD_Ctrl cmd)
-{
-    uint8_t execPermission = 0;
-
-    switch(cmd)
-    {
-    // Always Allowed
-    case MC_CMD_E_STOP:             // goto Fault ?
-    case MC_CMD_DISABLE_DRIVER:     // goto Disable
-    case MC_CMD_RESET_CONTROLLER:   // goto Fault ?
-    case MC_NO_CMD:                 // do nothing
-        execPermission = 4;
-    // In Fault
-    case MC_CMD_CLEAR_FAULTS:       // goto Idle
-    // In Idle Only
-    case MC_CMD_OVERRIDE_PROTECTED: // goto WriteProtected
-    // In Idle or Enabled
-    case MC_CMD_ENABLE_DRIVER:      // goto Enable
-    case MC_CMD_UPDATE_CONFIG:      // Possibly goto Idle
-    // In Armed Only
-    case MC_CMD_EXECUTE_DRIVE:      // goto Running
-    default:
-    }
-}
-
 // --- ICD_MotorControl.c
 
 uint32_t regSizeMap(MC_ICD_RegAddr reg)
@@ -177,71 +181,73 @@ uint32_t regSizeMap(MC_ICD_RegAddr reg)
         case MC_REG_MC_CTRL:
         case MC_REG_MC_FAULT:
         case MC_REG_MC_STATUS:
+        case MC_REG_IGNORE_FAULT_MASK:
             return 1;
         case MC_REG_P_CURRENT:
         case MC_REG_I_CURRENT:
         case MC_REG_P_SPEED:
         case MC_REG_I_SPEED:
-        case MC_REG_ACC_RATE:
-        case MC_REG_DEC_RATE:
+        case MC_REG_MOTOR_CURRENT:
+        // case MC_REG_ACC_RATE:
+        // case MC_REG_DEC_RATE:
+        case MC_REG_MAX_CURRENT:
             return 2;
         case MC_REG_TARGET_POSITION:
         case MC_REG_CURRENT_POSITION:
-        case MC_REG_MOTOR_CURRENT: // TODO: CHeck if this retuns 2 byts or 4!? 2 from thismethod 4 from micheal's update current tlm code
             return 4;
         default:
             return 0;
     }
 }
 
-void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data)
+void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void **data)
 {
     switch(regID)
     {
     case MC_REG_TARGET_POSITION:
-        data = &(mcReg->mc_target_pos);
+        *data = &(mcReg->mc_target_pos);
         break;
     case MC_REG_TARGET_SPEED:
-        data = &(mcReg->mc_target_speed);
+        *data = &(mcReg->mc_target_speed);
         break;
     case MC_REG_CURRENT_POSITION:
-        data = &(mcReg->mc_curr_pos);
+        *data = &(mcReg->mc_curr_pos);
         break;
     case MC_REG_CURRENT_SPEED:
-        data = &(mcReg->mc_curr_speed);
+        *data = &(mcReg->mc_curr_speed);
         break;
     case MC_REG_MOTOR_CURRENT:
-        data = &(mcReg->mc_curr_current);
+        *data = &(mcReg->mc_curr_current);
         break;
     case MC_REG_P_CURRENT:
-        data = &(mcReg->mc_piCurKp);
+        *data = &(mcReg->mc_piCurKp);
         break;
     case MC_REG_I_CURRENT:
-        data = &(mcReg->mc_piCurKi);
+        *data = &(mcReg->mc_piCurKi);
         break;
     case MC_REG_P_SPEED:
-        data = &(mcReg->mc_piSpdKp);
+        *data = &(mcReg->mc_piSpdKp);
         break;
     case MC_REG_I_SPEED:
-        data = &(mcReg->mc_piSpdKi);
+        *data = &(mcReg->mc_piSpdKi);
         break;
-    case MC_REG_ACC_RATE:
-        data = &(mcReg->mc_acc_val);
-        break;
-    case MC_REG_DEC_RATE:
-        data = &(mcReg->mc_dec_val);
-        break;
+    // case MC_REG_ACC_RATE:
+    //     *data = &(mcReg->mc_acc_val);
+    //     break;
+    // case MC_REG_DEC_RATE:
+    //     *data = &(mcReg->mc_dec_val);
+    //     break;
     case MC_REG_MC_CTRL:
-        data = &(mcReg->mc_ctrlReg);
+        *data = &(mcReg->mc_ctrlReg);
         break;
     case MC_REG_MC_STATUS:
-        data = &(mcReg->mc_stateReg);
+        *data = &(mcReg->mc_stateReg);
         break;
     case MC_REG_MC_FAULT:
-        data = &(mcReg->mc_faultReg);
+        *data = &(mcReg->mc_faultReg);
         break;
     default:
-        data = NULL;
+        *data = NULL;
         break;
     }
 }
@@ -277,12 +283,12 @@ void setReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data)
     case MC_REG_I_SPEED:
         mcReg->mc_piSpdKi = *(uint16_t *)data;
         break;
-    case MC_REG_ACC_RATE:
-        mcReg->mc_acc_val = *(uint16_t *)data;
-        break;
-    case MC_REG_DEC_RATE:
-        mcReg->mc_dec_val = *(uint16_t *)data;
-        break;
+    // case MC_REG_ACC_RATE:
+    //     mcReg->mc_acc_val = *(uint16_t *)data;
+    //     break;
+    // case MC_REG_DEC_RATE:
+    //     mcReg->mc_dec_val = *(uint16_t *)data;
+    //     break;
     case MC_REG_MC_CTRL:
         mcReg->mc_ctrlReg = *(uint8_t *)data;
         break;

@@ -12,3 +12,8 @@ void initMotorControl(McI2cAddr_t i2cAddr)
     initMcRegStruct(&mcRegStruct, i2cAddr);
 }
 
+//bool safeWriteRegData(MC_ICD_Ctrl )
+//{
+//
+//}
+

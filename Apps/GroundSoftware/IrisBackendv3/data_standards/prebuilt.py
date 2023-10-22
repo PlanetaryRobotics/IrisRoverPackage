@@ -329,9 +329,15 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x11, 'Watchdog_DeploymentStatus', datatype=FswDataType.ENUM,  # 2b
             enum=[
+                # Status                     Interlock   Persistent Deployed
+                # 00: NOT_DEPLOYED           HDRM_off    Not Deployed
+                # 01: HDRM_ON+NOT_DEPLOYED   HDRM_on     Not Deployed
+                # 10: DEPLOYED               HDRM_off    Deployed
+                # 11: DEPLOYING              HDRM_on     Deployed
                 EnumItem('NOT_DEPLOYED', 0b00),
-                EnumItem('DEPLOYING', 0b01),
-                EnumItem('DEPLOYED', 0b10)
+                EnumItem('HDRM-ON+NOT_DEPLOYED', 0b01),
+                EnumItem('DEPLOYED', 0b10),
+                EnumItem('DEPLOYING', 0b11)
             ]
         ),
 

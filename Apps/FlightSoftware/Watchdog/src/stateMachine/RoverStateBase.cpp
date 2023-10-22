@@ -2152,6 +2152,7 @@ namespace iris
                 /* WOOT WOOT! WE ARE ON TO THE MOON, FOLKS */
                 /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
                 setDeploy();
+                *(theContext.m_persistentDeployed) = true;
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_ON);
             }
             else if (nullptr != response)

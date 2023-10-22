@@ -13,9 +13,9 @@ namespace IrisNames
 
     // Longest Msg: 125char, count = 50. Messages longer than 99char, split into two.
     // All messages are in the pattern `{moc_crowdfund_name}\t{crowdfund_message}`
-    const unsigned int LEN_MESSAGES = 3859; // 2953; // 1156;
+    const unsigned int LEN_MESSAGES = 3906; // 3859; // 2953; // 1156;
     const char MESSAGES[] =
-        "Iris\tThanks everyone for helping me get to the Moon!\0"
+        "Iris\tThanks to the generations of people who helped me get to the Moon!\0"
         ""
         "Rohil Bhargava\tShoot for the Moon, and even if you miss, you\'ll land among the stars - Les Brown\0"
         ""
@@ -105,5 +105,7 @@ namespace IrisNames
         "Joshwa A. Raj (JTJR)\tRita & Joshwa Raj;Sharda & Amritlal Raja;(1/2)\0"
         "Joshwa A. Raj (JTJR)\tSanthana Mary;Thewaram Devasagayam;Nalini Raja;Peter Joshua(2/2)\0"
         ""
-        "Christopher Poole\tOnly the first step\0";
+        "Christopher Poole\tOnly the first step\0"
+        ""
+        "Duo, The Duolingo Owl\t$DUOL\0";
 } // namespace IrisNames

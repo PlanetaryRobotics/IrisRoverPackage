@@ -60,49 +60,147 @@ html {
 				<td></td>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_MSPFaultDetected</td>
-			<td rowspan="1">3586 (0xe02)</td>
-			<td rowspan="1">A notification an MSP has thrown a fault</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="3">MC_MSPFaultDetected</td>
+			<td rowspan="3">3586 (0xe02)</td>
+			<td rowspan="3">A notification an MSP has thrown a fault</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>motorID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>faultMask</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_MSPNotResponding</td>
-			<td rowspan="1">3587 (0xe03)</td>
-			<td rowspan="1">A notification an MSP is not communicating</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="2">MC_MSPNotResponding</td>
+			<td rowspan="2">3587 (0xe03)</td>
+			<td rowspan="2">A notification an MSP is not communicating</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>motorID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_MSPNotReporting</td>
-			<td rowspan="1">3588 (0xe04)</td>
-			<td rowspan="1">A notification an MSP is not reporting data</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="2">MC_MSPNotReporting</td>
+			<td rowspan="2">3588 (0xe04)</td>
+			<td rowspan="2">A notification an MSP is not reporting data</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>motorID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_ParameterChanged</td>
-			<td rowspan="1">3589 (0xe05)</td>
-			<td rowspan="1">A notification that an MC parameter has been modified</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="4">MC_ParameterChanged</td>
+			<td rowspan="4">3589 (0xe05)</td>
+			<td rowspan="4">A notification that an MC parameter RegID has been modified</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>motorID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>regID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>val</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">MC_EncoderReset</td>
-			<td rowspan="1">3590 (0xe06)</td>
-			<td rowspan="1">A notification that an MC parameter has been modified</td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
+			<td rowspan="2">MC_EncoderReset</td>
+			<td rowspan="2">3590 (0xe06)</td>
+			<td rowspan="2">A notification that an MC parameter has been modified</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>motorID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="7">MC_RegTelemEvent</td>
+			<td rowspan="7">3745 (0xea1)</td>
+			<td rowspan="7">Generic Telemetry update for any register and all motors, with data cast as U32 (which may be problematic for neg numbers?)</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>regID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>motorA_Val</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>motorB_Val</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>motorC_Val</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>motorD_Val</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>motorsMask</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="5">MC_I2cGroupEvent</td>
+			<td rowspan="5">3825 (0xef1)</td>
+			<td rowspan="5">Counting i2c communication failures during batch register writes (parameters and commands) and reads (telem).</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>errorType</td>
+						<td>i2cCommError</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>regID</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>totalErrors</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>motorsMask</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
 		</tr>
 	</tbody>
 </table>

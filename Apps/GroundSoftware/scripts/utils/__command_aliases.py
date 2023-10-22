@@ -9,7 +9,7 @@ NOTE: THIS FILE IS DEPRECATED AS OF 03/10/2023. Don't use for new code. Use
 `IrisBackendv3/config/command_aliases`.
 
 Created: 10/29/2021
-Last Update: 04/11/2023
+Last Update: 10/22/2023
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from enum import Enum
@@ -367,6 +367,22 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_FPGA'),
         DataPathway.WIRED
     ),
+    'power-on-fpga': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRED
+    ),
+    'power-off-fpga': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
+        DataPathway.WIRED
+    ),
     'reset-fpga-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
@@ -375,20 +391,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_FPGA'),
         DataPathway.WIRELESS
     ),
-    'power-off-fpga-wifi': (
-        DataPathway.WIRELESS,
-        Magic.COMMAND,
-        'WatchDogInterface_ResetSpecific',
-        # Change this to whatever you want to reset.
-        OrderedDict(reset_value='FPGA_POWER_OFF'),
-        DataPathway.WIRELESS
-    ),
     'power-on-fpga-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
         'WatchDogInterface_ResetSpecific',
         # Change this to whatever you want to reset.
         OrderedDict(reset_value='FPGA_POWER_ON'),
+        DataPathway.WIRELESS
+    ),
+    'power-off-fpga-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        # Change this to whatever you want to reset.
+        OrderedDict(reset_value='FPGA_POWER_OFF'),
         DataPathway.WIRELESS
     ),
     'power-off-fpga': (
@@ -722,7 +738,11 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(off=500),
         DataPathway.WIRED
     ),
-
+    ####################################################################################################################
+    ###
+    ###    MOTOR RESET FUNCTIONS
+    ###
+    ####################################################################################################################
     'reset-motors': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,
@@ -769,7 +789,6 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='ALL_MOTORS_OFF'),
         DataPathway.WIRED
     ),
-
     'reset-motors-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
@@ -791,7 +810,6 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='ALL_MOTORS_OFF'),
         DataPathway.WIRELESS
     ),
-
     'motor1-hold': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
@@ -820,7 +838,6 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_HOLD_MOTOR4'),
         DataPathway.WIRELESS
     ),
-
     'motors-hold-all-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
@@ -870,39 +887,11 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(reset_value='RESET_RELEASE_MOTORS_DIAG_DB'),
         DataPathway.WIRELESS
     ),
-
-
-    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
-    'drive-fwd-200': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavDriveForward',
-        OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
-    'drive-back-200': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavDriveForward',
-        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
-    # Navigation_NavRotateLeft[distance: uint8, speed: uint8, callback_id: uint16]
-    'turn-left-45': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavRotateLeft',
-        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
-    # Navigation_NavRotateRight[distance: uint8, speed: uint8, callback_id: uint16]
-    'turn-right-45': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavRotateRight',
-        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
+    ####################################################################################################################
+    ###
+    ###    MOTOR CONTROL TEST FUNCTIONS
+    ###
+    ####################################################################################################################
     'motor-control-get-telem': (
         DataPathway.WIRED,
         Magic.COMMAND,
@@ -910,46 +899,149 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(),
         DataPathway.WIRED
     ),
-    'motor-control-spin-all': (
+    'motor-control-spin-a-OG': (
         DataPathway.WIRED,
         Magic.COMMAND,
         'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        # Dir: 0xFF : OG Spin Cmd
+        OrderedDict(motor_id=0x00, dir=0xFF, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-all-OG': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        # Dir: 0xFF : OG Spin Cmd
+        OrderedDict(motor_id=0xFF, dir=0xFF, raw_ticks=50000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-a-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x01, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-b-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x02, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-c-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x04, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-d-dir0': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # Bitmask of directions
+        # Dir: 0 = Pos. Dist , 1 = Neg. Dist
+        OrderedDict(motor_id=0x08, dir=0x00, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-a-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x01, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-b-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x02, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-c-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x04, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-d-dir1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpin',
+        # MotorA: 0x00, MotorB: 0x01, MotorC: 0x02, MotorD: 0x03, All: 0xFF
+        OrderedDict(motor_id=0x08, dir=0x0F, raw_ticks=20000),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-a-0-70': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpinConfigured',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        OrderedDict(motor_id=0x01, dir=0x00, raw_ticks=7000, percent_speed=70),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-configured-ad-0': (
+        # MotorA MotorD positive, MotorB MotorC
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpinConfigured',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # MotorA + MotorD: 0x09
+        OrderedDict(motor_id=0x09, dir=0x00, raw_ticks=7000, percent_speed=100),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-configured-left': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpinConfigured',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # All Motors: 0x0F
+        OrderedDict(motor_id=0x0F, dir=0x00, raw_ticks=7000, percent_speed=100),
+        DataPathway.WIRED
+    ),
+    'motor-control-spin-configured-ad-0-bc-1': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_McSpinConfigured',
+        # Bitmask of motor_ids
+        # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+        # All Motors: 0x0F
+        OrderedDict(motor_id=0x0F, dir=0x06, raw_ticks=7000, percent_speed=100),
+        DataPathway.WIRED
+    ),
+    #unknown if update individual params working
+    'motor-control-update-a-speed': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'MotorControl_MCSetParameter',
         # Change this to whatever motor you want to control (0 is all)
-        OrderedDict(motor_id=0x00, raw_ticks=20000),
+        OrderedDict(motor_id=0x01, param_regaddr=2, param_new_value=50),
         DataPathway.WIRED
     ),
-
-    'drive-fwd-200-wifi': (
-        DataPathway.WIRELESS,
-        Magic.COMMAND,
-        'Navigation_NavDriveForward',
-        OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
-        DataPathway.WIRELESS
-    ),
-    'drive-back-200-wifi': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavDriveForward',
-        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
-    # Navigation_NavRotateLeft[distance: uint8, speed: uint8, callback_id: uint16]
-    'turn-left-45-wifi': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavRotateLeft',
-        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
-    # Navigation_NavRotateRight[distance: uint8, speed: uint8, callback_id: uint16]
-    'turn-right-45-wifi': (
-        DataPathway.WIRED,
-        Magic.COMMAND,
-        'Navigation_NavRotateRight',
-        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
-        DataPathway.WIRED
-    ),
-    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
     'motor-control-get-telem-wifi': (
         DataPathway.WIRELESS,
         Magic.COMMAND,
@@ -965,6 +1057,68 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         # Change this to whatever motor you want to control (0 is all)
         OrderedDict(motor_id=0x00, raw_ticks=20000),
         DataPathway.WIRELESS
+    ),
+    ####################################################################################################################
+    ###
+    ###    DEPRICATED NAV FUNCTIONS
+    ###
+    ####################################################################################################################
+    # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+    'drive-fwd-200': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    'drive-back-200': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    'turn-left-45': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateLeft',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    'turn-right-45': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateRight',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    'drive-fwd-200-wifi': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRELESS
+    ),
+    'drive-back-200-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavDriveForward',
+        OrderedDict(distance=-200, speed=100, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    'turn-left-45-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateLeft',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
+    ),
+    'turn-right-45-wifi': (
+        DataPathway.WIRED,
+        Magic.COMMAND,
+        'Navigation_NavRotateRight',
+        OrderedDict(distance=45, speed=30, callback_id=0xBEEF),
+        DataPathway.WIRED
     ),
 
     'herc-wired-noop': (

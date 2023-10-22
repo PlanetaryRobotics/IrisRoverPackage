@@ -14,38 +14,38 @@
 #ifndef MotorControl_HPP
 #define MotorControl_HPP
 
+#include "Fw/Types/BasicTypes.hpp"
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 #include "MotorController_i2c.h"
+#include "MotorController.hpp"
 
-#define MOTOR_CONTROL_I2CREG i2cREG1
-#define ALL_MOTOR_ADDR 0x00
-#define ALL_MOTOR_ID 0x00
-// TODO: MAKE MOTOR IDS ENUMS IN FPRIME XML
+#define MOTOR_A 1
+#define MOTOR_B 2
+#define MOTOR_C 4
+#define MOTOR_D 8
+
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
-#define FRONT_LEFT_MC_I2C_ID 0x01
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49
-#define FRONT_RIGHT_MC_I2C_ID 0x02
-// Rear ones should be flipped from this but when flipped it made motors go
-// the wrong way:
 #define REAR_RIGHT_MC_I2C_ADDR 0x4B
-#define REAR_RIGHT_MC_I2C_ID 0x04
 #define REAR_LEFT_MC_I2C_ADDR 0x4A
-#define REAR_LEFT_MC_I2C_ID 0x03
-#define NUM_MOTORS 4
 
-#define MAX_SPEED 100 // TODO: Should be 255?
-#define CUBEROVER_WHEEL_DIAMETER_CM 18.2f
-#define CUBEROVER_COM_TO_WHEEL_CIRC_CM 78.54f
-#define MOTOR_NB_PAIR_POLES 1.0f
-#define MOTOR_GEAR_BOX_REDUCTION 5.0f
-#define MC_BUFFER_MAX_SIZE 16 // Maximum size of I2C buffer
-#define PI 3.14159265
 
 namespace CubeRover
 {
 
     class MotorControlComponentImpl : public MotorControlComponentBase
     {
+
+    ::Os::Mutex mc_mutex;
+    
+    inline uint8_t idToMask(uint8_t motor_id) {
+        return 1 << motor_id;
+    }
+
+//    inline uint8_t containsMotorID(uint8_t motor_ids_mask, uint8_t motor_id)
+//    {
+//        return motor_ids_mask & (1 << motor_id);
+//    }
 
     public:
         // ----------------------------------------------------------------------
@@ -76,144 +76,210 @@ namespace CubeRover
 
         //! Handler implementation for PingIn
         //!
-        void PingIn_handler(const NATIVE_INT_TYPE portNum, /*!< The port number*/
-                            U32 key /*!< Value to return to pinger*/);
+        void PingIn_handler(
+                const NATIVE_INT_TYPE portNum, /*!< The port number*/
+                U32 key /*!< Value to return to pinger*/
+        );
 
         //! Handler implementation for motorCommandIn
         //!
-        void motorCommandIn_handler(const NATIVE_INT_TYPE portNum,                 /*!< The port number*/
-                                    CubeRoverPorts::MC_CommandType command_type,   /*!<  Selector for which command should be called */
-                                    CubeRoverPorts::MC_MovementType movement_type, /*!<  Selector how movement should be interpreted */
-                                    U8 Distance,
-                                    U8 Speed);
+        void motorCommandIn_handler(
+                const NATIVE_INT_TYPE portNum,                 /*!< The port number*/
+                CubeRoverPorts::MC_CommandType command_type,   /*!<  Selector for which command should be called */
+                CubeRoverPorts::MC_MovementType movement_type, /*!<  Selector how movement should be interpreted */
+                U8 Distance,
+                U8 Speed
+        );
+
 
         // ----------------------------------------------------------------------
         // Command handler implementations
         // ----------------------------------------------------------------------
 
+        //! Handler for command MC_UpdateTelemetry
+        /* Forces a telemetry update from the motors */
+        void MC_UpdateTelemetry_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq /*!< The command sequence number*/
+        );
+
+        //! Handler for command MC_SetAllParams
+        /* Sets ALL RW params for EVERY motor.
+           (Note: REG_MC_CTRL = MC_CMD_UPDATE_CONFIG ) */
+        void MC_SetAllParams_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq, /*!< The command sequence number*/
+                U8 MotorA_TargetDir,
+                U32 MotorA_TargetPosition,
+                U8 MotorA_TargetSpeed,
+                U16 MotorA_Current_P_Val,
+                U16 MotorA_Current_I_Val,
+                U16 MotorA_Speed_P_Val,
+                U16 MotorA_Speed_I_Val,
+                U16 MotorA_Accel_Rate,
+                U16 MotorA_Decel_Rate,
+                U8 MotorB_TargetDir,
+                U32 MotorB_TargetPosition,
+                U8 MotorB_TargetSpeed,
+                U16 MotorB_Current_P_Val,
+                U16 MotorB_Current_I_Val,
+                U16 MotorB_Speed_P_Val,
+                U16 MotorB_Speed_I_Val,
+                U16 MotorB_Accel_Rate,
+                U16 MotorB_Decel_Rate,
+                U8 MotorC_TargetDir,
+                U32 MotorC_TargetPosition,
+                U8 MotorC_TargetSpeed,
+                U16 MotorC_Current_P_Val,
+                U16 MotorC_Current_I_Val,
+                U16 MotorC_Speed_P_Val,
+                U16 MotorC_Speed_I_Val,
+                U16 MotorC_Accel_Rate,
+                U16 MotorC_Decel_Rate,
+                U8 MotorD_TargetDir,
+                U32 MotorD_TargetPosition,
+                U8 MotorD_TargetSpeed,
+                U16 MotorD_Current_P_Val,
+                U16 MotorD_Current_I_Val,
+                U16 MotorD_Speed_P_Val,
+                U16 MotorD_Speed_I_Val,
+                U16 MotorD_Accel_Rate,
+                U16 MotorD_Decel_Rate
+        );
+
+        //! Handler for command MC_SetParameter
+        /* Update single parameter of selected motor controller(s). */
+        void MC_SetParameter_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq, /*!< The command sequence number*/
+                U8 Motor_ID, /*!< Bitmask of motors to update.*/
+                U8 Param_RegAddr, /*!< The register address of the parameter to set.*/
+                U32 Param_NewValue /*!<  The new value of the parameter.*/
+        );
+
+        //! Handler for command MC_Spin
+        /* The new value of the parameter. */
+        void MC_Spin_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq, /*!< The command sequence number*/
+                U8 Motor_ID, /*!< One or All motors to update.
+                    MotorA:0x00 , MotorB:0x01 , MotorC:0x02 , MotorB:0x03 , AllMotors:0xFF*/
+                U8 Dir, /*!< Direction motor movement
+                                Positive Ticks : 0 , Negative Ticks : 1*/
+                U32 Raw_Ticks /*!< Distance to spin in ticks. (Default = 20000)*/
+        );
+
+        //! Handler for command MC_Spin_Configured
+        /* The new value of the parameter. */
+        void MC_Spin_Configured_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq, /*!< The command sequence number*/
+                U8 Motor_ID, /*!< Bitmask of motors to update.
+                    MotorA:0x01 , MotorB:0x02 , MotorC:0x04 , MotorD:0x08 , AllMotors:0x0F*/
+                U8 Dir, /*!< Direction motor movement
+                                Positive Ticks : 0 , Negative Ticks : 1*/
+                U32 Raw_Ticks, /*!< Distance to spin in ticks. (Default = 20000)*/
+                U8 Percent_Speed /*!< Speed set by percent of MAX_SPEED. (Default = 70)*/
+        );
+
+        void MC_Spin_Full_Custom_cmdHandler(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq, /*!< The command sequence number*/
+                U8 MotorA_Dir,
+                U32 MotorA_Ticks,
+                U8 MotorA_Speed,
+                U8 MotorB_Dir,
+                U32 MotorB_Ticks,
+                U8 MotorB_Speed,
+                U8 MotorC_Dir,
+                U32 MotorC_Ticks,
+                U8 MotorC_Speed,
+                U8 MotorD_Dir,
+                U32 MotorD_Ticks,
+                U8 MotorD_Speed
+        );
+
+
+
+        // ----------------------------------------------------------------------
+        // OBSOLETE Command handler implementations
+        //      To be used as Helper Functions
+        // ----------------------------------------------------------------------
+
         //! Implementation for MC_Current_PID command handler
         //!
-        void MC_Current_PID_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                       const U32 cmdSeq,          /*!< The command sequence number*/
-                                       U8 Motor_ID,               /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
-                                       U32 PI_Values);
+//        void MC_Current_PID_cmdHandler(
+        void MC_Current_PID_set(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq,          /*!< The command sequence number*/
+                U8 Motor_ID,
+                U32 PI_Values
+                );
 
         //! Implementation for MC_Speed_PID command handler
         //!
-        void MC_Speed_PID_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                     const U32 cmdSeq,          /*!< The command sequence number*/
-                                     U8 Motor_ID,               /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
-                                     U32 PID_Values);
+//        void MC_Speed_PID_cmdHandler(
+        void MC_Speed_PID_set(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq,          /*!< The command sequence number*/
+                U8 Motor_ID,
+                U32 PID_Values
+                );
 
         //! Implementation for MC_Acceleration command handler
         //!
-        void MC_Acceleration_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                        const U32 cmdSeq,          /*!< The command sequence number*/
-                                        U8 Motor_ID,               /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
-                                        U32 Rate_Values);
+//        void MC_Acceleration_cmdHandler(
+        void MC_Acceleration_set(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq,          /*!< The command sequence number*/
+                U8 Motor_ID,
+                U32 Rate_Values
+                );
 
         //! Implementation for MC_StallDetection command handler
         //!
-        void MC_StallDetection_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                          const U32 cmdSeq,          /*!< The command sequence number*/
-                                          U8 Motor_ID,               /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
-                                          U8 Value /*!< 0x00 is disabled, 0xFF is enabled */);
+//        void MC_StallDetection_cmdHandler(
+        void MC_StallDetection_set(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq,          /*!< The command sequence number*/
+                U8 Motor_ID,
+                U8 Value /*!< 0x00 is disabled, 0xFF is enabled */
+                );
 
         //! Implementation for MC_ResetPosition command handler
         //!
-        void MC_ResetPosition_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                         const U32 cmdSeq,          /*!< The command sequence number*/
-                                         U8 Motor_ID /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */);
-
-        //! Implementation for MC_Spin command handler
-        //!
-        void MC_Spin_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                const U32 cmdSeq,          /*!< The command sequence number*/
-                                U8 Motor_ID,               /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
-                                U32 Raw_Ticks);
+//        void MC_ResetPosition_cmdHandler(
+        void MC_ResetPosition_set(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq,          /*!< The command sequence number*/
+                U8 Motor_ID
+                );
 
         //! Implementation for MC_PowerBoost command handler
         //!
-        void MC_PowerBoost_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                      const U32 cmdSeq,          /*!< The command sequence number*/
-                                      U8 Motor_ID,               /*!< The motor id from 0 - 4 Motor 0 is all motors, Motorsss 1 - 4 are FL, FR, BL, BR */
-                                      U8 Value /*!< 0x00 is On, 0xFF is Off */);
+//        void MC_PowerBoost_cmdHandler(
+        void MC_PowerBoost_set(
+                const FwOpcodeType opCode, /*!< The opcode*/
+                const U32 cmdSeq,          /*!< The command sequence number*/
+                U8 Motor_ID,
+                U8 Value /*!< 0x00 is On, 0xFF is Off */
+                );
 
-        //! Implementation for MC_SetParameter command handler
-        //!
-        void MC_SetParameter_cmdHandler(const FwOpcodeType opCode,   /*!< The opcode*/
-                                        const U32 cmdSeq,            /*!< The command sequence number*/
-                                        MC_ParameterSelection Value, /*!<  Change internal parameters of the module */
-                                        U32 New_Value /*!<  The new value to be used in place */);
-
-        //! Implementation for MC_UpdateTelemetry command handler
-        //! Requests an update from each of the motor controllers
-        void MC_UpdateTelemetry_cmdHandler(const FwOpcodeType opCode, /*!< The opcode*/
-                                           const U32 cmdSeq /*!< The command sequence number*/);
 
         /* Implementation specific declarations */
+
+
+        /* -------------------------------------------------------
+         * MC DEFINITIONS
+         * Author: RAD
+         * -------------------------------------------------------
+         */
+
+    private:
+
     public:
-        typedef enum
-        {
-            REG_I2C_ADDRESS = 0,              // Read-only  - 1Byte
-            REG_RELATIVE_TARGET_POSITION = 1, // Write-only - 4Bytes
-            REG_TARGET_SPEED = 2,             // Write-only - 1Byte
-            REG_CURRENT_POSITION = 3,         // Read-only  - 4Bytes
-            // REG_CURRENT_SPEED = 4,         // Deprecated
-            REG_MOTOR_CURRENT = 5, // Read-only  - 4Bytes
-            REG_P_CURRENT = 6,     // Write-only - 2Bytes
-            REG_I_CURRENT = 7,     // Write-only - 2Bytes
-            REG_P_SPEED = 8,       // Write-only - 2Bytes
-            REG_I_SPEED = 9,       // Write-only - 2Bytes
-            REG_ACC_RATE = 10,     // Write-only - 2Bytes
-            REG_DEC_RATE = 11,     // Write-only - 2Bytes
-            REG_CTRL = 12,         // Write-only - 1Byte
-            e_REG_STATUS = 13,     // Read-only  - 1Byte
-            REG_FAULT = 14,        // Read-only  - 1Byte
-            NUM_REGS = 16,
-        } RegisterAddress_t;
 
-        /* Motor Control Interface w.r.t. PR #51 & PR#52 */
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t open_loop : 1;
-                uint8_t clear_fault : 1;
-                uint8_t fsm_disable : 1;
-                uint8_t fsm_run : 1;
-                uint8_t override_fault_detection : 1;
-                uint8_t unused : 3;
-            } bits;
-        } ControlRegister_t;
-
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t open_loop : 1;
-                uint8_t clear_fault : 1;
-                uint8_t fsm_disable : 1;
-                uint8_t position_converged : 1;
-                uint8_t controller_error : 1;
-                uint8_t unused : 3;
-            } bits;
-        } StatusRegister_t;
-
-        typedef union
-        {
-            uint8_t value;
-            struct
-            {
-                uint8_t driver_fault : 1;
-                uint8_t position_no_change : 1;
-                uint8_t driving_wrong_direction : 1;
-                uint8_t unused : 5;
-            } bits;
-        } FaultRegister_t;
-
+        // --- MC Error Types
         typedef enum
         {
             MC_NO_ERROR,
@@ -222,22 +288,76 @@ namespace CubeRover
             MC_BAD_COMMAND_INPUT
         } MCError_t;
 
-        typedef int32_t Distance_cm_t;
-        typedef int32_t MotorTick_t;
-        typedef uint8_t Throttle_t;
+        // mc state
+        typedef enum
+        {
+            IDLE,           // Updating Parameters w/Drivers Disabled
+            ENABLED,        // Drivers Enabled
+            ARMED,          // Execute Drive Sent
+            RUNNING,        // Driving
+            TARGET_REACHED, // Target Reached
+            DISABLED,       // Powered Off (theoretically)
+            FAULT           // Fault
+        } MCState_t;
+
+        /* --- FUNCTIONS --- */
+        void initMotorControllers();
+        void checkFaults();
+        void checkStates();
+
+
+        /* --- Private Variables --- */
+
+        // PROTECTED -- Requires mc_mutex to access
+        MotorControllerStruct m_motor_controllers[NUM_MOTORS];
+        MCState_t m_motorControllerState;
+
+        // UNPROTECTED
+        bool m_updateParams;
+
+
+
+
+
+
+
+        /* ------------------------------------------
+         * UNSAFE TEST functions
+         * ------------------------------------------
+         */
+        MCError_t testSpin();
+        bool setSpinParams(uint8_t motor_mask, uint8_t dir_mask,
+                                int32_t dist, uint8_t speed);
+
+
+
+
+
+
+
+
+
+
+
+
+        /* ------------------------------------------
+         * OBSOLETE MC DEFINITIONS
+         * ------------------------------------------
+         */
+
+        bool OG_Spin_Handler(const FwOpcodeType opCode, const U32 cmdSeq,
+                    U8 Motor_ID, U8 Dir, U32 Raw_Ticks);
 
         // Tightly coupled to *_ADDR and *_ID defines
         static const uint8_t motorIdAddressMap[NUM_MOTORS];
 
-        i2cBASE_t *m_i2c;
-
-        MCError_t sendAllMotorsData(const RegisterAddress_t id, void *_data);
+        MCError_t sendAllMotorsData(const MC_ICD_RegAddr id, void *_data);
 
         MCError_t motorControlTransfer(I2cSlaveAddress_t add,
-                                       RegisterAddress_t reg,
+                                       MC_ICD_RegAddr reg,
                                        void *_data);
 
-        uint32_t regSizeMap(RegisterAddress_t reg);
+        uint32_t regSizeMap(MC_ICD_RegAddr reg);
 
         bool checkMotorsStatus();
         bool startMotorMovement();
@@ -245,9 +365,7 @@ namespace CubeRover
         MCError_t rotateAllMotors(int16_t angle, int16_t speed);
         MCError_t spinMotors(bool forward);
 
-        MotorTick_t groundCMToMotorTicks(int16_t dist);
-        Throttle_t groundSpeedToSpeedPrecent(int16_t speed);
-
+        uint8_t updateTelemSpecific(MC_ICD_RegAddr regID, uint32_t *buffer);
         bool updateTelemetry();
 
         bool pollStatus();
@@ -258,15 +376,13 @@ namespace CubeRover
         uint16_t m_ticksToRotation;
 
         // Encoder Converting values
-        float m_encoderTickToCMRatio;
+//        float m_encoderTickToCMRatio;
 
         // Angular distance converting value
         float m_angularToLinear;
 
         // Stall detection
         bool m_stallDetectectionEnabled[4];
-
-        StatusRegister_t m_currStatus[NUM_MOTORS];
 
         // Does a positive setpoint drive the rover forward or backwards
         // Set this flag to rotate the wheels accordingly
@@ -284,7 +400,11 @@ namespace CubeRover
         int32_t m_FL_Encoder_Count_Offset;
         int32_t m_RL_Encoder_Count_Offset;
         int32_t m_RR_Encoder_Count_Offset;
+
     };
+
+
+
 
 } // end namespace CubeRover
 

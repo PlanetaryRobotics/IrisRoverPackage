@@ -31,4 +31,10 @@
 			<locationURI>PARENT-2-PROJECT_LOC/fprime/CubeRover</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>RC_ROOT_LOC</name>
+			<value>file:/home/iris/Desktop/Working_folders/RC</value>
+		</variable>
+	</variableList>
 </projectDescription>

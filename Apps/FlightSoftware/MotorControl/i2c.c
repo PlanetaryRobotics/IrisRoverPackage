@@ -21,21 +21,21 @@ I2cMode g_slaveMode;
 uint8_t g_i2cSlaveAddress;
 uint8_t g_readRegAddr;
 uint8_t g_i2cCmdLength[MAX_NB_CMDS];
+bool g_sendTelem = false;
 
 // external variables that are written and read to
-extern volatile _iq g_currentSpeed;
-extern volatile int32_t g_currentPosition;
-extern volatile int32_t g_targetPosition;
-extern volatile struct PI_CONTROLLER g_piSpd;
-extern volatile struct PI_CONTROLLER g_piCur;
-extern volatile uint16_t g_maxSpeed;
-extern uint8_t g_statusRegister;
-extern uint8_t g_controlRegister;
-extern uint8_t g_faultRegister;
-extern uint32_t g_drivingTimeoutCtr;
-extern uint16_t g_accelRate, g_decelRate;
-extern CmdState g_cmdState;
-
+//extern volatile _iq g_currentSpeed;
+//extern volatile int32_t g_currentPosition;
+//extern volatile int32_t g_targetPosition;
+//extern volatile struct PI_CONTROLLER g_piSpd;
+//extern volatile struct PI_CONTROLLER g_piCur;
+//extern volatile uint16_t g_maxSpeed;
+//extern uint8_t g_statusRegister;
+//extern uint8_t g_controlRegister;
+//extern uint8_t g_faultRegister;
+//extern uint32_t g_drivingTimeoutCtr;
+//extern uint16_t g_accelRate, g_decelRate;
+//extern CmdState g_cmdState;
 
 /**
  * @brief      Disables i 2 c receive interrupt.
@@ -91,70 +91,81 @@ void copyArray(uint8_t *source, uint8_t *dest, int size){
  *
  * @param[in]  cmd   The command
  */
-inline void i2cSlaveProcessCmd(const uint8_t cmd){
-  g_rxBufferIdx = 0;
-  g_txBufferIdx = 0;
-  g_rxByteCtr = 0;
+inline void i2cSlaveProcessCmd(const uint8_t cmd)
+{
+      g_rxBufferIdx = 0;
+      g_txBufferIdx = 0;
+      g_rxByteCtr = 0;
+      uint8_t *txData;
 
-  switch(cmd){
+  switch(cmd)
+  {
       //-----------------------------------------------------------------
       // Commands requesting to send data to master
       //-----------------------------------------------------------------
-      case I2C_ADDRESS:                        
-        g_slaveMode = TX_DATA_MODE;
-        g_txByteCtr = g_i2cCmdLength[cmd];
-        //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_i2cSlaveAddress, (uint8_t*)g_txBuffer, g_txByteCtr);
-        disableI2cRxInterrupt();
-        enableI2cTxInterrupt();
+      case I2C_ADDRESS:
+          txData = (uint8_t*)&g_i2cSlaveAddress;
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_i2cSlaveAddress, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
-      case CURRENT_POSITION:                 
-        g_slaveMode = TX_DATA_MODE;
-        g_txByteCtr = g_i2cCmdLength[cmd];
-        //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_currentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
-        disableI2cRxInterrupt();
-        enableI2cTxInterrupt();
+      case CURRENT_POSITION:
+          txData = (uint8_t*)&g_currentPosition;
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_currentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
       case CURRENT_SPEED:
-        g_slaveMode = TX_DATA_MODE;
-        g_txByteCtr = g_i2cCmdLength[cmd];
-        int16_t speed_info = (int16_t)(g_currentSpeed >> 7); // 7 LSBs are 0s, 16 MSBs are too
-        //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&speed_info, (uint8_t*)g_txBuffer, g_txByteCtr);
-        disableI2cRxInterrupt();
-        enableI2cTxInterrupt();
+      {
+          int16_t speed_info = (int16_t)(g_currentSpeed >> 7); // 7 LSBs are 0s, 16 MSBs are too
+          txData = (uint8_t*)&speed_info;
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&speed_info, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
+      }
       case MOTOR_CURRENT:
-        g_slaveMode = TX_DATA_MODE;
-        g_txByteCtr = g_i2cCmdLength[cmd];
-        //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
-        disableI2cRxInterrupt();
-        enableI2cTxInterrupt();
+          txData = (uint8_t*)&g_piCur.Fbk;
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;       
       case STATUS_REGISTER:
-        g_slaveMode = TX_DATA_MODE;
-        g_txByteCtr = g_i2cCmdLength[cmd];
-        //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_statusRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
-        disableI2cRxInterrupt();
-        enableI2cTxInterrupt();    
+          txData = (uint8_t*)&g_statusRegister;
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_statusRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
       case FAULT_REGISTER:
-        g_slaveMode = TX_DATA_MODE;
-        g_txByteCtr = g_i2cCmdLength[cmd];
+          txData = (uint8_t*)&g_faultRegister;
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
 
-        //update g_faultRegister with if there is fault in motor driver
-        if(read_driver_fault())
-            g_faultRegister |= DRIVER_FAULT;
-        else
-            g_faultRegister &= ~DRIVER_FAULT;
+//          //update g_faultRegister with if there is fault in motor driver
+//          if(read_driver_fault())
+//              g_faultRegister |= DRIVER_FAULT;
+//          else
+//              g_faultRegister &= ~DRIVER_FAULT;
 
-        //Fill out the TransmitBuffer
-        copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
-        disableI2cRxInterrupt();
-        enableI2cTxInterrupt();    
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;        
       //-----------------------------------------------------------------
       // Commands requesting to process some more data from master
@@ -172,11 +183,19 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd){
           g_rxByteCtr = g_i2cCmdLength[cmd];
           enableI2cRxInterrupt();
           disableI2cTxInterrupt();
-          break;
+          return;
       default:
+//          mc_fault = mc_fault | MC_FAULT_I2C_ERROR;
           __no_operation();
-          break;
+          return;
   }
+
+//    // Send requested data
+//    g_slaveMode = TX_DATA_MODE;
+//    g_txByteCtr = g_i2cCmdLength[cmd];
+//    copyArray(txData, (uint8_t*)g_txBuffer, g_txByteCtr);
+//    disableI2cRxInterrupt();
+//    enableI2cTxInterrupt();
 }
 
 
@@ -199,15 +218,15 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
                   (uint8_t*)&g_targetPosition,
                   sizeof(g_targetPosition));
         g_currentPosition = 0; // reset because target pos is relative
-        g_statusRegister &= ~POSITION_CONVERGED; // likely no longer converged (if still converged, control loop will correct for that)
+        g_statusRegister &= ~MC_STATE_TARGET_REACHED; // likely no longer converged (if still converged, control loop will correct for that)
         g_drivingTimeoutCtr = 0; //reset timeout counter
         g_faultRegister = 0; // reset fault register
         break;
       case TARGET_SPEED:
       {
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_maxSpeed,
-                  sizeof(g_maxSpeed));
+                  (uint8_t*)&g_targetSpeed,
+                  sizeof(g_targetSpeed));
         break;
       }
       case P_CURRENT:
@@ -243,15 +262,19 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_controlRegister,
                    sizeof(g_controlRegister));
-
+//        if(g_controlRegister & MC_CMD_E_STOP) {
+//            g_sendTelem = true;
+//        } else {
+//            g_sendTelem = false;
+//        }
         // update status register if told to drive in open loop
         if(g_controlRegister & DRIVE_OPEN_LOOP){
             g_statusRegister |= DRIVE_OPEN_LOOP;
         }
 
-        if(g_controlRegister & CLEAR_DRIVER_FAULT){
+        if(g_controlRegister & MC_CMD_CLEAR_FAULTS){
             clear_driver_fault();
-            g_statusRegister |= CLEAR_DRIVER_FAULT; // indicates an attempt to clear fault was made
+            g_statusRegister |= MC_CMD_CLEAR_FAULTS; // indicates an attempt to clear fault was made
         }
         // update state machine if requested
         if(g_controlRegister & STATE_MACHINE_DISABLE){
@@ -280,12 +303,12 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
     }
 }
 
-
 /**
  * @brief      Initializes the command length
  *              (expected # of bytes to read/write for each register)
  */
-void initializeCmdLength(){
+void initializeCmdLength()
+{
   g_i2cCmdLength[I2C_ADDRESS] = 1;
   g_i2cCmdLength[TARGET_POSITION] = 4;
   g_i2cCmdLength[TARGET_SPEED] = 1;
@@ -303,37 +326,39 @@ void initializeCmdLength(){
   g_i2cCmdLength[FAULT_REGISTER] = 1;
 }
 
-
 /**
  * @brief      Initializes i2c module.
  */
-void initializeI2cModule(){
-  g_rxBufferIdx = 0;
-  g_txBufferIdx = 0;
-  g_slaveMode = RX_REG_ADDRESS_MODE;
-  g_readRegAddr = 0;
+McI2cAddr_t initializeI2cModule()
+{
+    g_rxBufferIdx = 0;
+    g_txBufferIdx = 0;
+    g_slaveMode = RX_REG_ADDRESS_MODE;
+    g_readRegAddr = 0;
 
-  initializeCmdLength();
+    initializeCmdLength();
 
-  // Configure I2C interface for slave interface
-  EUSCI_B_I2C_initSlaveParam param = {0};
-  param.slaveAddress = I2C_SLAVE_ADDRESS;
-  param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
-  param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
-  g_i2cSlaveAddress = param.slaveAddress; // [DEBUG]
-  param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
-  param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
-  EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
+    // Configure I2C interface for slave interface
+    EUSCI_B_I2C_initSlaveParam param = {0};
+    param.slaveAddress = MC_SLAVE_I2C_ADDR_BASE;
+    param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
+    param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
+    g_i2cSlaveAddress = param.slaveAddress; // Possibly Debug
+    param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
+    param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
+    EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
 
-  EUSCI_B_I2C_enable(EUSCI_B0_BASE);
+    EUSCI_B_I2C_enable(EUSCI_B0_BASE);
 
-  EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                              EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                              EUSCI_B_I2C_STOP_INTERRUPT);
 
-  EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
+    EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
                               EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                               EUSCI_B_I2C_STOP_INTERRUPT);
+
+    return g_i2cSlaveAddress;
 }
 
 

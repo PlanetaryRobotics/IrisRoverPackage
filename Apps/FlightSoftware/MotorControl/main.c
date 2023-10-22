@@ -20,65 +20,10 @@
 // #define MOTOR_B
 // #define MOTOR_C
 // #define MOTOR_D
-// **SETTINGS:**
-#define DRIVE_ON_BOOT_OPEN_LOOP
-#define DRIVE_ON_BOOT_CM 15 /*bigger question for testing is how many degrees can we turn*/
-#define TICKS_PER_CM 158    /*approx based on math not measurements*/
-#define DRIVE_ON_BOOT_TICKS (DRIVE_ON_BOOT_CM * TICKS_PER_CM)
-#define DRIVE_ON_BOOT_START_DELAY (20 * DELAY_100_ms) /*2 sec*/
-// Technically, out of 1.0
-#define DRIVE_ON_BOOT_SPEED_PERCENT 0.7
 
-// TODO: re-organize all these variable defs
-_iq g_currentPhaseA;
-_iq g_currentPhaseB;
-_iq g_currentPhaseC;
-_iq g_feedforwardFW;
 
-// Used for calibration
-_iq g_currentOffsetPhaseA;
-_iq g_currentOffsetPhaseB;
-_iq g_currentOffsetPhaseC;
-_iq g_currentSpeed;
-_iq g_openLoopTorque;
-
-_iq g_closeLoopThreshold;
-
-uint8_t g_commState;
-uint8_t g_oldCommState;
-HallSensor g_hallSensor;
-uint8_t g_hallMap[8];
-
-volatile int32_t g_currentPosition;
-volatile int32_t g_targetPosition;
-int32_t g_oldPosition;
-
-uint16_t g_controlPrescaler;
-
-volatile PI_CONTROLLER g_piSpd;
-volatile PI_CONTROLLER g_piCur;
-volatile IMPULSE g_impulse;
-volatile MOD6CNT g_mod6cnt;
-
-bool g_closedLoop;
-bool g_targetReached;
-volatile uint8_t g_maxSpeed;
-
-volatile StateMachine g_state;
-volatile CmdState g_cmdState;
-
-volatile uint16_t g_accelRate;
-volatile uint16_t g_decelRate;
-
-int8_t g_targetDirection;
-
-uint8_t g_statusRegister;
-volatile uint8_t g_controlRegister;
-volatile uint8_t g_faultRegister;
-volatile uint32_t g_drivingTimeoutCtr;
 uint8_t g_errorCounter = 0; // incremented every time inner control loop is reached and motor is acting strange
                             // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
-
 bool g_readSensors = false;
 
 /**
@@ -263,21 +208,6 @@ inline void readHallSensor(void)
     }
 }
 
-/**
- * @brief      Initializes the hall interface.
- */
-void initializeHallInterface(void)
-{
-    g_hallMap[0] = 0xff;
-    g_hallMap[7] = 0xff;
-
-    g_hallMap[5] = 0;
-    g_hallMap[1] = 1;
-    g_hallMap[3] = 2;
-    g_hallMap[2] = 3;
-    g_hallMap[6] = 4;
-    g_hallMap[4] = 5;
-}
 
 /**
  * @brief      Reset the PI controller
@@ -286,10 +216,10 @@ void initializeHallInterface(void)
  */
 void resetPiController(volatile PI_CONTROLLER *pi)
 {
-    pi->i1 = _IQ(0.0); // reset integrator storage (stores pi->ui from last time step)
-    pi->ui = _IQ(0.0); // reset integral term (sums error over time steps)
-    pi->v1 = _IQ(0.0);
-    pi->up = _IQ(0.0);
+    pi->i1 = 0; // reset integrator storage (stores pi->ui from last time step)
+    pi->ui = 0; // reset integral term (sums error over time steps)
+    pi->v1 = 0;
+    pi->up = 0;
     pi->Umax = _IQ(PI_OUTPUT_BOUNDS);
     pi->Umin = _IQ(-PI_OUTPUT_BOUNDS);
 }
@@ -372,87 +302,6 @@ bool read_driver_fault(void)
     return !(PJIN & 0x02);
 }
 
-/*
- * @brief       TODO
- */
-void initializeSensorVariables(void)
-{
-    g_currentOffsetPhaseA = 0;
-    g_currentOffsetPhaseB = 0;
-    g_currentOffsetPhaseC = 0;
-    g_commState = 0;
-    g_hallSensor.Pattern = 0;
-    g_hallSensor.OldPattern = 0;
-    g_currentPosition = 0;
-    g_oldPosition = g_currentPosition;
-    g_targetPosition = 0;
-    g_drivingTimeoutCtr = 0;
-}
-
-/*
- * @brief       TODO
- */
-void initializeSoftwareControlVariables(void)
-{
-    // software control related variables (rate groups, internal state machine)
-    g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
-    g_closedLoop = false;
-    g_state = RUNNING;
-    g_cmdState = NO_CMD;
-    g_controlRegister = 0; // see main.h for bits
-}
-
-/*
- * @breif   initialize motor controller related variables (PI controllers for speed and current)
- */
-void initializeControllerVariables(void)
-{
-    g_maxSpeed = MAX_TARGET_SPEED;
-
-    g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
-    g_impulse.Period = PERIOD_IMPULSE;
-    g_targetDirection = 1;
-
-    resetPiController(&g_piSpd);
-    resetPiController(&g_piCur);
-
-    g_piSpd.Kp = _IQ(KP_SPD);
-    g_piSpd.Ki = _IQ(KI_SPD);
-    g_piCur.Kp = _IQ(KP_CUR);
-    g_piCur.Ki = _IQ(KI_CUR);
-
-    g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
-    g_closedLoop = false;
-}
-
-/*
- * @brief   Do everything necessary to init MSP and begin driving
- */
-void initController(void)
-{
-    initializeGpios();
-
-    // Set DCO frequency to 16MHz
-    CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
-
-    CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-    CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-
-    // Initialize variables
-    initializeSensorVariables();
-    initializeSoftwareControlVariables();
-    initializeControllerVariables();
-
-    // initialize hardware components
-    initializeI2cModule();
-    initializePwmModules();
-    initializeAdcModule();
-    initializeHallInterface();
-
-    currentOffsetCalibration(); // get initial estimate of current offsets
-    __bis_SR_register(GIE);     // enable interrupts (timer & i2c)
-    enableGateDriver();         // get ready to move
-}
 
 /*
  * @brief  update sensor (Hall & current) readings for when driving in closed loop
@@ -558,7 +407,7 @@ void moderatePIControllers(void)
     if (g_piCur.w1)
     {
         __disable_interrupt();
-        g_piCur.i1 = _IQ(g_targetDirection * 0.5); // full wipe of integrator causes jumpy stop-start behavior
+        g_piCur.i1 = _IQ(g_targetDirection * PI_CURRENT_IL); // full wipe of integrator causes jumpy stop-start behavior
         g_piCur.ui = 0;
         g_piCur.v1 = 0;
         __enable_interrupt();
@@ -574,6 +423,7 @@ void checkTargetReached(void)
     {
         // target has been reached
         g_targetReached = true;
+        g_controlRegister &= ~EXECUTE_COMMAND;
         g_statusRegister |= POSITION_CONVERGED;
         // turn off output
         _iq output = 0;
@@ -605,7 +455,7 @@ void driveOpenLoop(void)
         _iq output;
         if (g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
         {
-            output = _IQ(DRIVE_ON_BOOT_SPEED_PERCENT); // division here didn't work and always gave 0. just replacing with a different pre-set figure. _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
+            output = _IQ(DEFAULT_TARGET_SPEED_perc);
         }
         else
         {
@@ -664,11 +514,11 @@ void closedLoopSpeedLoop(void)
 {
     if (g_targetDirection > 0)
     {
-        g_piSpd.Ref = g_maxSpeed << 8;
+        g_piSpd.Ref = g_targetSpeed << 8;
     }
     else
     {
-        g_piSpd.Ref = -g_maxSpeed << 8;
+        g_piSpd.Ref = -g_targetSpeed << 8;
     }
 
     g_piSpd.Fbk = getSpeed();
@@ -704,8 +554,11 @@ void checkForClosedLoopErrors(void)
     // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
     if (g_errorCounter >= ERROR_ITERATION_THRESHOLD)
     {
-        if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) // check if we should stop controller given fault
-            g_targetPosition = g_currentPosition = 0;             // stop controller
+        if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) { // check if we should stop controller given fault
+            g_targetPosition = 0;
+            g_currentPosition = 0;             // stop controller
+            g_controlRegister &= ~EXECUTE_COMMAND;
+        }
         g_statusRegister |= CONTROLLER_ERROR;                     // add flag to status register
     }
 }
@@ -717,9 +570,46 @@ void handleMotorTimeout(void)
 {
     g_targetReached = true;
     g_targetPosition = g_currentPosition; // so motor won't flip g_targetReached again
+    g_controlRegister &= ~EXECUTE_COMMAND;
     g_faultRegister |= DRIVING_TIMEOUT;
     g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
     g_drivingTimeoutCtr = 0;
+}
+
+void initializeClockSignal()
+{
+    // Set DCO frequency to 16MHz
+    CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
+    CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+    CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+}
+
+/*
+ * @brief   Do everything necessary to init MSP and begin driving
+ */
+void initController(void)
+{
+    initializeGpios();
+    initializeClockSignal();
+
+    // Initialize variables
+    initializeSensorVariables();
+    initializeSoftwareControlVariables();
+    initializeControllerVariables();
+
+    // initialize hardware components
+    uint8_t i2c_addr;
+    i2c_addr = initializeI2cModule();
+    initializePwmModules();
+    initializeAdcModule();
+    initializeHallInterface();
+
+    // Initialize variables
+    initMotorControl(i2c_addr);
+
+    currentOffsetCalibration(); // get initial estimate of current offsets
+    __bis_SR_register(GIE);     // enable interrupts (timer & i2c)
+    enableGateDriver();         // get ready to move
 }
 
 /**
@@ -729,30 +619,10 @@ void main(void)
 {
 
     // Turn off the watchdog
+    // TODO: Turn back on somewhere???
     WDT_A_hold(WDT_A_BASE);
 
     initController(); // init all variables and functionality needed to drive
-
-// Emergency Reset-Mediated-Driving Implementation:
-#ifdef DRIVE_ON_BOOT
-    g_targetPosition = DRIVE_ON_BOOT_TICKS;
-    g_controlRegister = 32;
-#ifdef DRIVE_ON_BOOT_OPEN_LOOP
-    g_controlRegister |= DRIVE_OPEN_LOOP;
-    // Override open-loop torque for custom speed (DRIVE_ON_BOOT_SPEED_PERCENT):
-    g_controlRegister |= OPEN_LOOP_TORQUE_OVERRIDE;
-#endif
-
-// Flip direction if this wheel should be spinning CW instead of CCW:
-#if (defined(MOTOR_B) || defined(MOTOR_D)) && defined(DRIVE_ON_BOOT_REAR_DRIVE) || \
-    (defined(MOTOR_A) || defined(MOTOR_C)) && defined(DRIVE_ON_BOOT_FRONT_DRIVE)
-    g_targetPosition = -g_targetPosition;
-#endif
-
-    // Wait before starting up (safety):
-    __delay_cycles(DRIVE_ON_BOOT_START_DELAY);
-
-#endif
 
     while (1)
     {

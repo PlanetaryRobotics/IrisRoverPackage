@@ -236,12 +236,16 @@ void initializeHallInterface(void)
  */
 void resetPiController(volatile PI_CONTROLLER *pi)
 {
-    pi->i1 = _IQ(0.0); // reset integrator storage (stores pi->ui from last time step)
-    pi->ui = _IQ(0.0); // reset integral term (sums error over time steps)
-    pi->v1 = _IQ(0.0);
-    pi->up = _IQ(0.0);
+    pi->i1 = 0; // reset integrator storage (stores pi->ui from last time step)
+    pi->ui = 0; // reset integral term (sums error over time steps)
+    pi->v1 = 0;
+    pi->up = 0;
+#ifdef USE_IQ_LIB
     pi->Umax = _IQ(PI_OUTPUT_BOUNDS);
     pi->Umin = _IQ(-PI_OUTPUT_BOUNDS);
+#else
+    pi->Umax = PI_CURRENT_IL_IQ;
+    pi->Umax = -PI_CURRENT_IL_IQ;
 }
 
 /**
@@ -329,18 +333,28 @@ bool read_driver_fault(void)
  */
 void initializeControllerVariables(void)
 {
+#ifdef USE_IQ_LIB
     g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
+#else
+    g_openLoopTorque = OPEN_LOOP_TORQUE_IQ;
+#endif
     g_impulse.Period = PERIOD_IMPULSE;
 
     resetPiController(&g_piSpd);
     resetPiController(&g_piCur);
-
-    g_piSpd.Kp = _IQ(DEFAULT_SPD_KP);
-    g_piSpd.Ki = _IQ(DEFAULT_SPD_KI);
-    g_piCur.Kp = _IQ(DEFAULT_CUR_KP);
-    g_piCur.Ki = _IQ(DEFAULT_CUR_KI);
-
+#ifdef USE_IQ_LIB
+    g_piSpd.Kp = _IQ(DEFAULT_KP_SPD);
+    g_piSpd.Ki = _IQ(DEFAULT_KI_SPD);
+    g_piCur.Kp = _IQ(DEFAULT_KP_CUR);
+    g_piCur.Ki = _IQ(DEFAULT_KI_CUR);
     g_closeLoopThreshold = _IQ(CLOSE_LOOP_THRESHOLD);
+#else
+    g_piSpd.Kp = DEFAULT_SPEED_KP_IQ;
+    g_piSpd.Ki = DEFAULT_SPEED_KI_IQ;
+    g_piCur.Kp = DEFAULT_CURRENT_KP_IQ;
+    g_piCur.Ki = DEFAULT_CURRENT_KI_IQ;
+    g_closeLoopThreshold = CLOSE_LOOP_THRESHOLD_IQ;
+#endif
     g_closedLoop = false;
 }
 
@@ -450,7 +464,11 @@ void moderatePIControllers(void)
     if (g_piCur.w1)
     {
         __disable_interrupt();
-        g_piCur.i1 = _IQ(g_targetDirection * 0.5); // full wipe of integrator causes jumpy stop-start behavior
+#ifdef USE_IQ_LIB
+        g_piCur.i1 = _IQ(g_targetDirection * PI_CURRENT_IL); // full wipe of integrator causes jumpy stop-start behavior
+#else
+        g_piCur.i1 = (int32_t)g_targetDirection * PI_CURRENT_IL_IQ;
+#endif
         g_piCur.ui = 0;
         g_piCur.v1 = 0;
         __enable_interrupt();
@@ -497,12 +515,19 @@ void driveOpenLoop(void)
         _iq output;
         if (g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
         {
-            float iqDefaultSpd = (float)mcRegStruct.mc_target_speed/100;
-            output = _IQ(iqDefaultSpd);
+#ifdef USE_IQ_LIB
+            output = _IQ(DEFAULT_TARGET_SPEED);
+#else
+            output = DEFAULT_TARGET_SPEED_IQ;
+#endif
         }
         else
         {
+#ifdef USE_IQ_LIB
             output = _IQ(FULLY_OPEN_LOOP_PWM); // apply constant output (30% duty cycle)
+#else
+            output = FULLY_OPEN_LOOP_PWM_IQ;
+#endif
         }
 
         // apply output as PWM

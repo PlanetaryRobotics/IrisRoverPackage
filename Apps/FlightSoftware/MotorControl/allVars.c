@@ -1,19 +1,9 @@
 /*
- * MotorControl.c
+ * allVars.c
  *
  *  Created on: Oct 21, 2023
  *      Author: iris
  */
-
-#include "MotorControl.h"
-
-void initMotorControl(McI2cAddr_t i2cAddr)
-{
-    initMcRegStruct(&mcRegStruct, i2cAddr);
-
-    initSensorVariables();
-    initializeSoftwareControlVariables();
-}
 
 /*
  * @brief       TODO
@@ -51,12 +41,7 @@ void initializeSoftwareControlVariables(void)
     g_controlRegister = 0; // see main.h for bits
 }
 
-
-/** -----------------------------------------------
- *  ------- TODO: DEPRICATE
- *  -----------------------------------------------
- */
-
-
-
-
+void initAllVars()
+{
+    initializeSensorVariables();
+}

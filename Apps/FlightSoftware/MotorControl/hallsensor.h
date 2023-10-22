@@ -23,7 +23,7 @@ HallSensor g_hallSensor;
 uint8_t g_hallMap[8];
 uint8_t g_commState;
 uint8_t g_oldCommState;
-bool g_readSensors = false;
+bool g_readSensors;
 
 _iq g_currentPhaseA;
 _iq g_currentPhaseB;

@@ -13,16 +13,16 @@ void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr)
     mcReg->mc_i2c_addr = addr;
 
     mcReg->mc_target_pos = 0;
-    mcReg->mc_target_speed = DEFAULT_TARGET_SPEED;
+    mcReg->mc_target_speed = DEFAULT_TARGET_SPEED_IQ;
 
     mcReg->mc_curr_pos = 0; // ticks
     mcReg->mc_curr_speed = 0; // 0-100%
     mcReg->mc_curr_current = 0; // mA
 
-    mcReg->mc_piCurKp = DEFAULT_CURRENT_P; // Linear Format
-    mcReg->mc_piCurKi = DEFAULT_CURRENT_I;
-    mcReg->mc_piSpdKp = DEFAULT_SPEED_P;
-    mcReg->mc_piSpdKi = DEFAULT_SPEED_I;
+    mcReg->mc_piCurKp = DEFAULT_CURRENT_KP_IQ; // Linear Format
+    mcReg->mc_piCurKi = DEFAULT_CURRENT_KI_IQ;
+    mcReg->mc_piSpdKp = DEFAULT_SPEED_KP_IQ;
+    mcReg->mc_piSpdKi = DEFAULT_SPEED_KI_IQ;
     mcReg->mc_acc_val = 0; // ticks*s-2
     mcReg->mc_dec_val = 0;
 

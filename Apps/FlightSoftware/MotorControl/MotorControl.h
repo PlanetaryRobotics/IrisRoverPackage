@@ -8,10 +8,13 @@
 #ifndef MOTORCONTROL_H_
 #define MOTORCONTROL_H_
 
-#include "ICD_MotorControl.h"
 
+/* Include the IQmath header file. */
+#define GLOBAL_IQ 15
 #include "IQmathLib.h"
-#include <msp430.h>
+
+#include "ICD_MotorControl.h"
+#include "allVars.h"
 
 #include "driverlib.h"
 #include "bsp.h"
@@ -21,7 +24,7 @@
 #include "mod6_cnt.h"
 #include "impulse.h"
 
-
+#include <msp430.h>
 
 // internal state machine for motor
 typedef enum StateMachine
@@ -40,40 +43,6 @@ typedef enum CmdState
 
 
 
-// Local Target Variables
-int8_t g_targetDirection;       // TODO: Maybe pass via Reg?
-volatile int32_t g_targetPosition;
-volatile uint8_t g_targetSpeed;
-
-volatile uint16_t g_accelRate;  // TODO: UNUSED
-volatile uint16_t g_decelRate;  // TODO: UNUSED
-
-// Loop Control Variables
-bool g_targetReached;
-volatile int32_t g_currentPosition;
-int32_t g_oldPosition;
-
-volatile _iq g_currentSpeed;
-
-bool g_closedLoop;
-_iq g_openLoopTorque;
-
-// Maybe for Open Loop timing ?
-uint16_t g_controlPrescaler;
-
-// State Variables Theoretically...
-volatile StateMachine g_state;
-volatile CmdState g_cmdState;
-
-uint8_t g_statusRegister;
-volatile uint8_t g_controlRegister;
-volatile uint8_t g_faultRegister;
-
-// Error Counter Variables
-volatile uint32_t g_drivingTimeoutCtr;
-uint8_t g_errorCounter = 0; // incremented every time inner control loop is reached and motor is acting strange
-                            // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
-
 
 
 MC_ICD_RegStruct mcRegStruct;
@@ -81,15 +50,6 @@ MC_ICD_RegStruct mcRegStruct;
 
 void initMotorControl(McI2cAddr_t i2cAddr);
 void initSensorVariables();
-void initializeSoftwareControlVariables();
-
-
-
-float uintToIq(uint16_t intVal)
-{
-    float iqSetVal = (float)intVal / (float)PI_PARAM_TO_IQ;
-    return iqSetVal;
-}
 
 
 /** -----------------------------------------------

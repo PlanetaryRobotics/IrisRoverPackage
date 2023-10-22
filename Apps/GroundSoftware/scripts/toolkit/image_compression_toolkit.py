@@ -71,15 +71,20 @@ def decompress(line: bytes) -> bytes:
         # A homogeneous line that was RLE'd:
         line_len = (line[4] << 8) | line[3]
         line = line[5:6] * line_len
-    else:
+    elif len(line) > 2:
         # Decompress (if necessary):
-        if (line[0] == 0xFF):
-            line = hs2.decompress(
-                line[1:], window_sz2=HS_WINDOW, lookahead_sz2=HS_LOOKAHEAD)
-        else:
-            line = line[1:]
+        binned = line[0] == 0xFF
+        compressed = line[1] == 0xFF
+        line = line[2:]
+
+        if compressed:
+            line = bytearray(hs2.decompress(bytes(line), window_sz2=HS_WINDOW,
+                                            lookahead_sz2=HS_LOOKAHEAD))
+
         # Unbin:
-        line = unbin_line(line)
+        if binned and len(line) > 3:
+            line = unbin_line(line)
+
     return bytes(line)
 
 

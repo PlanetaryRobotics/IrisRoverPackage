@@ -95,5 +95,38 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             DataPathway.WIRELESS,
             Magic.COMMAND,
             comment=f"Quickly Read & downlink from Flash a binned & compressed copy of frame_idx=2 frame."
+        ),
+        'deployment-image': PreparedCommand(
+            'Camera_CaptureDeploymentImage',
+            OrderedDict(
+                # NOTE: This is presently set up to be triggered by a tip not a
+                # drop but the IMU-triggered-image principle is the same:
+                camera_num=1, callback_id=10, erase_first=True,
+                timeout_ms=120000, trigger_on_timeout=True,
+                condition_mode_all=True,  # all = AND
+                #
+                imu_x_acc_on=False,
+                imu_x_acc_trigger_mode=False,
+                imu_x_acc_min=0,
+                imu_x_acc_max=1,
+                #
+                imu_y_acc_on=True,  # True = YAcc is a trigger
+                imu_y_acc_trigger_mode=False,  # trigger when out of window
+                imu_y_acc_min=-50,
+                imu_y_acc_max=50,
+                #
+                imu_z_acc_on=False,
+                imu_z_acc_trigger_mode=False,
+                imu_z_acc_min=0,
+                imu_z_acc_max=1,
+                #
+                wdi_28_v_on=False,
+                wdi_28_v_trigger_mode=False,
+                wdi_28_v_min=0,
+                wdi_28_v_max=1
+            ),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment=f"Triggers an image capture with the given settings once the given sensor triggers occur."
         )
     }

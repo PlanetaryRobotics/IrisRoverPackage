@@ -24,7 +24,7 @@ void initializeSensorVariables(void)
     g_targetDirection = 1;
     g_targetPosition = 0;
 
-    g_targetSpeed = _IQ(MAX_TARGET_SPEED);
+    g_targetSpeed = MAX_TARGET_SPEED;
 
     g_readSensors = false;
     g_drivingTimeoutCtr = 0;

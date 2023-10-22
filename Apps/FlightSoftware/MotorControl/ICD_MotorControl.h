@@ -33,7 +33,7 @@ extern "C" {
 
 // control related constants (gains, thresholds, setpoints, default values)
     #define DEFAULT_TARGET_SPEED  0.7
-    #define MAX_TARGET_SPEED      1.0
+    #define MAX_TARGET_SPEED      100U
 
     #define DEFAULT_KP_SPD 1.5
     #define DEFAULT_KI_SPD 0.0009

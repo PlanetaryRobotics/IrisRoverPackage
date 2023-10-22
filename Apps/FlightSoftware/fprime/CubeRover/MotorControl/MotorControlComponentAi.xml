@@ -38,6 +38,18 @@
         <!-- Watchdog Reset port -->
         <port name="watchdogResetRequest" data_type="CubeRoverPorts::WatchdogResetRequest" kind="output" max_number="1"></port>
 
+        <port name="schedIn" data_type="Svc::Sched" kind="sync_input" max_number="1">
+            <comment>Drive state machine.
+            </comment>
+        </port>
+
+        <!-- Standard F prime ports -->
+        <port name="Log" data_type="Fw::Log"  kind="output" role="LogEvent"    max_number="1">
+        </port>
+
+        <port name="Time" data_type="Time"  kind="output" role="TimeGet"    max_number="1">
+        </port>
+
     </ports>
 
     <!-- COMMANDS -->
@@ -247,6 +259,13 @@
             </args>
         </command>
 
+
+        <command kind="guarded" opcode="0x30" mnemonic="MC_Emergency_Stop">
+            <comment> Powers down the motor bus (stopping all actions) immediately.
+            May have to reset Hercules to regain I2C comms after this.
+            </comment>
+        </command>
+
         <!-- MOTOR CONTROLLER DIRECT COMMANDS       opcodes 0x30 to 0x3F -->
         <!-- Reset Position -->
         <!-- <command kind="guarded" opcode="0x30" mnemonic="MC_ResetPosition">
@@ -349,6 +368,12 @@
                 <arg name="totalErrors" type="U16"/>
                 <arg name="motorsMask" type="U16"/>
             </args>
+        </event>
+
+        <event id="0xEE" name="MC_Sched_Heartbeat" severity="WARNING_LO" format_string="MotorControl Scheduler Alive.">
+            <comment>
+            Simple heartbeat event to make sure the scheduler tick in MotorControl is working.
+            </comment>
         </event>
     </events>
 

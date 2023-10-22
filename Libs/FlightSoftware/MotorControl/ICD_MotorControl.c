@@ -194,54 +194,54 @@ uint32_t regSizeMap(MC_ICD_RegAddr reg)
     }
 }
 
-void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data)
+void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void **data)
 {
     switch(regID)
     {
     case MC_REG_TARGET_POSITION:
-        data = &(mcReg->mc_target_pos);
+        *data = &(mcReg->mc_target_pos);
         break;
     case MC_REG_TARGET_SPEED:
-        data = &(mcReg->mc_target_speed);
+        *data = &(mcReg->mc_target_speed);
         break;
     case MC_REG_CURRENT_POSITION:
-        data = &(mcReg->mc_curr_pos);
+        *data = &(mcReg->mc_curr_pos);
         break;
     case MC_REG_CURRENT_SPEED:
-        data = &(mcReg->mc_curr_speed);
+        *data = &(mcReg->mc_curr_speed);
         break;
     case MC_REG_MOTOR_CURRENT:
-        data = &(mcReg->mc_curr_current);
+        *data = &(mcReg->mc_curr_current);
         break;
     case MC_REG_P_CURRENT:
-        data = &(mcReg->mc_piCurKp);
+        *data = &(mcReg->mc_piCurKp);
         break;
     case MC_REG_I_CURRENT:
-        data = &(mcReg->mc_piCurKi);
+        *data = &(mcReg->mc_piCurKi);
         break;
     case MC_REG_P_SPEED:
-        data = &(mcReg->mc_piSpdKp);
+        *data = &(mcReg->mc_piSpdKp);
         break;
     case MC_REG_I_SPEED:
-        data = &(mcReg->mc_piSpdKi);
+        *data = &(mcReg->mc_piSpdKi);
         break;
     case MC_REG_ACC_RATE:
-        data = &(mcReg->mc_acc_val);
+        *data = &(mcReg->mc_acc_val);
         break;
     case MC_REG_DEC_RATE:
-        data = &(mcReg->mc_dec_val);
+        *data = &(mcReg->mc_dec_val);
         break;
     case MC_REG_MC_CTRL:
-        data = &(mcReg->mc_ctrlReg);
+        *data = &(mcReg->mc_ctrlReg);
         break;
     case MC_REG_MC_STATUS:
-        data = &(mcReg->mc_stateReg);
+        *data = &(mcReg->mc_stateReg);
         break;
     case MC_REG_MC_FAULT:
-        data = &(mcReg->mc_faultReg);
+        *data = &(mcReg->mc_faultReg);
         break;
     default:
-        data = NULL;
+        *data = NULL;
         break;
     }
 }

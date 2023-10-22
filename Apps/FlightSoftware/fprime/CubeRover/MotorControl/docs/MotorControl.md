@@ -185,3 +185,4 @@
 | | | |regID|U8|||
 | | | |totalErrors|U16|||
 | | | |motorsMask|U16|||
+|MC_Sched_Heartbeat|238 (0xee)|Simple heartbeat event to make sure the scheduler tick in MotorControl is working.| | | | |

@@ -109,7 +109,7 @@ namespace CubeRover
         // ... also tests that schedule, time, and log connections are working.
         if ((now - lastHeartbeatTimeMs) > MC_SCHED_HEARTBEAT_INTERVAL_MS)
         {
-            this->log_DIAGNOSTIC_MC_Sched_Heartbeat();
+            this->log_ACTIVITY_LO_MC_Sched_Heartbeat();
             lastHeartbeatTimeMs = now;
         }
 

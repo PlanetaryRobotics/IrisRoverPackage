@@ -367,7 +367,7 @@
             </args>
         </event>
 
-        <event id="0xEE" name="MC_Sched_Heartbeat" severity="DIAGNOSTIC" format_string="MotorControl Scheduler Alive.">
+        <event id="0xEE" name="MC_Sched_Heartbeat" severity="ACTIVITY_LO" format_string="MotorControl Scheduler Alive.">
             <comment>
             Simple heartbeat event to make sure the scheduler tick in MotorControl is working.
             </comment>

@@ -217,12 +217,8 @@ void resetPiController(volatile PI_CONTROLLER *pi)
     pi->ui = 0; // reset integral term (sums error over time steps)
     pi->v1 = 0;
     pi->up = 0;
-#ifdef USE_IQ_LIB
     pi->Umax = _IQ(PI_OUTPUT_BOUNDS);
     pi->Umin = _IQ(-PI_OUTPUT_BOUNDS);
-#else
-    pi->Umax = PI_CURRENT_IL_IQ;
-    pi->Umax = -PI_CURRENT_IL_IQ;
 }
 
 /**
@@ -408,11 +404,7 @@ void moderatePIControllers(void)
     if (g_piCur.w1)
     {
         __disable_interrupt();
-#ifdef USE_IQ_LIB
         g_piCur.i1 = _IQ(g_targetDirection * PI_CURRENT_IL); // full wipe of integrator causes jumpy stop-start behavior
-#else
-        g_piCur.i1 = (int32_t)g_targetDirection * PI_CURRENT_IL_IQ;
-#endif
         g_piCur.ui = 0;
         g_piCur.v1 = 0;
         __enable_interrupt();
@@ -459,19 +451,11 @@ void driveOpenLoop(void)
         _iq output;
         if (g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
         {
-#ifdef USE_IQ_LIB
             output = _IQ(DEFAULT_TARGET_SPEED);
-#else
-            output = DEFAULT_TARGET_SPEED_IQ;
-#endif
         }
         else
         {
-#ifdef USE_IQ_LIB
             output = _IQ(FULLY_OPEN_LOOP_PWM); // apply constant output (30% duty cycle)
-#else
-            output = FULLY_OPEN_LOOP_PWM_IQ;
-#endif
         }
 
         // apply output as PWM
@@ -624,17 +608,6 @@ void main(void)
     WDT_A_hold(WDT_A_BASE);
 
     initController(); // init all variables and functionality needed to drive
-
-// Flip direction if this wheel should be spinning CW instead of CCW:
-#if (defined(MOTOR_B) || defined(MOTOR_D)) && defined(DRIVE_ON_BOOT_REAR_DRIVE) || \
-    (defined(MOTOR_A) || defined(MOTOR_C)) && defined(DRIVE_ON_BOOT_FRONT_DRIVE)
-    g_targetPosition = -g_targetPosition;
-#endif
-
-    // Wait before starting up (safety):
-    __delay_cycles(DRIVE_ON_BOOT_START_DELAY);
-
-#endif
 
     while (1)
     {

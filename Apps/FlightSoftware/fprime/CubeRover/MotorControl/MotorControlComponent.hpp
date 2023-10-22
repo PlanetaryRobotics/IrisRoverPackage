@@ -18,6 +18,7 @@
 #include "CubeRover/MotorControl/MotorControlComponentAc.hpp"
 #include "MotorController_i2c.h"
 #include "MotorController.hpp"
+#include "CubeRover/WatchDogInterface/WatchDogInterface.hpp" // need the `reset_values_possible` enum definitions
 
 #define MOTOR_A 1
 #define MOTOR_B 2
@@ -35,7 +36,7 @@
 namespace CubeRover
 {
 
-        class MotorControlComponentImpl : public MotorControlComponentBase
+        class MotorControlComponentImpl : public MotorControlComponentBase,  public WatchDogInterfaceComponentBaseFriend
         {
 
                 ::Os::Mutex mc_mutex;
@@ -265,6 +266,14 @@ namespace CubeRover
                     U8 Value /*!< 0x00 is On, 0xFF is Off */
                 );
 
+                //! Handler for command MC_Emergency_Stop
+                /* Powers down the motor bus (stopping all actions) immediately.
+                        May have to reset Hercules to regain I2C comms after this. */
+                void MC_Emergency_Stop_cmdHandler(
+                    FwOpcodeType opCode, /*!< The opcode*/
+                    U32 cmdSeq /*!< The command sequence number*/
+                );
+
                 /* Implementation specific declarations */
 
                 /* -------------------------------------------------------
@@ -347,6 +356,10 @@ namespace CubeRover
                 bool updateTelemetry();
 
                 bool pollStatus();
+
+                void powerOffMotors(uint32_t wait_for_power_off_ms=0);
+
+                void powerOnMotors(uint32_t wait_for_power_on_ms=10);
 
                 // Member items
                 uint32_t tick_count = 0;

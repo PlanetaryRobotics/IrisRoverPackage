@@ -6,7 +6,6 @@
     <import_port_type>Fw/Cmd/CmdRegPortAi.xml</import_port_type>
     <import_port_type>Fw/Cmd/CmdResponsePortAi.xml</import_port_type>
     <import_port_type>Fw/Log/LogPortAi.xml</import_port_type>
-    <import_port_type>Fw/Log/LogTextPortAi.xml</import_port_type>
     <import_port_type>Fw/Tlm/TlmPortAi.xml</import_port_type>	
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
     <import_port_type>Svc/Ping/PingPortAi.xml</import_port_type>
@@ -46,9 +45,6 @@
 
         <!-- Standard F prime ports -->
         <port name="Log" data_type="Fw::Log"  kind="output" role="LogEvent"    max_number="1">
-        </port>
-
-        <port name="LogText" data_type="Fw::LogText"  kind="output" role="LogTextEvent"    max_number="1">
         </port>
 
         <port name="Time" data_type="Time"  kind="output" role="TimeGet"    max_number="1">
@@ -263,6 +259,13 @@
             </args>
         </command>
 
+
+        <command kind="guarded" opcode="0x30" mnemonic="MC_Emergency_Stop">
+            <comment> Powers down the motor bus (stopping all actions) immediately.
+            May have to reset Hercules to regain I2C comms after this.
+            </comment>
+        </command>
+
         <!-- MOTOR CONTROLLER DIRECT COMMANDS       opcodes 0x30 to 0x3F -->
         <!-- Reset Position -->
         <!-- <command kind="guarded" opcode="0x30" mnemonic="MC_ResetPosition">
@@ -367,7 +370,7 @@
             </args>
         </event>
 
-        <event id="0xEE" name="MC_Sched_Heartbeat" severity="ACTIVITY_LO" format_string="MotorControl Scheduler Alive.">
+        <event id="0xEE" name="MC_Sched_Heartbeat" severity="WARNING_LO" format_string="MotorControl Scheduler Alive.">
             <comment>
             Simple heartbeat event to make sure the scheduler tick in MotorControl is working.
             </comment>

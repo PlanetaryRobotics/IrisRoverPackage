@@ -21,12 +21,31 @@
 #include "Fw/Types/BasicTypes.hpp"
 #include "Include/CubeRoverConfig.hpp"
 
+extern CubeRover::WatchDogInterfaceComponentImpl watchDogInterface;  // keep this just in the cpp
+
 namespace CubeRover
 {
 
     const uint8_t MotorControlComponentImpl::motorIdAddressMap[NUM_MOTORS] = {
         FRONT_LEFT_MC_I2C_ADDR, FRONT_RIGHT_MC_I2C_ADDR,
         REAR_LEFT_MC_I2C_ADDR, REAR_RIGHT_MC_I2C_ADDR};
+
+
+    void MotorControlComponentImpl::powerOffMotors(uint32_t wait_for_power_off_ms){
+        watchDogInterface.Reset_Specific_Handler(WD_ALL_MOTORS_OFF_RESET_ID);
+        // Wait for X ticks to give the motors time to turn
+        // off before we do anything else.
+        // Keep this small (10s of ms or less).
+        vTaskDelay(wait_for_power_off_ms / portTICK_PERIOD_MS);
+    }
+
+    void MotorControlComponentImpl::powerOnMotors(uint32_t wait_for_power_on_ms){
+        watchDogInterface.Reset_Specific_Handler(WD_ALL_MOTORS_ON_RESET_ID);
+        // Wait for X ticks to give the motors time to turn
+        // off before we do anything else.
+        // Keep this small (10s of ms or less).
+        vTaskDelay(wait_for_power_on_ms / portTICK_PERIOD_MS);
+    }
 
     // ----------------------------------------------------------------------
     // Construction, initialization, and destruction
@@ -109,7 +128,7 @@ namespace CubeRover
         // ... also tests that schedule, time, and log connections are working.
         if ((now - lastHeartbeatTimeMs) > MC_SCHED_HEARTBEAT_INTERVAL_MS)
         {
-            this->log_ACTIVITY_LO_MC_Sched_Heartbeat();
+            this->log_WARNING_LO_MC_Sched_Heartbeat();
             lastHeartbeatTimeMs = now;
         }
 
@@ -148,6 +167,7 @@ namespace CubeRover
         const FwOpcodeType opCode,
         const U32 cmdSeq)
     {
+        powerOnMotors(); // Make sure motors are on first
         if (updateTelemetry())
         {
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
@@ -205,6 +225,7 @@ namespace CubeRover
         U16 MotorD_Accel_Rate,
         U16 MotorD_Decel_Rate)
     {
+        powerOnMotors(); // Make sure motors are on first
         mc_mutex.lock();
 
         MotorControllerStruct *mc = &m_motor_controllers[MOTOR_A];
@@ -279,6 +300,7 @@ namespace CubeRover
                                                                 U8 Param_RegAddr,
                                                                 U32 Param_NewValue)
     {
+        powerOnMotors(); // Make sure motors are on first
         uint8_t motor_mask = Motor_ID;
         MC_ICD_RegAddr reg = static_cast<MC_ICD_RegAddr>(Param_RegAddr);
         int32_t data = Param_NewValue;
@@ -314,7 +336,7 @@ namespace CubeRover
         U8 Dir,
         U32 Raw_Ticks)
     {
-
+        powerOnMotors(); // Make sure motors are on first
         if (Dir == 0xFF)
         {
             if (!OG_Spin_Handler(opCode, cmdSeq, Motor_ID, Dir, Raw_Ticks))
@@ -391,6 +413,7 @@ namespace CubeRover
         U32 Raw_Ticks,
         U8 Percent_speed)
     {
+        powerOnMotors(); // Make sure motors are on first
         //        mc_mutex.lock();
         if (!setSpinParams(Motor_ID, Dir, Raw_Ticks, Percent_speed))
         {
@@ -414,6 +437,7 @@ namespace CubeRover
         U8 MotorC_Dir, U32 MotorC_Ticks, U8 MotorC_Speed,
         U8 MotorD_Dir, U32 MotorD_Ticks, U8 MotorD_Speed)
     {
+        powerOnMotors(); // Make sure motors are on first
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
@@ -731,6 +755,14 @@ namespace CubeRover
         // resetMotorControllers();
 
         return true;
+    }
+
+    void MotorControlComponentImpl::MC_Emergency_Stop_cmdHandler(
+        FwOpcodeType opCode, /*!< The opcode*/
+        U32 cmdSeq /*!< The command sequence number*/
+    ){
+        this->powerOffMotors();
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
 } // end namespace CubeRover

@@ -136,6 +136,8 @@
 | | | |MotorD_Dir|U8||
 | | | |MotorD_Ticks|U32||
 | | | |MotorD_Speed|U8||
+|MC_Emergency_Stop|48 (0x30)|Powers down the motor bus (stopping all actions) immediately.
+            May have to reset Hercules to regain I2C comms after this.| | |
 
 ## Telemetry Channel List
 

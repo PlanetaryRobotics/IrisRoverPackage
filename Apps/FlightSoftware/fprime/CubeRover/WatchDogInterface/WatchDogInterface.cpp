@@ -267,7 +267,7 @@ namespace CubeRover
                                          static_cast<reset_values_possible>(Disengage),
                                          true);
 
-        debugPrintfToWatchdog("Hercules Triggering Deployment Interlock...");
+        debugPrintfToWatchdog("Hercules Asserting Deployment Interlock...");
         // Set Deployment Bit High
         // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
         // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
@@ -287,14 +287,12 @@ namespace CubeRover
 
         bool success = sendResetSpecific(opCode - this->getIdBase(), cmdSeq, HDRM_Off, true);
 
-        if (success)
-        {
-            // Set Deployment Bit low
-            // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
-            // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
-            gioSetBit(spiPORT3, deploy_bit, 0);
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-        }
+        debugPrintfToWatchdog("Hercules Releasing Deployment Interlock...");
+        // Set Deployment Bit low
+        // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+        // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
+        gioSetBit(spiPORT3, deploy_bit, 0);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     bool WatchDogInterfaceComponentImpl::logAndSendResetSpecific(FwOpcodeType opCode,
@@ -323,7 +321,7 @@ namespace CubeRover
                                                            bool sendResponse)
     {
         // Check that reset_value is correct
-        if (resetValue >= reset_values_possible_MAX)
+        if (resetValue >= reset_values_possible_MAX && resetValue >= hdrm_deploy_signal_power_on)  // reset_values_possible_MAX is not actually max, just last + 1
         {
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
             return false;

@@ -1468,7 +1468,8 @@ namespace iris
                                                &(theContext.m_adcValues),
                                                &(theContext.m_details),
                                                &report,
-                                               reportBuffer);
+                                               reportBuffer,
+                                               theContext.m_persistentDeployed);
 
         DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
 
@@ -2001,6 +2002,7 @@ namespace iris
             if (allowUndeploy)
             {
                 unsetDeploy();
+                DPRINTF("WD Released Deployment Interlock in RS...");
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF);
             }
             else if (nullptr != response)
@@ -2153,10 +2155,15 @@ namespace iris
                 /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
                 setDeploy();
                 *(theContext.m_persistentDeployed) = true;
+                DPRINTF("WD Asserting Deployment Interlock in RS...");
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_ON);
             }
             else if (nullptr != response)
             {
+                DPRINTF(
+                    "WD Deployment preconditions not met. Status: allowOn: %d, allowDeploy: %d.",
+                    allowPowerOn ? 1 : 0,
+                    allowDeploy ? 1 : 0);
                 response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
             }
             break;
@@ -2177,7 +2184,7 @@ namespace iris
         resetConditions = (resetConditions << 1) & allowDisableRs422;
         resetConditions = (resetConditions << 1) & allowDeploy;
         resetConditions = (resetConditions << 1) & allowUndeploy;
-        DebugComms__tryPrintfToLanderNonblocking("RESET:%d -> %d with 0x%x\n", int(resetValue), int(response->statusCode), resetConditions);
+        DebugComms__tryPrintfToLanderNonblocking("RESET:%d -> %d with 0x%x\n", uint16_t(resetValue), uint16_t(response->statusCode), uint16_t(resetConditions));
     }
 
 } // End namespace iris

@@ -283,11 +283,13 @@ namespace iris
                                                    response,
                                                    true, // whether or not to allow power on
                                                    // whether or not to allow disabling RS422
-                                                   m_currentDeployState == DeployState::DEPLOYED,
+                                                   *(theContext.m_persistentDeployed) ? true : false, // only allow RS422 off if deployed
                                                    // whether or not to allow deploy
-                                                   m_currentDeployState != DeployState::DEPLOYED,
+                                                   true, // always allow deploy (assert HDRM interlock) in Mission
+                                                         //    m_currentDeployState != DeployState::DEPLOYED,
                                                    // whether or not to allow undeploy
-                                                   m_currentDeployState != DeployState::NOT_DEPLOYED,
+                                                   true, // always allow undeploy (release HDRM interlock) in Mission
+                                                   //    m_currentDeployState != DeployState::NOT_DEPLOYED,
                                                    writeIOExpander);
 
         if (writeIOExpander)
@@ -344,6 +346,7 @@ namespace iris
             deployNotificationResponse.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
             sendDeployNotificationResponse = true;
             *(theContext.m_persistentDeployed) = true;
+            DPRINTF("WD Asserting Deployment Interlock in Cmd...");
 
             // // Don't allow DebugComms to write to lander anymore
             // DebugComms__registerLanderComms(NULL);

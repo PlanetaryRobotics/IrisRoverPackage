@@ -57,6 +57,7 @@
         "concepts": "cpp",
         "ios": "cpp",
         "istream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "cstddef": "c"
     }
 }

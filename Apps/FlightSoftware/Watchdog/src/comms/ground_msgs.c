@@ -122,7 +122,8 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2c
                                                       AdcValues *adcValues,
                                                       WatchdogStateDetails *details,
                                                       DetailedReport *report,
-                                                      uint8_t *reportBuffer)
+                                                      uint8_t *reportBuffer,
+                                                      bool *persistentDeployed)
 {
     static uint8_t sequenceNumber = 0;
 
@@ -172,17 +173,22 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2c
     CHECK_SERIALIZATION_RESULT(serializationResult);
     dstIntPtr += sizeof(details->m_stateAsUint);
 
-    uint8_t deploymentStatus;
+    // Reflect HDRM interlock status and deployment bit status:
+    uint8_t deploymentStatus = 0;
+    // Status                     Interlock   Persistent Deployed
+    // 00: NOT_DEPLOYED           HDRM_off    Not Deployed
+    // 01: HDRM_ON+NOT_DEPLOYED   HDRM_on     Not Deployed
+    // 10: DEPLOYED               HDRM_off    Deployed
+    // 11: DEPLOYING              HDRM_on     Deployed
+    if (*persistentDeployed)
+    {
+        deploymentStatus |= 0b10;
+    }
     if (details->m_outputPinBits & OPSBI_MASK(OPSBI__DEPLOYMENT))
     {
-        report->deploymentStatus = 2; // DEPLOYED
-        deploymentStatus = 2;
+        deploymentStatus |= 0b01;
     }
-    else
-    {
-        report->deploymentStatus = 0; // NOT_DEPLOYED
-        deploymentStatus = 0;
-    }
+    report->deploymentStatus = deploymentStatus;
 
     report->uart0Initialized = (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART0_INITIALIZED)) ? 1 : 0;
     report->uart1Initialized = (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__UART1_INITIALIZED)) ? 1 : 0;

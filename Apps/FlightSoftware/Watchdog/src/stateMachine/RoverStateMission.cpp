@@ -7,6 +7,7 @@
 #include "drivers/bsp.h"
 
 #include "watchdog.h"
+#include "utils/time.h"
 
 #include <cassert>
 #include <msp430.h>
@@ -61,10 +62,12 @@ namespace iris
         }
 
         // Enable Hercules UART if Hercules is ON:
-        if ((theContext.m_details.m_outputPinBits & OPSBI__HERCULES_ON) && !(HerculesComms__isInitialized(theContext.m_hcState)))
+        if ((theContext.m_details.m_outputPinBits & OPSBI_MASK(OPSBI__HERCULES_ON)) && !(HerculesComms__isInitialized(theContext.m_hcState)))
         {
             // We should hopefully never be here during Mission...
-            DebugComms__tryPrintfToLanderNonblocking("Trying to establish UART between WD and Hercules\n");
+            // ... but we will if Hercules (and everything else) is reset by
+            // the Safety Timer, in which case this is desired behavior (and counted on)
+            DebugComms__tryPrintfToLanderNonblocking("Trying to (re)establish UART between WD and Hercules\n");
             enableHerculesComms(theContext);
         }
 
@@ -92,7 +95,7 @@ namespace iris
             //!< @todo Handling?
         }
 
-        if (theContext.m_details.m_hParams.m_heatingControlEnabled)
+        if (theContext.m_details.m_hParams.persistent->m_heatingControlEnabled)
         {
             // Update the Heater State (PWM remains unchanged here):
             heaterControl(theContext);
@@ -110,7 +113,8 @@ namespace iris
                          &(theContext.m_watchdogFlags),
                          &(theContext.m_watchdogOpts),
                          &writeIOExpander,
-                         &(theContext.m_details));
+                         &(theContext.m_details),
+                         theContext.m_uart0State);
 
         if (writeIOExpander)
         {
@@ -130,6 +134,22 @@ namespace iris
         if (!theContext.m_i2cActive)
         {
             initiateNextI2cAction(theContext);
+        }
+
+        // Sync Persistent Deploy and Deployment State every tick:
+        // (really shouldn't be two of these - or three if you count
+        // IPASBI__DEPLOYED - but don't have time to disentangle them.
+        // The alternatives to `persistentDeployed` don't seem to do much
+        // besides guard commands. Better to just let them all be synced.
+        // Unfortunately, we can't just sync this in the RS command handler b/c
+        // that's in StateManager not here.
+        if (*(theContext.m_persistentDeployed))
+        {
+            m_currentDeployState = DeployState::DEPLOYED;
+        }
+        else
+        {
+            m_currentDeployState = DeployState::NOT_DEPLOYED;
         }
 
         return getState();
@@ -192,7 +212,6 @@ namespace iris
 
         if (theContext.m_sendDetailedReport)
         {
-
             theContext.m_sendDetailedReport = false;
             sendDetailedReportToLander(theContext, true);
         }
@@ -218,9 +237,23 @@ namespace iris
         // hercules can be programmed. In flight, though, we want Hercules monitoring to be on by default.
         DPRINTF("Defaulting MONITOR_HERCULES to OFF in MISSION for programming.");
         theContext.m_watchdogOpts &= ~WDOPT_MONITOR_HERCULES;
+
+        // [CWC-10/18/2023] Need safety timer to be off in this mode too since it depends on Herc comms.
+        DPRINTF("Defaulting SAFETY TIMER to OFF in MISSION for programming.");
+        theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF;
+        theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount = 0;
 #else
         DPRINTF("Defaulting MONITOR_HERCULES to ON in MISSION.");
         theContext.m_watchdogOpts |= WDOPT_MONITOR_HERCULES; // default to monitoring Hercules for aliveness
+
+        // Wait until now to activate the supervisory timer (want to wait until
+        // `EnteringMission->Mission` state transition b/c we wait until Radio
+        // is or should be up to do this...)
+        DPRINTF("SAFETY TIMER: Activated in Mission.");
+        theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
+        theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent = Time__getTimeInCentiseconds();
+        theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount = 0;
 #endif
 
         return getState();
@@ -250,11 +283,13 @@ namespace iris
                                                    response,
                                                    true, // whether or not to allow power on
                                                    // whether or not to allow disabling RS422
-                                                   m_currentDeployState == DeployState::DEPLOYED,
+                                                   *(theContext.m_persistentDeployed) ? true : false, // only allow RS422 off if deployed
                                                    // whether or not to allow deploy
-                                                   m_currentDeployState != DeployState::DEPLOYED,
+                                                   true, // always allow deploy (assert HDRM interlock) in Mission
+                                                         //    m_currentDeployState != DeployState::DEPLOYED,
                                                    // whether or not to allow undeploy
-                                                   m_currentDeployState != DeployState::NOT_DEPLOYED,
+                                                   true, // always allow undeploy (release HDRM interlock) in Mission
+                                                   //    m_currentDeployState != DeployState::NOT_DEPLOYED,
                                                    writeIOExpander);
 
         if (writeIOExpander)
@@ -311,9 +346,10 @@ namespace iris
             deployNotificationResponse.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
             sendDeployNotificationResponse = true;
             *(theContext.m_persistentDeployed) = true;
+            DPRINTF("WD Asserting Deployment Interlock in Cmd...");
 
-            // Don't allow DebugComms to write to lander anymore
-            DebugComms__registerLanderComms(NULL);
+            // // Don't allow DebugComms to write to lander anymore
+            // DebugComms__registerLanderComms(NULL);
             break;
 
         case DeployState::DEPLOYING:

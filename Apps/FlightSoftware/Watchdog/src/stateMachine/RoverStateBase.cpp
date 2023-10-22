@@ -134,8 +134,8 @@ namespace iris
     {
         LanderComms__Status lcStatus = LANDER_COMMS__STATUS__SUCCESS;
 
-        // !! TODO !!: Is this the condition we want here?
-        if (*(theContext.m_persistentDeployed) && HerculesComms__isInitialized(theContext.m_hcState) && !fromHercules)
+        // Forward comms to Hercules if you can (and it's not from Hercules):
+        if (HerculesComms__isInitialized(theContext.m_hcState) && !fromHercules)
         {
             HerculesComms__Status hcStatus = HerculesComms__txDownlinkData(theContext.m_hcState,
                                                                            (uint8_t *)data,
@@ -143,7 +143,9 @@ namespace iris
             lcStatus = (LanderComms__Status)hcStatus;
         }
 
+        // Also forward to lander if not deployed:
         LanderComms__Status lcStatus2 = LanderComms__txData(theContext.m_lcState, (uint8_t *)data, dataSize);
+
         return lcStatus;
     }
 
@@ -289,11 +291,11 @@ namespace iris
         {
             // Ground operators changed the thresholds. Re-evaluate against
             // thresholds:
-            if (thermReading > hParams.m_heaterOnVal)
+            if (thermReading > hParams.persistent->m_heaterOnVal)
             {
                 enableHeater();
             }
-            else if (thermReading < hParams.m_heaterOffVal)
+            else if (thermReading < hParams.persistent->m_heaterOffVal)
             {
                 disableHeater();
             }
@@ -333,7 +335,7 @@ namespace iris
             if (hParams.m_heating)
             {
                 // In the HEATER_ON state...
-                if (thermReading < hParams.m_heaterOffVal)
+                if (thermReading < hParams.persistent->m_heaterOffVal)
                 {
                     // if we should turn OFF and we're not being forced ON, transition to HEATER_OFF
                     // Start heating when temperature rises high enough, which we detect via the ADC reading falling below a
@@ -344,7 +346,7 @@ namespace iris
             else
             {
                 // In the HEATER_OFF state...
-                if (thermReading > hParams.m_heaterOnVal)
+                if (thermReading > hParams.persistent->m_heaterOnVal)
                 {
                     // if we should turn ON and we're not being forced OFF, transition to HEATER_ON
                     // Start heating when temperature drops low enough, which we detect via the ADC reading rising above a
@@ -450,7 +452,7 @@ namespace iris
         // as the
         CmdMsgs__Status cmdStatus = CmdMsgs__deserializeHeader(rxDataBuffer, rxDataLen, &(wdMessage.commonHeader));
 
-        DEBUG_ASSERT_EQUAL(CMD_MSGS__STATUS__SUCCESS, cmdStatus);
+        DEBUG_LOG_CHECK_STATUS(CMD_MSGS__STATUS__SUCCESS, cmdStatus, "ERROR: Header deserialize failed.");
         if (CMD_MSGS__STATUS__SUCCESS != cmdStatus)
         {
             // This should only really happen if rxDataLen is the wrong size
@@ -469,7 +471,7 @@ namespace iris
                                                                           &wdMessage,
                                                                           FALSE); // Don't reparse the header
 
-            DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
+            DEBUG_LOG_CHECK_STATUS(CMD_MSGS__STATUS__SUCCESS, wdCmdStatus, "ERROR: Message deserialize failed.");
             if (WD_CMD_MSGS__STATUS__SUCCESS != wdCmdStatus)
             {
                 // This should only really happen if rxDataLen is the wrong size
@@ -968,7 +970,7 @@ namespace iris
                                                                            responseSerializationBuffer,
                                                                            sizeof(responseSerializationBuffer));
 
-        DEBUG_ASSERT_EQUAL(WD_CMD_MSGS__STATUS__SUCCESS, wdCmdStatus);
+        DEBUG_LOG_CHECK_STATUS(CMD_MSGS__STATUS__SUCCESS, wdCmdStatus, "ERROR: Response serialize failed.");
 
         LanderComms__Status lcStatus = txDownlinkData(theContext,
                                                       responseSerializationBuffer,
@@ -1056,7 +1058,7 @@ namespace iris
                                                             WdCmdMsgs__Response &deployNotificationResponse,
                                                             bool &sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
+        theContext.m_details.m_hParams.persistent->m_heaterOnVal = msg.body.setAutoHeaterOnValue.heaterOnValue;
         // Flag that the thresholds have changed:
         theContext.m_details.m_hParams.m_thresholdsChanged = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
@@ -1069,7 +1071,7 @@ namespace iris
                                                              WdCmdMsgs__Response &deployNotificationResponse,
                                                              bool &sendDeployNotificationResponse)
     {
-        theContext.m_details.m_hParams.m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
+        theContext.m_details.m_hParams.persistent->m_heaterOffVal = msg.body.setAutoHeaterOffValue.heaterOffValue;
         // Flag that the thresholds have changed:
         theContext.m_details.m_hParams.m_thresholdsChanged = true;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
@@ -1084,10 +1086,10 @@ namespace iris
     {
         const uint16_t &newDutyCycle = msg.body.setHeaterDutyCycle.dutyCycle;
         // NOTE: TB0CCR0 (max count) is set to m_heaterDutyCyclePeriod-1 (so we need to be < that).
-        if (newDutyCycle < theContext.m_details.m_hParams.m_heaterDutyCyclePeriod)
+        if (newDutyCycle < theContext.m_details.m_hParams.persistent->m_heaterDutyCyclePeriod)
         {
             TB0CCR2 = newDutyCycle;
-            theContext.m_details.m_hParams.m_heaterDutyCycle = newDutyCycle;
+            theContext.m_details.m_hParams.persistent->m_heaterDutyCycle = newDutyCycle;
             response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         }
         else
@@ -1104,7 +1106,7 @@ namespace iris
                                                                 bool &sendDeployNotificationResponse)
     {
         TB0CCR0 = msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
-        theContext.m_details.m_hParams.m_heaterDutyCyclePeriod =
+        theContext.m_details.m_hParams.persistent->m_heaterDutyCyclePeriod =
             msg.body.setHeaterDutyCyclePeriod.dutyCyclePeriod;
         response.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__SUCCESS;
         return getState();
@@ -1456,7 +1458,7 @@ namespace iris
         }
     }
 
-    void RoverStateBase::sendDetailedReportToLander(RoverContext &theContext, bool alsoSendHeartbeats)
+    void RoverStateBase::sendDetailedReportToLander(RoverContext &theContext, bool sendSupplementalData)
     {
         /* send detailed report */
         static DetailedReport report = {0};
@@ -1466,7 +1468,8 @@ namespace iris
                                                &(theContext.m_adcValues),
                                                &(theContext.m_details),
                                                &report,
-                                               reportBuffer);
+                                               reportBuffer,
+                                               theContext.m_persistentDeployed);
 
         DEBUG_ASSERT_EQUAL(GND_MSGS__STATUS__SUCCESS, gcStatus);
 
@@ -1480,8 +1483,10 @@ namespace iris
             //!< @todo Handling?
         }
 
-        if (alsoSendHeartbeats)
+        if (sendSupplementalData)
         {
+            // Allowing non-essential extra data to be sent (when requested):
+            // Send an extra Flight HB:
             static FlightEarthHeartbeat hb = {0};
             GroundMsgs__Status gcStatus =
                 GroundMsgs__generateFlightEarthHeartbeat(&(theContext.m_i2cReadings),
@@ -1494,6 +1499,36 @@ namespace iris
             LanderComms__Status lcHbStatus = txDownlinkData(theContext,
                                                             (uint8_t *)&hb,
                                                             sizeof(hb));
+
+            // Send a (brief) Safety Timer Status Report:
+            // (also incl. the watchdogFlags since issues could be caused by
+            // SEUs there):
+            if (
+                theContext.m_details.m_stateAsUint != static_cast<uint8_t>(RoverState::INIT) &&
+                theContext.m_details.m_stateAsUint != static_cast<uint8_t>(RoverState::ENTERING_KEEP_ALIVE) &&
+                theContext.m_details.m_stateAsUint != static_cast<uint8_t>(RoverState::KEEP_ALIVE)
+                //
+            )
+            {
+                // Safety Timer is inactive in KA b/c `watchdog_monitor` is
+                // inactive in KA (nothing to WD).
+                DebugComms__tryPrintfToLanderNonblocking(
+                    "[ST] ON:0x%x \t @: 0x%x/0x%x %d/10 \tWF:0x%x%x:%x%x:%x%x:%x%x",
+                    theContext.m_details.m_safetyTimerParams.timerRebootControlOn,
+                    (Time__getTimeInCentiseconds() - theContext.m_details.m_safetyTimerParams.centisecondsAtLastEvent),
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    theContext.m_details.m_safetyTimerParams.tenthTimerExpirationCount,
+                    (uint8_t)((theContext.m_watchdogFlags >> 28) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 24) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 20) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 16) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 12) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 8) & 0xF),
+                    (uint8_t)((theContext.m_watchdogFlags >> 4) & 0xF),
+                    (uint8_t)(theContext.m_watchdogFlags & 0xF)
+                    //
+                );
+            }
 
             assert(LANDER_COMMS__STATUS__SUCCESS == lcHbStatus);
             if (LANDER_COMMS__STATUS__SUCCESS != lcHbStatus)
@@ -1627,11 +1662,26 @@ namespace iris
 
         case WD_CMD_MSGS__RESET_ID__CAM_FPGA_RESET:
             //!< @todo Should reset be allowed in KeepAlive? It's not technically powering on, but its similar.
-            setFPGAReset();
+            // TOGGLE the FPGA reset state. Toggling rather than unresetting supports FPGA programming.
+            if (toggleFPGAReset())
+            {
+                // FPGA will be put INTO reset. Log the event:
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
+                DebugComms__tryPrintfToLanderNonblocking("FPGA being RESET\n");
+            }
+            else
+            {
+                // FPGA will be RELEASED from reset. Log the event:
+                SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_UNRESET);
+                DebugComms__tryPrintfToLanderNonblocking("FPGA being UNRESET\n");
+            }
             writeIoExpander = true;
-            // queue up the fpga unreset
-            theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
-            SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
+
+            // Old reset, unreset impl:
+            //            setFPGAReset();
+            //            // queue up the fpga unreset
+            //            theContext.m_watchdogFlags |= WDFLAG_UNRESET_FPGA;
+            //            SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__CAM_FPGA_RESET);
             break;
 
         case WD_CMD_MSGS__RESET_ID__CAM_FPGA_POWER_ON:
@@ -1858,6 +1908,65 @@ namespace iris
             SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__3V3_EN_POWER_OFF);
             break;
 
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_ON:
+            theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_ON;
+            DPRINTF("SAFETY TIMER REBOOT CONTROL: ON.");
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_OFF:
+            theContext.m_details.m_safetyTimerParams.timerRebootControlOn = SAFETY_TIMER__REBOOT_CONTROL_OFF;
+            DPRINTF("SAFETY TIMER REBOOT CONTROL: OFF.");
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_ACK:
+            // Just set a KICK flag here. Timer reset happens in the next state update in watchdog process:
+            theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
+            DPRINTF("SAFETY TIMER: ACK received.");
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC:
+            // Treat this as a kick (and reset the timer):
+            theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
+            if ((SAFETY_TIMER__CUTOFF_TENTH_MAX_VAL_CS - theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
+            {
+                // Inc will put this over max val. Stopping here.
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff NOT inc. Max would be exceeded. Val is: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
+            }
+            else
+            {
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth += SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS;
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff inc to: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
+            }
+            break;
+        case WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC:
+            // Treat this as a kick (and reset the timer):
+            theContext.m_watchdogFlags |= WDFLAG_SAFETY_TIMER_KICK;
+            if ((theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth - SAFETY_TIMER__CUTOFF_TENTH_MIN_VAL_CS) < SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS)
+            {
+                // Inc will put this over max val. Stopping here.
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff NOT dec. Min would be exceeded. Val is: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
+            }
+            else
+            {
+                theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth -= SAFETY_TIMER__CUTOFF_TENTH_INCREMENT_CS;
+                DPRINTF(
+                    "SAFETY TIMER: Cutoff dec to: 0x%x*%d cs.",
+                    theContext.m_details.m_safetyTimerParams.timerRebootCutoffCentisecondsTenth,
+                    SAFETY_TIMER__TENTH_TIMER_EXPIRATION_COUNT_TRIGGER);
+            }
+            break;
+
+        case WD_CMD_MSGS__RESET_ID__REQUEST_STATUS_REPORT:
+            // Request a Detailed Status Report on the next cycle:
+            theContext.m_sendDetailedReport = true;
+            break;
+
         case WD_CMD_MSGS__RESET_ID__V_SYS_ALL_POWER_CYCLE:
             if (allowPowerOn)
             {
@@ -1893,6 +2002,7 @@ namespace iris
             if (allowUndeploy)
             {
                 unsetDeploy();
+                DPRINTF("WD Released Deployment Interlock in RS...");
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF);
             }
             else if (nullptr != response)
@@ -1939,13 +2049,13 @@ namespace iris
             break;
 
         case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_ENABLE:
-            theContext.m_details.m_hParams.m_heatingControlEnabled = true;
+            theContext.m_details.m_hParams.persistent->m_heatingControlEnabled = true;
             enableHeater();
             SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__AUTO_HEATER_CONTROLLER_ENABLE);
             break;
 
         case WD_CMD_MSGS__RESET_ID__AUTO_HEATER_CONTROLLER_DISABLE:
-            theContext.m_details.m_hParams.m_heatingControlEnabled = false;
+            theContext.m_details.m_hParams.persistent->m_heatingControlEnabled = false;
             /**
              * @warning TB0CCR2 should ~NOT~ be set here. It should only be set in two places: when Timer_B is
              *          initialized (where TB0CCR2 is set to its default value), and in the handler for the
@@ -2044,10 +2154,16 @@ namespace iris
                 /* WOOT WOOT! WE ARE ON TO THE MOON, FOLKS */
                 /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
                 setDeploy();
+                *(theContext.m_persistentDeployed) = true;
+                DPRINTF("WD Asserting Deployment Interlock in RS...");
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_ON);
             }
             else if (nullptr != response)
             {
+                DPRINTF(
+                    "WD Deployment preconditions not met. Status: allowOn: %d, allowDeploy: %d.",
+                    allowPowerOn ? 1 : 0,
+                    allowDeploy ? 1 : 0);
                 response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
             }
             break;
@@ -2064,11 +2180,12 @@ namespace iris
         }
 
         // Report what we did (and under what conditions):
-        uint16_t resetConditions = allowPowerOn;
-        resetConditions = (resetConditions << 1) & allowDisableRs422;
-        resetConditions = (resetConditions << 1) & allowDeploy;
-        resetConditions = (resetConditions << 1) & allowUndeploy;
-        DebugComms__tryPrintfToLanderNonblocking("RESET:%d -> %d with 0x%x\n", int(resetValue), int(response->statusCode), resetConditions);
+        uint16_t resetConditions = 0;
+        resetConditions |= (allowPowerOn /*******/ ? 0b1000 : 0);
+        resetConditions |= (allowDisableRs422 /**/ ? 0b0100 : 0);
+        resetConditions |= (allowDeploy /********/ ? 0b0010 : 0);
+        resetConditions |= (allowUndeploy /******/ ? 0b0001 : 0);
+        DebugComms__tryPrintfToLanderNonblocking("RESET:0x%x -> 0x%x with 0x%x\n", uint16_t(resetValue), uint16_t(response->statusCode), uint16_t(resetConditions));
     }
 
 } // End namespace iris

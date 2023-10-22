@@ -1,6 +1,7 @@
 <component name="Camera" kind="passive" namespace="CubeRover">
     <import_port_type>CubeRover/CubeRoverPorts/FileDownlink/FileDownlinkPortAi.xml</import_port_type>
     <import_port_type>Fw/Time/TimePortAi.xml</import_port_type>
+    <import_port_type>Svc/Sched/SchedPortAi.xml</import_port_type>
     <import_port_type>CubeRover/CubeRoverPorts/CameraTakePicture/CameraTakePicturePortAi.xml</import_port_type>
 
     <comment>Manages the CubeRover cameras</comment>
@@ -15,6 +16,11 @@
                 Send an image to GroundInterface for downlink.
             </comment>
         </port>
+        <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+            <comment>
+            Clock from RateGroupMedFreq. Every clock tick check for conditions to trigger deployment image.
+            </comment>
+        </port>
     </ports>
             
   <!-- EVENTS -->
@@ -22,6 +28,192 @@
     <event id="0" name="Camera_FailedToTakeImage" severity="WARNING_LO" format_string="Failed to capture image. Try again.">
     	<!--This is a really basic default event. Added this so Camera component would have a Log port that we could connect to ActiveLogger so, if we want to add detailed logs in the future, it's not burdensome.-->
         <comment>A basic notification that, for some reason, the camera failed to capture an image. Try again.</comment>
+    </event>
+    <event id="1" name="Camera_ImageCaptureComplete" severity="ACTIVITY_HI" format_string="Image capture complete. FGID: %d. CID: %d.">
+    	<comment>Notice that the camera has finished downlinking the image with the given settings.</comment>
+        <args>
+            <arg name="fileGroupId" type="U16">
+                <comment>Locally unique identifier for image file, used to match image lines to an image. (hash of U32 time). Not guaranteed to be unique across whole mission but very likely over time scales of hours to days.</comment>
+            </arg>
+            <arg name="callbackId" type="U16">
+                <comment>Callback ID sent along with the command which generated this request.</comment>
+            </arg>
+        </args>
+    </event>
+    <event id="2" name="Camera_ImageDownlinkComplete" severity="ACTIVITY_HI" format_string="Image downlink complete. FGID: %d. CID: %d.">
+    	<comment>Downlink of requested image data is complete.</comment>
+        <args>
+            <arg name="fileGroupId" type="U16">
+                <comment>Locally unique identifier for image file, used to match image lines to an image. (hash of U32 time). Not guaranteed to be unique across whole mission but very likely over time scales of hours to days.</comment>
+            </arg>
+            <arg name="callbackId" type="U16">
+                <comment>Callback ID sent along with the command which generated this request.</comment>
+            </arg>
+        </args>
+    </event>
+
+    <event id="3" name="Camera_DeploymentImageCaptured" severity="ACTIVITY_HI" format_string="Deployment Image Captured!  FGID: %d. CID: %d.">
+    	 <comment>Event emitted once the trigger conditions for a deployment image have been met and an image has been captured. A deployment image should now reside in memory.</comment>
+        <args>
+            <arg name="fileGroupId" type="U16">
+                <comment>Locally unique identifier for image file, used to match image lines to an image. (hash of U32 time). Not guaranteed to be unique across whole mission but very likely over time scales of hours to days.</comment>
+            </arg>
+            <arg name="callbackId" type="U16">
+                <comment>Callback ID sent along with the command which generated this request.</comment>
+            </arg>
+        </args>
+    </event>
+    <event id="4" name="Camera_DeploymentImageCaptureWaiting" severity="ACTIVITY_HI"
+        format_string="Deployment Image Settings Confirmed.\n 
+        Capture Settings:\n 
+        \t Camera Num:\t %d, \n
+        \t Callback ID:\t %d, \n
+        \t Erase First:\t %d \n
+        \n 
+        Trigger Settings: \n
+        \t Timeout:\t %d ms, \n
+        \t Trigger on Timeout:\t %d, \n
+        \t Need ALL Conditions:\t %d \n
+        \n 
+        IMU X Acc Trigger:
+        \t ON:\t %d, \n
+        \t Trigger In Window:\t %d, \n
+        \t Window:\t [%d, \t%d) \n
+        \n 
+        IMU Y Acc Trigger:
+        \t ON:\t %d, \n
+        \t Trigger In Window:\t %d, \n
+        \t Window:\t [%d, \t%d) \n
+        \n 
+        IMU Z Acc Trigger:
+        \t ON:\t %d, \n
+        \t Trigger In Window:\t %d, \n
+        \t Window:\t [%d, \t%d) \n
+        \n 
+        WDI 28V Trigger:
+        \t ON:\t %d, \n
+        \t Trigger In Window:\t %d, \n
+        \t Window:\t [%d, \t%d)"
+    >
+    	<comment>Confirmation that Hercules received a request to downlink a deployment image. This includes a copy of all capture and trigger settings.</comment>
+        <args>
+            <arg name="camera_num" type="U8">
+                <comment>
+                    0: Camera 0     1: Camera 1
+                </comment>
+            </arg>
+            <arg name="callback_id" type="U16">
+                <comment>
+                    Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                </comment>
+            </arg>
+            <arg name="eraseFirst" type="bool">
+                <comment>
+                    Whether or not to erase the flash before capturing an image.
+                </comment>
+            </arg>
+
+            <arg name="timeoutMs" type="U32">
+                <comment>
+                    Max time to wait for a trigger condition before timing out (ms).
+                </comment>
+            </arg>
+            <arg name="triggerOnTimeout" type="bool">
+                <comment>
+                    Whether or not to capture an image on timeout just in case.
+                </comment>
+            </arg>
+
+            <arg name="conditionModeAll" type="bool">
+                <comment>
+                    True: ALL trigger conditions that are ON must be met. False: ANY of the trigger conditions that are ON (i.e. just 1) will trigger image capture.
+                </comment>
+            </arg>
+
+            <arg name="imuXAcc_on" type="bool">
+                <comment>
+                    Whether or not to use the IMU X Acceleration window as a trigger.
+                </comment>
+            </arg>
+            <arg name="imuXAcc_triggerMode" type="bool">
+                <comment>
+                    True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                </comment>
+            </arg>
+            <arg name="imuXAcc_min" type="I16">
+                <comment>
+                    Lower bound (inclusive) of window for IMU X Acceleration (raw reading).
+                </comment>
+            </arg>
+            <arg name="imuXAcc_max" type="I16">
+                <comment>
+                    Upper bound (exclusive) of window for IMU X Acceleration (raw reading).
+                </comment>
+            </arg>
+
+            <arg name="imuYAcc_on" type="bool">
+                <comment>
+                    Whether or not to use the IMU Y Acceleration window as a trigger.
+                </comment>
+            </arg>
+            <arg name="imuYAcc_triggerMode" type="bool">
+                <comment>
+                    True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                </comment>
+            </arg>
+            <arg name="imuYAcc_min" type="I16">
+                <comment>
+                    Lower bound (inclusive) of window for IMU Y Acceleration (raw reading).
+                </comment>
+            </arg>
+            <arg name="imuYAcc_max" type="I16">
+                <comment>
+                    Upper bound (exclusive) of window for IMU Y Acceleration (raw reading).
+                </comment>
+            </arg>
+
+            <arg name="imuZAcc_on" type="bool">
+                <comment>
+                    Whether or not to use the IMU Z Acceleration window as a trigger.
+                </comment>
+            </arg>
+            <arg name="imuZAcc_triggerMode" type="bool">
+                <comment>
+                    True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                </comment>
+            </arg>
+            <arg name="imuZAcc_min" type="I16">
+                <comment>
+                    Lower bound (inclusive) of window for IMU Z Acceleration (raw reading).
+                </comment>
+            </arg>
+            <arg name="imuZAcc_max" type="I16">
+                <comment>
+                    Upper bound (exclusive) of window for IMU Z Acceleration (raw reading).
+                </comment>
+            </arg>
+
+            <arg name="wdi28V_on" type="bool">
+                <comment>
+                    Whether or not to use the 28V voltage reported by WatchDogInterface as a trigger;
+                </comment>
+            </arg>
+            <arg name="wdi28V_triggerMode" type="bool">
+                <comment>
+                    True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                </comment>
+            </arg>
+            <arg name="wdi28V_min" type="U16">
+                <comment>
+                    Lower bound (inclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                </comment>
+            </arg>
+            <arg name="wdi28V_max" type="U16">
+                <comment>
+                    Upper bound (exclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                </comment>
+            </arg>
+        </args>
     </event>
   </events>
     
@@ -57,7 +249,7 @@
     <commands>
         <command kind="sync" opcode="0x0" mnemonic="Get_Status">
             <comment>
-                Get camera status
+                DEPRECATED. Does nothing.
             </comment>
         </command>
         <command kind="sync" opcode="0x1" mnemonic="Take_Image">
@@ -104,9 +296,246 @@
                 </arg>
              </args>
         </command>
+        <command kind="sync" opcode="0xA2" mnemonic="Take_Image_Section_Adv">
+            <comment>
+                Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line).
+                Offers advanced capture and downlink settings.
+            </comment>
+            <args>
+                <arg name="camera_num" type="U8">
+                    <comment>
+                        0: Camera 0     1: Camera 1
+                    </comment>
+                </arg>
+                <arg name="startLine" type="U16">
+                	<comment>
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	</comment>
+                </arg>
+                <arg name="endLine" type="U16">
+                	<comment>
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	</comment>
+                </arg>
+                <arg name="callback_id" type="U16">
+                    <comment>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </comment>
+                </arg>
+                <arg name="eraseFirst" type="bool">
+                    <comment>
+                        Whether or not to erase the flash before capturing an image.
+                    </comment>
+                </arg>
+                <arg name="n_bin" type="U8">
+                    <comment>
+                        Binning setting: factor by which lines should be downsampled through binning. Values gt 2 will trigger an attempt at binning. This is a Bayer-preserving binning process that skips over any line or frame headers embedded in the image by the FPGA FW. Also RLEs homogeneous lines.
+                    </comment>
+                </arg>
+                <arg name="compressLine" type="bool">
+                    <comment>
+                        Whether or not to attempt to compress lines (after binning if performed). Also RLEs homogeneous lines.
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0xA3" mnemonic="Read_Image_Section_Adv">
+            <comment>
+                Downlinks an image from flash based on the given settings. Doesn't capture an image or erase flash first, just sends whatever's already there.
+                Camera number, callback_id, and capture time (file group id) are stored in Hercules voltile mem. since the last command that triggered an image capture. If Hercules has rebooted since then, this will still work but those values will be wrong.
+            </comment>
+            <args>
+                <arg name="startLine" type="U16">
+                	<comment>
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	</comment>
+                </arg>
+                <arg name="endLine" type="U16">
+                	<comment>
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	</comment>
+                </arg>
+                <arg name="n_bin" type="U8">
+                    <comment>
+                        Binning setting: factor by which lines should be downsampled through binning. Values gt 2 will trigger an attempt at binning. This is a Bayer-preserving binning process that skips over any line or frame headers embedded in the image by the FPGA FW. Also RLEs homogeneous lines.
+                    </comment>
+                </arg>
+                <arg name="compressLine" type="bool">
+                    <comment>
+                        Whether or not to attempt to compress lines (after binning if performed). Also RLEs homogeneous lines.
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0xA4" mnemonic="Capture_Image_Only">
+            <comment>
+                Trigger Image Capture but don't downlink it (that can be done later with: `Read_Image_Section_Adv`).
+            </comment>
+            <args>
+                <arg name="camera_num" type="U8">
+                    <comment>
+                        0: Camera 0     1: Camera 1
+                    </comment>
+                </arg>
+                <arg name="callback_id" type="U16">
+                    <comment>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </comment>
+                </arg>
+                <arg name="eraseFirst" type="bool">
+                    <comment>
+                        Whether or not to erase the flash before capturing an image.
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0xAF" mnemonic="Capture_Deployment_Image">
+            <comment>
+                Waits to capture an image until a series of trigger condition is satisfied. 
+
+                Triggers conditions are defined as a window around a sensor value. A trigger can be defined as 
+
+                The following trigger variables are available:
+                - Imu_XAcc (raw reading)
+                - Imu_YAcc (raw reading)
+                - Imu_ZAcc (raw reading)
+                - Voltage28V (raw ADC value, as reported by WatchDogInterface)
+                These values correspond to what's reported in telemetry from Hercules.
+
+                A window is specified around each sensor variable and a trigger can be defined as the
+                reading being inside or outside the window on a per-sensor basis.
+
+                Each sensor trigger condition can be turned ON or OFF.
+
+                `conditionModeAll` sets whether ALL or just 1 of the trigger conditions must be satisfied
+
+                The camera will stop waiting for a trigger after `timeoutMs`.
+                If `triggerOnTimeout`, an image will be captured when timeout occurs.
+
+                This is a late add, definitely a trick, and may or may not work but we'll try it.
+            </comment>
+            <args>
+                <arg name="camera_num" type="U8">
+                    <comment>
+                        0: Camera 0     1: Camera 1
+                    </comment>
+                </arg>
+                <arg name="callback_id" type="U16">
+                    <comment>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </comment>
+                </arg>
+                <arg name="eraseFirst" type="bool">
+                    <comment>
+                        Whether or not to erase the flash before capturing an image.
+                    </comment>
+                </arg>
+
+                <arg name="timeoutMs" type="U32">
+                    <comment>
+                        Max time to wait for a trigger condition before timing out (ms).
+                    </comment>
+                </arg>
+                <arg name="triggerOnTimeout" type="bool">
+                    <comment>
+                        Whether or not to capture an image on timeout just in case.
+                    </comment>
+                </arg>
+
+                <arg name="conditionModeAll" type="bool">
+                    <comment>
+                        True: ALL trigger conditions that are ON must be met. False: ANY of the trigger conditions that are ON (i.e. just 1) will trigger image capture.
+                    </comment>
+                </arg>
+
+                <arg name="imuXAcc_on" type="bool">
+                    <comment>
+                        Whether or not to use the IMU X Acceleration window as a trigger.
+                    </comment>
+                </arg>
+                <arg name="imuXAcc_triggerMode" type="bool">
+                    <comment>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </comment>
+                </arg>
+                <arg name="imuXAcc_min" type="I16">
+                    <comment>
+                        Lower bound (inclusive) of window for IMU X Acceleration (raw reading).
+                    </comment>
+                </arg>
+                <arg name="imuXAcc_max" type="I16">
+                    <comment>
+                        Upper bound (exclusive) of window for IMU X Acceleration (raw reading).
+                    </comment>
+                </arg>
+
+                <arg name="imuYAcc_on" type="bool">
+                    <comment>
+                        Whether or not to use the IMU Y Acceleration window as a trigger.
+                    </comment>
+                </arg>
+                <arg name="imuYAcc_triggerMode" type="bool">
+                    <comment>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </comment>
+                </arg>
+                <arg name="imuYAcc_min" type="I16">
+                    <comment>
+                        Lower bound (inclusive) of window for IMU Y Acceleration (raw reading).
+                    </comment>
+                </arg>
+                <arg name="imuYAcc_max" type="I16">
+                    <comment>
+                        Upper bound (exclusive) of window for IMU Y Acceleration (raw reading).
+                    </comment>
+                </arg>
+
+                <arg name="imuZAcc_on" type="bool">
+                    <comment>
+                        Whether or not to use the IMU Z Acceleration window as a trigger.
+                    </comment>
+                </arg>
+                <arg name="imuZAcc_triggerMode" type="bool">
+                    <comment>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </comment>
+                </arg>
+                <arg name="imuZAcc_min" type="I16">
+                    <comment>
+                        Lower bound (inclusive) of window for IMU Z Acceleration (raw reading).
+                    </comment>
+                </arg>
+                <arg name="imuZAcc_max" type="I16">
+                    <comment>
+                        Upper bound (exclusive) of window for IMU Z Acceleration (raw reading).
+                    </comment>
+                </arg>
+
+                <arg name="wdi28V_on" type="bool">
+                    <comment>
+                        Whether or not to use the 28V voltage reported by WatchDogInterface as a trigger;
+                    </comment>
+                </arg>
+                <arg name="wdi28V_triggerMode" type="bool">
+                    <comment>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </comment>
+                </arg>
+                <arg name="wdi28V_min" type="I16">
+                    <comment>
+                        Lower bound (inclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                    </comment>
+                </arg>
+                <arg name="wdi28V_max" type="I16">
+                    <comment>
+                        Upper bound (exclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                    </comment>
+                </arg>
+             </args>
+        </command>
         <command kind="sync" opcode="0x2" mnemonic="Error">
             <comment>
-                Get camera status
+                DEPRECATED. Does nothing.
             </comment>
             <args>
                 <arg name="action" type="U8">
@@ -118,7 +547,7 @@
         </command>
         <command kind="sync" opcode="0x3" mnemonic="Configure_Camera0">
             <comment>
-                Configure camera 0
+                DEPRECATED. Does nothing. Configs are now downlinked as command args in capture commands.
             </comment>
             <args>
                 <arg name="config" type="U64">
@@ -130,7 +559,7 @@
         </command>
         <command kind="sync" opcode="0x4" mnemonic="Camera0_Crop">
             <comment>
-                Defines the crop for camera 0
+                DEPRECATED. Does nothing. Use section commands for cropping.
             </comment>
             <args>
                 <arg name="config" type="U64">
@@ -142,7 +571,7 @@
         </command>
         <command kind="sync" opcode="0x5" mnemonic="Configure_Camera1">
             <comment>
-                Configure camera 1
+                DEPRECATED. Does nothing. Configs are now downlinked as command args in capture commands.
             </comment>
             <args>
                 <arg name="config" type="U64">
@@ -154,7 +583,7 @@
         </command>
         <command kind="sync" opcode="0x6" mnemonic="Camera1_Crop">
             <comment>
-                Defines the crop for camera 1
+                DEPRECATED. Does nothing. Use section commands for cropping.
             </comment>
             <args>
                 <arg name="config" type="U64">
@@ -164,9 +593,10 @@
                 </arg>
              </args>
         </command>
+        <!--
         <command kind="sync" opcode="0x7" mnemonic="Read_Image">
             <comment>
-                Downlink image generated by a sequence number
+                DEPRECATED. Does nothing. Use other flash read / dump commands.
             </comment>
             <args>
                 <arg name="callbackID" type="U16">
@@ -176,14 +606,23 @@
                 </arg>
              </args>
         </command>
-        <command kind="sync" opcode="0x8" mnemonic="Erase_Image">
+        -->
+        <command kind="sync" opcode="0x8" mnemonic="Erase_Flash">
             <comment>
-                TBD
+                Erases camera flash (writes 0xFF in all data).
+                Only erases up to the given sector number.
             </comment>
+            <args>
+                <arg name="numSectors" type="U8">
+                    <comment>
+                        Number of sectors to erase. Default is 40. Only change if you have a reason.
+                    </comment>
+                </arg>
+            </args>
         </command>
         <command kind="sync" opcode="0x9" mnemonic="Soft_Camera_Reset">
             <comment>
-                Does a soft reset of the camera (and something with the FPGA)
+                DEPRECATED. Does nothing. Command WD directly to power off or reset FPGA.
             </comment>
             <args>
                 <arg name="cameraNum" type="U8">
@@ -197,7 +636,8 @@
             <comment>
                 Dump (downlink) whatever is stored in the the camera flash rn 
                 without capturing a new image or writing anything to flash 
-                first.
+                first. Use `Read_Image_Section_Adv` for a more advanced image downlink.
+                Camera number, callback_id, and capture time (file group id) are stored in Hercules volatile mem. since the last command that triggered an image capture. If Hercules has rebooted since then, this will still work but those values will be wrong.
             </comment>
         </command>
         <command kind="sync" opcode="0xb" mnemonic="Downlink_Grid">

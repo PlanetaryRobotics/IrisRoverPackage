@@ -50,6 +50,194 @@ html {
 				<td></td>
 				<td></td>
 		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">Camera_ImageCaptureComplete</td>
+			<td rowspan="3">4353 (0x1101)</td>
+			<td rowspan="3">Notice that the camera has finished downlinking the image with the given settings.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>fileGroupId</td>
+						<td>U16</td>
+						<td></td>
+						<td>Locally unique identifier for image file, used to match image lines to an image. (hash of U32 time). Not guaranteed to be unique across whole mission but very likely over time scales of hours to days.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>callbackId</td>
+						<td>U16</td>
+						<td></td>
+						<td>Callback ID sent along with the command which generated this request.</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">Camera_ImageDownlinkComplete</td>
+			<td rowspan="3">4354 (0x1102)</td>
+			<td rowspan="3">Downlink of requested image data is complete.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>fileGroupId</td>
+						<td>U16</td>
+						<td></td>
+						<td>Locally unique identifier for image file, used to match image lines to an image. (hash of U32 time). Not guaranteed to be unique across whole mission but very likely over time scales of hours to days.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>callbackId</td>
+						<td>U16</td>
+						<td></td>
+						<td>Callback ID sent along with the command which generated this request.</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">Camera_DeploymentImageCaptured</td>
+			<td rowspan="3">4355 (0x1103)</td>
+			<td rowspan="3">Event emitted once the trigger conditions for a deployment image have been met and an image has been captured. A deployment image should now reside in memory.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>fileGroupId</td>
+						<td>U16</td>
+						<td></td>
+						<td>Locally unique identifier for image file, used to match image lines to an image. (hash of U32 time). Not guaranteed to be unique across whole mission but very likely over time scales of hours to days.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>callbackId</td>
+						<td>U16</td>
+						<td></td>
+						<td>Callback ID sent along with the command which generated this request.</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="23">Camera_DeploymentImageCaptureWaiting</td>
+			<td rowspan="23">4356 (0x1104)</td>
+			<td rowspan="23">Confirmation that Hercules received a request to downlink a deployment image. This includes a copy of all capture and trigger settings.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>camera_num</td>
+						<td>U8</td>
+						<td></td>
+						<td>0: Camera 0     1: Camera 1</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>callback_id</td>
+						<td>U16</td>
+						<td></td>
+						<td>Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>eraseFirst</td>
+						<td>bool</td>
+						<td></td>
+						<td>Whether or not to erase the flash before capturing an image.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>timeoutMs</td>
+						<td>U32</td>
+						<td></td>
+						<td>Max time to wait for a trigger condition before timing out (ms).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>triggerOnTimeout</td>
+						<td>bool</td>
+						<td></td>
+						<td>Whether or not to capture an image on timeout just in case.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>conditionModeAll</td>
+						<td>bool</td>
+						<td></td>
+						<td>True: ALL trigger conditions that are ON must be met. False: ANY of the trigger conditions that are ON (i.e. just 1) will trigger image capture.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_on</td>
+						<td>bool</td>
+						<td></td>
+						<td>Whether or not to use the IMU X Acceleration window as a trigger.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_triggerMode</td>
+						<td>bool</td>
+						<td></td>
+						<td>True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_min</td>
+						<td>I16</td>
+						<td></td>
+						<td>Lower bound (inclusive) of window for IMU X Acceleration (raw reading).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_max</td>
+						<td>I16</td>
+						<td></td>
+						<td>Upper bound (exclusive) of window for IMU X Acceleration (raw reading).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_on</td>
+						<td>bool</td>
+						<td></td>
+						<td>Whether or not to use the IMU Y Acceleration window as a trigger.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_triggerMode</td>
+						<td>bool</td>
+						<td></td>
+						<td>True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_min</td>
+						<td>I16</td>
+						<td></td>
+						<td>Lower bound (inclusive) of window for IMU Y Acceleration (raw reading).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_max</td>
+						<td>I16</td>
+						<td></td>
+						<td>Upper bound (exclusive) of window for IMU Y Acceleration (raw reading).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_on</td>
+						<td>bool</td>
+						<td></td>
+						<td>Whether or not to use the IMU Z Acceleration window as a trigger.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_triggerMode</td>
+						<td>bool</td>
+						<td></td>
+						<td>True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_min</td>
+						<td>I16</td>
+						<td></td>
+						<td>Lower bound (inclusive) of window for IMU Z Acceleration (raw reading).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_max</td>
+						<td>I16</td>
+						<td></td>
+						<td>Upper bound (exclusive) of window for IMU Z Acceleration (raw reading).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>wdi28V_on</td>
+						<td>bool</td>
+						<td></td>
+						<td>Whether or not to use the 28V voltage reported by WatchDogInterface as a trigger;</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>wdi28V_triggerMode</td>
+						<td>bool</td>
+						<td></td>
+						<td>True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>wdi28V_min</td>
+						<td>U16</td>
+						<td></td>
+						<td>Lower bound (inclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>wdi28V_max</td>
+						<td>U16</td>
+						<td></td>
+						<td>Upper bound (exclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).</td>
+					</tr>
+		</tr>
 	</tbody>
 </table>
 

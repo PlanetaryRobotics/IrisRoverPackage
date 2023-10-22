@@ -8,6 +8,7 @@ numba~=0.56.4
 numpy<1.24
 matplotlib
 seaborn~=0.12.2
+ipympl
 pandas
 tabulate
 styleframe
@@ -58,3 +59,6 @@ opencv-python
 psutil
 types-python-dateutil
 ansi2html
+heatshrink2
+# git+https://github.com/aptly-io/python-fastlz.git@10cc746c679d9ebedb9f3526df6c72f87fe80539#egg=fastlz
+# git+https://github.com/Who8MyLunch/CharPyLS.git@9a915903358a34f013b52d54eaba5c1ff7a5e8b2#egg=CharPyLS

@@ -35,7 +35,7 @@ extern "C"
      * @brief Initialize ADC hardware.
      * Sets up the interrupts and whatnot for ADC.
      */
-    void adc_init(volatile uint16_t *watchdogFlags);
+    void adc_init(volatile uint32_t *watchdogFlags);
 
     BOOL isAdcSampleDone(void);
 

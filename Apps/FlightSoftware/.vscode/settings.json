@@ -20,5 +20,44 @@
                 }
             }
         ]
+    },
+    "cSpell.words": [
+        "Aptina",
+        "bitflip",
+        "bitflips",
+        "Centisecond",
+        "Centiseconds",
+        "CONSEQ",
+        "deser",
+        "DLATCH",
+        "downsampled",
+        "HDRM",
+        "heatshrink",
+        "HSER",
+        "IOEX",
+        "IPASBI",
+        "losslessly",
+        "OPSBI",
+        "REGE",
+        "ROVERSTATE",
+        "setpoints",
+        "Substate",
+        "telbuf",
+        "uninitalized",
+        "uninitialize",
+        "uninitializing",
+        "Unreset",
+        "WDFLAG",
+        "WDOPT"
+    ],
+    "files.associations": {
+        "__locale": "cpp",
+        "locale": "cpp",
+        "string": "cpp",
+        "concepts": "cpp",
+        "ios": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "cstddef": "c"
     }
 }

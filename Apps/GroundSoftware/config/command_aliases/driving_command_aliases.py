@@ -14,13 +14,14 @@ from IrisBackendv3.config.command_aliases import PreparedCommand, CommandAliases
 @CommandAliasesBuilder
 def ALIASES(standards: DataStandards) -> CommandAliases:
     return {
-        'drive-fwd-200': PreparedCommand(
-            'Navigation_NavDriveForward',
-            OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
-            DataPathway.WIRED,
-            Magic.COMMAND,
-            comment="Drive forward 200cm."
-        ),
+        # Nav deprecated
+        # 'drive-fwd-200': PreparedCommand(
+        #     'Navigation_NavDriveForward',
+        #     OrderedDict(distance=200, speed=100, callback_id=0xBEEF),
+        #     DataPathway.WIRED,
+        #     Magic.COMMAND,
+        #     comment="Drive forward 200cm."
+        # ),
         'motor-control-get-telem': PreparedCommand(
             'MotorControl_McUpdateTelemetry',
             OrderedDict(),

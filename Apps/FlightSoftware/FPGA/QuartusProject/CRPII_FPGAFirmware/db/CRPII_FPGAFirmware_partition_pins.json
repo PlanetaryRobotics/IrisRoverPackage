@@ -1,0 +1,189 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "hercules_MISO",
+					"strict" : false
+				},
+				{
+					"name" : "flash_SPI_controller_indicator",
+					"strict" : false
+				},
+				{
+					"name" : "flash_SCK",
+					"strict" : false
+				},
+				{
+					"name" : "flash_CS1",
+					"strict" : false
+				},
+				{
+					"name" : "flash_SI",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_reset_bar",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_reset_bar",
+					"strict" : false
+				},
+				{
+					"name" : "LED0",
+					"strict" : false
+				},
+				{
+					"name" : "LED2",
+					"strict" : false
+				},
+				{
+					"name" : "flash_SO",
+					"strict" : false
+				},
+				{
+					"name" : "hercules_SCK",
+					"strict" : false
+				},
+				{
+					"name" : "hercules_SS",
+					"strict" : false
+				},
+				{
+					"name" : "hercules_MOSI",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "camera_select",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_FV",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_FV",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[0]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[0]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[1]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[1]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[2]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[2]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[3]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[3]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[4]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[4]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_LV",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_LV",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[5]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[5]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[6]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[6]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[7]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[7]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[8]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[8]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[10]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[10]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[9]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[9]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_in[11]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_in[11]",
+					"strict" : false
+				},
+				{
+					"name" : "camera_2_pixel_clock",
+					"strict" : false
+				},
+				{
+					"name" : "camera_1_pixel_clock",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

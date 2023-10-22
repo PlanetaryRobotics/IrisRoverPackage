@@ -15,7 +15,7 @@ PCAP using a PcapTransceiver:
 ```
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/17/2023
+@last-updated: 10/21/2023
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -51,14 +51,13 @@ app.setLogLevel('VERBOSE')
 OUTPUT_DIR_ROOT: Final[str] = './out/image_file_decodings/'
 
 # Prefix to apply to all files:
-FILE_PREFIX: Final[str] = 'RC9_Test_Img'
+FILE_PREFIX_DEFAULT: Final[str] = 'RC9_Test_Img'
 
 # Default number of lines in an image:
 DEFAULT_IMAGE_LINE_COUNT: Final[int] = 1944
-DEFAULT_IMAGE_WIDTH: Final[int] = 2592
+DEFAULT_IMAGE_WIDTH: Final[int] = 512*6  # 2592  (all 6 pages now)
 
 FileIdType: TypeAlias = int
-CallbackIdType: TypeAlias = int
 
 # Setup:
 manager = ipc.IpcAppManagerSync(socket_specs={
@@ -322,16 +321,21 @@ class ImageLine:
     @classmethod
     def from_first_block(cls: Type[ImageLine], block: FileBlockPayload) -> ImageLine:
         """Initializes this `ImageLine` from whatever `FileBlockPayload` was
-        found first (should be `FileMetadata` but that's not guaranteed)."""
+        found first (should be `FileMetadata` but that's not guaranteed).
+        NOTE: FileMetadata is now only downlinked for the first line,
+        last line, and any lines where %100==0.
+        """
         line = cls.new_empty()
         # `add_block` automatically handles sizing the line, so we don't have
         # to worry about it here...
         line.add_block(block)
-        if not block.is_metadata:
+        if not block.is_metadata and (block.file_group_line_number % 100 == 0):
             app.logger.warning(
                 f"First block for `ImageLine` with "
                 f"line={block.file_group_line_number} in {block.file_group_id} "
-                f"was not `FileMetadata`. This is unusual but not impossible."
+                f"was not `FileMetadata`. "
+                "Metadata should be in every line with (fg_line_number%100==0). "
+                "Missing it on the first block is unusual but not impossible."
             )
         return line
 
@@ -413,6 +417,8 @@ _LIP_T: TypeAlias = OrderedDict[int, ImageLine]
 
 @dataclass
 class Image:
+    FILE_PREFIX = FILE_PREFIX_DEFAULT
+
     # Ordered Map of image line numbers to the `ImageLine` objects built.
     # Using an OrderedDict instead of just a list b/c it will preserve both
     # received order and intended order and doesn't have to keep changing size
@@ -464,7 +470,7 @@ class Image:
         """Unique prefix to start all file names with.
         ULID before FGID so the names are lexicographically sortable:
         """
-        return f"img_{FILE_PREFIX}__{self.ulid_start}__{self.file_group_id}"
+        return f"img_{self.FILE_PREFIX}__{self.ulid_start}__{self.file_group_id}"
 
     @property
     def num_lines_found(self) -> int:
@@ -586,7 +592,7 @@ class Image:
         # Check for consensus:
         fg_ids = [l.file_group_id for l in self.lines_in_progress.values()]
         if any(fg_id != fg_ids[0] for fg_id in fg_ids):
-            # Use most common value:
+            # Use most common value if disagreement:
             most_common = Counter(fg_ids).most_common(1)[0][0]
             return most_common
         else:
@@ -609,18 +615,100 @@ class Image:
         else:
             return True
 
+    @property
+    def callback_id(self) -> int | None:
+        """Callback ID of this File Group (Image)."""
+        if len(self.lines_in_progress) == 0:
+            # No data yet.
+            return None
+
+        # Check for consensus among all lines with a metadata block:
+        cids = [
+            l.metadata.callback_id for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cid != cids[0] for cid in cids):
+            # Use most common value if disagreement:
+            most_common = Counter(cids).most_common(1)[0][0]
+            return most_common
+        else:
+            return cids[0]
+
+    def validate_callback_id(self) -> bool:
+        """Checks if reported `callback_id` is internally consistent within
+        this file."""
+        # Check for consensus:
+        cids = [
+            l.metadata.callback_id for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cid != cids[0] for cid in cids):
+            # Report the disagreement and resolution:
+            app.logger.warning(
+                f"Disagreement about `callback_id` in `Image`. "
+                f"Counts of values reported by lines in file are: "
+                f"`{Counter(cids)}`. "
+                f"Using value: `{self.callback_id = }`."
+            )
+            return False
+        else:
+            return True
+
+    @property
+    def camera_num(self) -> int | None:
+        """Camera Number of this File Group (Image)."""
+        if len(self.lines_in_progress) == 0:
+            # No data yet.
+            return None
+
+        # Check for consensus among all lines with a metadata block:
+        cam_nums = [
+            l.metadata.camera_num for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cam_num != cam_nums[0] for cam_num in cam_nums):
+            # Use most common value if disagreement:
+            most_common = Counter(cam_nums).most_common(1)[0][0]
+            return most_common
+        else:
+            return cam_nums[0]
+
+    def validate_camera_num(self) -> bool:
+        """Checks if reported `camera_num` is internally consistent within
+        this file."""
+        # Check for consensus:
+        cam_nums = [
+            l.metadata.camera_num for l in self.lines_in_progress.values()
+            if l.metadata is not None
+        ]
+        if any(cam_num != cam_nums[0] for cam_num in cam_nums):
+            # Report the disagreement and resolution:
+            app.logger.warning(
+                f"Disagreement about `camera_num` in `Image`. "
+                f"Counts of values reported by lines in file are: "
+                f"`{Counter(cam_nums)}`. "
+                f"Using value: `{self.camera_num = }`."
+            )
+            return False
+        else:
+            return True
+
     def validate(self) -> bool:
         """Returns whether all lines in this file are valid & internally
         consistent."""
         # Collect as bools first so ALL validation checks are run
         # (this allows them to emit logs as needed)
         fg_id_valid = self.validate_file_group_id()
+        callback_id_valid = self.validate_callback_id()
+        cam_num_valid = self.validate_camera_num()
         all_lines_valid = all(
             line.validate()
             for line in self.lines_in_progress.values()
         )
         return (
             fg_id_valid and
+            callback_id_valid and
+            cam_num_valid and
             all_lines_valid
         )
 
@@ -653,7 +741,9 @@ class Image:
         self,
         pad_byte: bytes = b'\x00',  # Easier to see with 0x00 than 0xAA or 0xFF
         interpolate_unknown: bool = True,
-        interactive_plot_result: bool = False
+        interactive_plot_result: bool = False,
+        fg_idx_min: int | None = None,
+        fg_idx_max: int | None = None
     ) -> np.ndarray:
         """Builds an interim version of the Image as a numpy array from interim
         data (a possibly incomplete dataset). This is designed to act as visual
@@ -662,6 +752,10 @@ class Image:
         If `interpolate_unknown`, any cells where no valid data exists will be
         interpolated from adjacent cells (otherwise, just `pad_byte` will be
         used).
+
+        If fg_idx of a line is outside of the inclusive bounds [fg_idx_min,
+        fg_idx_max], it'll be ignored (useful for turning one full image of 7
+        frames into 7 images).
 
         TODO: Figure out how to update this when we move to partial image
         downlinks (crops and sub/downsampling) with file slice summary logs.
@@ -682,6 +776,10 @@ class Image:
         # NOTE: The mask is automatically updated based on cells used.
         line_data: bytes
         for fg_idx, line in self.lines_in_progress.items():
+            if fg_idx_min is not None and fg_idx < fg_idx_min:
+                continue
+            if fg_idx_max is not None and fg_idx > fg_idx_max:
+                continue
             img_idx = self.fg_to_img_line_idx(fg_idx)
             if img_idx is None:
                 # Skip. Don't add this line to the image (it's out-of-bounds):
@@ -791,7 +889,100 @@ class Image:
             f"Lines with Corrupted Data:\t {num_corrupted_lines}",
         ]
 
-    def save(self, debayer: bool = True) -> None:
+    def _check_save_dir(self) -> str:
+        # Make sure the save directory exists. Returns the save directory path.
+        if not os.path.exists(OUTPUT_DIR_ROOT):
+            os.makedirs(OUTPUT_DIR_ROOT)
+        # Make the directory for all the files in this image:
+        OUTPUT_DIR: Final = os.path.join(OUTPUT_DIR_ROOT, self.file_name_base)
+        if not os.path.exists(OUTPUT_DIR):
+            os.makedirs(OUTPUT_DIR)
+        return OUTPUT_DIR
+
+    def save_raw(self) -> None:
+        """Most basic save operation to just save the raw data of this File and
+        a pickle representation of this Image for later use."""
+        app.logger.notice(f"Saving Raw {self.file_name_base} . . .")
+        # Validate file first:
+        if not self.validate():
+            app.logger.warning(
+                f"Saving file {self.file_name_base} but it's not valid and "
+                f"likely contains corruption. "
+                f"Other warnings should have been logged earlier "
+                f"providing more details. "
+                f"File: `{self}`"
+            )
+
+        # Log status report:
+        full_report = (
+            f"\tReport for Image {self.file_group_id}: \n\t\t"
+            + ',\n\t\t'.join(self.report())
+        )
+        app.logger.info(full_report)
+
+        # Get data for all lines:
+        app.logger.info("Assembling Image . . .")
+        lines_data: List[bytes] = \
+            self.assemble(equalize_lengths=True, pad_byte=b'\xAA')
+
+        # Build 2D integer array (split byte streams):
+        app.logger.info("Building Integer Image . . .")
+        lines_arr = [[int(x) for x in l] for l in lines_data]
+
+        # Build raw file stream:
+        app.logger.info("Building Raw File . . .")
+        raw_file_data = b''.join(lines_data)
+
+        # Build raw (greyscale, possibly bayered) image:
+        app.logger.info("Building Raw Image . . .")
+        raw_img = np.array(lines_arr, dtype=np.uint8)
+
+        OUTPUT_DIR: Final = self._check_save_dir()
+
+        # Save file report:
+        report_file_name = self.file_name_base + ".report.txt"
+        report_file_path = os.path.join(OUTPUT_DIR, report_file_name)
+        app.logger.notice(
+            f"\tSaving file report to {report_file_path} . . ."
+        )
+        with open(report_file_path, "w") as report_file:
+            report_file.write(full_report + '\n')
+
+        # Save a pickle of the entire Image object (an exact clone of this
+        # object will allow us to retroactively investigate data that doesn't
+        # make it into the final copy of the image, e.g. multiple copies of
+        # image line blocks):
+        pickle_file_name = self.file_name_base + ".image.pkl"
+        pickle_file_path = os.path.join(OUTPUT_DIR, pickle_file_name)
+        app.logger.notice(
+            f"\tSaving Image pickle to {pickle_file_path} . . ."
+        )
+        with open(pickle_file_path, 'wb') as handle:
+            pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        # Save raw file data:
+        raw_file_name = self.file_name_base + ".raw"
+        raw_file_path = os.path.join(OUTPUT_DIR, raw_file_name)
+        app.logger.notice(
+            f"\tSaving raw file to {raw_file_path} . . ."
+        )
+        with open(raw_file_path, "wb") as raw_file:
+            # Write bytes to file
+            raw_file.write(raw_file_data)
+
+        # Save raw (greyscale, possibly bayered) image:
+        raw_img_name = self.file_name_base + ".raw.png"
+        raw_img_path = os.path.join(OUTPUT_DIR, raw_img_name)
+        app.logger.notice(
+            f"\tSaving {' x '.join(str(x) for x in raw_img.shape)} "
+            f"raw (greyscale, possibly bayered) image "
+            f"to {raw_img_path} . . ."
+        )
+        cv2.imwrite(raw_img_path, raw_img)
+
+        app.logger.success(f"Saved {self.file_name_base}.")
+
+    def save(self, interp: bool = True, debayer: bool = True) -> None:
         app.logger.notice(f"Saving {self.file_name_base} . . .")
 
         # Validate file first:
@@ -853,9 +1044,13 @@ class Image:
                 + txt_file_data[i]
             )
 
-        # Building  image:
-        app.logger.info("Building Interpolated Image (very long) . . .")
-        interp_image = self.interim_build(interpolate_unknown=True)
+        # Building image:
+        if interp:
+            app.logger.info("Building Interpolated Image (very long) . . .")
+            interp_image = self.interim_build(interpolate_unknown=True)
+        else:
+            app.logger.info("Skipping Interpolation. Building padded image...")
+            interp_image = self.interim_build(interpolate_unknown=False)
 
         # Build raw (greyscale, possibly bayered) image:
         app.logger.info("Building Raw Image . . .")
@@ -866,13 +1061,7 @@ class Image:
             app.logger.info("Building Debayered Color Image . . .")
             color_img = cv2.cvtColor(raw_img, cv2.COLOR_BAYER_BG2BGR)
 
-        # Make sure the save directory exists:
-        if not os.path.exists(OUTPUT_DIR_ROOT):
-            os.makedirs(OUTPUT_DIR_ROOT)
-        # Make the directory for all the files in this image:
-        OUTPUT_DIR: Final = os.path.join(OUTPUT_DIR_ROOT, self.file_name_base)
-        if not os.path.exists(OUTPUT_DIR):
-            os.makedirs(OUTPUT_DIR)
+        OUTPUT_DIR: Final = self._check_save_dir()
 
         # Save file report:
         report_file_name = self.file_name_base + ".report.txt"
@@ -1011,6 +1200,7 @@ class Image:
 
 @dataclass
 class BasicImageDecoder:
+    FILE_PREFIX = FILE_PREFIX_DEFAULT
     images_in_progress: Dict[FileIdType, Image]
 
     @classmethod
@@ -1032,6 +1222,7 @@ class BasicImageDecoder:
         file_group_id = block.file_group_id
         if file_group_id not in self.images_in_progress:
             self.images_in_progress[file_group_id] = Image.new_blank()
+            self.images_in_progress[file_group_id].FILE_PREFIX = self.FILE_PREFIX
 
         image = self.images_in_progress[file_group_id]
 
@@ -1044,10 +1235,15 @@ class BasicImageDecoder:
             image.save()
             self.finish_image(file_group_id)
 
-    def export_all(self, debayer: bool = True):
+    def export_all_raw(self):
+        """Forces an export of just raw data for all current in-process images."""
+        for image in self.images_in_progress.values():
+            image.save_raw()
+
+    def export_all(self, interp: bool = True, debayer: bool = True):
         """Forces an export of all current in-process images."""
         for image in self.images_in_progress.values():
-            image.save(debayer)
+            image.save(debayer=debayer, interp=interp)
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:
         for block in packet.payloads[FileBlockPayload]:
@@ -1074,7 +1270,10 @@ def main(opts) -> None:
                 decoder.process_file_block(block)
         except KeyboardInterrupt as ki:
             """User can press key to export all in-progress images."""
-            decoder.export_all(debayer=opts.debayer)
+            decoder.export_all(
+                interp=opts.interp,
+                debayer=opts.debayer
+            )
 
 
 parser = argparse.ArgumentParser(description=(
@@ -1083,6 +1282,11 @@ parser = argparse.ArgumentParser(description=(
 
 
 def get_opts():
+    parser.add_argument('--interp', default=True,
+                        action=argparse.BooleanOptionalAction,
+                        help=(
+                            "Whether or not to attempt to interpolate unknown pixels."
+                        ))
     parser.add_argument('--debayer', default=False,
                         action=argparse.BooleanOptionalAction,
                         help=(

@@ -27,6 +27,7 @@ from IrisBackendv3.codec.packet_classes.watchdog_debug_important import Watchdog
 from IrisBackendv3.codec.packet_classes.watchdog_debug import WatchdogDebugPacket
 from IrisBackendv3.codec.packet_classes.radio_downlink_flush import RadioDownlinkFlushPacket
 from IrisBackendv3.codec.packet_classes.herc_radio_upl_ack import HerculesRadioUplinkAckPacket
+from IrisBackendv3.codec.packet_classes.safety_timer import WatchdogSafetyTimerPacket
 
 from typing import List, Optional, Type
 
@@ -63,8 +64,10 @@ def parse_packet(
             RadioBgApiPacket,
             RadioUartBytePacket,
             RadioDirectMessagePacket,
+            # RS ACK needs to be above safety timer (so safety timer RS ack doesn't get treated as a Safety Timer msg)
             WatchdogResetSpecificAckPacket,
             WatchdogHelloPacket,
+            WatchdogSafetyTimerPacket,
             HerculesRadioUplinkAckPacket,  # subtype of WatchdogRadioDebug
             WatchdogRadioDebugPacket,
             WatchdogDebugImportantPacket,

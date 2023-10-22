@@ -92,7 +92,7 @@ extern "C"
         WD_CMD_MSGS__CMD_ID__SET_LATCH_BATT_STATE = 0x10FB,         //!< Set battery latch state.
         WD_CMD_MSGS__CMD_ID__LATCH_SET_PULSE_LOW = 0x10FC,          //!< Pulse battery latch "SET" override low.
         WD_CMD_MSGS__CMD_ID__LATCH_RESET_PULSE_LOW = 0x10FD,        //!< Pulse battery latch "RESET" override low.
-        WD_CMD_MSGS__CMD_ID__ECHO = 0x10FF,                         //!< Diagnostic request to echo the given bytes back (with a header attached marking it as an echo)
+        WD_CMD_MSGS__CMD_ID__ECHO = 0x10FE,                         //!< Diagnostic request to echo the given bytes back (with a header attached marking it as an echo)
     } WdCmdMsgs__CommandId;
 
     /**
@@ -189,9 +189,19 @@ extern "C"
         WD_CMD_MSGS__RESET_ID__BATTERIES_ENABLE = 0x23,  //!< Enable the batteries.
         WD_CMD_MSGS__RESET_ID__BATTERIES_DISABLE = 0x24, //!< Disable the batteries.
 
-        WD_CMD_MSGS__RESET_ID__CLEAR_PERSISTENT_DEPLOY = 0xDD,    //!< Clear the persistent "deployed" status.
-        WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE //!< Power on the HDRM.
+        WD_CMD_MSGS__RESET_ID__CLEAR_PERSISTENT_DEPLOY = 0xDD,     //!< Clear the persistent "deployed" status.
+        WD_CMD_MSGS__RESET_ID__HDRM_DEPLOY_SIGNAL_POWER_ON = 0xEE, //!< Power on the HDRM.
 
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_ON = 0x4A,  //!< Allow the safety timer to reboot the system
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_REBOOT_CTRL_OFF = 0x4B, //!< Don't allow the safety timer to reboot the system
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_ACK = 0x4C,             //!< Acknowledge the safety timer, setting the count back to 0
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_INC = 0x4D,      //!< Increment the safety timer cutoff by a fixed number of minutes.
+        WD_CMD_MSGS__RESET_ID__SAFETY_TIMER_CUTOFF_DEC = 0x4E,      //!< Decrement the safety timer cutoff by a fixed number of minutes.
+
+        // Additional way to request a status report via Reset Specific, so we
+        // can do that through the Hercules even while non-RS WD commands don't
+        // work.
+        WD_CMD_MSGS__RESET_ID__REQUEST_STATUS_REPORT = 0x95 //!< Request Status Report (Report Status: Detailed Status Packet + other suppl. info).
     } WdCmdMsgs__ResetSpecificId;
 
     /**

@@ -20,10 +20,14 @@
 #include "MotorController.hpp"
 #include "CubeRover/WatchDogInterface/WatchDogInterface.hpp" // need the `reset_values_possible` enum definitions
 
-#define MOTOR_A 1
-#define MOTOR_B 2
-#define MOTOR_C 4
-#define MOTOR_D 8
+#define MOTOR_A_IDX 0
+#define MOTOR_A (1 << MOTOR_A_IDX)
+#define MOTOR_B_IDX 1
+#define MOTOR_B (1 << MOTOR_B_IDX)
+#define MOTOR_C_IDX 2
+#define MOTOR_C (1 << MOTOR_C_IDX)
+#define MOTOR_D_IDX 3
+#define MOTOR_D (1 << MOTOR_D_IDX)
 
 #define FRONT_LEFT_MC_I2C_ADDR 0x48
 #define FRONT_RIGHT_MC_I2C_ADDR 0x49

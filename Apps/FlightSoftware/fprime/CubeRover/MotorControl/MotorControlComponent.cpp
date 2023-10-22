@@ -228,7 +228,7 @@ namespace CubeRover
         powerOnMotors(); // Make sure motors are on first
         mc_mutex.lock();
 
-        MotorControllerStruct *mc = &m_motor_controllers[MOTOR_A];
+        MotorControllerStruct *mc = &m_motor_controllers[MOTOR_A_IDX];
         mc->target_pos = MotorA_TargetPosition;
         mc->target_dir = MotorA_TargetDir;
         mc->target_speed = MotorA_TargetSpeed;
@@ -241,7 +241,7 @@ namespace CubeRover
         //        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
-        mc = &m_motor_controllers[MOTOR_B];
+        mc = &m_motor_controllers[MOTOR_B_IDX];
         mc->target_dir = MotorB_TargetDir;
         mc->target_pos = MotorB_TargetPosition;
         mc->target_speed = MotorB_TargetSpeed;
@@ -254,7 +254,7 @@ namespace CubeRover
         //        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
-        mc = &m_motor_controllers[MOTOR_C];
+        mc = &m_motor_controllers[MOTOR_C_IDX];
         mc->target_dir = MotorC_TargetDir;
         mc->target_pos = MotorC_TargetPosition;
         mc->target_speed = MotorC_TargetSpeed;
@@ -267,7 +267,7 @@ namespace CubeRover
         //        mc->up_to_date = 0xFF;
         mc->ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
-        mc = &m_motor_controllers[MOTOR_D];
+        mc = &m_motor_controllers[MOTOR_D_IDX];
         mc->target_dir = MotorD_TargetDir;
         mc->target_pos = MotorD_TargetPosition;
         mc->target_speed = MotorD_TargetSpeed;
@@ -313,7 +313,7 @@ namespace CubeRover
         }
         if (motor_mask)
         {
-            setTargetPos(&m_motor_controllers[MOTOR_A], Param_NewValue);
+            setTargetPos(&m_motor_controllers[MOTOR_A_IDX], Param_NewValue);
         }
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }

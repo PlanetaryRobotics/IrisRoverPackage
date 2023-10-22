@@ -334,8 +334,6 @@ namespace CubeRover
         // Tightly coupled to *_ADDR and *_ID defines
         static const uint8_t motorIdAddressMap[NUM_MOTORS];
 
-        i2cBASE_t *m_i2c;
-
         MCError_t sendAllMotorsData(const MC_ICD_RegAddr id, void *_data);
 
         MCError_t motorControlTransfer(I2cSlaveAddress_t add,

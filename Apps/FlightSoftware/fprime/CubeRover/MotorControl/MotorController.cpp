@@ -17,15 +17,15 @@ namespace CubeRover
         initMcRegStruct(&(mc->msp430_McRegStruct), mc->i2c_addr);
         initMcRegStruct(&(mc->herc_McRegStruct), mc->i2c_addr);
 
-        mc->updateConfigVals = false;
+        mc->updateConfigVals = 0;
         mc->currState = STATE_POWERED_OFF;
 
         mc->target_pos = 0;
         mc->target_speed = 0;
-        mc->current_p_val = DEFAULT_CURRENT_P;
-        mc->current_i_val = DEFAULT_CURRENT_I;
-        mc->speed_p_val = DEFAULT_SPEED_P;
-        mc->speed_i_val = DEFAULT_SPEED_I;
+        mc->current_p_val = DEFAULT_CURRENT_KP_IQ;
+        mc->current_i_val = DEFAULT_CURRENT_KI_IQ;
+        mc->speed_p_val = DEFAULT_SPEED_KP_IQ;
+        mc->speed_i_val = DEFAULT_SPEED_KI_IQ;
         mc->acc_val = 0;
         mc->dec_val = 0;
         mc->ctrlReg = MC_NO_CMD;
@@ -46,7 +46,7 @@ namespace CubeRover
         uint8_t *data;
         getReg(&(mc->msp430_McRegStruct), reg, data);
 
-        if (data == NULL) {
+        if (data == NULL || reg >= MC_REG_MAX) {
             return ERR_GETTING_PARAMS;
         }
 
@@ -80,7 +80,7 @@ namespace CubeRover
         I2cSlaveAddress_t addr = pkt.addr;
         uint8_t reg_buffer = pkt.regID;
         uint32_t dataLen = pkt.dataLen;
-        uint8_t *data = pkt.data;
+        uint8_t *data = static_cast<uint8_t *>(pkt.data);
 
         if (data == NULL) {
             return ERR_GETTING_PARAMS;
@@ -88,7 +88,7 @@ namespace CubeRover
 
         MC_ERR_t err = NO_ERR;
         taskENTER_CRITICAL();
-        if (!i2cMasterTransmit(MOTOR_CONTROL_I2CREG,
+        if (!i2cMasterTransmit(m_i2c,
                                addr, reg_buffer, dataLen, data))
         {
             err = ERR_i2c_WRITE;
@@ -107,13 +107,43 @@ namespace CubeRover
     // Safe Motor Controller Data Transfers/Updates
     // ----------------------------------------------------------------------
 
+#define NUM_RO_REGS 5
+    MC_ICD_RegAddr readOnlyRegs[NUM_RO_REGS] =
+    {
+     MC_REG_CURRENT_POSITION,
+     MC_REG_CURRENT_SPEED,
+     MC_REG_MOTOR_CURRENT,
+     MC_REG_MC_STATUS,
+     MC_REG_MC_FAULT
+    };
     
-
     MC_ERR_t getMcRegAll(MotorControllerStruct *mc)
     {
-        MC_ERR_t err = NO_ERR;
+        bool err = false;
+        MC_ERR_t errWrite = NO_ERR;
 
-        return err;
+//        mc->herc_McRegStruct.mc_ctrlReg = MC_CMD_E_STOP;
+//        errWrite = writeMcRegVal(mc, MC_REG_MC_CTRL);
+//        if (errWrite != NO_ERR) {
+//            return errWrite;
+//        }
+
+        for (uint8_t i = 0; i < NUM_RO_REGS; i++)
+        {
+            if (readMcRegVal(mc, readOnlyRegs[i]) != NO_ERR)
+            {
+                err = true;
+            }
+        }
+
+//        mc->herc_McRegStruct.mc_ctrlReg = MC_NO_CMD;
+//        errWrite = writeMcRegVal(mc, MC_REG_MC_CTRL);
+
+        if (err) {
+            return ERR_GETTING_PARAMS;
+        } else {
+            return errWrite;
+        }
     }
 
     MC_ERR_t setMcRegAll(MotorControllerStruct *mc)
@@ -150,7 +180,46 @@ namespace CubeRover
    // Set Herc MC Vals
    // ----------------------------------------------------------------------
 
-
+    void setTargetPos(MotorControllerStruct *mc, int32_t target_pos)
+    {
+        mc->herc_McRegStruct.mc_target_pos = target_pos;
+        mc->updateConfigVals |= UPDATE_TARGET_POS;
+    };
+    void setTargetSpeed(MotorControllerStruct *mc, int32_t target_speed)
+    {
+        mc->herc_McRegStruct.mc_target_speed = target_speed;
+        mc->updateConfigVals |= UPDATE_TARGET_SPEED;
+    };
+    void setCurrentP(MotorControllerStruct *mc, int8_t current_p_val)
+    {
+        mc->herc_McRegStruct.mc_piCurKp = current_p_val;
+        mc->updateConfigVals |= UPDATE_CURRENT_P;
+    };
+    void setCurrentI(MotorControllerStruct *mc, int8_t current_i_val)
+    {
+        mc->herc_McRegStruct.mc_piCurKi = current_i_val;
+        mc->updateConfigVals |= UPDATE_CURRENT_I;
+    };
+    void setSpeedP(MotorControllerStruct *mc, int8_t speed_p_val)
+    {
+        mc->herc_McRegStruct.mc_piSpdKp = speed_p_val;
+        mc->updateConfigVals |= UPDATE_SPEED_P;
+    };
+    void setSpeedI(MotorControllerStruct *mc, int8_t speed_i_val)
+    {
+        mc->herc_McRegStruct.mc_piSpdKi = speed_i_val;
+        mc->updateConfigVals |= UPDATE_SPEED_I;
+    };
+    void setAccVal(MotorControllerStruct *mc, int8_t acc_val)
+    {
+        mc->herc_McRegStruct.mc_acc_val = acc_val;
+        mc->updateConfigVals |= UPDATE_ACC_RATE;
+    };
+    void setDecVal(MotorControllerStruct *mc, int8_t dec_val)
+    {
+        mc->herc_McRegStruct.mc_dec_val = dec_val;
+        mc->updateConfigVals |= UPDATE_DEC_RATE;
+    };
 
 
 
@@ -234,9 +303,13 @@ namespace CubeRover
     {
         MC_ERR_t err = NO_ERR;
 
-        err = writeMcRegVal(mc, MC_REG_TARGET_SPEED);
-//        uint8_t set_speed = mc->target_speed;
-//        err = setMcRegVal(mc->i2c_addr, MC_REG_TARGET_SPEED, sizeof(set_speed), &set_speed);
+        if (mc->updateConfigVals & UPDATE_TARGET_SPEED) {
+            err = writeMcRegVal(mc, MC_REG_TARGET_SPEED);
+
+            if (err == NO_ERR) {
+                mc->updateConfigVals &= ~UPDATE_TARGET_SPEED;
+            }
+        }
 
         return err;
     }
@@ -248,10 +321,14 @@ namespace CubeRover
     {
         MC_ERR_t err = NO_ERR;
 
+        if (mc->updateConfigVals & UPDATE_TARGET_POS)
+        {
+            err = writeMcRegVal(mc, MC_REG_TARGET_POSITION);
 
-        err = writeMcRegVal(mc, MC_REG_TARGET_POSITION);
-//        uint32_t set_pos = mc->target_pos;
-//        err = setMcRegVal(mc->i2c_addr, MC_REG_TARGET_POSITION, sizeof(set_pos), &set_pos);
+            if (err == NO_ERR) {
+                mc->updateConfigVals &= ~UPDATE_TARGET_POS;
+            }
+        }
 
         return err;
     }
@@ -263,10 +340,12 @@ namespace CubeRover
     {
         MC_ERR_t err = NO_ERR;
 
-
-        err = writeMcRegVal(mc, MC_REG_MC_CTRL);
-//        uint8_t start_drive = MC_CMD_EXECUTE_DRIVE;
-//        err = setMcRegVal(mc->i2c_addr, MC_REG_MC_CTRL, sizeof(start_drive), &start_drive);
+        if (mc->currState == STATE_ARMED) {
+            err = writeMcRegVal(mc, MC_REG_MC_CTRL);
+            if (err == NO_ERR) {
+                mc->currState = STATE_RUNNING;
+            }
+        }
 
         return err;
     }

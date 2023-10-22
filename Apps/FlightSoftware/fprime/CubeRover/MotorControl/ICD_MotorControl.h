@@ -16,6 +16,7 @@ extern "C" {
 #include "Fw/Types/BasicTypes.hpp"
 #else
 #include <stdint.h>
+#include <stdio.h>
 #endif
 
 #define I2C_RX_BUFFER_MAX_SIZE      8
@@ -26,14 +27,27 @@ extern "C" {
 
 
 #define DEFAULT_TARGET_POS  20000
-#define DEFAULT_TARGET_SPEED  70
-#define MAX_TARGET_SPEED      100
 
-#define DEFAULT_SPEED_P       15000   // e-4 (1.5000) (0x3A98)
-#define DEFAULT_SPEED_I       9       // e-4 (0.0009) (0x0009)
-#define DEFAULT_CURRENT_P   9500    // e-4 (0.9500) (0x005F)
-#define DEFAULT_CURRENT_I   20      // e-4 (0.0020) (0x0014)
+// _IQ15(A) = ((_iq15)((A) * ((_iq15)1 << 15)))
+// _iq15 = int32_t but can fit in uint16_t
 
+// control related constants (gains, thresholds, setpoints, default values)
+#define DEFAULT_TARGET_SPEED_perc   0.7
+#define DEFAULT_TARGET_SPEED        70
+#define MAX_TARGET_SPEED            100U
+
+#define DEFAULT_KP_SPD 1.5
+#define DEFAULT_KI_SPD 0.0009
+#define DEFAULT_KP_CUR 0.95
+#define DEFAULT_KI_CUR 0.002
+
+#define DEFAULT_TARGET_SPEED_IQ 0x5999  // 0.7
+#define DEFAULT_MAX_SPEED_IQ    0x8000  // 1.0
+
+#define DEFAULT_SPEED_KP_IQ     0xC000  // 1.5
+#define DEFAULT_SPEED_KI_IQ     0x001D  // 0.0009
+#define DEFAULT_CURRENT_KP_IQ   0x7999  // 0.95
+#define DEFAULT_CURRENT_KI_IQ   0x0041  // 0.002
 
 typedef uint8_t McI2cAddr_t;
 typedef uint8_t McCtrlVal_t;
@@ -150,12 +164,12 @@ typedef struct MC_ICD_RegStruct
 
     int32_t mc_curr_pos; // ticks
     uint8_t mc_curr_speed; // 0-100%
-    int16_t mc_curr_current; // mA
+    int32_t mc_curr_current; // mA
 
-    uint16_t mc_current_p_val; // Linear Format
-    uint16_t mc_current_i_val;
-    uint16_t mc_speed_p_val;
-    uint16_t mc_speed_i_val;
+    uint16_t mc_piCurKp; // Linear Format
+    uint16_t mc_piCurKi;
+    uint16_t mc_piSpdKp;
+    uint16_t mc_piSpdKi;
     uint16_t mc_acc_val; // ticks*s-2
     uint16_t mc_dec_val;
 
@@ -169,7 +183,7 @@ typedef struct McI2cDataPkt
     McI2cAddr_t addr;
     uint8_t regID;
     uint16_t dataLen;
-    uint8_t *data;
+    void *data;
 }McI2cDataPkt;
 
 void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr);

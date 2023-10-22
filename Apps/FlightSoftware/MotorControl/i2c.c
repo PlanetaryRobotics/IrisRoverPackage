@@ -21,6 +21,7 @@ I2cMode g_slaveMode;
 uint8_t g_i2cSlaveAddress;
 uint8_t g_readRegAddr;
 uint8_t g_i2cCmdLength[MAX_NB_CMDS];
+bool g_sendTelem = false;
 
 // external variables that are written and read to
 //extern volatile _iq g_currentSpeed;
@@ -104,67 +105,67 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
       //-----------------------------------------------------------------
       case I2C_ADDRESS:
           txData = (uint8_t*)&g_i2cSlaveAddress;
-//        g_slaveMode = TX_DATA_MODE;
-//        g_txByteCtr = g_i2cCmdLength[cmd];
-//        //Fill out the TransmitBuffer
-//        copyArray((uint8_t*)&g_i2cSlaveAddress, (uint8_t*)g_txBuffer, g_txByteCtr);
-//        disableI2cRxInterrupt();
-//        enableI2cTxInterrupt();
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_i2cSlaveAddress, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
       case CURRENT_POSITION:
           txData = (uint8_t*)&g_currentPosition;
-//        g_slaveMode = TX_DATA_MODE;
-//        g_txByteCtr = g_i2cCmdLength[cmd];
-//        //Fill out the TransmitBuffer
-//        copyArray((uint8_t*)&g_currentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
-//        disableI2cRxInterrupt();
-//        enableI2cTxInterrupt();
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_currentPosition, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
       case CURRENT_SPEED:
       {
           int16_t speed_info = (int16_t)(g_currentSpeed >> 7); // 7 LSBs are 0s, 16 MSBs are too
           txData = (uint8_t*)&speed_info;
-//        g_slaveMode = TX_DATA_MODE;
-//        g_txByteCtr = g_i2cCmdLength[cmd];
-//        //Fill out the TransmitBuffer
-//        copyArray((uint8_t*)&speed_info, (uint8_t*)g_txBuffer, g_txByteCtr);
-//        disableI2cRxInterrupt();
-//        enableI2cTxInterrupt();
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&speed_info, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
       }
       case MOTOR_CURRENT:
           txData = (uint8_t*)&g_piCur.Fbk;
-//        g_slaveMode = TX_DATA_MODE;
-//        g_txByteCtr = g_i2cCmdLength[cmd];
-//        //Fill out the TransmitBuffer
-//        copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
-//        disableI2cRxInterrupt();
-//        enableI2cTxInterrupt();
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_piCur.Fbk, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;       
       case STATUS_REGISTER:
           txData = (uint8_t*)&g_statusRegister;
-//        g_slaveMode = TX_DATA_MODE;
-//        g_txByteCtr = g_i2cCmdLength[cmd];
-//        //Fill out the TransmitBuffer
-//        copyArray((uint8_t*)&g_statusRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
-//        disableI2cRxInterrupt();
-//        enableI2cTxInterrupt();
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_statusRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;
       case FAULT_REGISTER:
           txData = (uint8_t*)&g_faultRegister;
-//        g_slaveMode = TX_DATA_MODE;
-//        g_txByteCtr = g_i2cCmdLength[cmd];
-//
-//        //update g_faultRegister with if there is fault in motor driver
-//        if(read_driver_fault())
-//            g_faultRegister |= DRIVER_FAULT;
-//        else
-//            g_faultRegister &= ~DRIVER_FAULT;
-//
-//        //Fill out the TransmitBuffer
-//        copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
-//        disableI2cRxInterrupt();
-//        enableI2cTxInterrupt();
+          g_slaveMode = TX_DATA_MODE;
+          g_txByteCtr = g_i2cCmdLength[cmd];
+
+//          //update g_faultRegister with if there is fault in motor driver
+//          if(read_driver_fault())
+//              g_faultRegister |= DRIVER_FAULT;
+//          else
+//              g_faultRegister &= ~DRIVER_FAULT;
+
+          //Fill out the TransmitBuffer
+          copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
+          disableI2cRxInterrupt();
+          enableI2cTxInterrupt();
         break;        
       //-----------------------------------------------------------------
       // Commands requesting to process some more data from master
@@ -189,12 +190,12 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           return;
   }
 
-  // Send requested data
-    g_slaveMode = TX_DATA_MODE;
-    g_txByteCtr = g_i2cCmdLength[cmd];
-    copyArray(txData, (uint8_t*)g_txBuffer, g_txByteCtr);
-    disableI2cRxInterrupt();
-    enableI2cTxInterrupt();
+//    // Send requested data
+//    g_slaveMode = TX_DATA_MODE;
+//    g_txByteCtr = g_i2cCmdLength[cmd];
+//    copyArray(txData, (uint8_t*)g_txBuffer, g_txByteCtr);
+//    disableI2cRxInterrupt();
+//    enableI2cTxInterrupt();
 }
 
 
@@ -261,7 +262,11 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_controlRegister,
                    sizeof(g_controlRegister));
-
+//        if(g_controlRegister & MC_CMD_E_STOP) {
+//            g_sendTelem = true;
+//        } else {
+//            g_sendTelem = false;
+//        }
         // update status register if told to drive in open loop
         if(g_controlRegister & DRIVE_OPEN_LOOP){
             g_statusRegister |= DRIVE_OPEN_LOOP;

@@ -13,4 +13,6 @@
 MC_ICD_RegStruct mcRegStruct;
 void initMotorControl(McI2cAddr_t i2cAddr);
 
+void updateMotorController();
+
 #endif /* MOTORCONTROL_H_ */

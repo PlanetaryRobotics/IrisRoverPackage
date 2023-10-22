@@ -53,18 +53,6 @@ namespace CubeRover
             m_motor_controllers[i].msp430_McRegStruct = MC_ICD_RegStruct();
             m_motor_controllers[i].herc_McRegStruct = MC_ICD_RegStruct();
         }
-        // m_motor_controllers[0] = MotorControllerStruct();
-        // m_motor_controllers[0].msp430_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[0].herc_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[1] = MotorControllerStruct();
-        // m_motor_controllers[1].msp430_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[1].herc_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[2] = MotorControllerStruct();
-        // m_motor_controllers[2].msp430_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[2].herc_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[3] = MotorControllerStruct();
-        // m_motor_controllers[3].msp430_McRegStruct = MC_ICD_RegStruct();
-        // m_motor_controllers[3].herc_McRegStruct = MC_ICD_RegStruct();
     }
 
     /**
@@ -133,10 +121,11 @@ namespace CubeRover
             const FwOpcodeType opCode,
             const U32 cmdSeq)
     {
-        if (updateTelemetry())
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-        else
+        if (updateTelemetry()) {
             this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
+        } else {
+            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
+        }
     }
 
     /**
@@ -293,24 +282,23 @@ namespace CubeRover
             U32 Raw_Ticks)
     {
 
-        MCError_t err = err;
-
+      if (Dir == 0xFF) {
         if (!OG_Spin_Handler(opCode, cmdSeq, Motor_ID, Dir, Raw_Ticks)) {
                 this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_EXECUTION_ERROR);
                 return;
         }
+      } else {
 
-//        uint8_t motor_mask = Motor_ID;
-//        uint8_t dir_mask = Dir;
-//        int32_t dist = Raw_Ticks;
-//        uint8_t speed = DEFAULT_TARGET_SPEED;
-//
-//        setSpinParams(motor_mask, dir_mask, dist, speed);
-//
-//        testSpin();
+        uint8_t motor_mask = Motor_ID;
+        uint8_t dir_mask = Dir;
+        int32_t dist = Raw_Ticks;
+        uint8_t speed = MAX_SPEED;
+
+        setSpinParams(motor_mask, dir_mask, dist, speed);
+        testSpin();
+      }
 
         this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-
     }
 
     bool MotorControlComponentImpl::setSpinParams(uint8_t motor_mask, uint8_t dir_mask,
@@ -336,9 +324,11 @@ namespace CubeRover
                 }
                 iSpeed = speed;
                 setMotors = true;
+                setTargetSpeed(&m_motor_controllers[i], iSpeed);
+                setTargetPos(&m_motor_controllers[i], iDist);
+                m_motor_controllers[i].herc_McRegStruct.mc_ctrlReg = MC_CMD_EXECUTE_DRIVE;
+                m_motor_controllers[i].currState = STATE_ARMED;
             }
-            setTargetPos(&m_motor_controllers[i], iDist);
-            setTargetSpeed(&m_motor_controllers[i], iSpeed);
         }
         return setMotors;
     }
@@ -393,24 +383,34 @@ namespace CubeRover
     MotorControlComponentImpl::MCError_t
     MotorControlComponentImpl::testSpin()
     {
-        MCError_t err;
+        bool err = false;
 
         for (int i=0; i<NUM_MOTORS; i++)
         {
-            mcTestSetSpeed(&m_motor_controllers[i]);
+            if(mcTestSetSpeed(&m_motor_controllers[i]) != NO_ERR) {
+                err = true;
+            }
         }
 
         for (int i=0; i<NUM_MOTORS; i++)
         {
-            mcTestSetPos(&m_motor_controllers[i]);
+            if(mcTestSetPos(&m_motor_controllers[i]) != NO_ERR) {
+                err = true;
+            }
         }
 
         for (int i=0; i<NUM_MOTORS; i++)
         {
-            mcTestDrive(&m_motor_controllers[i]);
+            if(mcTestDrive(&m_motor_controllers[i]) != NO_ERR) {
+                err = true;
+            }
         }
 
-        return err;
+        if (err) {
+            return MC_UNEXPECTED_ERROR;
+        }
+
+        return MC_NO_ERROR;
     }
 
 
@@ -622,6 +622,7 @@ namespace CubeRover
         }
     }
 
+
     bool MotorControlComponentImpl::updateTelemetry()
     {
         MCError_t err = MC_NO_ERROR;
@@ -671,6 +672,8 @@ namespace CubeRover
         if (err != MC_NO_ERROR)
             asm(" nop");
         // resetMotorControllers();
+
+
 
         return true;
     }

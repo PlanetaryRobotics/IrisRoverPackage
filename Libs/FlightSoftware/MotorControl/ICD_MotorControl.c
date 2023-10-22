@@ -37,71 +37,69 @@ McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID)
     dataPkt.addr = mcReg->mc_i2c_addr;
     dataPkt.regID = (uint8_t)regID;
     dataPkt.dataLen = 0;
-    int32_t val;
 
     switch(regID)
     {
     case MC_REG_TARGET_POSITION:
-        val = mcReg->mc_target_pos;
+        dataPkt.data = &(mcReg->mc_target_pos);
         dataPkt.dataLen = sizeof(mcReg->mc_target_pos);
         break;
     case MC_REG_TARGET_SPEED:
-        val = mcReg->mc_target_speed;
+        dataPkt.data = &(mcReg->mc_target_speed);
         dataPkt.dataLen = sizeof(mcReg->mc_target_speed);
         break;
     case MC_REG_CURRENT_POSITION:
-        val = mcReg->mc_curr_pos;
+        dataPkt.data = &(mcReg->mc_curr_pos);
         dataPkt.dataLen = sizeof(mcReg->mc_curr_pos);
         break;
     case MC_REG_CURRENT_SPEED:
-        val = mcReg->mc_curr_speed;
+        dataPkt.data = &(mcReg->mc_curr_speed);
         dataPkt.dataLen = sizeof(mcReg->mc_curr_speed);
         break;
     case MC_REG_MOTOR_CURRENT:
-        val = mcReg->mc_curr_current;
+        dataPkt.data = &(mcReg->mc_curr_current);
         dataPkt.dataLen = sizeof(mcReg->mc_curr_current);
         break;
     case MC_REG_P_CURRENT:
-        val = mcReg->mc_piCurKp;
+        dataPkt.data = &(mcReg->mc_piCurKp);
         dataPkt.dataLen = sizeof(mcReg->mc_piCurKp);
         break;
     case MC_REG_I_CURRENT:
-        val = mcReg->mc_piCurKi;
+        dataPkt.data = &(mcReg->mc_piCurKi);
         dataPkt.dataLen = sizeof(mcReg->mc_piCurKi);
         break;
     case MC_REG_P_SPEED:
-        val = mcReg->mc_piSpdKp;
+        dataPkt.data = &(mcReg->mc_piSpdKp);
         dataPkt.dataLen = sizeof(mcReg->mc_piSpdKp);
         break;
     case MC_REG_I_SPEED:
-        val = mcReg->mc_piSpdKi;
+        dataPkt.data = &(mcReg->mc_piSpdKi);
         dataPkt.dataLen = sizeof(mcReg->mc_piSpdKi);
         break;
     case MC_REG_ACC_RATE:
-        val = mcReg->mc_acc_val;
+        dataPkt.data = &(mcReg->mc_acc_val);
         dataPkt.dataLen = sizeof(mcReg->mc_acc_val);
         break;
     case MC_REG_DEC_RATE:
-        val = mcReg->mc_dec_val;
+        dataPkt.data = &(mcReg->mc_dec_val);
         dataPkt.dataLen = sizeof(mcReg->mc_dec_val);
         break;
     case MC_REG_MC_CTRL:
-        val = mcReg->mc_ctrlReg;
+        dataPkt.data = &(mcReg->mc_ctrlReg);
         dataPkt.dataLen = sizeof(McCtrlVal_t);
         break;
     case MC_REG_MC_STATUS:
-        val = mcReg->mc_stateReg;
+        dataPkt.data = &(mcReg->mc_stateReg);
         dataPkt.dataLen = sizeof(McStateVal_t);
         break;
     case MC_REG_MC_FAULT:
-        val = mcReg->mc_faultReg;
+        dataPkt.data = &(mcReg->mc_faultReg);
         dataPkt.dataLen = sizeof(McFaultMask_t);
         break;
     default:
         // error so *data = NULL and datalen = 0
         break;
     }
-    dataPkt.data = (uint8_t *)&val;
     return dataPkt;
 }
 

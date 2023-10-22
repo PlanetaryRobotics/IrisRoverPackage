@@ -423,6 +423,7 @@ void checkTargetReached(void)
     {
         // target has been reached
         g_targetReached = true;
+        g_controlRegister &= ~EXECUTE_COMMAND;
         g_statusRegister |= POSITION_CONVERGED;
         // turn off output
         _iq output = 0;
@@ -454,7 +455,7 @@ void driveOpenLoop(void)
         _iq output;
         if (g_controlRegister & OPEN_LOOP_TORQUE_OVERRIDE)
         {
-            output = _IQ(DEFAULT_TARGET_SPEED);
+            output = _IQ(DEFAULT_TARGET_SPEED_perc);
         }
         else
         {
@@ -553,8 +554,11 @@ void checkForClosedLoopErrors(void)
     // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
     if (g_errorCounter >= ERROR_ITERATION_THRESHOLD)
     {
-        if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) // check if we should stop controller given fault
-            g_targetPosition = g_currentPosition = 0;             // stop controller
+        if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) { // check if we should stop controller given fault
+            g_targetPosition = 0;
+            g_currentPosition = 0;             // stop controller
+            g_controlRegister &= ~EXECUTE_COMMAND;
+        }
         g_statusRegister |= CONTROLLER_ERROR;                     // add flag to status register
     }
 }
@@ -566,6 +570,7 @@ void handleMotorTimeout(void)
 {
     g_targetReached = true;
     g_targetPosition = g_currentPosition; // so motor won't flip g_targetReached again
+    g_controlRegister &= ~EXECUTE_COMMAND;
     g_faultRegister |= DRIVING_TIMEOUT;
     g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
     g_drivingTimeoutCtr = 0;

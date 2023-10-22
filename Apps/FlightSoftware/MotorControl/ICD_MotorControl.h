@@ -32,21 +32,22 @@ extern "C" {
 // _iq15 = int32_t but can fit in uint16_t
 
 // control related constants (gains, thresholds, setpoints, default values)
-    #define DEFAULT_TARGET_SPEED  0.7
-    #define MAX_TARGET_SPEED      100U
+#define DEFAULT_TARGET_SPEED_perc   0.7
+#define DEFAULT_TARGET_SPEED        70
+#define MAX_TARGET_SPEED            100U
 
-    #define DEFAULT_KP_SPD 1.5
-    #define DEFAULT_KI_SPD 0.0009
-    #define DEFAULT_KP_CUR 0.95
-    #define DEFAULT_KI_CUR 0.002
+#define DEFAULT_KP_SPD 1.5
+#define DEFAULT_KI_SPD 0.0009
+#define DEFAULT_KP_CUR 0.95
+#define DEFAULT_KI_CUR 0.002
 
-    #define DEFAULT_TARGET_SPEED_IQ 0x5999  // 0.7
-    #define DEFAULT_MAX_SPEED_IQ    0x8000  // 1.0
+#define DEFAULT_TARGET_SPEED_IQ 0x5999  // 0.7
+#define DEFAULT_MAX_SPEED_IQ    0x8000  // 1.0
 
-    #define DEFAULT_SPEED_KP_IQ     0xC000  // 1.5
-    #define DEFAULT_SPEED_KI_IQ     0x001D  // 0.0009
-    #define DEFAULT_CURRENT_KP_IQ   0x7999  // 0.95
-    #define DEFAULT_CURRENT_KI_IQ   0x0041  // 0.002
+#define DEFAULT_SPEED_KP_IQ     0xC000  // 1.5
+#define DEFAULT_SPEED_KI_IQ     0x001D  // 0.0009
+#define DEFAULT_CURRENT_KP_IQ   0x7999  // 0.95
+#define DEFAULT_CURRENT_KI_IQ   0x0041  // 0.002
 
 typedef uint8_t McI2cAddr_t;
 typedef uint8_t McCtrlVal_t;
@@ -182,7 +183,7 @@ typedef struct McI2cDataPkt
     McI2cAddr_t addr;
     uint8_t regID;
     uint16_t dataLen;
-    uint8_t *data;
+    void *data;
 }McI2cDataPkt;
 
 void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr);

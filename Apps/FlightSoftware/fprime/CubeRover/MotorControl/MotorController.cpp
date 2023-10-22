@@ -43,8 +43,8 @@ namespace CubeRover
         I2cSlaveAddress_t addr = mc->i2c_addr;
         uint8_t reg_buffer = static_cast<uint8_t>(reg);
         uint32_t dataLen = regSizeMap(reg);
-        uint8_t *data;
-        getReg(&(mc->msp430_McRegStruct), reg, data);
+        void *data;
+        getReg(&(mc->msp430_McRegStruct), reg, &data);
 
         if (data == NULL || reg >= MC_REG_MAX) {
             return ERR_GETTING_PARAMS;
@@ -53,7 +53,7 @@ namespace CubeRover
         MC_ERR_t err = NO_ERR;
         taskENTER_CRITICAL();
         if (!i2cMasterReadData(MOTOR_CONTROL_I2CREG,
-                               addr, reg_buffer, dataLen, data))
+                               addr, reg_buffer, dataLen, (uint8_t*)data))
         {
             err = ERR_i2c_READ;
         }

@@ -136,6 +136,22 @@ namespace iris
             initiateNextI2cAction(theContext);
         }
 
+        // Sync Persistent Deploy and Deployment State every tick:
+        // (really shouldn't be two of these - or three if you count
+        // IPASBI__DEPLOYED - but don't have time to disentangle them.
+        // The alternatives to `persistentDeployed` don't seem to do much
+        // besides guard commands. Better to just let them all be synced.
+        // Unfortunately, we can't just sync this in the RS command handler b/c
+        // that's in StateManager not here.
+        if (*(theContext.m_persistentDeployed))
+        {
+            m_currentDeployState = DeployState::DEPLOYED;
+        }
+        else
+        {
+            m_currentDeployState = DeployState::NOT_DEPLOYED;
+        }
+
         return getState();
     }
 

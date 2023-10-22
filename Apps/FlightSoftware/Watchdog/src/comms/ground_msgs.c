@@ -173,19 +173,14 @@ GroundMsgs__Status GroundMsgs__generateDetailedReport(I2C_Sensors__Readings *i2c
     dstIntPtr += sizeof(details->m_stateAsUint);
 
     uint8_t deploymentStatus;
-    if (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__DEPLOYED))
+    if (details->m_outputPinBits & OPSBI_MASK(OPSBI__DEPLOYMENT))
     {
-        report->deploymentStatus = 2;
+        report->deploymentStatus = 2; // DEPLOYED
         deploymentStatus = 2;
-    }
-    else if (details->m_inputPinAndStateBits & IPASBI_MASK(IPASBI__DEPLOYING))
-    {
-        report->deploymentStatus = 1;
-        deploymentStatus = 1;
     }
     else
     {
-        report->deploymentStatus = 0;
+        report->deploymentStatus = 0; // NOT_DEPLOYED
         deploymentStatus = 0;
     }
 

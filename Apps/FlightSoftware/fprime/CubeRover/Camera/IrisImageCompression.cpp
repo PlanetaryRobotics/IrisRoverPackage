@@ -36,7 +36,7 @@ namespace IrisImage
     // then X is an okay setting).
     // Min size is that it also needs to be big enough to double as the binning
     // copy buffer:
-    static const uint16_t COMPRESSION_BUFFER_LEN = MACRO_MAX(512 * 3, BINNING_COPY_BUFFER_MIN_SIZE);
+    static const uint16_t COMPRESSION_BUFFER_LEN = MACRO_MAX(512 * 2, BINNING_COPY_BUFFER_MIN_SIZE);
     static uint8_t g_compression_buffer[COMPRESSION_BUFFER_LEN];
     // We also need a buffer for storing in-place copy data during binning.
     // Since this will necessarily be used at a different time than compression,

@@ -136,6 +136,8 @@
 | | | |MotorD_Dir|U8||
 | | | |MotorD_Ticks|U32||
 | | | |MotorD_Speed|U8||
+|MC_Emergency_Stop|48 (0x30)|Powers down the motor bus (stopping all actions) immediately.
+            May have to reset Hercules to regain I2C comms after this.| | |
 
 ## Telemetry Channel List
 
@@ -185,3 +187,4 @@
 | | | |regID|U8|||
 | | | |totalErrors|U16|||
 | | | |motorsMask|U16|||
+|MC_Sched_Heartbeat|238 (0xee)|Simple heartbeat event to make sure the scheduler tick in MotorControl is working.| | | | |

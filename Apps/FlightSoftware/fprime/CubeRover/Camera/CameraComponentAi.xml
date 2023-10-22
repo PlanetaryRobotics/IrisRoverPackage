@@ -16,7 +16,7 @@
                 Send an image to GroundInterface for downlink.
             </comment>
         </port>
-        <port name="schedIn" data_type="Svc::Sched" kind="guarded_input" max_number="1">
+        <port name="schedIn" data_type="Svc::Sched" kind="sync_input" max_number="1">
             <comment>
             Clock from RateGroupMedFreq. Every clock tick check for conditions to trigger deployment image.
             </comment>

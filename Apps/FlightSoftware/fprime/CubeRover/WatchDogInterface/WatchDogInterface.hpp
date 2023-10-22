@@ -678,6 +678,10 @@ namespace CubeRover
         // IDs to trigger a camera select:
         static const uint8_t WD_CAM_SEL_0_RESET_ID = WatchDogInterfaceComponentBase::reset_values_possible::FPGA_Cam_0;
         static const uint8_t WD_CAM_SEL_1_RESET_ID = WatchDogInterfaceComponentBase::reset_values_possible::FPGA_Cam_1;
+
+        // IDs for motor control:
+        static const uint8_t WD_ALL_MOTORS_ON_RESET_ID = WatchDogInterfaceComponentBase::reset_values_possible::All_Motors_On;
+        static const uint8_t WD_ALL_MOTORS_OFF_RESET_ID = WatchDogInterfaceComponentBase::reset_values_possible::All_Motors_Off;
     };
 
 } // end namespace CubeRover

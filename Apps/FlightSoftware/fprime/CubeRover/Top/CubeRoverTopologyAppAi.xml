@@ -122,6 +122,11 @@
     <target component="groundInterface" port="schedIn" type="Sched" num="0"/>
   </connection>
 
+  <connection name="rgLowFreq_to_motorControl_clk">
+    <source component="rateGroupLowFreq" port="RateGroupMemberOut" type="Sched" num="3" />
+    <target component="motorControl" port="schedIn" type="Sched" num="0"/>
+  </connection>
+
   <!--
   <connection name = "rgHighFreq_to_health_clk">
     <source component = "rateGroupHighFreq" port="RateGroupMemberOut" type = "Sched" num = "3" />

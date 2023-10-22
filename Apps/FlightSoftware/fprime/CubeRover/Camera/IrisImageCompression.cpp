@@ -9,9 +9,24 @@
 #error HEATSHRINK_DYNAMIC_ALLOC should not be used. Please set it to 0.
 #endif
 
+#ifndef MACRO_MAX
+#define MACRO_MAX(a,b) ((a)>(b)?(a):(b))
+#endif
+#ifndef MACRO_MIN
+#define MACRO_MIN(a,b) ((a)<(b)?(a):(b))
+#endif
+
 namespace IrisImage
 {
-#ifdef OFFER_COMPRESSION
+// Min size for a buffer used for copying headers embedded into
+// the image data by the FPGA, so it doesn't need to be any bigger
+// than max header size:
+#define BINNING_COPY_BUFFER_MIN_SIZE MACRO_MAX(LEN_OF_LINE_HEADER, LEN_OF_FRAME_HEADER_DATA)
+#ifndef OFFER_COMPRESSION
+    // No compression buffer here, so we'll have to make a dedicated copy buffer.
+    static const uint16_t COMPRESSION_BUFFER_LEN = BINNING_COPY_BUFFER_MIN_SIZE;
+    static uint8_t g_compression_buffer[COMPRESSION_BUFFER_LEN];
+#else // OFFER_COMPRESSION
     static heatshrink_encoder hse;
 
     // Static buffer to store compression data:
@@ -19,9 +34,18 @@ namespace IrisImage
     // (or, at it needs to be as big as the maximum size we'll accept for a
     // compressed line. If we only ever want to compress things up to X bytes,
     // then X is an okay setting).
-    static const uint16_t COMPRESSION_BUFFER_LEN = 512 * 3;
+    // Min size is that it also needs to be big enough to double as the binning
+    // copy buffer:
+    static const uint16_t COMPRESSION_BUFFER_LEN = MACRO_MAX(512 * 3, BINNING_COPY_BUFFER_MIN_SIZE);
     static uint8_t g_compression_buffer[COMPRESSION_BUFFER_LEN];
+    // We also need a buffer for storing in-place copy data during binning.
+    // Since this will necessarily be used at a different time than compression,
+    // we can just reuse the compression buffer for this:
+    static const uint16_t BINNING_COPY_BUFFER_LEN = COMPRESSION_BUFFER_LEN;
+    static uint8_t *g_binning_copy_buffer = g_compression_buffer;
+#endif
 
+#ifdef OFFER_COMPRESSION
     /*
     That compresses that data given in `inputDataToCompress` with size
     `inputSize` and puts the compressed data into `outputBuffer`, making sure
@@ -133,8 +157,7 @@ namespace IrisImage
     bool line_header_starts_at_idx(uint8_t *line, uint16_t lineLen, uint16_t idx)
     {
         // Checks if a line header starts at the given index
-        const uint16_t LEN_OF_LINE_HEADER = 15;
-        if (idx + LEN_OF_LINE_HEADER > lineLen)
+        if ((idx + LEN_OF_LINE_HEADER) > lineLen)
         {
             return false; // can't, not enough space
         }
@@ -160,7 +183,7 @@ namespace IrisImage
     bool frame_header_starts_at_idx(uint8_t *line, uint16_t lineLen, uint16_t idx)
     {
         // Checks if a frame header starts at the given index
-        if (idx + LEN_OF_FRAME_HEADER_DATA > lineLen)
+        if ((idx + LEN_OF_FRAME_HEADER_DATA) > lineLen)
         {
             return false; // can't, not enough space
         }
@@ -230,6 +253,47 @@ namespace IrisImage
         line[write_idx + 1] = byte_2 & 0xFF;
     }
 
+    /**
+     * Copies `n_bytes_to_copy` from `read_idx` in line to `write_idx`. Helper for binning.
+     * Does this directly if possible but, if not, it has to employ the binning copy buffer.
+     * Avoiding just passing in a pointer to the copy buffer b/c we don't want to overburden
+     * the tiny Task stack.
+     *
+     * Updates the `read_idx` and `write_idx` during the operation so they are both advanced by `n_bytes_to_copy` by the end of the operation.
+     *
+     * Note: this won't work properly if the size of the copy buffer is < the min difference between `read_idx` and `write_idx`.
+     * There isn't really a good fix for that so, just make sure the copy buffer is bigger than the *min* difference between
+     * these pointers.
+     */
+     void binning_in_place_copy(uint8_t *line, uint16_t lineLen, uint16_t n_bytes_to_copy, uint16_t *read_idx, uint16_t *write_idx){
+        static uint16_t n;
+        // If the read header is more than n_bytes_to_copy after the write header, then we can get away with just directly copying in-place:
+        if(*read_idx > (*write_idx + n_bytes_to_copy)){
+            for (n = 0; n < n_bytes_to_copy; ++n)
+            {
+                line[*write_idx + n] = line[*read_idx + n];
+            }
+            *read_idx += n_bytes_to_copy;
+            *write_idx += n_bytes_to_copy;
+        } else {
+            // ... otherwise, we have to mediate this with a copy buffer:
+            while(n_bytes_to_copy>0){
+                // Copy everything *up to* as much data as we can fit in the copy buffer
+                // (should be all of it, but just in case we have to shrink it last minute):
+                // NOTE `i` is bytes being copied in this go. Reusing `i` just to avoid using more mem.
+                n = MACRO_MIN(n_bytes_to_copy, BINNING_COPY_BUFFER_LEN);
+                // Copy data into buffer:
+                memcpy(g_binning_copy_buffer, line + *read_idx, n);
+                // Write data out of buffer:
+                memcpy(line + *write_idx, g_binning_copy_buffer, n);
+                // Advance:
+                *read_idx += n;
+                *write_idx += n;
+                n_bytes_to_copy -= n;
+            }
+        }
+    }
+
     /*
     Perform a bayer-preserving binning operation on the given line.
     Preserves any line or frame headers encountered.
@@ -255,7 +319,6 @@ namespace IrisImage
         static uint16_t n_binX2, read_idx, N_binned, N_binned_idx, write_idx;
         static uint16_t header_len, n_bytes_to_copy;
         static int16_t header_start_idx, bytes_left;
-        static uint16_t i;
 
         // Sanity check inputs:
         if (n_bin < 2)
@@ -282,59 +345,50 @@ namespace IrisImage
             return lineLen;
         }
 
-        if (n_bin * 2)
+        while (read_idx < lineLen)
+        {
+            header_start_idx = find_header_start_in_section(line, lineLen, read_idx, n_binX2);
 
-            while (read_idx < lineLen)
+            if (header_start_idx < 0)
             {
-                header_start_idx = find_header_start_in_section(line, lineLen, read_idx, n_binX2);
-
-                if (header_start_idx < 0)
-                {
-                    // No header in this section. Perform normal binning:
-                    bin_section(n_bin, line, lineLen, read_idx, write_idx);
-                    N_binned += 1;
-                    // Bump the indices:
-                    read_idx += n_binX2;
-                    write_idx += 2;
-                }
-                else
-                {
-                    // Copy all of the remaining bytes before the header and all the bytes in the header
-                    header_len = (line[header_start_idx] == 0x11) ? LEN_OF_LINE_HEADER : LEN_OF_FRAME_HEADER_DATA;
-                    n_bytes_to_copy = header_start_idx - read_idx + header_len;
-
-                    for (i = 0; i < n_bytes_to_copy; ++i)
-                    {
-                        line[write_idx + i] = line[read_idx + i];
-                    }
-
-                    // Advance read index:
-                    read_idx += n_bytes_to_copy;
-
-                    // Apply N_binned to its previous location, advance its index to after the header, and reset it:
-                    line[N_binned_idx] = N_binned & 0xFF;
-                    line[N_binned_idx + 1] = (N_binned >> 8) & 0xFF;
-                    N_binned = 0;
-                    N_binned_idx = write_idx + n_bytes_to_copy;
-
-                    // Jump to writing after N_binned:
-                    write_idx = N_binned_idx + 2;
-                }
-
-                // If the number of bytes left after all that isn't enough for binning, just copy them directly:
-                bytes_left = lineLen - read_idx; // I16 (so it can be neg)
-
-                if (bytes_left < n_binX2)
-                {
-                    for (i = 0; i < bytes_left; ++i)
-                    {
-                        line[write_idx + i] = line[read_idx + i];
-                    }
-
-                    write_idx += bytes_left; // ack that we wrote these bytes
-                    read_idx = lineLen;      // we've read everything
-                }
+                // No header in this section. Perform normal binning:
+                bin_section(n_bin, line, lineLen, read_idx, write_idx);
+                N_binned += 1;
+                // Bump the indices:
+                read_idx += n_binX2;
+                write_idx += 2;
             }
+            else
+            {
+                // Copy all of the remaining bytes before the header and all the bytes in the header
+                header_len = (line[header_start_idx] == 0x11) ? LEN_OF_LINE_HEADER : LEN_OF_FRAME_HEADER_DATA;
+                n_bytes_to_copy = header_start_idx - read_idx + header_len;
+
+                // Since we're reading and writing to the same buffer but we might be writing later than the
+                // read, we need to copy the header into a copy buffer then write it:
+                binning_in_place_copy(line, lineLen, n_bytes_to_copy, &read_idx, &write_idx);
+                // read_idx and write_idx are now after the header
+
+                // Apply N_binned to its previous location, advance its index to after the header, and reset it:
+                line[N_binned_idx] = N_binned & 0xFF;
+                line[N_binned_idx + 1] = (N_binned >> 8) & 0xFF;
+                N_binned = 0;
+                N_binned_idx = write_idx;
+
+                // Jump to writing after N_binned:
+                write_idx = N_binned_idx + 2;
+            }
+
+            // If the number of bytes left after all that isn't enough for binning, just copy them directly:
+            bytes_left = lineLen - read_idx; // I16 (so it can be neg)
+
+            if (bytes_left < n_binX2)
+            {
+                binning_in_place_copy(line, lineLen, bytes_left, &read_idx, &write_idx);
+                // read_idx and write_idx are now after the header
+                read_idx = lineLen;      // we've read everything
+            }
+        }
 
         // At end, apply metadata about binning process
         line[data_start_idx] = n_bin;
@@ -399,7 +453,7 @@ namespace IrisImage
                 // very tight compression.
                 compressedLen = heatshrink_buffer(line, binnedLen, g_compression_buffer, COMPRESSION_BUFFER_LEN);
                 // Only use compressed result if it resulted in size reduction:
-                if (compressedLen < binnedLen)
+                if (compressedLen < binnedLen && compressedLen > 1)
                 {
                     memcpy(line, g_compression_buffer, compressedLen);
                     *compressionOccurred = true;

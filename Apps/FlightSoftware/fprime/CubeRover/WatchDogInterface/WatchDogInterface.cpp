@@ -267,14 +267,12 @@ namespace CubeRover
                                          static_cast<reset_values_possible>(Disengage),
                                          true);
 
-        if (success)
-        {
-            // Set Deployment Bit High
-            // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
-            // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
-            gioSetBit(spiPORT3, deploy_bit, 1);
-            this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
-        }
+        debugPrintfToWatchdog("Hercules Triggering Deployment Interlock...");
+        // Set Deployment Bit High
+        // Deployment2 signal is on MIBSPI3NCS_4 which is setup as a GPIO pin with default 0 and no pull up/down resistor.
+        // Use Bit 5 as MIBSPI3NCS_4 is the 5th (start at 0) pin from the start of SPI3 Port
+        gioSetBit(spiPORT3, deploy_bit, 1);
+        this->cmdResponse_out(opCode, cmdSeq, Fw::COMMAND_OK);
     }
 
     void WatchDogInterfaceComponentImpl ::

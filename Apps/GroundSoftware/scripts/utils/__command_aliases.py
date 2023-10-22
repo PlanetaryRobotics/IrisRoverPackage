@@ -255,6 +255,20 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(confirm='CONFIRM_DEPLOY'),
         DataPathway.WIRELESS
     ),
+    'hdrm-interlock-off-wd': (  # tell WD to turn off its HDRM interlock
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='HDRM_OFF'),
+        DataPathway.WIRELESS
+    ),
+    'clear-deploy-wd': (  # clear the persistent deployment bit in the WD
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_ResetSpecific',
+        OrderedDict(reset_value='CLEAR_PERSISTENT_DEPLOY'),
+        DataPathway.WIRELESS
+    ),
     'undeploy': (
         DataPathway.WIRED,
         Magic.COMMAND,  # "normal" command is for Hercules

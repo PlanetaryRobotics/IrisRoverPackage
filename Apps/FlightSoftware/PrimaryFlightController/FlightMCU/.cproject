@@ -197,8 +197,8 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.ti.ccstudio.buildDefinitions.TMS470.Release.182453762" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<macros>
 					<stringMacro name="SHARED_LIBS_LOC" type="VALUE_PATH_DIR" value="${PROJECT_LOC}/../../../../Libs"/>
-					<stringMacro name="SHARED_CONFIG_ROOT_LOC" type="VALUE_PATH_DIR" value="${RC_ROOT_LOC}/Libs/FlightSoftware"/>
-					<stringMacro name="SHARED_LIBS_ROOT_LOC" type="VALUE_PATH_DIR" value="/home/iris/Desktop/Working_folders/RC/Libs"/>
+					<stringMacro name="SHARED_CONFIG_ROOT_LOC" type="VALUE_PATH_DIR" value="${PROJECT_LOC}/../../../../Libs/FlightSoftware"/>
+					<stringMacro name="SHARED_LIBS_ROOT_LOC" type="VALUE_PATH_DIR" value="${PROJECT_LOC}/../../../../Libs"/>
 				</macros>
 				<externalSettings/>
 				<extensions>

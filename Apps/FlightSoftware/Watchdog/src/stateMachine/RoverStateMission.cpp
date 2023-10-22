@@ -329,8 +329,8 @@ namespace iris
             sendDeployNotificationResponse = true;
             *(theContext.m_persistentDeployed) = true;
 
-            // Don't allow DebugComms to write to lander anymore
-            DebugComms__registerLanderComms(NULL);
+            // // Don't allow DebugComms to write to lander anymore
+            // DebugComms__registerLanderComms(NULL);
             break;
 
         case DeployState::DEPLOYING:

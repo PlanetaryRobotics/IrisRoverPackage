@@ -22,6 +22,9 @@
 // #define MOTOR_D
 
 
+uint8_t g_errorCounter = 0; // incremented every time inner control loop is reached and motor is acting strange
+                            // if it exceeds ERROR_ITERATION_THRESHOLD then motor is stopped
+bool g_readSensors = false;
 
 /**
  * @brief      Gets the speed.
@@ -420,7 +423,7 @@ void checkTargetReached(void)
     {
         // target has been reached
         g_targetReached = true;
-        g_statusRegister |= MC_STATE_TARGET_REACHED;
+        g_statusRegister |= POSITION_CONVERGED;
         // turn off output
         _iq output = 0;
         pwmGenerator(g_commState, output);
@@ -429,7 +432,7 @@ void checkTargetReached(void)
     {
         // target not reached yet
         g_targetReached = false;
-        g_statusRegister &= ~MC_STATE_TARGET_REACHED;
+        g_statusRegister &= ~POSITION_CONVERGED;
     }
 }
 
@@ -531,20 +534,20 @@ void checkForClosedLoopErrors(void)
     {
         // position isn't updating; hall sensors likely not powered or broken
         g_errorCounter++;
-        g_faultRegister |= MC_FAULT_STALL;
+        g_faultRegister |= POSITION_NO_CHANGE;
     }
     else if ((g_currentPosition - g_oldPosition) * g_targetDirection < 0 && !g_targetReached)
     {
         // moving in wrong direction
         g_errorCounter++;
-        g_faultRegister |= MC_FAULT_BAD_CONFIG_VAL;
+        g_faultRegister |= DRIVING_WRONG_DIRECTION;
     }
     else
     {
         // operating normally; no error
-        g_statusRegister &= ~MC_STATE_FAULT;
+        g_statusRegister &= ~CONTROLLER_ERROR;
         g_errorCounter = 0;                                                 // reset error counter
-        g_faultRegister &= ~(MC_FAULT_STALL & MC_FAULT_BAD_CONFIG_VAL); // clear faults in register
+        g_faultRegister &= ~(POSITION_NO_CHANGE & DRIVING_WRONG_DIRECTION); // clear faults in register
     }
 
     // errors on last ERROR_ITERATION_THRESHOLD time steps; time to stop trying to drive motor
@@ -552,7 +555,7 @@ void checkForClosedLoopErrors(void)
     {
         if (g_controlRegister & OVERRIDE_FAULT_DETECTION == 0x00) // check if we should stop controller given fault
             g_targetPosition = g_currentPosition = 0;             // stop controller
-        g_statusRegister |= MC_STATE_FAULT;                     // add flag to status register
+        g_statusRegister |= CONTROLLER_ERROR;                     // add flag to status register
     }
 }
 
@@ -563,8 +566,8 @@ void handleMotorTimeout(void)
 {
     g_targetReached = true;
     g_targetPosition = g_currentPosition; // so motor won't flip g_targetReached again
-    g_faultRegister |= MC_FAULT_STALL;
-    g_statusRegister |= (MC_STATE_TARGET_REACHED | MC_STATE_FAULT);
+    g_faultRegister |= DRIVING_TIMEOUT;
+    g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
     g_drivingTimeoutCtr = 0;
 }
 
@@ -582,15 +585,22 @@ void initializeClockSignal()
 void initController(void)
 {
     initializeGpios();
-    McI2cAddr_t i2c_addr = initializeI2cModule();
+    initializeClockSignal();
+
+    // Initialize variables
+    initializeSensorVariables();
+    initializeSoftwareControlVariables();
+    initializeControllerVariables();
+
+    // initialize hardware components
+    uint8_t i2c_addr;
+    i2c_addr = initializeI2cModule();
+    initializePwmModules();
+    initializeAdcModule();
+    initializeHallInterface();
 
     // Initialize variables
     initMotorControl(i2c_addr);
-    initAllVars();
-
-    // initialize hardware components
-    initializePwmModules();
-    initializeAdcModule();
 
     currentOffsetCalibration(); // get initial estimate of current offsets
     __bis_SR_register(GIE);     // enable interrupts (timer & i2c)
@@ -624,12 +634,12 @@ void main(void)
         }
 
         // check if driving in open or closed loop (& have been told to execute command), act accordingly
-        if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & MC_CMD_EXECUTE_DRIVE)
+        if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND)
         {
             // driving in fully open loop
             driveOpenLoop();
         }
-        else if (g_controlRegister & MC_CMD_EXECUTE_DRIVE)
+        else if (g_controlRegister & EXECUTE_COMMAND)
         {
             // driving closed loop
 

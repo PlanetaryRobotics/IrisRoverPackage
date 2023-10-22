@@ -16,7 +16,8 @@
 #define I2C_MAX_DATA_SIZE           4
 #define I2C_PACKET_HEADER           0xAA
 
-#include "MotorControl.h"
+#include "driverlib.h"
+#include "allVars.h"
 
 // Register ids for i2c communication with Hercules
 typedef enum I2cRegisterIds{
@@ -48,6 +49,6 @@ typedef enum I2cMode{
     RX_DATA_MODE = 2
 }I2cMode;
 
-McI2cAddr_t initializeI2cModule();
+uint8_t initializeI2cModule();
 
 #endif /* I2C_H_ */

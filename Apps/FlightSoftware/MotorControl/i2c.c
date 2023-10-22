@@ -22,6 +22,20 @@ uint8_t g_i2cSlaveAddress;
 uint8_t g_readRegAddr;
 uint8_t g_i2cCmdLength[MAX_NB_CMDS];
 
+// external variables that are written and read to
+//extern volatile _iq g_currentSpeed;
+//extern volatile int32_t g_currentPosition;
+//extern volatile int32_t g_targetPosition;
+//extern volatile struct PI_CONTROLLER g_piSpd;
+//extern volatile struct PI_CONTROLLER g_piCur;
+//extern volatile uint16_t g_maxSpeed;
+//extern uint8_t g_statusRegister;
+//extern uint8_t g_controlRegister;
+//extern uint8_t g_faultRegister;
+//extern uint32_t g_drivingTimeoutCtr;
+//extern uint16_t g_accelRate, g_decelRate;
+//extern CmdState g_cmdState;
+
 /**
  * @brief      Disables i 2 c receive interrupt.
  */
@@ -312,34 +326,34 @@ void initializeCmdLength()
  */
 McI2cAddr_t initializeI2cModule()
 {
-  // Configure I2C interface for slave interface
-  EUSCI_B_I2C_initSlaveParam param = {0};
-  param.slaveAddress = MC_SLAVE_I2C_ADDR_BASE;
-  param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
-  param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
-  param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
-  param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
-  EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
+    g_rxBufferIdx = 0;
+    g_txBufferIdx = 0;
+    g_slaveMode = RX_REG_ADDRESS_MODE;
+    g_readRegAddr = 0;
 
-  EUSCI_B_I2C_enable(EUSCI_B0_BASE);
+    initializeCmdLength();
 
-  EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
+    // Configure I2C interface for slave interface
+    EUSCI_B_I2C_initSlaveParam param = {0};
+    param.slaveAddress = MC_SLAVE_I2C_ADDR_BASE;
+    param.slaveAddress |= (READ_ADDR1) ? 0x01 : 0x00;
+    param.slaveAddress |= (READ_ADDR2) ? 0x02 : 0x00;
+    g_i2cSlaveAddress = param.slaveAddress; // Possibly Debug
+    param.slaveAddressOffset = EUSCI_B_I2C_OWN_ADDRESS_OFFSET0;
+    param.slaveOwnAddressEnable = EUSCI_B_I2C_OWN_ADDRESS_ENABLE;
+    EUSCI_B_I2C_initSlave(EUSCI_B0_BASE, &param);
+
+    EUSCI_B_I2C_enable(EUSCI_B0_BASE);
+
+    EUSCI_B_I2C_clearInterrupt(EUSCI_B0_BASE,
                              EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                              EUSCI_B_I2C_STOP_INTERRUPT);
 
-  EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
+    EUSCI_B_I2C_enableInterrupt(EUSCI_B0_BASE,
                               EUSCI_B_I2C_RECEIVE_INTERRUPT0 +
                               EUSCI_B_I2C_STOP_INTERRUPT);
 
-  g_i2cSlaveAddress = param.slaveAddress; // Possibly Debug
-  g_rxBufferIdx = 0;
-  g_txBufferIdx = 0;
-  g_slaveMode = RX_REG_ADDRESS_MODE;
-  g_readRegAddr = 0;
-
-  initializeCmdLength();
-
-  return param.slaveAddress;
+    return g_i2cSlaveAddress;
 }
 
 

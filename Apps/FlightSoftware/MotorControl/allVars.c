@@ -21,14 +21,14 @@ void initializeSensorVariables(void)
 
     g_currentPosition = 0;
     g_oldPosition = g_currentPosition;
-    g_targetDirection = 1;
+//    g_targetDirection = 1;
     g_targetPosition = 0;
 
-    g_targetSpeed = MAX_TARGET_SPEED;
+//    g_targetSpeed = MAX_TARGET_SPEED;
 
-    g_readSensors = false;
+//    g_readSensors = false;
     g_drivingTimeoutCtr = 0;
-    g_errorCounter = 0;
+//    g_errorCounter = 0;
 }
 
 /*
@@ -49,8 +49,11 @@ void initializeSoftwareControlVariables(void)
  */
 void initializeControllerVariables(void)
 {
+    g_targetSpeed = MAX_TARGET_SPEED;
+
     g_openLoopTorque = _IQ(OPEN_LOOP_TORQUE);
     g_impulse.Period = PERIOD_IMPULSE;
+    g_targetDirection = 1;
 
     resetPiController(&g_piSpd);
     resetPiController(&g_piCur);
@@ -82,10 +85,10 @@ void initializeHallInterface(void)
 }
 
 
-void initAllVars()
-{
-    initializeSensorVariables();
-    initializeSoftwareControlVariables();
-    initializeControllerVariables();
-    initializeHallInterface();
-}
+//void initAllVars()
+//{
+//    initializeSensorVariables();
+//    initializeSoftwareControlVariables();
+//    initializeControllerVariables();
+//    initializeHallInterface();
+//}

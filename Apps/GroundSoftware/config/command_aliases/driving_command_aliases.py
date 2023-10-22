@@ -22,18 +22,20 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
         #     Magic.COMMAND,
         #     comment="Drive forward 200cm."
         # ),
-        'motor-control-get-telem': PreparedCommand(
-            'MotorControl_McUpdateTelemetry',
-            OrderedDict(),
-            DataPathway.WIRED,
-            Magic.COMMAND
-        ),
-        # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
-        'motor-control-spin-all': PreparedCommand(
-            'MotorControl_McSpin',
-            OrderedDict(motor_id=0x00, raw_ticks=20000),
-            DataPathway.WIRED,
-            Magic.COMMAND,
-            comment="Low-level command to tell all drivers to spin their motors."
-        )
+
+        # These are changing:
+        # 'motor-control-get-telem': PreparedCommand(
+        #     'MotorControl_McUpdateTelemetry',
+        #     OrderedDict(),
+        #     DataPathway.WIRED,
+        #     Magic.COMMAND
+        # ),
+        # # Navigation_NavDriveForward[distance: uint8, speed: uint8, callback_id: uint16]
+        # 'motor-control-spin-all': PreparedCommand(
+        #     'MotorControl_McSpin',
+        #     OrderedDict(motor_id=0x00, raw_ticks=20000),
+        #     DataPathway.WIRED,
+        #     Magic.COMMAND,
+        #     comment="Low-level command to tell all drivers to spin their motors."
+        # )
     }

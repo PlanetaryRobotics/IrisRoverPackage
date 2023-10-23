@@ -2002,7 +2002,7 @@ namespace iris
             if (allowUndeploy)
             {
                 unsetDeploy();
-                DPRINTF("WD Released Deployment Interlock in RS...");
+//                DPRINTF("WD Released Deployment Interlock in RS..."); // Removing ... possible having this here causes a PUC
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_OFF);
             }
             else if (nullptr != response)
@@ -2155,15 +2155,15 @@ namespace iris
                 /* ref: https://docs.google.com/document/d/1dKLlBcIIVo8t1bGu3jNiHobGMavA3I2al0cncj3ZAhE/edit */
                 setDeploy();
                 *(theContext.m_persistentDeployed) = true;
-                DPRINTF("WD Asserting Deployment Interlock in RS...");
+//                DPRINTF("WD Asserting Deployment Interlock in RS..."); // Removing ... possible having this here causes a PUC
                 SET_RABI_IN_UINT(theContext.m_details.m_resetActionBits, RABI__HDRM_DEPLOY_SIGNAL_POWER_ON);
             }
             else if (nullptr != response)
             {
-                DPRINTF(
-                    "WD Deployment preconditions not met. Status: allowOn: %d, allowDeploy: %d.",
-                    allowPowerOn ? 1 : 0,
-                    allowDeploy ? 1 : 0);
+//                DPRINTF(
+//                    "WD Deployment preconditions not met. Status: allowOn: %d, allowDeploy: %d.",
+//                    allowPowerOn ? 1 : 0,
+//                    allowDeploy ? 1 : 0); // Removing ... possible having this here causes a PUC
                 response->statusCode = WD_CMD_MSGS__RESPONSE_STATUS__ERROR_BAD_COMMAND_SEQUENCE;
             }
             break;

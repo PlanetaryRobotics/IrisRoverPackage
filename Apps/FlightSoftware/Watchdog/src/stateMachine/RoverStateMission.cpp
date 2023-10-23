@@ -346,7 +346,7 @@ namespace iris
             deployNotificationResponse.statusCode = WD_CMD_MSGS__RESPONSE_STATUS__DEPLOY;
             sendDeployNotificationResponse = true;
             *(theContext.m_persistentDeployed) = true;
-            DPRINTF("WD Asserting Deployment Interlock in Cmd...");
+//            DPRINTF("WD Asserting Deployment Interlock in Cmd..."); // Removing ... possible having this here causes a PUC
 
             // // Don't allow DebugComms to write to lander anymore
             // DebugComms__registerLanderComms(NULL);

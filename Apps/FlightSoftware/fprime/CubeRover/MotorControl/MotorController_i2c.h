@@ -14,7 +14,7 @@ extern "C"
     typedef uint8_t I2cSlaveAddress_t;
 
     // Max allowable delay for any I2C Master Read or Write Operation in Cycles
-    static const uint32_t I2C_MASTER_READ_WRITE_MAX_DELAY_CYCLES = 1600000; // 1.6M cycles ~= 0.1s (probably greater because we do a few ops during each delay loop)
+    static const uint32_t I2C_MASTER_READ_WRITE_MAX_DELAY_CYCLES = 16000000; // 16M cycles ~= 1s (probably greater because we do a few ops during each delay loop)
 
     i2cBASE_t *m_i2c;
 

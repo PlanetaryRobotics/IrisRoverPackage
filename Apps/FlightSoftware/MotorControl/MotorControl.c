@@ -91,13 +91,13 @@ void checkUpdateReq()
 
 void checkCtrlReg(void)
 {
-    if (g_controlRegister & MC_CMD_DISABLE_DRIVER)
+    if (g_controlRegister & MC_CMD_DISABLE_DRIVER || g_state == DISABLE)
     {
         disableGateDriver();
         g_targetPosition = 0;
         g_currentPosition = 0;
         g_statusRegister |= MC_STATE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
-        g_cmdState = NO_CMD;
+        g_state = IDLE;
         g_controlRegister &= ~ MC_CMD_DISABLE_DRIVER;
     }
     else if (g_controlRegister & MC_CMD_ENABLE_DRIVER)
@@ -144,18 +144,18 @@ void checkCtrlReg(void)
         return;
     }
 
-    if ((g_faultRegister & g_mcIgnoredFaults) || g_statusRegister & MC_STATE_DISABLE ||
-            g_controlRegister || g_mcParamUpdates )
-    {
-        g_statusRegister &= ~MC_STATE_ARMED;
-    }
-
-    if (g_controlRegister & MC_CMD_EXECUTE_DRIVE && g_statusRegister & MC_STATE_ARMED)
-    {
+//    if ((g_faultRegister & g_mcIgnoredFaults) || g_statusRegister & MC_STATE_DISABLE ||
+//            g_controlRegister || g_mcParamUpdates || g_targetPosition == 0)
+//    {
+//        g_statusRegister &= ~MC_STATE_ARMED;
+//    } else if (g_controlRegister & MC_CMD_EXECUTE_DRIVE && g_statusRegister & MC_STATE_ARMED)
+//    {
+    if (g_controlRegister & MC_CMD_EXECUTE_DRIVE && g_targetPosition && g_targetSpeed) {
         g_state = RUNNING;
-    } else {
-        g_statusRegister |= MC_STATE_ARMED;
     }
+//    } else {
+//        g_statusRegister |= MC_STATE_ARMED;
+//    }
 }
 
 

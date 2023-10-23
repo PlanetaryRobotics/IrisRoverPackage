@@ -39,7 +39,7 @@ void initializeSoftwareControlVariables(void)
     // software control related variables (rate groups, internal state machine)
     g_controlPrescaler = PI_SPD_CONTROL_PRESCALER;
     g_closedLoop = false;
-    g_state = RUNNING;
+    g_state = IDLE;
     g_cmdState = NO_CMD;
     g_controlRegister = 0; // see main.h for bits
 }

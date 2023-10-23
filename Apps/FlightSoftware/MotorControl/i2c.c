@@ -244,7 +244,7 @@ inline void i2cSlaveTransactionDone(const uint8_t cmd){
         // E-STOP CHECK
         if(g_controlRegister & MC_CMD_DISABLE_DRIVER)
         {
-            g_cmdState = DISABLE;
+            g_state = DISABLE;
             disableGateDriver();
         }
 

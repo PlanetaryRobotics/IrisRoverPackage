@@ -351,6 +351,8 @@ void checkTargetReached(void)
     {
         // target has been reached
         g_targetReached = true;
+        g_state = DISABLE;
+        disableGateDriver();
         g_controlRegister &= ~EXECUTE_COMMAND;
         g_statusRegister |= POSITION_CONVERGED;
         // turn off output
@@ -360,6 +362,7 @@ void checkTargetReached(void)
     else
     {
         // target not reached yet
+        g_state = RUNNING;
         g_targetReached = false;
         g_statusRegister &= ~POSITION_CONVERGED;
     }
@@ -563,25 +566,25 @@ void main(void)
         }
 
         checkTargetReached();
-        g_targetDirection = -1 * (g_targetPosition - g_currentPosition < 0);
+//        g_targetDirection = -1 * (g_targetPosition - g_currentPosition < 0);
 
         // target position sets direction motor drives in
-//        if (g_targetPosition - g_currentPosition >= 0)
-//        {
-//            g_targetDirection = 1;
-//        }
-//        else
-//        {
-//            g_targetDirection = -1;
-//        }
+        if (g_targetPosition - g_currentPosition >= 0)
+        {
+            g_targetDirection = 1;
+        }
+        else
+        {
+            g_targetDirection = -1;
+        }
 
         // check if driving in open or closed loop (& have been told to execute command), act accordingly
-        if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND)
+        if (g_controlRegister & DRIVE_OPEN_LOOP)
         {
             // driving in fully open loop
             driveOpenLoop();
         }
-        else if (g_controlRegister & EXECUTE_COMMAND)
+        else if (g_state != RUNNING)
         {
             // driving closed loop
 

@@ -95,6 +95,7 @@ typedef enum StateMachine
 {
     IDLE,   // motor driver turned off, target & current position reset to 0
     RUNNING, // actively trying to converge to target positions
+    DISABLE,
     FAULT
 } StateMachine;
 
@@ -102,7 +103,7 @@ typedef enum StateMachine
 typedef enum CmdState
 {
     RUN,     // if in IDLE, switch to RUNNING
-    DISABLE, // if in RUNNING, switch to IDLE
+    DISABLED, // if in RUNNING, switch to IDLE
     NO_CMD   // don't change state
 } CmdState;
 

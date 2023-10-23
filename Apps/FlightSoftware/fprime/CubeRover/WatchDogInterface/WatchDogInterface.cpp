@@ -85,6 +85,8 @@ namespace CubeRover
         Read_Temp();
         Read_Current();
 
+        setExt28VRaw(0);
+
         // Let the Watchdog know we've booted, incl. current software version (useful for later Hercules Remote Programming):
         debugPrintfToWatchdog("Hercules Boot v.%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION);
 
@@ -237,9 +239,11 @@ namespace CubeRover
         sloppyResourceProtectionMutex.lock();
         // Convert int into reset_values_possible
         reset_values_possible reset_value = (reset_values_possible)reset_enum_number;
-        // Check that reset_value is correct
-        if (reset_value >= reset_values_possible_MAX)
+        // Check that reset_value is possible
+        if (reset_value >= reset_values_possible_MAX && reset_value >= 0xFF)
         {
+            // reset_values_possible_MAX is not actually max, just last + 1.
+            // so, just allow any U8 (WD max) through and let WD sort it out.
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
             sloppyResourceProtectionMutex.unLock();
             return false;
@@ -320,9 +324,11 @@ namespace CubeRover
                                                            reset_values_possible resetValue,
                                                            bool sendResponse)
     {
-        // Check that reset_value is correct
-        if (resetValue >= reset_values_possible_MAX && resetValue >= hdrm_deploy_signal_power_on)  // reset_values_possible_MAX is not actually max, just last + 1
+        // Check that reset_value is possible
+        if (resetValue >= reset_values_possible_MAX && resetValue >= 0xFF)
         {
+            // reset_values_possible_MAX is not actually max, just last + 1.
+            // so, just allow any U8 (WD max) through and let WD sort it out.
             this->log_WARNING_LO_WatchDogIncorrectResetValue();
             return false;
         }

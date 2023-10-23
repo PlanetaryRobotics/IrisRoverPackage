@@ -37,6 +37,9 @@ namespace CubeRover
     m_lpfAccX = 0.0;
     m_lpfAccY = 0.0;
     m_lpfAccZ = 0.0;
+    m_extAccRaw[0] = 0;
+    m_extAccRaw[1] = 0;
+    m_extAccRaw[2] = 0;
   }
 
   /**

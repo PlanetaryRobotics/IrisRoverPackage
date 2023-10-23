@@ -115,12 +115,13 @@ static bool waitWhileDeviceIsBusy(i2cBASE_t *i2c, I2cSlaveAddress_t slaveAddress
         }
 
         // Check if the slave address is acknowledged
-        if ((i2c->STR & I2C_NACK) != 0)
+        if ((i2c->STR & I2C_NACK) == 0){
+            return true;
+        }
         {
             // Slave address NACKed (clear the NACK bit)
             i2c->STR = I2C_NACK;
         }
-        return true;
     }
 }
 

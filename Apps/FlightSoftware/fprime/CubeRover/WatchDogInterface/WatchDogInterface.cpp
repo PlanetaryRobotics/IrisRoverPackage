@@ -85,6 +85,8 @@ namespace CubeRover
         Read_Temp();
         Read_Current();
 
+        setExt28VRaw(0);
+
         // Let the Watchdog know we've booted, incl. current software version (useful for later Hercules Remote Programming):
         debugPrintfToWatchdog("Hercules Boot v.%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION);
 

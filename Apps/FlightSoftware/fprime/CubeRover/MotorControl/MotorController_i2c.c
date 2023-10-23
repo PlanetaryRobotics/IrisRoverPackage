@@ -85,7 +85,13 @@ static bool waitWhileDeviceIsBusy(i2cBASE_t *i2c, I2cSlaveAddress_t slaveAddress
 
         // Wait for the ARDY flag
         while ((i2c->STR & I2C_ARDY) == 0)
-            ;
+        {
+            cumulative_timeout_cycles--;
+            if (cumulative_timeout_cycles == 0)
+            {
+                return false;
+            }
+        }
 
         // Set the STOP condition
         i2c->MDR |= I2C_STOP_COND;
@@ -120,9 +126,18 @@ static bool waitWhileDeviceIsBusy(i2cBASE_t *i2c, I2cSlaveAddress_t slaveAddress
 
 static bool sendByte(i2cBASE_t *i2c, uint8_t byte)
 {
+    // Quits the operation if the cumulative number of cycles spent waiting across all operations is greater than cumulative_timeout_cycles:
+    uint32_t cumulative_timeout_cycles = I2C_MASTER_READ_WRITE_MAX_DELAY_CYCLES;
+
     // Wait for the TXRDY flag to transmit data or ARDY if we get NACKed
     while ((i2c->STR & (I2C_TX | I2C_ARDY)) == 0)
-        ;
+    {
+        cumulative_timeout_cycles--;
+        if (cumulative_timeout_cycles == 0)
+        {
+            return false;
+        }
+    }
 
     // If a NACK occurred then SCL is held low and STP bit cleared
     if (i2c->STR & I2C_NACK)
@@ -138,9 +153,18 @@ static bool sendByte(i2cBASE_t *i2c, uint8_t byte)
 
 static bool receiveByte(i2cBASE_t *i2c, uint8_t *byte)
 {
+    // Quits the operation if the cumulative number of cycles spent waiting across all operations is greater than cumulative_timeout_cycles:
+    uint32_t cumulative_timeout_cycles = I2C_MASTER_READ_WRITE_MAX_DELAY_CYCLES;
+
     // Wait for the RXRDY flag to transmit data or ARDY if we get NACKed
     while ((i2c->STR & (I2C_RX | I2C_ARDY)) == 0)
-        ;
+    {
+            cumulative_timeout_cycles--;
+            if (cumulative_timeout_cycles == 0)
+            {
+                return false;
+            }
+    }
 
     // If a NACK occurred then SCL is held low and STP bit cleared
     if (i2c->STR & I2C_NACK)
@@ -152,7 +176,13 @@ static bool receiveByte(i2cBASE_t *i2c, uint8_t *byte)
 
     // Make sure that the RXRDY flag is set
     while ((i2c->STR & I2C_RX) == 0)
-        ;
+    {
+            cumulative_timeout_cycles--;
+            if (cumulative_timeout_cycles == 0)
+            {
+                return false;
+            }
+    }
 
     *byte = (uint8_t)i2c->DRR;
     return true;

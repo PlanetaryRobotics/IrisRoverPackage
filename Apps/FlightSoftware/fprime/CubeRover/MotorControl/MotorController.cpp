@@ -46,7 +46,7 @@ namespace CubeRover
         void *data;
         getReg(&(mc->msp430_McRegStruct), reg, &data);
 
-        if (data == NULL || reg >= MC_REG_MAX) {
+        if (data == NULL || reg >= MC_REG_SIZE) {
             return ERR_GETTING_PARAMS;
         }
 
@@ -151,7 +151,7 @@ namespace CubeRover
         MC_ERR_t err = NO_ERR;
         int errs = 0;
 
-        mc->herc_McRegStruct.mc_ctrlReg = MC_CMD_UPDATE_CONFIG;
+        mc->herc_McRegStruct.mc_ctrlReg = MC_CMD_OVERRIDE_PROTECTED;
 
         err = writeMcRegVal(mc, MC_REG_MC_CTRL);
         if (err != NO_ERR) {
@@ -164,8 +164,8 @@ namespace CubeRover
         errs += writeMcRegVal(mc, MC_REG_I_CURRENT);
         errs += writeMcRegVal(mc, MC_REG_P_SPEED);
         errs += writeMcRegVal(mc, MC_REG_I_SPEED);
-        errs += writeMcRegVal(mc, MC_REG_ACC_RATE);
-        errs += writeMcRegVal(mc, MC_REG_DEC_RATE);
+//        errs += writeMcRegVal(mc, MC_REG_ACC_RATE);
+//        errs += writeMcRegVal(mc, MC_REG_DEC_RATE);
 
         if (errs != 0)
         {
@@ -210,16 +210,16 @@ namespace CubeRover
         mc->herc_McRegStruct.mc_piSpdKi = speed_i_val;
         mc->updateConfigVals |= UPDATE_SPEED_I;
     };
-    void setAccVal(MotorControllerStruct *mc, int8_t acc_val)
-    {
-        mc->herc_McRegStruct.mc_acc_val = acc_val;
-        mc->updateConfigVals |= UPDATE_ACC_RATE;
-    };
-    void setDecVal(MotorControllerStruct *mc, int8_t dec_val)
-    {
-        mc->herc_McRegStruct.mc_dec_val = dec_val;
-        mc->updateConfigVals |= UPDATE_DEC_RATE;
-    };
+//    void setAccVal(MotorControllerStruct *mc, int8_t acc_val)
+//    {
+//        mc->herc_McRegStruct.mc_acc_val = acc_val;
+//        mc->updateConfigVals |= UPDATE_ACC_RATE;
+//    };
+//    void setDecVal(MotorControllerStruct *mc, int8_t dec_val)
+//    {
+//        mc->herc_McRegStruct.mc_dec_val = dec_val;
+//        mc->updateConfigVals |= UPDATE_DEC_RATE;
+//    };
 
 
 
@@ -228,68 +228,6 @@ namespace CubeRover
    // ----------------------------------------------------------------------
    // Command handler implementations
    // ----------------------------------------------------------------------
-
-   MC_ERR_t assertHercConfigState(MotorControllerStruct *mc)
-    {
-        MC_ERR_t err = NO_ERR;
-        switch(mc->currState)
-        {
-        case STATE_POWERED_OFF:
-        case STATE_IDLE:
-        case STATE_WRITE_PROTECTED:
-            err = NO_ERR;
-            break;
-        case STATE_ARMED:
-        case STATE_RUNNING:
-        case STATE_FAULT:
-        case STATE_UNKNOWN:
-        default:
-            err = ERR_BAD_STATE;
-            break;
-        }
-        return err;
-    }
-
-    MC_ERR_t assertMsp430ConfigAllowed(MotorControllerStruct *mc, MC_ICD_RegAddr reg)
-    {
-        MC_ERR_t err = ERR_WRITE_PROTECTED;
-        uint8_t writePermission = checkRegWritePermission(reg);
-        McStateVal_t msp430State = mc->msp430_McRegStruct.mc_stateReg;
-
-        switch(msp430State)
-        {
-        case MC_STATE_ARMED:
-        case MC_STATE_RUNNING:
-        case MC_STATE_TARGET_REACHED:
-        case MC_STATE_DISABLE:
-        case MC_STATE_FAULT:
-            if (writePermission > 3) {
-                err = NO_ERR;
-            }
-            break;
-        case MC_STATE_ENABLED:
-            if (writePermission > 2) {
-                err = NO_ERR;
-            }
-            break;
-        case MC_STATE_IDLE:
-            if (writePermission > 1) {
-                err = NO_ERR;
-            }
-            break;
-        case MC_STATE_WRITE_PROTECTED:
-            if (writePermission > 0) {
-                err = NO_ERR;
-            }
-            break;
-        default:
-            if (writePermission != 0) {
-                err = UNKNOWN;
-            }
-            break;
-        }
-        return err;
-    }
 
 
     /**

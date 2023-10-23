@@ -85,6 +85,7 @@ void initializeHallInterface(void)
 }
 
 
+
 //void initAllVars()
 //{
 //    initializeSensorVariables();

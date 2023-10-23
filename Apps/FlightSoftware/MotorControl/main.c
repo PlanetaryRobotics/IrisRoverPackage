@@ -224,82 +224,11 @@ void resetPiController(volatile PI_CONTROLLER *pi)
     pi->Umin = _IQ(-PI_OUTPUT_BOUNDS);
 }
 
-/**
- * @brief      Disable the drive
- */
-inline void disable(void)
-{
-    // disableGateDriver() already handles interrupt safety
-    // __disable_interrupt();
-    disableGateDriver();
-    g_targetPosition = 0;
-    g_currentPosition = 0;
-    g_state = IDLE;
-    g_statusRegister |= STATE_MACHINE_DISABLE; // status reg bit 3: 1 if in disable state, 0 if not
-    // __enable_interrupt();
-}
 
-/**
- * @brief      Enter run state
- */
-inline void run(void)
-{
-    if (g_state == RUNNING)
-    {
-        return; // already in RUNNING, nothing to do
-    }
-    
-    // disableGateDriver() already handles interrupt safety
-    // __disable_interrupt();
-    enableGateDriver();
-    g_targetDirection = (g_targetPosition - g_currentPosition >= 0) ? 1 : -1;
-    g_currentPosition = 0;
-    g_targetReached = false;
-    g_state = RUNNING;
-    // __enable_interrupt();
-}
 
-/**
- * @brief      Update the drive state machine
- */
-void updateDriverStateMachine(void)
-{
-    if (g_cmdState == DISABLE)
-    {
-        disable();
-    }
-    else if (g_cmdState == RUN && g_state == IDLE)
-    {
-        run();
-    }
-    g_cmdState = NO_CMD;
-}
 
-/**
- * @brief      Clears the DRV8304 Driver Fault Register.
- */
-void clear_driver_fault(void)
-{
-    __disable_interrupt(); // entering critical section
-    // Pull high first so you can then pull it low:
-    //    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    PJOUT |= GPIO_PIN0;
-    __delay_cycles(DELAY_100_ms);
-    // Reset Fault Register by pulsing ENABLE for 5-32us (18.5us):
-    //    GPIO_setOutputLowOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    PJOUT &= ~GPIO_PIN0;
-    __delay_cycles(296); // 18.5 us
-                         //    GPIO_setOutputHighOnPin(GPIO_PORT_PJ, GPIO_PIN0);
-    PJOUT |= GPIO_PIN0;
-    __enable_interrupt();
-}
-/**
- * @brief      Reads the whether the DRV8304 driver is in a "fault condition" (and should be cleared). Active low.
- */
-bool read_driver_fault(void)
-{
-    return !(PJIN & 0x02);
-}
+
+
 
 
 /*
@@ -545,7 +474,7 @@ void checkForClosedLoopErrors(void)
     else
     {
         // operating normally; no error
-        g_statusRegister &= ~CONTROLLER_ERROR;
+        g_statusRegister &= ~MC_FAULT_POSITION;
         g_errorCounter = 0;                                                 // reset error counter
         g_faultRegister &= ~(POSITION_NO_CHANGE & DRIVING_WRONG_DIRECTION); // clear faults in register
     }
@@ -558,7 +487,7 @@ void checkForClosedLoopErrors(void)
             g_currentPosition = 0;             // stop controller
             g_controlRegister &= ~EXECUTE_COMMAND;
         }
-        g_statusRegister |= CONTROLLER_ERROR;                     // add flag to status register
+        g_statusRegister |= MC_FAULT_POSITION;                     // add flag to status register
     }
 }
 
@@ -571,7 +500,7 @@ void handleMotorTimeout(void)
     g_targetPosition = g_currentPosition; // so motor won't flip g_targetReached again
     g_controlRegister &= ~EXECUTE_COMMAND;
     g_faultRegister |= DRIVING_TIMEOUT;
-    g_statusRegister |= (POSITION_CONVERGED | CONTROLLER_ERROR);
+    g_statusRegister |= (POSITION_CONVERGED | MC_FAULT_DRIVE_TIMEOUT);
     g_drivingTimeoutCtr = 0;
 }
 
@@ -582,6 +511,7 @@ void initializeClockSignal()
     CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
     CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
 }
+
 
 /*
  * @brief   Do everything necessary to init MSP and begin driving
@@ -625,17 +555,25 @@ void main(void)
 
     while (1)
     {
+        checkAllFaults();
+        checkCtrlReg();
+
+        if (g_state != RUNNING) {
+            continue; // Would prefer to pause...
+        }
+
         checkTargetReached();
+        g_targetDirection = -1 * (g_targetPosition - g_currentPosition < 0);
 
         // target position sets direction motor drives in
-        if (g_targetPosition - g_currentPosition >= 0)
-        {
-            g_targetDirection = 1;
-        }
-        else
-        {
-            g_targetDirection = -1;
-        }
+//        if (g_targetPosition - g_currentPosition >= 0)
+//        {
+//            g_targetDirection = 1;
+//        }
+//        else
+//        {
+//            g_targetDirection = -1;
+//        }
 
         // check if driving in open or closed loop (& have been told to execute command), act accordingly
         if (g_controlRegister & DRIVE_OPEN_LOOP && g_controlRegister & EXECUTE_COMMAND)

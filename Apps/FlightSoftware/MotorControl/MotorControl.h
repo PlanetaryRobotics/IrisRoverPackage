@@ -11,12 +11,20 @@
 #include "allVars.h"
 
 MC_ICD_RegStruct mcRegStruct;
+volatile uint32_t g_mcParamUpdates;
+McFaultMask_t g_mcIgnoredFaults;
+
 void initMotorControl(McI2cAddr_t i2cAddr);
 
-void updateMotorController();
+
+void checkCtrlReg(void);
+void updateMotorController(void);
+
+void checkAllFaults(void);
 
 
-McFaultMask_t g_mcIgnoredFaults;
+
+
 uint8_t g_mcDefinedMaxSpeed;
 //bool updateProtectedVar(MC_IDC_Protected_Var var, int32_t new_val);
 

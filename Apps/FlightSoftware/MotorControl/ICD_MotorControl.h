@@ -12,16 +12,13 @@
 extern "C" {
 #endif
 
-#ifdef FPRIME_BUILD
-#include "Fw/Types/BasicTypes.hpp"
-#else
 #include <stdint.h>
 #include <stdio.h>
-#endif
 
 #define I2C_RX_BUFFER_MAX_SIZE      8
 #define I2C_TX_BUFFER_MAX_SIZE      8
 #define I2C_MAX_DATA_SIZE           4
+#define I2C_MAX_NUM_REG             16
 
 #define MC_SLAVE_I2C_ADDR_BASE      0x48
 
@@ -71,7 +68,7 @@ typedef enum MC_ICD_RegAddr
     // MC_REG_ACC_RATE            = 10,   // RW - 2 Bytes
     // MC_REG_DEC_RATE            = 11,   // RW - 2 Bytes
     MC_REG_MAX_CURRENT          = 10,   // RW - 2 Bytes (protected write)
-    MC_REG_IGNORE_FAULT_MASK    = 11,   // RW - 1 Byte  (protected write)
+    MC_REG_DISABLE_FAULT_MASK    = 11,   // RW - 1 Byte  (protected write)
     MC_REG_MC_CTRL              = 12,   // RW - 1 Byte
     MC_REG_MC_STATUS            = 13,   // RO - 1 Byte
     MC_REG_MC_FAULT             = 14,   // RO - 1 Byte
@@ -123,7 +120,7 @@ typedef enum MC_ICD_State
                                         //          MC_CMD_UPDATE_CONFIG, MC_CMD_DISABLE_DRIVER,
                                         //          MC_CMD_RESET_CONTROLLER
                                         //      Target vals may be updated
-    MC_CLEAR_DRIVER_FAULT       = 2,    // msp430 Attempted to clear fault in motor driver
+    MC_STATUS_CLEAR_FAULTS      = 2,    // msp430 Attempted to clear fault in motor driver
     // MC_STATE_ARMED              = 2,    // Vigilant for MC_CMD_EXECUTE_DRIVE
                                         //      If timeout: check MC_CMD_DISABLE_DRIVER,
                                         //          MC_CMD_RESET_CONTROLLER, MC_CMD_E_STOP
@@ -135,7 +132,7 @@ typedef enum MC_ICD_State
                                         //      or MC_CMD_E_STOP (goto STATE_DISABLE)
     MC_STATE_TARGET_REACHED     = 8,    // msp430 Position Converged
                                         //      goto STATE_DISABLE
-    MC_CONTROLLER_ERROR         = 16,    // msp430 Fault with position controller -> cannot converge
+    MC_STATE_ARMED              = 16,   // msp430 has set all received param requests
     // MC_STATE_DISABLE            = 16,   // Disable Drivers, update Targets, etc
                                         //      if MC_NOFAULT goto STATE_IDLE, else goto MC_STATE_FAULT
     MC_STATE_WRITE_PROTECTED    = 64,   // Updates all params received from Herc
@@ -151,7 +148,7 @@ typedef enum MC_IDC_Fault
     MC_NO_FAULT                 = 0,
     MC_FAULT_DRIVER             = 1,    // msp430 fault in DRV8304 motor drivers
     // MC_FAULT_I2C_ERROR         = 1,
-    MC_FAULT_POSITION           = 2,    // msp430 position readings not changing
+    MC_FAULT_POSITION           = 2,    // msp430 position readings not changing / cannot converge
                                         // => maybe dead hall sensors?
     // MC_FAULT_BAD_CONFIG_VAL    = 2,
     MC_FAULT_DRIVE_DIRECTION    = 4,    // msp430 motor driving wrong direction
@@ -210,11 +207,43 @@ typedef struct McI2cDataPkt
     MC_ICD_AccessRW access;
 }McI2cDataPkt;
 
+
+
+inline uint8_t regSizeMap(MC_ICD_RegAddr reg)
+{
+    switch (reg)
+    {
+        case MC_REG_I2C_ADDRESS:
+        case MC_REG_TARGET_SPEED:
+        case MC_REG_MC_CTRL:
+        case MC_REG_MC_FAULT:
+        case MC_REG_MC_STATUS:
+        case MC_REG_DISABLE_FAULT_MASK:
+            return 1;
+        case MC_REG_P_CURRENT:
+        case MC_REG_I_CURRENT:
+        case MC_REG_P_SPEED:
+        case MC_REG_I_SPEED:
+        case MC_REG_MOTOR_CURRENT:
+        // case MC_REG_ACC_RATE:
+        // case MC_REG_DEC_RATE:
+        case MC_REG_MAX_CURRENT:
+            return 2;
+        case MC_REG_TARGET_POSITION:
+        case MC_REG_CURRENT_POSITION:
+            return 4;
+        default:
+            return 0;
+    }
+};
+
+
+
 void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr);
 McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID);
 uint8_t checkRegWritePermission(MC_ICD_RegAddr reg);
 
-uint32_t regSizeMap(MC_ICD_RegAddr reg);
+// uint32_t regSizeMap(MC_ICD_RegAddr reg);
 void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void **data);
 void setReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void *data);
 

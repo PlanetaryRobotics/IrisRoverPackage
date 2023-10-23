@@ -13,7 +13,7 @@ void initMcRegStruct(MC_ICD_RegStruct *mcReg, McI2cAddr_t addr)
     mcReg->mc_i2c_addr = addr;
 
     mcReg->mc_target_pos = 0;
-    mcReg->mc_target_speed = DEFAULT_TARGET_SPEED_IQ;
+    mcReg->mc_target_speed = DEFAULT_TARGET_SPEED;
 
     mcReg->mc_curr_pos = 0; // ticks
     mcReg->mc_curr_speed = 0; // 0-100%
@@ -106,7 +106,7 @@ McI2cDataPkt makeMcI2cDataPkt(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID)
         dataPkt.data = &(mcReg->mc_maxCurrent);
         dataPkt.dataLen = sizeof(mcReg->mc_ctrlReg);
         dataPkt.access = PROTECTED_WRITE;
-    case MC_REG_IGNORE_FAULT_MASK:
+    case MC_REG_DISABLE_FAULT_MASK:
         dataPkt.data = &(mcReg->mc_ignoreFaults);
         dataPkt.dataLen = sizeof(mcReg->mc_ignoreFaults);
         dataPkt.access = PROTECTED_WRITE;
@@ -172,33 +172,7 @@ uint8_t checkRegWritePermission(MC_ICD_RegAddr reg)
 
 // --- ICD_MotorControl.c
 
-uint32_t regSizeMap(MC_ICD_RegAddr reg)
-{
-    switch (reg)
-    {
-        case MC_REG_I2C_ADDRESS:
-        case MC_REG_TARGET_SPEED:
-        case MC_REG_MC_CTRL:
-        case MC_REG_MC_FAULT:
-        case MC_REG_MC_STATUS:
-        case MC_REG_IGNORE_FAULT_MASK:
-            return 1;
-        case MC_REG_P_CURRENT:
-        case MC_REG_I_CURRENT:
-        case MC_REG_P_SPEED:
-        case MC_REG_I_SPEED:
-        case MC_REG_MOTOR_CURRENT:
-        // case MC_REG_ACC_RATE:
-        // case MC_REG_DEC_RATE:
-        case MC_REG_MAX_CURRENT:
-            return 2;
-        case MC_REG_TARGET_POSITION:
-        case MC_REG_CURRENT_POSITION:
-            return 4;
-        default:
-            return 0;
-    }
-}
+
 
 void getReg(MC_ICD_RegStruct *mcReg, MC_ICD_RegAddr regID, void **data)
 {

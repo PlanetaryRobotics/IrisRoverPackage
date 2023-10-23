@@ -39,7 +39,6 @@
 
 // bits of status register (shares 1,2,4 with control register)
 #define POSITION_CONVERGED 8
-#define CONTROLLER_ERROR 16 // indicates something has gone awry with position controller; will not converge
 
 // bits of fault register
 #define DRIVER_FAULT 1            // for if there is a fault in the DRV8304 motor drivers
@@ -95,7 +94,8 @@ typedef struct HallSensor
 typedef enum StateMachine
 {
     IDLE,   // motor driver turned off, target & current position reset to 0
-    RUNNING // actively trying to converge to target positions
+    RUNNING, // actively trying to converge to target positions
+    FAULT
 } StateMachine;
 
 // possible transition options for internal state machine
@@ -106,8 +106,10 @@ typedef enum CmdState
     NO_CMD   // don't change state
 } CmdState;
 
+volatile StateMachine g_state;
+volatile CmdState g_cmdState;
 
-
+inline void setParamUpdateFlag(MC_ICD_RegAddr reg);
 
 _iq g_currentPhaseA;
 _iq g_currentPhaseB;
@@ -146,10 +148,7 @@ volatile IMPULSE g_impulse;
 bool g_closedLoop;
 bool g_targetReached;
 volatile uint8_t g_targetSpeed;
-
-volatile StateMachine g_state;
-volatile CmdState g_cmdState;
-
+uint16_t g_maxCurrent;
 volatile uint16_t g_accelRate;  // TODO: UNUSED
 volatile uint16_t g_decelRate;  // TODO: UNUSED
 
@@ -164,11 +163,20 @@ volatile uint32_t g_drivingTimeoutCtr;
 //bool g_readSensors;
 
 
+/**
+ * @brief      Disable the drive
+ */
+inline void disableDriver(void);
 
 //void initAllVars();
 void initializeSensorVariables(void);
 void initializeSoftwareControlVariables(void);
 void initializeControllerVariables(void);
 void initializeHallInterface(void);
+
+void checkDriverFault(void);
+void checkAllFaults(void);
+
+void clearDriverFault(void);
 
 #endif /* ALLVARS_H_ */

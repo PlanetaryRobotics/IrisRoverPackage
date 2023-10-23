@@ -545,8 +545,8 @@ namespace CubeRover
         case MC_REG_I_CURRENT:
         case MC_REG_P_SPEED:
         case MC_REG_I_SPEED:
-        case MC_REG_ACC_RATE:
-        case MC_REG_DEC_RATE:
+//        case MC_REG_ACC_RATE:
+//        case MC_REG_DEC_RATE:
             return 2;
         case MC_REG_TARGET_POSITION:
         case MC_REG_CURRENT_POSITION:

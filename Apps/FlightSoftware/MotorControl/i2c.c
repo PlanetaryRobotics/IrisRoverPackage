@@ -21,21 +21,7 @@ I2cMode g_slaveMode;
 uint8_t g_i2cSlaveAddress;
 uint8_t g_readRegAddr;
 uint8_t g_i2cCmdLength[MAX_NB_CMDS];
-bool g_sendTelem = false;
-
-// external variables that are written and read to
-//extern volatile _iq g_currentSpeed;
-//extern volatile int32_t g_currentPosition;
-//extern volatile int32_t g_targetPosition;
-//extern volatile struct PI_CONTROLLER g_piSpd;
-//extern volatile struct PI_CONTROLLER g_piCur;
-//extern volatile uint16_t g_maxSpeed;
-//extern uint8_t g_statusRegister;
-//extern uint8_t g_controlRegister;
-//extern uint8_t g_faultRegister;
-//extern uint32_t g_drivingTimeoutCtr;
-//extern uint16_t g_accelRate, g_decelRate;
-//extern CmdState g_cmdState;
+//bool g_sendTelem = false;
 
 /**
  * @brief      Disables i 2 c receive interrupt.
@@ -96,15 +82,15 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
       g_rxBufferIdx = 0;
       g_txBufferIdx = 0;
       g_rxByteCtr = 0;
-      uint8_t *txData;
+      // uint8_t * txData;
 
   switch(cmd)
   {
       //-----------------------------------------------------------------
       // Commands requesting to send data to master
       //-----------------------------------------------------------------
-      case I2C_ADDRESS:
-          txData = (uint8_t*)&g_i2cSlaveAddress;
+      case MC_REG_I2C_ADDRESS:
+          // txData = (uint8_t*)&g_i2cSlaveAddress;
           g_slaveMode = TX_DATA_MODE;
           g_txByteCtr = g_i2cCmdLength[cmd];
           //Fill out the TransmitBuffer
@@ -112,8 +98,8 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           disableI2cRxInterrupt();
           enableI2cTxInterrupt();
         break;
-      case CURRENT_POSITION:
-          txData = (uint8_t*)&g_currentPosition;
+      case MC_REG_CURRENT_POSITION:
+          // txData = (uint8_t*)&g_currentPosition;
           g_slaveMode = TX_DATA_MODE;
           g_txByteCtr = g_i2cCmdLength[cmd];
           //Fill out the TransmitBuffer
@@ -121,10 +107,10 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           disableI2cRxInterrupt();
           enableI2cTxInterrupt();
         break;
-      case CURRENT_SPEED:
+      case MC_REG_CURRENT_SPEED:
       {
           int16_t speed_info = (int16_t)(g_currentSpeed >> 7); // 7 LSBs are 0s, 16 MSBs are too
-          txData = (uint8_t*)&speed_info;
+          // txData = (uint8_t*)&speed_info;
           g_slaveMode = TX_DATA_MODE;
           g_txByteCtr = g_i2cCmdLength[cmd];
           //Fill out the TransmitBuffer
@@ -133,8 +119,8 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           enableI2cTxInterrupt();
         break;
       }
-      case MOTOR_CURRENT:
-          txData = (uint8_t*)&g_piCur.Fbk;
+      case MC_REG_MOTOR_CURRENT:
+          // txData = (uint8_t*)&g_piCur.Fbk;
           g_slaveMode = TX_DATA_MODE;
           g_txByteCtr = g_i2cCmdLength[cmd];
           //Fill out the TransmitBuffer
@@ -142,8 +128,8 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           disableI2cRxInterrupt();
           enableI2cTxInterrupt();
         break;       
-      case STATUS_REGISTER:
-          txData = (uint8_t*)&g_statusRegister;
+      case MC_REG_MC_STATUS:
+          // txData = (uint8_t*)&g_statusRegister;
           g_slaveMode = TX_DATA_MODE;
           g_txByteCtr = g_i2cCmdLength[cmd];
           //Fill out the TransmitBuffer
@@ -151,16 +137,10 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           disableI2cRxInterrupt();
           enableI2cTxInterrupt();
         break;
-      case FAULT_REGISTER:
-          txData = (uint8_t*)&g_faultRegister;
+      case MC_REG_MC_FAULT:
+          // txData = (uint8_t*)&g_faultRegister;
           g_slaveMode = TX_DATA_MODE;
           g_txByteCtr = g_i2cCmdLength[cmd];
-
-//          //update g_faultRegister with if there is fault in motor driver
-//          if(read_driver_fault())
-//              g_faultRegister |= DRIVER_FAULT;
-//          else
-//              g_faultRegister &= ~DRIVER_FAULT;
 
           //Fill out the TransmitBuffer
           copyArray((uint8_t*)&g_faultRegister, (uint8_t*)g_txBuffer, g_txByteCtr);
@@ -185,7 +165,7 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
           disableI2cTxInterrupt();
           return;
       default:
-//          mc_fault = mc_fault | MC_FAULT_I2C_ERROR;
+          g_faultRegister |= MC_FAULT_I2C_ERROR;
           __no_operation();
           return;
   }
@@ -201,95 +181,74 @@ inline void i2cSlaveProcessCmd(const uint8_t cmd)
 inline void i2cSlaveTransactionDone(const uint8_t cmd){
     switch(cmd)
     {
-      case I2C_ADDRESS:
-      case CURRENT_POSITION:
-      case MOTOR_CURRENT:
+      case MC_REG_I2C_ADDRESS:
+      case MC_REG_CURRENT_POSITION:
+      case MC_REG_CURRENT_SPEED:
+      case MC_REG_MOTOR_CURRENT:
       case STATUS_REGISTER:
       case FAULT_REGISTER:
         break;
-      case TARGET_POSITION:
+      case MC_REG_TARGET_POSITION:
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_targetPosition,
-                  sizeof(g_targetPosition));
-        /* FIND ANOTHER SPOT */
-        g_currentPosition = 0; // reset because target pos is relative
-        g_statusRegister &= ~MC_STATE_TARGET_REACHED; // likely no longer converged (if still converged, control loop will correct for that)
-        g_drivingTimeoutCtr = 0; //reset timeout counter
-        g_faultRegister = 0; // reset fault register
+                  (uint8_t*)&(mcRegStruct.mc_target_pos),
+                  sizeof(mcRegStruct.mc_target_pos));
+        setParamUpdateFlag(cmd);
         break;
-      case TARGET_SPEED:
-      {
+      case MC_REG_TARGET_SPEED:
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_targetSpeed,
-                  sizeof(g_targetSpeed));
+                  (uint8_t*)&(mcRegStruct.mc_target_speed),
+                  sizeof(mcRegStruct.mc_target_speed));
+        setParamUpdateFlag(cmd);
         break;
-      }
-      case P_CURRENT:
-      {
+      case MC_REG_P_CURRENT:
          // This type conversion (casting _IQ(15) to uint8_t) has been verified to be working as of 5-1-2021
         copyArray((uint8_t*)g_rxBuffer,
-                        (uint8_t*)&g_piCur.Kp,
-                        sizeof(g_piCur.Kp));
+                        (uint8_t*)&(mcRegStruct.mc_piCurKp),
+                        sizeof(mcRegStruct.mc_piCurKp));
+        setParamUpdateFlag(cmd);
         break;
-      }
-      case I_CURRENT:
-      {
+      case MC_REG_I_CURRENT:
         copyArray((uint8_t*)g_rxBuffer,
-                  (uint8_t*)&g_piCur.Ki,
-                  sizeof(g_piCur.Ki ));
+                  (uint8_t*)&(mcRegStruct.mc_piCurKi),
+                  sizeof(mcRegStruct.mc_piCurKi));
+        setParamUpdateFlag(cmd);
         break;
-      }
-      case P_SPEED:
-      {
+      case MC_REG_P_SPEED:
         copyArray((uint8_t*)g_rxBuffer,
-            (uint8_t*)&g_piSpd.Kp,
-            sizeof(g_piSpd.Kp ));
+                  (uint8_t*)&(mcRegStruct.mc_piSpdKp),
+                  sizeof(mcRegStruct.mc_piSpdKp));
+        setParamUpdateFlag(cmd);
         break;
-      }
-      case I_SPEED:
-      {
+      case MC_REG_I_SPEED:
         copyArray((uint8_t*)g_rxBuffer,
-                (uint8_t*)&g_piSpd.Ki,
-                sizeof(g_piSpd.Ki ));
+                  (uint8_t*)&(mcRegStruct.mc_piSpdKi),
+                  sizeof(mcRegStruct.mc_piSpdKi));
+        setParamUpdateFlag(cmd);
         break;
-      }
+      case MC_REG_MAX_CURRENT:
+          copyArray((uint8_t*)g_rxBuffer,
+                    (uint8_t*)&(mcRegStruct.mc_maxCurrent),
+                    sizeof(mcRegStruct.mc_maxCurrent));
+          setParamUpdateFlag(cmd);
+          break;
+      case MC_REG_DISABLE_FAULT_MASK:
+          copyArray((uint8_t*)g_rxBuffer,
+                    (uint8_t*)&(mcRegStruct.mc_ignoreFaults),
+                    sizeof(mcRegStruct.mc_ignoreFaults));
+          setParamUpdateFlag(cmd);
+          break;
       case CONTROL_REGISTER:
         copyArray((uint8_t*)g_rxBuffer,
                   (uint8_t*)&g_controlRegister,
                    sizeof(g_controlRegister));
         // E-STOP CHECK
-        if(g_controlRegister & STATE_MACHINE_DISABLE)
+        if(g_controlRegister & MC_CMD_DISABLE_DRIVER)
         {
             g_cmdState = DISABLE;
-            disable();
-        }
-        /* FIND ANOTHER SPOT */
-        // update status register if told to drive in open loop
-        if(g_controlRegister & DRIVE_OPEN_LOOP){
-            g_statusRegister |= DRIVE_OPEN_LOOP;
+            disableGateDriver();
         }
 
-        if(g_controlRegister & MC_CMD_CLEAR_FAULTS){
-            clear_driver_fault();
-            g_statusRegister |= MC_CMD_CLEAR_FAULTS; // indicates an attempt to clear fault was made
-        }
-        // update state machine if requested
-        if (g_controlRegister & STATE_MACHINE_RUN){
-            g_cmdState = RUN;
-            updateDriverStateMachine();
-            g_statusRegister &= ~STATE_MACHINE_DISABLE;
-        }
 
-        break;     
-      case ACC_RATE:
-        copyArray((uint8_t*)g_rxBuffer,
-                        (uint8_t*)&g_accelRate,
-                        sizeof(g_accelRate));
-        break;
-      case DEC_RATE:
-        copyArray((uint8_t*)g_rxBuffer,
-                      (uint8_t*)&g_decelRate,
-                      sizeof(g_decelRate));
         break;
       default:
         break;  
@@ -312,8 +271,8 @@ void initializeCmdLength()
   g_i2cCmdLength[I_CURRENT] = 2;
   g_i2cCmdLength[P_SPEED] = 2;
   g_i2cCmdLength[I_SPEED] = 2;
-  g_i2cCmdLength[ACC_RATE] = 2;
-  g_i2cCmdLength[DEC_RATE] = 2;
+//  g_i2cCmdLength[ACC_RATE] = 2;
+//  g_i2cCmdLength[DEC_RATE] = 2;
   g_i2cCmdLength[CONTROL_REGISTER] = 1;
   g_i2cCmdLength[STATUS_REGISTER] = 1;
   g_i2cCmdLength[FAULT_REGISTER] = 1;

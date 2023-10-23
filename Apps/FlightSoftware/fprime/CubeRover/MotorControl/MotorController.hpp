@@ -115,9 +115,7 @@ namespace CubeRover
         MC_ERR_t writeMcRegVal(MotorControllerStruct *mc, MC_ICD_RegAddr reg);
 //        MC_ERR_t readMcRegI2c(McI2cAddr_t i2c_addr, MC_ICD_RegAddr reg, uint32_t dataLen, void *_data);
 
-        // MUTEX SAFE
-        MC_ERR_t assertHercConfigState(MotorControllerStruct *mc);
-
+        // SHOULD BE MUTEX SAFE
         MC_ERR_t getMcRegAll(MotorControllerStruct *mc);
         MC_ERR_t setMcRegAll(MotorControllerStruct *mc);
 

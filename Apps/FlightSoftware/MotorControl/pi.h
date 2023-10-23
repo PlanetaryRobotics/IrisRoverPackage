@@ -29,3 +29,5 @@ typedef struct PI_CONTROLLER{  _iq  Ref;   			// Input: reference set-point
 
 #endif // __PI_H__
 
+void resetPiController(volatile PI_CONTROLLER *pi);
+

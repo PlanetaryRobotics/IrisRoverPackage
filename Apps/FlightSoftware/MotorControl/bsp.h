@@ -41,5 +41,4 @@ void initializePwmModules();
 #define DELAY_100_ms                1600000  // 100ms in _delay_cycles()
 #define DELAY_296_us
 
-
 #endif /* BSP_H_ */

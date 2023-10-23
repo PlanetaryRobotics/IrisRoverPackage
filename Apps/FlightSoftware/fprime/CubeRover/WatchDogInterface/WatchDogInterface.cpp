@@ -240,7 +240,7 @@ namespace CubeRover
         // Convert int into reset_values_possible
         reset_values_possible reset_value = (reset_values_possible)reset_enum_number;
         // Check that reset_value is possible
-        if (resetValue >= reset_values_possible_MAX && resetValue >= 0xFF)
+        if (reset_value >= reset_values_possible_MAX && reset_value >= 0xFF)
         {
             // reset_values_possible_MAX is not actually max, just last + 1.
             // so, just allow any U8 (WD max) through and let WD sort it out.

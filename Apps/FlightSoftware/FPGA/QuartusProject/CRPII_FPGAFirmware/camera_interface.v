@@ -547,7 +547,12 @@ localparam BOOT                                 = 4'd0,
            SWITCHING_CAM__WAIT_FOR_FRAME_END    = 4'd6,
            COMMANDED__WAITING_FOR_FRAME_END     = 4'd7,
            STREAMING_IMAGE                      = 4'd8;
-reg [3:0] capture_state = BOOT;
+// Declare the state register to be "safe" to implement
+// a safe state machine that can recover gracefully from
+// an illegal state (by returning to the reset state).
+(* syn_encoding = "safe" *) reg [3:0] capture_state = BOOT;
+reg [3:0] capture_state_prev_clk = BOOT; // Capture state on the last clk cycle
+reg [3:0] capture_state_next = BOOT; // Capture state to transition to on the next cycle
 
 // * Flags for Key States & State Transitions *
 wire not_streaming = (capture_state != STREAMING_IMAGE);
@@ -565,7 +570,6 @@ localparam STATE_TIMEOUT_MAX_CYCLES = ONE_SECOND * 37'd60 * STATE_TIMEOUT_MINUTE
 // * Derived Camera Signals (MUX) *
 reg no_camera_selected = 1'b1; // Whether any cameras have been selected (properly, through the FSM)
 reg selected_camera_idx = 1'b0; // Which camera is currently selected ('b0 for Cam 1, 'b1 for Cam 2)
-reg camera_selection_in_progress = 1'b0; // Flag to let observers know that the camera is actively being switched and to not track any transitions the camera signals may be doing.
 // MUX'd input signals from sensors (assigned to no sensor if we have nothing selected):
 wire        FV          = no_camera_selected ? 1'b0             : (selected_camera_idx ? camera_2_FV : camera_1_FV);
 wire        LV          = no_camera_selected ? 1'b0             : (selected_camera_idx ? camera_2_LV : camera_1_LV);
@@ -574,23 +578,30 @@ wire [11:0] PIXDATA     = no_camera_selected ? {8'hCC, 4'b0}    : (selected_came
 
 
 // * State Machine Transition Logic*
-task change_state(input [3:0] new_state);
-begin
-    state_timer <= 37'b0;    // reset timer for the next cycle
-    capture_state <= new_state; // change the state for the next cycle
-end
-endtask
+// State machine logic impl. as combo per Intel recommendation for Quartus
+// auto-detection.
+reg camera_selection_in_progress = 1'b0; // Flag to let observers know that the camera is actively being switched and to not track any transitions the camera signals may be doing.
+// * State Transitioner & Timer *
 always @(posedge clk) begin
-    if(state_timer > STATE_TIMEOUT_MAX_CYCLES && capture_state != BOOT && capture_state != IDLE) begin
+    if(capture_state != capture_state_next) begin
+        state_timer <= 37'b0;  // immediately reset timer, then update state:
+        // Advance to next state:
+        capture_state <= capture_state_next;
+    end else begin
+        state_timer <= state_timer + 37'b1;
+    end
+
+    // Always update `capture_state_prev_clk` b/c, by definition,
+    // it's always supposed to be a 1 clk-cycle shadow (1-FF shift reg) of
+    // `capture_state`:
+    capture_state_prev_clk <= capture_state; // note this is in parallel w/ the above
+
+    if(state_timer > STATE_TIMEOUT_MAX_CYCLES) begin
         // If we've stayed in a state for WAY longer than should be the case,
         // we need to just yeet back to BOOT and start over.
         // This is the final line of defense against hangups.
-        change_state(BOOT);
+        capture_state_next <= BOOT;
     end else begin
-        // Increment the state timer on the next cycle (only happens if state
-        // timer isn't overridden later by a `change_state` call).
-        state_timer <= state_timer + 37'b1;
-
         case (capture_state)
             BOOT: begin
                 // Hold both cameras in reset (active-low):
@@ -602,7 +613,7 @@ always @(posedge clk) begin
                     // Not unresetting the cameras here b/c we do that through
                     // special states so we can control when it happens and react
                     // to it
-                    change_state(IDLE);
+                    capture_state_next <= IDLE;
                 end
             end
             IDLE: begin
@@ -612,15 +623,15 @@ always @(posedge clk) begin
                     // Only allowing this to happen in the idle state so we don't
                     // switch cameras while imaging.
                     camera_selection_in_progress <= 1'b1;
-                    change_state(SWITCHING_CAM__RST);
+                    capture_state_next <= SWITCHING_CAM__RST;
                 end else if(request_image) begin
-                    change_state(COMMANDED__WAITING_FOR_FRAME_END);
+                    capture_state_next <= COMMANDED__WAITING_FOR_FRAME_END;
                 end
             end
             SWITCHING_CAM__RST: begin
                 // Hold both cameras in reset for at least 1s (active-low):
-                camera_1_reset_bar <= 1'b0;
-                camera_2_reset_bar <= 1'b0;
+                camera_1_reset_bar <= 1'b1;
+                camera_2_reset_bar <= 1'b1;
                 no_camera_selected <= 1'b1;  // Flag that we don't currently have *any* camera intentionally selected
 
                 if(state_timer > ONE_SECOND) begin
@@ -628,14 +639,14 @@ always @(posedge clk) begin
                     // so switchover doesn't happen with the cameras active.
                     selected_camera_idx <= desired_camera_idx;
                     no_camera_selected <= 1'b0; // we've now selected a camera
-                    change_state(SWITCHING_CAM__POST_SWITCHOVER_WAIT);
+                    capture_state_next <= SWITCHING_CAM__POST_SWITCHOVER_WAIT;
                 end
             end
             SWITCHING_CAM__POST_SWITCHOVER_WAIT: begin
                 // Wait here a bit, doing nothing, after the MUX switch before unresetting:
                 // (makes sure the switchover completes while neither cam is active)
                 if(state_timer > ONE_SECOND) begin
-                    change_state(SWITCHING_CAM__UNRST);
+                    capture_state_next <= SWITCHING_CAM__UNRST;
                 end
             end
             SWITCHING_CAM__UNRST: begin
@@ -650,7 +661,7 @@ always @(posedge clk) begin
                 // Wait a sec for things to start and stabilize
                 // (longer than needed but that's fine).
                 if(state_timer > ONE_SECOND) begin
-                    change_state(SWITCHING_CAM__WAIT_FOR_FRAME_START);
+                    capture_state_next <= SWITCHING_CAM__WAIT_FOR_FRAME_START;
                 end
             end
             SWITCHING_CAM__WAIT_FOR_FRAME_START: begin
@@ -659,14 +670,14 @@ always @(posedge clk) begin
                 // an inter-frame boundary.
                 // So, first we must wait for a frame start trigger...
                 if(sync_FV) begin
-                    change_state(SWITCHING_CAM__WAIT_FOR_FRAME_END);
+                    capture_state_next <= SWITCHING_CAM__WAIT_FOR_FRAME_END;
                 end
             end
             SWITCHING_CAM__WAIT_FOR_FRAME_END: begin
                 // ... then we wait for the next inter-frame boundary.
                 if(out_of_frame) begin
                     camera_selection_in_progress <= 1'b0;
-                    change_state(IDLE);
+                    capture_state_next <= IDLE;
                 end
             end
             COMMANDED__WAITING_FOR_FRAME_END: begin
@@ -680,7 +691,7 @@ always @(posedge clk) begin
                 // So, all we need to do is wait until we're definitely in an
                 // inter-frame blanking interval and we can proceed.
                 if(out_of_frame) begin
-                    change_state(STREAMING_IMAGE);
+                    capture_state_next <= STREAMING_IMAGE;
                 end
             end
             STREAMING_IMAGE: begin
@@ -688,12 +699,12 @@ always @(posedge clk) begin
                 // This continues until the Frame Processing circuits tell us we've
                 // captured all the lines we need for all of our interleaved frames:
                 if(all_interleaved_frames_complete) begin
-                    change_state(IDLE);
+                    capture_state_next <= IDLE;
                 end
             end
             default: begin
                 // Shouldn't be here. Reboot circuit:
-                change_state(BOOT);
+                capture_state_next <= BOOT;
             end
         endcase
     end

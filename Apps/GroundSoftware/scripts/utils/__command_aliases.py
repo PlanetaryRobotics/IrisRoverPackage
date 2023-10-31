@@ -508,6 +508,13 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         OrderedDict(latch_batt=Parameter.PASTE),
         DataPathway.WIRED
     ),
+    'latch-pulse': (
+        DataPathway.WIRED,
+        Magic.WATCHDOG_COMMAND,
+        'WatchDogInterface_SetBatteryLatch',
+        OrderedDict(latch_batt='LATCH_BATT_EN_PULSE_HIGH'),
+        DataPathway.WIRED
+    ),
     'SetLatchSet': (
         DataPathway.WIRED,
         Magic.WATCHDOG_COMMAND,

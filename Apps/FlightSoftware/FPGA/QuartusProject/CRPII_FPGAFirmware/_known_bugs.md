@@ -1,6 +1,9 @@
 - 11.00.03-01: Camera resets based on Cam Sel don't work (transaction FSM buggy)
 - 11.00.03-02: Camera Transaction FSM times out and resets even in IDLE and BOOT (shouldn't)
+  - Oops. Could result in camera rebooting *right* when we're trying to take an image. Result would just be an all black or a bugged image. Not the end of the world since it covers such a short time window that it's unlikely to happen twice.
 - 11.00.03-03: Getting an image first requires taking a "pre-image" that's all black - likely Flash FSM bug.
   - Don't have to downlink this whole thing, though. Been doing just 50 lines.
-- 11.00.03-04: First X downlinked lines (up to ~200) of image are 0x00 (might be within Flash FSM or might be in the way it hands off control back to Hercules... SCK issue?)
-- 11.00.03-05: Flash FSM only writes first 32b of the wrong page. Has the effect of skipping a page. Always skips the same page, suggesting the page counter de-syncs (off-by-X). Only happens occasionally (not all images), suggesting a stability issue in Flash FSM, particularly surrounding the changes introduced in RC11.0.x.
+  - This only seems to sometimes be the case and doesn't seem to be required if the camera-select timing is "right" (given enough of a delay between select and command?).
+- 11.00.03-04: First X downlinked lines (up to ~200) of image are often 0x00 (might be within Flash FSM or might be in the way it hands off control back to Hercules... SCK issue?)
+- 11.00.03-05: Flash FSM is supposed to write only first 32b of the last page of each line so only 2592B are written but sometimes this happens on the wrong page. Has the effect of skipping the rest of that page. Always skips the same page within an image, suggesting the page counter de-syncs (off-by-X). Only happens occasionally (not all images), suggesting a stability issue in Flash FSM, possibly surrounding the changes introduced in RC11.0.x.
+  - Not really a major issue with Hercules RC12 FW since it will just downlink all 6 pages for each line, meaning page-skips aren't an issue (we can just find and remove the blank part of a line, no matter where it occurs).

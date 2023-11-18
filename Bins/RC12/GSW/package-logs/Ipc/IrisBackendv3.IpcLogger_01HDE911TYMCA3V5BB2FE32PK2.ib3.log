@@ -1,0 +1,11 @@
+2023-10-23 08:44:18,762: INFO     Using forced binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 08:44:18,762: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 08:44:18,763: INFO     Using forced binding scheme (`bind=False`) for `socket_type=<SocketType.SUBSCRIBER: 3>`.
+2023-10-23 08:44:18,763: INFO     Created a `SocketType.SUBSCRIBER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_SUB: 61454>]` (`0xF00E`).
+2023-10-23 08:44:18,763: VERBOSE  Subscribing `uplink` to: [<Topic.UL_PACKET: b'\xf0\x01'>] . . .
+2023-10-23 08:44:18,763: NOTICE   Starting IPC processes for: IpcAppManagerAsync with downlink: PUBLISHER on Port.TRANSCEIVER_PUB for [DL_PACKETS] with settings: bind=False, blind_consumer=False, publish_only=True,  uplink: SUBSCRIBER on Port.TRANSCEIVER_SUB for [UL_PACKET] with RX handler: UplinkSub with settings: bind=False, blind_consumer=False, publish_only=False.
+2023-10-23 08:44:18,763: VERBOSE  Running with task list:
+	<Task pending name='uplink' coro=<IpcAppManagerAsync.socket_rx_coro() running at /Users/connorcolombo/Documents/PKBACK/GitHub/CubeRoverPackage/Apps/GroundSoftware/IrisBackendv3/ipc/app_manager.py:672>>
+	<Task pending name='_downlink_coro' coro=<DownlinkCoroutine._downlink_coro() running at /Users/connorcolombo/Documents/PKBACK/GitHub/CubeRoverPackage/Apps/GroundSoftware/IrisBackendv3/transceiver/ipc_process.py:127>>.
+2023-10-23 09:16:04,141: NOTICE   Closing App's IPC socket(s) and context . . .
+2023-10-23 09:16:04,262: NOTICE   Closing App's IPC socket(s) and context . . .

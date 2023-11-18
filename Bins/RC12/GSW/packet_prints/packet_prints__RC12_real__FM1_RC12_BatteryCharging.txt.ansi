@@ -1,0 +1,2249 @@
+A colored-text log of the print outs of all packets received during the _RC12_real__FM1_RC12_BatteryCharging session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(10-23 09:32:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(10-23 09:32:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(10-23 09:32:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(10-23 09:32:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(10-23 09:32:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(10-23 09:32:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(10-23 09:32:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#236: WatchDogInterface_SwitchToServiceMode] -> NO_ERROR[0x0]
+0000  0A EC 00                                         ...
+
+[35;47;1m(10-23 09:32:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[50B]: Transitioning from KEEP_ALIVE to ENTERING_SERVICE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 4B 45 45 50 5F 41 4C 49  ng from KEEP_ALI
+0020  56 45 20 74 6F 20 45 4E 54 45 52 49 4E 47 5F 53  VE to ENTERING_S
+0030  45 52 56 49 43 45 0A                             ERVICE.
+
+[35;47;1m(10-23 09:32:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[46B]: Defaulting MONITOR_HERCULES to OFF in SERVICE.[0m
+0000  44 45 42 55 47 44 65 66 61 75 6C 74 69 6E 67 20  DEBUGDefaulting 
+0010  4D 4F 4E 49 54 4F 52 5F 48 45 52 43 55 4C 45 53  MONITOR_HERCULES
+0020  20 74 6F 20 4F 46 46 20 69 6E 20 53 45 52 56 49   to OFF in SERVI
+0030  43 45 2E                                         CE.
+
+[35;47;1m(10-23 09:32:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m [43m[97mTurning OFF SAFETY TIMER in SERVICE.[0m
+0000  44 45 42 55 47 54 75 72 6E 69 6E 67 20 4F 46 46  DEBUGTurning OFF
+0010  20 53 41 46 45 54 59 20 54 49 4D 45 52 20 69 6E   SAFETY TIMER in
+0020  20 53 45 52 56 49 43 45 2E                        SERVICE.
+
+[35;47;1m(10-23 09:32:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from ENTERING_SERVICE to SERVICE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 53 45 52 56 49 43 45 20 74 6F 20 53 45 52 56  _SERVICE to SERV
+0030  49 43 45 0A                                      ICE.
+
+[35;47;1m(10-23 09:32:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: ON, Ctrl: ON] 	428.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF 00 00 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 01 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(10-23 09:33:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(10-23 09:33:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(10-23 09:33:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(10-23 09:33:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(10-23 09:33:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(10-23 09:33:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#236: WatchDogInterface_SwitchToServiceMode] -> NO_ERROR[0x0]
+0000  0A EC 00                                         ...
+
+[35;47;1m(10-23 09:33:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[50B]: Transitioning from KEEP_ALIVE to ENTERING_SERVICE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 4B 45 45 50 5F 41 4C 49  ng from KEEP_ALI
+0020  56 45 20 74 6F 20 45 4E 54 45 52 49 4E 47 5F 53  VE to ENTERING_S
+0030  45 52 56 49 43 45 0A                             ERVICE.
+
+[35;47;1m(10-23 09:33:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[46B]: Defaulting MONITOR_HERCULES to OFF in SERVICE.[0m
+0000  44 45 42 55 47 44 65 66 61 75 6C 74 69 6E 67 20  DEBUGDefaulting 
+0010  4D 4F 4E 49 54 4F 52 5F 48 45 52 43 55 4C 45 53  MONITOR_HERCULES
+0020  20 74 6F 20 4F 46 46 20 69 6E 20 53 45 52 56 49   to OFF in SERVI
+0030  43 45 2E                                         CE.
+
+[35;47;1m(10-23 09:33:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m [43m[97mTurning OFF SAFETY TIMER in SERVICE.[0m
+0000  44 45 42 55 47 54 75 72 6E 69 6E 67 20 4F 46 46  DEBUGTurning OFF
+0010  20 53 41 46 45 54 59 20 54 49 4D 45 52 20 69 6E   SAFETY TIMER in
+0020  20 53 45 52 56 49 43 45 2E                        SERVICE.
+
+[35;47;1m(10-23 09:33:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from ENTERING_SERVICE to SERVICE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 53 45 52 56 49 43 45 20 74 6F 20 53 45 52 56  _SERVICE to SERV
+0030  49 43 45 0A                                      ICE.
+
+[35;47;1m(10-23 09:33:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m [1m[43m[97mRESET:0x23 -> 0x0 with 0x8 [0m[1m[33m: ENABLE_BATTERIES -> NO_ERROR[0m[97m, allowing	 (PowerOn: 1,	 Rs422Off: 0,	 Deploy: 0,	 Undeploy: 0).[0m
+0000  44 45 42 55 47 52 45 53 45 54 3A 30 78 32 33 20  DEBUGRESET:0x23 
+0010  2D 3E 20 30 78 30 20 77 69 74 68 20 30 78 38 0A  -> 0x0 with 0x8.
+
+[35;47;1m(10-23 09:33:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#0: WatchDogInterface_ResetSpecific] -> NO_ERROR[0x0]
+0000  0A 00 00                                         ...
+
+[35;47;1m(10-23 09:33:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: ON, Ctrl: ON] 	428.1°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF 00 00 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 01 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:33:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m #0 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 23.68V 	VL: 28.90V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.295W / 1.296W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    2912    3200    2944    128      2           1         0
+val  0.00V  0.00V  0.41V  23.68V  28.90V  27.80V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 00 00 08 00 38 00 00 00 00 04 64 00 41 00 5B 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....d.A.[A.....'.......'.'..........
+0000  D5 04 04 18 00 00 00 08 00 38 00 00 00 00 04 64  .........8.....d
+0010  00 41 00 5B 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .A.[A.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:33:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:33:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 2.120s / 4m0s @ 0/10 	 -> 	 2.120s / 40m0s -> [1m39m57s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 64 34 2F 30 78 35 64 63   . @: 0xd4/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:33:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:33:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m #1 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 23.61V 	VL: 28.03V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.244W / 1.244W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    2904    3104    2944    128      2           1         0
+val  0.00V  0.00V  0.41V  23.61V  28.03V  27.80V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 01 00 08 00 38 00 00 00 00 04 61 00 41 C0 5A 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....a.A.ZA.....'.......'.'..........
+0000  D5 04 04 18 00 01 00 08 00 38 00 00 00 00 04 61  .........8.....a
+0010  00 41 C0 5A 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .A.ZA.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:33:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:33:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 5.180s / 4m0s @ 0/10 	 -> 	 5.180s / 40m0s -> [1m39m54s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 30 36 2F 30 78 35 64   . @: 0x206/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 09:33:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:33:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m #2 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 23.61V 	VL: 0.58V 	Vcc28: 0.00V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.001W / 0.001W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0    2904     64      0    128      2           1         0
+val  0.00V  0.00V  0.00V  23.61V  0.58V  0.00V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 02 00 08 00 38 00 00 00 00 04 02 00 41 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A.Z@.....'.......'.'..........
+0000  D5 04 04 18 00 02 00 08 00 38 00 00 00 00 04 02  .........8......
+0010  00 41 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8  .A.Z@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:33:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:33:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 440ms / 4m0s @ 0/10 	 -> 	 440ms / 40m0s -> [1m39m59s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 63 2F 30 78 35 64 63   . @: 0x2c/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:33:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#251: WatchDogInterface_SetBatteryLatch] -> NO_ERROR[0x0]
+0000  0A FB 00                                         ...
+
+[35;47;1m(10-23 09:33:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:33:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m #3 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 23.68V 	VL: 0.58V 	Vcc28: 0.00V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.001W / 0.001W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0    2912     64      0    128      2           1         0
+val  0.00V  0.00V  0.00V  23.68V  0.58V  0.00V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 03 00 08 00 38 00 00 00 00 04 02 00 41 00 5B 40 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A.[@.....'.......'.'..........
+0000  D5 04 04 18 00 03 00 08 00 38 00 00 00 00 04 02  .........8......
+0010  00 41 00 5B 40 00 00 F4 01 0F 27 FD 0C EC 09 F8  .A.[@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:33:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:33:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 1.840s / 4m0s @ 0/10 	 -> 	 1.840s / 40m0s -> [1m39m58s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 62 38 2F 30 78 35 64 63   . @: 0xb8/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:33:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#251: WatchDogInterface_SetBatteryLatch] -> NO_ERROR[0x0]
+0000  0A FB 00                                         ...
+
+[35;47;1m(10-23 09:33:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:33:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:33:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m #4 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 23.61V 	VL: 0.58V 	Vcc28: 0.00V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.001W / 0.001W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0    2904     64      0    128      1           1         0
+val  0.00V  0.00V  0.00V  23.61V  0.58V  0.00V  1.21V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 04 00 08 00 38 00 00 00 00 04 02 00 21 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......!.Z@.....'.......'.'..........
+0000  D5 04 04 18 00 04 00 08 00 38 00 00 00 00 04 02  .........8......
+0010  00 21 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8  .!.Z@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:33:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:33:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 1.150s / 4m0s @ 0/10 	 -> 	 1.150s / 40m0s -> [1m39m58s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 37 33 2F 30 78 35 64 63   . @: 0x73/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:34:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#249: WatchDogInterface_SetBatteryConnection] -> NO_ERROR[0x0]
+0000  0A F9 00                                         ...
+
+[35;47;1m(10-23 09:34:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m [1m[43m[97mRESET:0x23 -> 0x0 with 0x8 [0m[1m[33m: ENABLE_BATTERIES -> NO_ERROR[0m[97m, allowing	 (PowerOn: 1,	 Rs422Off: 0,	 Deploy: 0,	 Undeploy: 0).[0m
+0000  44 45 42 55 47 52 45 53 45 54 3A 30 78 32 33 20  DEBUGRESET:0x23 
+0010  2D 3E 20 30 78 30 20 77 69 74 68 20 30 78 38 0A  -> 0x0 with 0x8.
+
+[35;47;1m(10-23 09:34:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#0: WatchDogInterface_ResetSpecific] -> NO_ERROR[0x0]
+0000  0A 00 00                                         ...
+
+[35;47;1m(10-23 09:34:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:34:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m #5 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 23.61V 	VL: 0.58V 	Vcc28: 0.00V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.001W / 0.001W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0    2904     64      0    128      2           1         0
+val  0.00V  0.00V  0.00V  23.61V  0.58V  0.00V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 05 00 08 00 38 00 00 00 00 04 02 00 41 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A.Z@.....'.......'.'..........
+0000  D5 04 04 18 00 05 00 08 00 38 00 00 00 00 04 02  .........8......
+0010  00 41 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8  .A.Z@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:34:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:34:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 5.860s / 4m0s @ 0/10 	 -> 	 5.860s / 40m0s -> [1m39m54s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 34 61 2F 30 78 35 64   . @: 0x24a/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 09:34:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#249: WatchDogInterface_SetBatteryConnection] -> NO_ERROR[0x0]
+0000  0A F9 00                                         ...
+
+[35;47;1m(10-23 09:34:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#251: WatchDogInterface_SetBatteryLatch] -> NO_ERROR[0x0]
+0000  0A FB 00                                         ...
+
+[35;47;1m(10-23 09:34:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:34:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m #6 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 23.61V 	VL: 0.58V 	Vcc28: 0.00V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.001W / 0.001W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0    2904     64      0    128      2           1         0
+val  0.00V  0.00V  0.00V  23.61V  0.58V  0.00V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 06 00 08 00 38 00 00 00 00 04 02 00 41 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A.Z@.....'.......'.'..........
+0000  D5 04 04 18 00 06 00 08 00 38 00 00 00 00 04 02  .........8......
+0010  00 41 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8  .A.Z@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:34:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:34:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 6.040s / 4m0s @ 0/10 	 -> 	 6.040s / 40m0s -> [1m39m53s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 35 63 2F 30 78 35 64   . @: 0x25c/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 09:34:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m [1m[43m[97mRESET:0x23 -> 0x0 with 0x8 [0m[1m[33m: ENABLE_BATTERIES -> NO_ERROR[0m[97m, allowing	 (PowerOn: 1,	 Rs422Off: 0,	 Deploy: 0,	 Undeploy: 0).[0m
+0000  44 45 42 55 47 52 45 53 45 54 3A 30 78 32 33 20  DEBUGRESET:0x23 
+0010  2D 3E 20 30 78 30 20 77 69 74 68 20 30 78 38 0A  -> 0x0 with 0x8.
+
+[35;47;1m(10-23 09:34:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#0: WatchDogInterface_ResetSpecific] -> NO_ERROR[0x0]
+0000  0A 00 00                                         ...
+
+[35;47;1m(10-23 09:34:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:34:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m #7 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 23.61V 	VL: 0.58V 	Vcc28: 0.00V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.001W / 0.001W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0    2904     64      0    128      1           1         0
+val  0.00V  0.00V  0.00V  23.61V  0.58V  0.00V  1.21V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 07 00 08 00 38 00 00 00 00 04 02 00 21 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......!.Z@.....'.......'.'..........
+0000  D5 04 04 18 00 07 00 08 00 38 00 00 00 00 04 02  .........8......
+0010  00 21 C0 5A 40 00 00 F4 01 0F 27 FD 0C EC 09 F8  .!.Z@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:34:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:34:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 3.440s / 4m0s @ 0/10 	 -> 	 3.440s / 40m0s -> [1m39m56s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 31 35 38 2F 30 78 35 64   . @: 0x158/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 09:34:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:34:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:35:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:36:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:37:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:38:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:39:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:40:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:41:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m #8 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.07V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2960    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.07V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 08 00 08 00 38 00 00 00 00 04 0A 00 41 80 DC 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A..@.....'.......'.'..........
+0000  D5 04 04 18 00 08 00 08 00 38 00 00 00 00 04 0A  .........8......
+0010  00 41 80 DC 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A..@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:41:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 09:41:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 1.300s / 4m0s @ 0/10 	 -> 	 1.300s / 40m0s -> [1m39m58s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 38 32 2F 30 78 35 64 63   . @: 0x82/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:41:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:41:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:42:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m #9 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.13V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2968    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.13V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 09 00 08 00 38 00 00 00 00 04 0A 00 41 C0 DC 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A..@.....'.......'.'..........
+0000  D5 04 04 18 00 09 00 08 00 38 00 00 00 00 04 0A  .........8......
+0010  00 41 C0 DC 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A..@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:42:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 09:42:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 1.890s / 4m0s @ 0/10 	 -> 	 1.890s / 40m0s -> [1m39m58s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 62 64 2F 30 78 35 64 63   . @: 0xbd/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:42:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:42:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m #10 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.07V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2960    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.07V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 0A 00 08 00 38 00 00 00 00 04 0A 00 41 80 DC 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A..@.....'.......'.'..........
+0000  D5 04 04 18 00 0A 00 08 00 38 00 00 00 00 04 0A  .........8......
+0010  00 41 80 DC 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A..@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:42:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 09:42:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 6.960s / 4m0s @ 0/10 	 -> 	 6.960s / 40m0s -> [1m39m53s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 62 38 2F 30 78 35 64   . @: 0x2b8/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 09:42:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:42:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[54B]: Timed out in LanderComms__slipEncodeAndTransmitBuffer[0m
+0000  44 45 42 55 47 54 69 6D 65 64 20 6F 75 74 20 69  DEBUGTimed out i
+0010  6E 20 4C 61 6E 64 65 72 43 6F 6D 6D 73 5F 5F 73  n LanderComms__s
+0020  6C 69 70 45 6E 63 6F 64 65 41 6E 64 54 72 61 6E  lipEncodeAndTran
+0030  73 6D 69 74 42 75 66 66 65 72 0A                 smitBuffer.
+
+[35;47;1m(10-23 09:43:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:43:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:44:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:45:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m #12 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.20V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2976    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.20V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 0C 00 08 00 38 00 00 00 00 04 0A 00 41 00 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A..@.....'.......'.'..........
+0000  D5 04 04 18 00 0C 00 08 00 38 00 00 00 00 04 0A  .........8......
+0010  00 41 00 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A..@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:45:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:45:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 4.850s / 4m0s @ 0/10 	 -> 	 4.850s / 40m0s -> [1m39m55s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 31 65 35 2F 30 78 35 64   . @: 0x1e5/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 09:45:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:45:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:46:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 09:47:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m #13 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.20V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2976    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.20V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 0D 00 08 00 38 00 00 00 00 04 0A 00 41 00 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A..@.....'.......'.'..........
+0000  D5 04 04 18 00 0D 00 08 00 38 00 00 00 00 04 0A  .........8......
+0010  00 41 00 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A..@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 09:47:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 09:47:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 440ms / 4m0s @ 0/10 	 -> 	 440ms / 40m0s -> [1m39m59s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 63 2F 30 78 35 64 63   . @: 0x2c/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 30 30 3A 30 30                          00:00:00
+
+[35;47;1m(10-23 09:47:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:47:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:48:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:49:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.9°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF C1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:50:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:51:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:52:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[54B]: Timed out in LanderComms__slipEncodeAndTransmitBuffer[0m
+0000  44 45 42 55 47 54 69 6D 65 64 20 6F 75 74 20 69  DEBUGTimed out i
+0010  6E 20 4C 61 6E 64 65 72 43 6F 6D 6D 73 5F 5F 73  n LanderComms__s
+0020  6C 69 70 45 6E 63 6F 64 65 41 6E 64 54 72 61 6E  lipEncodeAndTran
+0030  73 6D 69 74 42 75 66 66 65 72 0A                 smitBuffer.
+
+[35;47;1m(10-23 09:53:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:53:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:54:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:55:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.9°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF C3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:56:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:57:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:58:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF C9 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 09:59:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.8°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF C5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:00:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:01:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:02:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m UnsupportedPacket[4B]:
+0000  73 6D 69 74                                      smit
+0000  73 6D 69 74                                      smit
+
+[35;47;1m(10-23 10:03:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:03:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:04:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:05:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:43)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:06:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:07:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:08)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:21)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.7°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:08:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:09:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m #14 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.26V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2984    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.26V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [BATTERIES_ENABLE]
+ D5 04 04 18 00 0E 00 08 00 38 00 00 00 00 04 0A 00 41 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A@.@.....'.......'.'..........
+0000  D5 04 04 18 00 0E 00 08 00 38 00 00 00 00 04 0A  .........8......
+0010  00 41 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A@.@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:09:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.6°K]
+0000  FF 00 80 5C                                      ...\
+
+[35;47;1m(10-23 10:09:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 4.300s / 4m0s @ 0/10 	 -> 	 4.300s / 40m0s -> [1m39m55s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 31 61 65 2F 30 78 35 64   . @: 0x1ae/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 30 30 3A 30 30                       :00:00:00
+
+[35;47;1m(10-23 10:09:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:46)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF CF 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:09:59)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D0 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.6°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D1 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:10:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D2 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:11)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:24)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:50)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D3 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:11:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D4 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:36)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:12:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D5 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D6 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D6 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D6 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D6 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.5°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D6 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:41)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:13:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m UnsupportedPacket[4B]:
+0000  73 6D 69 74                                      smit
+0000  73 6D 69 74                                      smit
+
+[35;47;1m(10-23 10:14:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:14)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:20)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D7 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:27)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:33)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:40)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:47)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:14:53)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:00)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D8 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:06)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D9 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:13)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D9 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:19)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D9 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D9 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:32)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF D9 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:39)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:45)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:52)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:15:58)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:05)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:12)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.4°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DA 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m [1m[43m[97mRESET:0x1 -> 0x0 with 0x8 [0m[1m[33m: RESET_HERCULES -> NO_ERROR[0m[97m, allowing	 (PowerOn: 1,	 Rs422Off: 0,	 Deploy: 0,	 Undeploy: 0).[0m
+0000  44 45 42 55 47 52 45 53 45 54 3A 30 78 31 20 2D  DEBUGRESET:0x1 -
+0010  3E 20 30 78 30 20 77 69 74 68 20 30 78 38 0A     > 0x0 with 0x8.
+
+[35;47;1m(10-23 10:16:15)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#0: WatchDogInterface_ResetSpecific] -> NO_ERROR[0x0]
+0000  0A 00 00                                         ...
+
+[35;47;1m(10-23 10:16:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:16:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m #15 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.26V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2984    320    256    128      1           1         0
+val  0.00V  0.00V  0.21V  24.26V  2.89V  2.42V  1.21V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE]
+ D5 04 04 18 00 0F 00 08 00 38 02 00 00 00 04 0A 00 21 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......!@.@.....'.......'.'..........
+0000  D5 04 04 18 00 0F 00 08 00 38 02 00 00 00 04 0A  .........8......
+0010  00 21 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .!@.@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:16:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 10:16:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 6.640s / 4m0s @ 0/10 	 -> 	 6.640s / 40m0s -> [1m39m53s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 39 38 2F 30 78 35 64   . @: 0x298/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 32 30 3A 31 30                       :00:20:10
+
+[35;47;1m(10-23 10:16:18)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:31)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:38)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:44)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:16:57)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:17:04)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:17:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:17:17)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:17:23)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:17:30)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DB 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+

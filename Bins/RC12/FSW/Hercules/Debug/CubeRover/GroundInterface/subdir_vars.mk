@@ -4,10 +4,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterface.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterfaceComponentAc.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessages.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessagesSender.cpp 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterface.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterfaceComponentAc.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessages.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessagesSender.cpp 
 
 OBJS += \
 ./CubeRover/GroundInterface/GroundInterface.obj \
@@ -34,9 +34,9 @@ CPP_DEPS__QUOTED += \
 "CubeRover/GroundInterface/NamesAndMessagesSender.d" 
 
 CPP_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterface.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterfaceComponentAc.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessages.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessagesSender.cpp" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterface.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/GroundInterfaceComponentAc.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessages.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/GroundInterface/NamesAndMessagesSender.cpp" 
 
 

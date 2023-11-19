@@ -4,7 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/heatshrink/heatshrink_encoder.c 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/heatshrink/heatshrink_encoder.c 
 
 C_DEPS += \
 ./CubeRover/Camera/heatshrink/heatshrink_encoder.d 
@@ -19,6 +19,6 @@ C_DEPS__QUOTED += \
 "CubeRover/Camera/heatshrink/heatshrink_encoder.d" 
 
 C_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/heatshrink/heatshrink_encoder.c" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/heatshrink/heatshrink_encoder.c" 
 
 

@@ -4,10 +4,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/Camera.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/CameraComponentAc.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/IrisImageCompression.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/S25fl512l.cpp 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/Camera.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/CameraComponentAc.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/IrisImageCompression.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/S25fl512l.cpp 
 
 OBJS += \
 ./CubeRover/Camera/Camera.obj \
@@ -34,9 +34,9 @@ CPP_DEPS__QUOTED += \
 "CubeRover/Camera/S25fl512l.d" 
 
 CPP_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/Camera.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/CameraComponentAc.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/IrisImageCompression.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Camera/S25fl512l.cpp" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/Camera.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/CameraComponentAc.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/IrisImageCompression.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Camera/S25fl512l.cpp" 
 
 

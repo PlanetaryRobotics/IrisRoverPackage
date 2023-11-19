@@ -4,8 +4,8 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Top/CubeRoverTopologyAppAc.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Top/Topology.cpp 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Top/CubeRoverTopologyAppAc.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Top/Topology.cpp 
 
 OBJS += \
 ./CubeRover/Top/CubeRoverTopologyAppAc.obj \
@@ -24,7 +24,7 @@ CPP_DEPS__QUOTED += \
 "CubeRover/Top/Topology.d" 
 
 CPP_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Top/CubeRoverTopologyAppAc.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/Top/Topology.cpp" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Top/CubeRoverTopologyAppAc.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/Top/Topology.cpp" 
 
 

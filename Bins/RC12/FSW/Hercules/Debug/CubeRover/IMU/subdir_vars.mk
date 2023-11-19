@@ -4,12 +4,12 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponent.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponentAc.cpp 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponent.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponentAc.cpp 
 
 C_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/adxl312.c \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/l3gd20h.c 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/adxl312.c \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/l3gd20h.c 
 
 C_DEPS += \
 ./CubeRover/IMU/adxl312.d \
@@ -40,11 +40,11 @@ CPP_DEPS__QUOTED += \
 "CubeRover/IMU/IMUComponentAc.d" 
 
 CPP_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponent.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponentAc.cpp" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponent.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/IMUComponentAc.cpp" 
 
 C_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/adxl312.c" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/IMU/l3gd20h.c" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/adxl312.c" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/IMU/l3gd20h.c" 
 
 

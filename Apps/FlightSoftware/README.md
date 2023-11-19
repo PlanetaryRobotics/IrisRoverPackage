@@ -28,3 +28,6 @@
 
 ## Radio (WF121): `./Radio`
 - Needs to be built on Windows. See `Radio/README` for more details.
+
+## Camera FPGA: `./FPGA`
+- Built on Linux using Quartus Prime (Standard) 22.1. License from Intel FPGA SSLC.

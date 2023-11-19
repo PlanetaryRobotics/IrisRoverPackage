@@ -4,10 +4,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterface.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogMpsm.cpp \
-/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogRxTask.cpp 
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterface.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogMpsm.cpp \
+/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogRxTask.cpp 
 
 OBJS += \
 ./CubeRover/WatchDogInterface/WatchDogInterface.obj \
@@ -34,9 +34,9 @@ CPP_DEPS__QUOTED += \
 "CubeRover/WatchDogInterface/WatchDogRxTask.d" 
 
 CPP_SRCS__QUOTED += \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterface.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogMpsm.cpp" \
-"/home/iris/Desktop/Working_folders/RC/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogRxTask.cpp" 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterface.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogInterfaceComponentAc.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogMpsm.cpp" \
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/fprime/CubeRover/WatchDogInterface/WatchDogRxTask.cpp" 
 
 

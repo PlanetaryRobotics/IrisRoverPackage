@@ -1,0 +1,319 @@
+A colored-text log of the print outs of all packets received during the _RC12_real__FM1_RC12_FinalBoxUp session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(10-23 10:17:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:17:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m #16 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.26V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2984    320    256    128      2           1         0
+val  0.00V  0.00V  0.21V  24.26V  2.89V  2.42V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE]
+ D5 04 04 18 00 10 00 08 00 38 02 00 00 00 04 0A 00 41 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......A@.@.....'.......'.'..........
+0000  D5 04 04 18 00 10 00 08 00 38 02 00 00 00 04 0A  .........8......
+0010  00 41 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .A@.@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:17:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 10:17:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 5.490s / 4m0s @ 0/10 	 -> 	 5.490s / 40m0s -> [1m39m54s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 32 35 2F 30 78 35 64   . @: 0x225/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 32 30 3A 31 30                       :00:20:10
+
+[35;47;1m(10-23 10:17:56)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DC 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:02)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:18:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m #17 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.21
+VBm: 24.26V 	VL: 2.89V 	Vcc28: 2.42V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 0.012W / 0.012W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     32    2984    320    256    128      1           1         0
+val  0.00V  0.00V  0.21V  24.26V  2.89V  2.42V  1.21V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE]
+ D5 04 04 18 00 11 00 08 00 38 02 00 00 00 04 0A 00 21 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.......!@.@.....'.......'.'..........
+0000  D5 04 04 18 00 11 00 08 00 38 02 00 00 00 04 0A  .........8......
+0010  00 21 40 DD 40 00 10 F4 01 0F 27 FD 0C EC 09 F8  .!@.@.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:18:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 10:18:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 6.820s / 4m0s @ 0/10 	 -> 	 6.820s / 40m0s -> [1m39m53s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 61 61 2F 30 78 35 64   . @: 0x2aa/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 32 30 3A 31 30                       :00:20:10
+
+[35;47;1m(10-23 10:18:03)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:18:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m #18 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: TEMP_CONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 24.26V 	VL: 28.03V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.244W / 1.244W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V     VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    2984    3104    2944    128      2           1         0
+val  0.00V  0.00V  0.41V  24.26V  28.03V  27.80V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   1   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE]
+ D5 04 04 18 00 12 00 08 00 38 02 00 00 00 04 61 00 41 40 5D 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....a.A@]A.....'.......'.'..........
+0000  D5 04 04 18 00 12 00 08 00 38 02 00 00 00 04 61  .........8.....a
+0010  00 41 40 5D 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .A@]A.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:18:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 80 5D                                      ...]
+
+[35;47;1m(10-23 10:18:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 6.490s / 4m0s @ 0/10 	 -> 	 6.490s / 40m0s -> [1m39m53s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 38 39 2F 30 78 35 64   . @: 0x289/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 32 30 3A 31 30                       :00:20:10
+
+[35;47;1m(10-23 10:18:09)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:16)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m [1m[43m[97mRESET:0x24 -> 0x0 with 0x8 [0m[1m[33m: DISABLE_BATTERIES -> NO_ERROR[0m[97m, allowing	 (PowerOn: 1,	 Rs422Off: 0,	 Deploy: 0,	 Undeploy: 0).[0m
+0000  44 45 42 55 47 52 45 53 45 54 3A 30 78 32 34 20  DEBUGRESET:0x24 
+0010  2D 3E 20 30 78 30 20 77 69 74 68 20 30 78 38 0A  -> 0x0 with 0x8.
+
+[35;47;1m(10-23 10:18:25)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#0: WatchDogInterface_ResetSpecific] -> NO_ERROR[0x0]
+0000  0A 00 00                                         ...
+
+[35;47;1m(10-23 10:18:28)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#251: WatchDogInterface_SetBatteryLatch] -> NO_ERROR[0x0]
+0000  0A FB 00                                         ...
+
+[35;47;1m(10-23 10:18:29)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:34)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#249: WatchDogInterface_SetBatteryConnection] -> NO_ERROR[0x0]
+0000  0A F9 00                                         ...
+
+[35;47;1m(10-23 10:18:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:35)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#251: WatchDogInterface_SetBatteryLatch] -> NO_ERROR[0x0]
+0000  0A FB 00                                         ...
+
+[35;47;1m(10-23 10:18:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:18:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m #19 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 4.03V 	VL: 28.03V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.244W / 1.244W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    496    3104    2944    128      2           1         0
+val  0.00V  0.00V  0.41V  4.03V  28.03V  27.80V  1.21V  7.4mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE, BATTERIES_DISABLE]
+ D5 00 04 18 00 13 00 00 00 38 02 00 00 00 0C 61 00 41 80 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....a.A..A.....'.......'.'..........
+0000  D5 00 04 18 00 13 00 00 00 38 02 00 00 00 0C 61  .........8.....a
+0010  00 41 80 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .A..A.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:18:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 00 5D                                      ...]
+
+[35;47;1m(10-23 10:18:37)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 1.590s / 4m0s @ 0/10 	 -> 	 1.590s / 40m0s -> [1m39m58s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 39 66 2F 30 78 35 64 63   . @: 0x9f/0x5dc
+0020  30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30 3A  0 0/10 .WF:0x00:
+0030  30 30 3A 32 30 3A 31 30                          00:20:10
+
+[35;47;1m(10-23 10:18:42)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:48)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DD 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:18:49)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#236: WatchDogInterface_SwitchToServiceMode] -> BAD_COMMAND_SEND_ORDER[0x6]
+0000  0A EC 06                                         ...
+
+[35;47;1m(10-23 10:18:51)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#235: WatchDogInterface_SwitchToKeepAliveMode] -> NO_ERROR[0x0]
+0000  0A EB 00                                         ...
+
+[35;47;1m(10-23 10:18:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:18:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m #20 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.97V 	VL: 28.03V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.244W / 1.244W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3104    2944    128      1           1         0
+val  0.00V  0.00V  0.41V  3.97V  28.03V  27.80V  1.21V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE, BATTERIES_DISABLE]
+ D5 00 04 18 00 14 00 00 00 38 02 00 00 00 0C 61 00 21 40 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....a.!@.A.....'.......'.'..........
+0000  D5 00 04 18 00 14 00 00 00 38 02 00 00 00 0C 61  .........8.....a
+0010  00 21 40 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .!@.A.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:18:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 00 5D                                      ...]
+
+[35;47;1m(10-23 10:18:54)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 5.540s / 4m0s @ 0/10 	 -> 	 5.540s / 40m0s -> [1m39m54s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 32 61 2F 30 78 35 64   . @: 0x22a/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 32 30 3A 31 30                       :00:20:10
+
+[35;47;1m(10-23 10:18:55)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:19:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:19:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m #21 [RS_SERVICE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 3.97V 	VL: 28.03V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 3.7mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.244W / 1.244W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0     64    488    3104    2944    128      1           1         0
+val  0.00V  0.00V  0.41V  3.97V  28.03V  27.80V  1.21V  3.7mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: [HERCULES_RESET, BATTERIES_ENABLE, BATTERIES_DISABLE]
+ D5 00 04 18 00 15 00 00 00 38 02 00 00 00 0C 61 00 21 40 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....a.!@.A.....'.......'.'..........
+0000  D5 00 04 18 00 15 00 00 00 38 02 00 00 00 0C 61  .........8.....a
+0010  00 21 40 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .!@.A.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:19:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 00 5D                                      ...]
+
+[35;47;1m(10-23 10:19:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m [40m[97m[ST] SAFETY TIMER: OFF 	 6.480s / 4m0s @ 0/10 	 -> 	 6.480s / 40m0s -> [1m39m53s LEFT[0m 	 WF: 0x00:00:00:00[0m
+0000  44 45 42 55 47 5B 53 54 5D 20 4F 4E 3A 30 78 30  DEBUG[ST] ON:0x0
+0010  20 09 20 40 3A 20 30 78 32 38 38 2F 30 78 35 64   . @: 0x288/0x5d
+0020  63 30 20 30 2F 31 30 20 09 57 46 3A 30 78 30 30  c0 0/10 .WF:0x00
+0030  3A 30 30 3A 32 30 3A 31 30                       :00:20:10
+
+[35;47;1m(10-23 10:19:01)[0m [48;5;248m[38;5;233m[1m WIRED [0m SERVICE:	[Heat: OFF, Ctrl: ON] 	304.3°K -> 273.6°K +- 0.92K° 	Kp = 500 @ Duty Cycle: 9998/65535
+0000  FF DE 05 00 00 00 00 00 00 00 00 F4 01 FD 0C 3C  ...............<
+0010  00 0F 27 04 00 01 0E 27                          ..'....'
+
+[35;47;1m(10-23 10:19:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+
+[35;47;1m(10-23 10:19:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[38B]: Reason for last reset: Brownout (BOR)[0m
+0000  44 45 42 55 47 52 65 61 73 6F 6E 20 66 6F 72 20  DEBUGReason for 
+0010  6C 61 73 74 20 72 65 73 65 74 3A 20 42 72 6F 77  last reset: Brow
+0020  6E 6F 75 74 20 28 42 4F 52 29 0A                 nout (BOR).
+
+[35;47;1m(10-23 10:19:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[47B]: Transitioning from INIT to ENTERING_KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 49 4E 49 54 20 74 6F 20  ng from INIT to 
+0020  45 4E 54 45 52 49 4E 47 5F 4B 45 45 50 5F 41 4C  ENTERING_KEEP_AL
+0030  49 56 45 0A                                      IVE.
+
+[35;47;1m(10-23 10:19:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[14B]: Hello, Earth![0m
+0000  44 45 42 55 47 48 65 6C 6C 6F 2C 20 45 61 72 74  DEBUGHello, Eart
+0010  68 21 0A                                         h!.
+
+[35;47;1m(10-23 10:19:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[53B]: Transitioning from ENTERING_KEEP_ALIVE to KEEP_ALIVE[0m
+0000  44 45 42 55 47 54 72 61 6E 73 69 74 69 6F 6E 69  DEBUGTransitioni
+0010  6E 67 20 66 72 6F 6D 20 45 4E 54 45 52 49 4E 47  ng from ENTERING
+0020  5F 4B 45 45 50 5F 41 4C 49 56 45 20 74 6F 20 4B  _KEEP_ALIVE to K
+0030  45 45 50 5F 41 4C 49 56 45 0A                    EEP_ALIVE.
+
+[35;47;1m(10-23 10:19:07)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[32B]: Auto. disabling batt. (BE0+LBu)[0m
+0000  44 45 42 55 47 41 75 74 6F 2E 20 64 69 73 61 62  DEBUGAuto. disab
+0010  6C 69 6E 67 20 62 61 74 74 2E 20 28 42 45 30 2B  ling batt. (BE0+
+0020  4C 42 75 29 0A                                   LBu).
+
+[35;47;1m(10-23 10:19:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:19:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m #0 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.00
+VBm: 0.00V 	VL: 0.00V 	Vcc28: 0.00V 	VSA: 0.00V 	ISA: 0.0mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is HEATING, Control: ENABLED 	@ 0.000W / 0.000W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 0.0K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm     VL  Vcc28    VSA    ISA       Tbatt     Tchrg
+ADC      0      0      0      0      0      0      0      0           0         0
+val  0.00V  0.00V  0.00V  0.00V  0.00V  0.00V  0.00V  0.0mA  428.1±0.0K  0.0±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     1    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 08 00 00 02 00 00 38 00 00 00 00 00 00 00 00 00 00 C0 00 00 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8................'.......'.'..........
+0000  D5 00 08 08 00 00 02 00 00 38 00 00 00 00 00 00  .........8......
+0010  00 00 00 00 C0 00 00 F4 01 0F 27 FD 0C EC 09 F8  ..........'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:19:10)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge: 1880mAh =  53.7%, Temp: 428.1°K]
+0000  FF 80 00 00                                      ....
+
+[35;47;1m(10-23 10:19:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m > Command[#246: WatchDogInterface_RequestStatusReport] -> NO_ERROR[0x0]
+0000  0A F6 00                                         ...
+
+[35;47;1m(10-23 10:19:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m #1 [RS_KEEP_ALIVE + NOT_DEPLOYED] 	CHARGER: OFF 	BATTERIES: DISCONNECTED 	Herc-UART0: OFF 	Lander-UART1: INITIALIZED_&_ACTIVE
+1V2: BAD 	1V8: BAD 	2V5: 0.0 	2V8: 0.0 	3V3: BAD 	5V0: BAD 	24V: 0.41
+VBm: 4.03V 	VL: 28.03V 	Vcc28: 27.80V 	VSA: 1.21V 	ISA: 7.4mA
+HEATER [↑273K (2540) | ↓283K (2040)] 	 is NOT_HEATING, Control: ENABLED 	@ 1.244W / 1.244W 	Period: 1.25ms
+Tbatt: 428.1K ± 0.0K 	Tchrg: 428.1K ± 0.0K 	Tblimp: 0.0K
+BATTERY MONITOR: 0.00V 	0.0mA 	0mAh 	
+       2V5    2V8    24V    VBm      VL   Vcc28    VSA    ISA       Tbatt       Tchrg
+ADC      0      0     64    496    3104    2944    128      2           1          32
+val  0.00V  0.00V  0.41V  4.03V  28.03V  27.80V  1.21V  7.4mA  428.1±0.0K  428.1±0.0K
+              HEAT  DEP  BSTAT  BE  LB  LS  LR  CE  REGE  VSAE  3V3_EN  H_ON  R_ON  F_ON  M_ON  H_RST  H_N_PRST  F_N_RST  R_N_RST  CAMSEL  BMSB
+GPIO (2=HiZ)     0    0      2   0   0   2   2   0     0     2       0     0     0     0     0      0         0        0        0       0     0
+Reset/Flag Events: []
+ D5 00 08 18 00 01 00 00 00 38 00 00 00 00 00 61 02 41 80 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8 07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00  .........8.....a.A..A.....'.......'.'..........
+0000  D5 00 08 18 00 01 00 00 00 38 00 00 00 00 00 61  .........8.....a
+0010  02 41 80 0F 41 00 B8 F4 01 0F 27 FD 0C EC 09 F8  .A..A.....'.....
+0020  07 10 27 0E 27 00 00 00 00 00 00 00 00 00 00     ..'.'..........
+
+[35;47;1m(10-23 10:19:22)[0m [48;5;248m[38;5;233m[1m WIRED [0m [HEAT]: OFF 		 [BATT]: Voltage: BAD, Charge:   29mAh =   0.8%, Temp: 295.2°K]
+0000  FF 00 00 5D                                      ...]
+

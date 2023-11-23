@@ -38,4 +38,82 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
         #     Magic.COMMAND,
         #     comment="Low-level command to tell all drivers to spin their motors."
         # )
+        # New Configurable Motor Control Driving Commands:
+        'mc-turn-left-10k': PreparedCommand(  # 'motor-control-spin-configured-left'
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b1111, dir=0b0000,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Turn Left for 10k ticks."
+        ),
+        'mc-turn-right-10k': PreparedCommand(  # 'motor-control-spin-configured-left'
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b1111, dir=0b1111,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Turn Right for 10k ticks."
+        ),
+        'mc-drive-fwd-10k': PreparedCommand(  # motor-control-spin-configured-ad-0-bc-1
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b1111, dir=0b0110,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Drive Forward for 10k ticks. All-wheel drive."
+        ),
+        'mc-drive-fwd-front-drive-10k': PreparedCommand(  # motor-control-spin-configured-ad-0-bc-1
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b0011, dir=0b0110,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Drive Forward for 10k ticks. Use only front wheels (if power limiting)."
+        ),
+        'mc-drive-fwd-rear-drive-10k': PreparedCommand(  # motor-control-spin-configured-ad-0-bc-1
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b1100, dir=0b0110,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Drive Forward for 10k ticks. Use only front wheels (if power limiting)."
+        ),
+        'mc-drive-back-10k': PreparedCommand(  # motor-control-spin-configured-ad-0-bc-1
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b1111, dir=0b1001,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Drive Backward for 10k ticks. All-wheel drive."
+        ),
+        'mc-spin-a-10k': PreparedCommand(  # motor-control-spin-configured-ad-0-bc-1
+            'MotorControl_McSpinConfigured',
+            # Bitmask of motor_ids
+            # MotorA: 0x01, MotorB: 0x02, MotorC: 0x04, MotorD: 0x08
+            # All Motors: 0x0F
+            OrderedDict(motor_id=0b0001, dir=0b1111,
+                        raw_ticks=10000, percent_speed=100),
+            DataPathway.WIRELESS,
+            Magic.COMMAND,
+            comment="Spin Motor A for 10k ticks (in dir=1)."
+        )
     }

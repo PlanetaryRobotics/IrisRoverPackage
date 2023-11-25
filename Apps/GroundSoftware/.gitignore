@@ -37,3 +37,6 @@ out/
 
 # Ignore notebook checkpoints:
 .ipynb_checkpoints/
+
+# Prevent further updates to the env template:
+env_gds.env

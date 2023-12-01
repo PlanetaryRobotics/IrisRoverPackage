@@ -8,6 +8,8 @@ Last Updated: 05/10/2023
 """
 from __future__ import annotations
 
+import os
+
 from typing import Dict, Type, List, ClassVar
 from datetime import datetime
 import uuid
@@ -82,7 +84,7 @@ class _PacketTableAIO(html.Div):
         self.interval = dcc.Interval(
             id=self.ids.interval(aio_id),
             **{
-                'interval': 500,  # once every 0.5s,
+                'interval': float(os.environ.get('IBv3_GDS_PACKET_TABLE_UPDATE_INTERVAL_MS', 500)),
                 'n_intervals': 0,
                 **interval_props
             }

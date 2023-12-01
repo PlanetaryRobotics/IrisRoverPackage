@@ -131,6 +131,7 @@
         "docstrings",
         "doctests",
         "DONTEXPECTRESPONSE",
+        "dotenv",
         "downsampling",
         "dpmb",
         "dport",

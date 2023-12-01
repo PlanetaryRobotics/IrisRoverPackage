@@ -1,0 +1,3 @@
+# Requirements just for dev use:
+pyls-mypy
+autopep8

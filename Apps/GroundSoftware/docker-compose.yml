@@ -1,0 +1,201 @@
+version: '3'
+name: "iris_backend_v3"
+# TODO: Use top level secrets for keys & logins instead of env
+services:
+  # Infrastructure:
+  standards:
+    container_name: "IBv3_standards"
+    command: "make standards"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    tty: true
+    labels:
+      iris.backend.v3.service_type: "infra"
+      iris.backend.v3.description: "Rebuilds data standards used by all services."
+    build:
+      # only provide the build instructions for this image here,
+      # all other processes using this image will inherently use this build
+      context: "."
+      additional_contexts:
+        gsw: "."
+        fsw: "../FlightSoftware"
+      network: host
+      cache_from:
+        - "iris_backend_v3:latest"
+  
+  tests:
+    container_name: "IBv3_tests"
+    command: "python3 -m pytest --cov=IrisBackendv3"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+    labels:
+      iris.backend.v3.service_type: "tests"
+      iris.backend.v3.description: "IBv3 tests to make sure the core is working."
+  
+  proxies:
+    container_name: "IBv3_proxies"
+    command: "make proxies"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    # network_mode: host
+    restart: "always"
+    tty: true
+    depends_on:
+      - standards
+    environment:
+      IBv3_ipc__IP: "*"
+    ports:
+      # Only exposing & publishing ports here b/c proxy (by definition) is the only agent that binds these ports.
+      - "${IBv3_ipc__PORT__TRANSCEIVER_PUB}:${IBv3_ipc__PORT__TRANSCEIVER_PUB}"
+      - "${IBv3_ipc__PORT__TRANSCEIVER_SUB}:${IBv3_ipc__PORT__TRANSCEIVER_SUB}"
+      - "${IBv3_ipc__PORT__CODEC_PUB}:${IBv3_ipc__PORT__CODEC_PUB}"
+      - "${IBv3_ipc__PORT__CODEC_SUB}:${IBv3_ipc__PORT__CODEC_SUB}"
+      - "${IBv3_ipc__PORT__STORAGE_PUB}:${IBv3_ipc__PORT__STORAGE_PUB}"
+      - "${IBv3_ipc__PORT__STORAGE_SUB}:${IBv3_ipc__PORT__STORAGE_SUB}"
+      - "${IBv3_ipc__PORT__REMOTEDB_PUB}:${IBv3_ipc__PORT__REMOTEDB_PUB}"
+      - "${IBv3_ipc__PORT__REMOTEDB_SUB}:${IBv3_ipc__PORT__REMOTEDB_SUB}"
+      - "${IBv3_ipc__PORT__GUI_PUB}:${IBv3_ipc__PORT__GUI_PUB}"
+      - "${IBv3_ipc__PORT__GUI_SUB}:${IBv3_ipc__PORT__GUI_SUB}"
+      - "${IBv3_ipc__PORT__ATLAS_PUB}:${IBv3_ipc__PORT__ATLAS_PUB}"
+      - ${IBv3_ipc__PORT__ATLAS_SUB}:${IBv3_ipc__PORT__ATLAS_SUB}
+    labels:
+      iris.backend.v3.service_type: "infra"
+      iris.backend.v3.description: "Spools up IPC proxies for use between Iris GDS processes."
+
+  dl_processor:
+    container_name: "IBv3_dl_processor"
+    command: "python3 ipc_apps/dl_processor.py"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    restart: "always"
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+    labels:
+      iris.backend.v3.service_type: "infra"
+      iris.backend.v3.description: "Processes all downlinked packets into payloads."
+
+  ul_processor:
+    container_name: "IBv3_ul_processor"
+    command: "python3 ipc_apps/ul_processor.py --no-use-seq-num -l VERBOSE"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    restart: "always"
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+    labels:
+      iris.backend.v3.service_type: "infra"
+      iris.backend.v3.description: "Processes all payloads to be uplinked into packets."
+  
+  redis:
+    container_name: "IBv3_redis"
+    image: "redis/redis-stack-server:7.0.6-RC9"
+    ports:
+      - 6379:6379
+
+  # Data Ingest / Emission:
+  pcap-data:
+    container_name: "IBv3_pcap_data"
+    command: "make data"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+    labels:
+      iris.backend.v3.service_type: "transceiver"
+      iris.backend.v3.description: "Feeds data replayed from a pcap into the system."
+
+  xcvr-wifi:
+    container_name: "IBv3_xcvr_wifi"
+    command: "make xcvr-wifi"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+    labels:
+      iris.backend.v3.service_type: "transceiver"
+      iris.backend.v3.description: "Brings up a WIFI transceiver."
+
+  # Targets / IPC Apps:
+  gui:
+    container_name: "IBv3_gds_gui"
+    command: "python3 ipc_apps/gui.py"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_GDS_GUI_HOST: "0.0.0.0"
+      IBv3_GDS_GUI_PORT: 8050
+      IBv3_GDS_EVENTS_UPDATE_INTERVAL_MS: 1000
+      IBv3_GDS_PACKET_TABLE_UPDATE_INTERVAL_MS: 573
+      IBv3_GDS_TELEM_TABLE_UPDATE_INTERVAL_MS: 2037
+      IBv3_GDS_TIME_PLOT_UPDATE_INTERVAL_MS: 5049
+      IBv3_ipc__IP: "proxies"
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - 8050:8050
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+      - redis
+    labels:
+      iris.backend.v3.service_type: "app-target"
+      iris.backend.v3.description: "Spawns the Iris GDS GUI server process."
+
+  message-printer:
+    container_name: "IBv3_message_printer"
+    command: "python3 ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+      - redis
+    labels:
+      iris.backend.v3.service_type: "app-target"
+      iris.backend.v3.description: "Prints all events & messages going through IPC."

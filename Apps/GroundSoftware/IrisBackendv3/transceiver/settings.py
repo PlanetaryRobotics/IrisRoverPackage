@@ -5,11 +5,16 @@
 Configurable settings for the IPC layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 07/03/2022
+@last-updated: 11/30/2023
 """
 import os
 from typing import Final
-_KEY_ADDR_BASE: Final[str] = 'IBv3-xcvr--'
+
+# Make sure environment variables file has been loaded:
+from IrisBackendv3.environ import ensure_env_loaded
+ensure_env_loaded()
+
+_KEY_ADDR_BASE: Final[str] = 'IBv3_xcvr__'
 
 # Base defaults:
 settings = {

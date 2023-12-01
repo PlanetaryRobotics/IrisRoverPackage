@@ -5,11 +5,16 @@
 Configurable settings for the IPC layer.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/27/2022
+@last-updated: 11/30/2023
 """
 import os
 from typing import Final
-_KEY_ADDR_BASE: Final[str] = 'IBv3-ipc--'
+
+# Make sure environment variables file has been loaded:
+from IrisBackendv3.environ import ensure_env_loaded
+ensure_env_loaded()
+
+_KEY_ADDR_BASE: Final[str] = 'IBv3_ipc__'
 
 # Base defaults:
 settings = {
@@ -23,8 +28,8 @@ settings = {
 
 # Override settings with OS Environment variables if applicable:
 for key in settings.keys():
-    if _KEY_ADDR_BASE+key in os.environ:
-        settings[key] = os.getenv(_KEY_ADDR_BASE+key)
+    if (k := _KEY_ADDR_BASE+key) in os.environ:
+        settings[key] = os.getenv(k)
 
 
 def set_ip(ip: str):

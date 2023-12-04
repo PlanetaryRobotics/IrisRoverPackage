@@ -21,6 +21,8 @@ COPY --from=gsw requirements-dev.txt .
 RUN pip install --no-cache-dir -r requirements-dev.txt
 COPY --from=gsw requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Uninstall opencv and replace w/ headless version (required for dockerimage):
+RUN pip uninstall --yes opencv-python && pip install --no-cache-dir opencv-python-headless
 
 # Make sure the python path includess "this" (the running) directory:
 ENV PYTHONPATH ".:$PYTHONPATH"

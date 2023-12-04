@@ -432,7 +432,13 @@ class ImageDataRc11:
 
 def extract_image_from_flash_memory(
     flash_bytes: bytes,
-    max_line_size: int = 2592
+    max_line_size: int = 2592,
+    # Settings for removing unwritten (white / 0xFF) sections of memory from each row:
+    remove_white: bool = True,
+    # Nominal size of white band:
+    remove_white_size: int = 512-32,
+    # Tolerance of white band size (due to binning), default is max usable bin size:
+    remove_white_tol: int = 16
 ) -> ImageDataRc11:
     """Extracts RC11-style image data from a continuous vector of bytes
     downlinked from the flash memory. Automatically recognizes frames, aligns
@@ -470,6 +476,22 @@ def extract_image_from_flash_memory(
         LINE_CONTENTS_PATTERN.findall(
             flash_bytes_no_frame_header + BLANK_HEADER)
     )]
+
+    # If desired, remove any white (exactly 0xFF) sections from each row that
+    # are the same size as the blank region at the end of each memory page
+    # (not actually part of an image):
+    if remove_white:
+        unwritten_pattern = (
+            b'\xFF{' +
+            str(int(remove_white_size-remove_white_tol)).encode('utf-8') +
+            b',' +
+            str(int(remove_white_size+remove_white_tol)).encode('utf-8') +
+            b'}'
+        )
+        found_lines = [
+            re.sub(unwritten_pattern, b'', fl)
+            for fl in found_lines
+        ]
 
     return ImageDataRc11(
         frame_metadata=reported_frame_metadata,

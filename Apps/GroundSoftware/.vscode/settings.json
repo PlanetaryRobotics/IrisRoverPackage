@@ -145,6 +145,7 @@
         "ERRORCODE",
         "EXPECTRESPONSE",
         "fgid",
+        "fgids",
         "fgtl",
         "fillna",
         "fillvalue",

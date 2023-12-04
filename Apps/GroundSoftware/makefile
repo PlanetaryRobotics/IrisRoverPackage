@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help docker-build init update clean shell run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
+.PHONY = help docker-build init update clean shell run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui app-img
 
 .DEFAULT_GOAL = help
 all: help
@@ -76,6 +76,8 @@ help:
 	@echo "	make app-packet-bytes-printer: Run the PacketBytesPrinter IPC App."
 	@echo " "
 	@echo "	make app-gui: Bring up the server for the GDS GUI (viewed in a browser)."
+	@echo " "
+	@echo " make app-img: Bring up IPC app for reconstructing images streamed over IPC."
 	@echo "----------------------------------"
 
 ####
@@ -381,3 +383,9 @@ app-packet-bytes-printer:
 ####
 app-gui:
 	./run-script.sh ipc_apps/gui.py
+
+####
+# Bring up IPC app for reconstructing images streamed over IPC:
+####
+app-img:
+	./run-script.sh ipc_apps/image_builder.py

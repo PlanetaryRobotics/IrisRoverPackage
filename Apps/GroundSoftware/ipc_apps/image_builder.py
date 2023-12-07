@@ -957,8 +957,7 @@ class Image:
             app.logger.info("\tMaking GIF of Image Frames . . .")
             path = os.path.join(OUTPUT_DIR, self.file_name_base + ".gif")
             start_sec = time.time()
-            image_data.save_frames_gif(
-                gif_name, rotation=180, unknown_cutoff=0.25)
+            image_data.save_frames_gif(path, rotation=180, unknown_cutoff=0.25)
             end_sec = time.time()
             path = os.path.join(
                 OUTPUT_DIR, self.file_name_base + ".median.png")
@@ -1368,6 +1367,7 @@ class BasicImageDecoder:
             if fgid_filter is None or image.file_group_id in fgid_filter:
                 image.save_raw()
                 image.build_and_save_products()
+                app.logger.success(f"Finished exporting FGID {image.file_group_id}.")
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:
         for block in packet.payloads[FileBlockPayload]:
@@ -1397,8 +1397,8 @@ def payload_processing_update(
     # Process any blocks in incoming data:
     blocks = [*payloads[FileBlockPayload]]
     if len(blocks) > 0:
-        started = True  # we've stared to receive File data
-        last_block_time_sec = time.time()
+        context.started = True  # we've stared to receive File data
+        context.last_block_time_sec = time.time()
 
     for block in payloads[FileBlockPayload]:
         block = cast(FileBlockPayload, block)
@@ -1440,13 +1440,13 @@ def payload_processing_update(
         downlink_complete = True
 
     # Check for timeout (way too long since we've received a block):
-    if started and (time.time() - last_block_time_sec) > BLOCK_WAIT_TIMEOUT_SEC:
+    if context.started and (time.time() - context.last_block_time_sec) > BLOCK_WAIT_TIMEOUT_SEC:
         app.logger.notice(
             f"Processing downlink b/c Block Wait Timeout > {BLOCK_WAIT_TIMEOUT_SEC:.2f}s.")
         downlink_complete = True
 
     if downlink_complete:
-        started = False
+        context.started = False
         app.logger.notice(
             f"Processing downlinked data for FGIDS: {context.fgids_since_last_export}."
         )

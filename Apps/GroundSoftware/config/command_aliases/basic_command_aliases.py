@@ -143,5 +143,42 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             DataPathway.WIRED,
             Magic.COMMAND,
             comment="Tell the Rover to emit a new name or message NO FASTER THAN once every 10s."
+        ),
+
+        # Safety Timer:
+        'st-on': PreparedCommand(
+            'WatchDogInterface_ResetSpecific',
+            OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_ON'),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Allow the Safety Timer to reboot the system if it expires (Reboot Control = ON)."
+        ),
+        'st-off': PreparedCommand(
+            'WatchDogInterface_ResetSpecific',
+            OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_OFF'),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Don't allow the Safety Timer to reboot the system if it expires (Reboot Control = ON)."
+        ),
+        'st-ack': PreparedCommand(
+            'WatchDogInterface_ResetSpecific',
+            OrderedDict(reset_value='SAFETY_TIMER_ACK'),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Acknowledge the safety timer, setting the count back to 0."
+        ),
+        'st-inc': PreparedCommand(
+            'WatchDogInterface_ResetSpecific',
+            OrderedDict(reset_value='SAFETY_TIMER_CUTOFF_INC'),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Increment the safety timer cutoff by a fixed number of minutes (inc. timer by 5 minutes, 1/10th timer by 0.5min)."
+        ),
+        'st-dec': PreparedCommand(
+            'WatchDogInterface_ResetSpecific',
+            OrderedDict(reset_value='SAFETY_TIMER_CUTOFF_DEC'),
+            DataPathway.WIRED,
+            Magic.COMMAND,
+            comment="Decrement the safety timer cutoff by a fixed number of minutes (dec. timer by 5 minutes, 1/10th timer by 0.5min)."
         )
     }

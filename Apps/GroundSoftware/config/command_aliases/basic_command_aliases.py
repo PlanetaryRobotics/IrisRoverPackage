@@ -158,7 +158,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
             OrderedDict(reset_value='SAFETY_TIMER_REBOOT_CTRL_OFF'),
             DataPathway.WIRED,
             Magic.COMMAND,
-            comment="Don't allow the Safety Timer to reboot the system if it expires (Reboot Control = ON)."
+            comment="Don't allow the Safety Timer to reboot the system if it expires (Reboot Control = OFF)."
         ),
         'st-ack': PreparedCommand(
             'WatchDogInterface_ResetSpecific',

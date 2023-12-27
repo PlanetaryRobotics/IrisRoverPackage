@@ -72,7 +72,7 @@ class SlipTransceiver(Transceiver):
             if len(matches) > 1:
                 # warn that too many matches were found and we had to
                 # arbitrarily pick the first match:
-                logger.warn(
+                logger.warning(
                     "For a `SlipTransceiver`, multiple matches were found for the "
                     "given information. Consider using a more specific specifier. "
                     "The following matches were found: "
@@ -135,7 +135,7 @@ class SlipTransceiver(Transceiver):
                     )
                 )
             if port_info is None:
-                logger.warn(
+                logger.warning(
                     "`SlipTransceiver` was initialized with `device_sn = "
                     f"{device_sn}` but no partial case-insensitive matches "
                     "were found among all COM devices. "
@@ -154,7 +154,7 @@ class SlipTransceiver(Transceiver):
                 )
             )
             if port_info is None:
-                logger.warn(
+                logger.warning(
                     "`SlipTransceiver` was initialized with `device_port = "
                     f"{device_port}` but no matching device was found among "
                     "all COM devices. "

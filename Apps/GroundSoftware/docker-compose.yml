@@ -153,7 +153,11 @@ services:
   # Data Ingest / Emission:
   pcap-data:
     container_name: "IBv3_pcap_data"
-    command: "make data"
+    command: >
+      python3 ./scripts/testing/ipc_demo/pcap_xcvr.py
+      --loop
+      -t 588
+      -f ./test-data/RC12_Full_Wifi_Capture__just_iris.pcap
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"

@@ -157,7 +157,7 @@ services:
       python3 ./scripts/testing/ipc_demo/pcap_xcvr.py
       --loop
       -t 588
-      -f ./test-data/RC12_Full_Wifi_Capture__just_iris.pcap
+      -f ./test-data/RC12_Full_Wifi_Capture__just_iris__trimmed_no_img.pcap
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"

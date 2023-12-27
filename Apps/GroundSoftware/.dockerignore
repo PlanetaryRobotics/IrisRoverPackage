@@ -76,6 +76,7 @@ out/
 !test-data/telem_rc9_9.5.3_200packets_w_IMU.pcap
 !test-data/RC11_full_capture.pcap
 !test-data/RC12_Full_Wifi_Capture__just_iris.pcap
+!test-data/RC12_Full_Wifi_Capture__just_iris__trimmed_no_img.pcap
 !test-data/Iris_210503_18_hours_of_telem.pcap
 !test-data/SampleFPrimeXmlTopology.xml
 

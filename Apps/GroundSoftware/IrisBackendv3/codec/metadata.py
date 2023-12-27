@@ -2,13 +2,13 @@
 Various Classes defining Metadata for Packets and Payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 02/27/2021
+@last-updated: 12/27/2023
 """
 
 from typing import Optional, List
 
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import attr
 
@@ -59,6 +59,15 @@ class DownlinkTimes():
     Note: All of these times are the same across an entire packet. 
     Rover-specific times are sent in and managed by each Payload timestamp.
     """
+    # Estimate for the SpaceCraft-EventTime (on-rover time) when this item was
+    # *generated* on the rover (or, if it's a metachannel, when the data this
+    # was derived from was generated).
+    # This is the time that should be used for aligning various data points in
+    # a timeline.
+    scet_est: Optional[datetime] = None
+    # Estimate for the *full-pipeline* downlinking delay used when computing
+    # `scet_est`:
+    scet_dl_delay_est: Optional[timedelta] = None
     # When received by lander buffer (`generationTime` in YAMCS):
     lander_rx: Optional[datetime] = None
     # When sent by lander:

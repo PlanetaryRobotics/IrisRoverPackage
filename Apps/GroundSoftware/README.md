@@ -1,6 +1,43 @@
 # Iris Ground Software Backend (GDS) v.3
 NOTE: All makefiles are designed to be run in an environment that supports `bash` or `zsh`.
 
+# 0. Using Docker
+Post-RC12, the preferred (and greatly simplified) way to run the Iris GDS is to use docker, esp. for deployment. For development, it will likely be faster to set this up natively using **`Sections 1-`**.
+
+**If you just want to use GDS through Docker, you only need to follow the setup in this section.**
+
+## 0.1 Docker Setup
+- Install `Docker` and `Docker Desktop` on your machine.
+- Modify the `.env` file to match your setup.
+  - Most settings can remain unchanged.
+  - Extra GDS settings can be added and changed based on what's in `settings.py` for the various layers.
+- Run `docker compose build` to build the docker image used by all Iris GDS services.
+  - This takes a while on the first go.
+
+## 0.2 Running Docker
+- Run `docker compose X` to bring up service `X`. This will also automatically bring up all services `X` is dependent on.
+  - `X` can also be a list of services separated by spaces. 
+  - Look at `docker-compose.yml` or run `docker compose config --services` to get a look at all available services.
+- Run `docker compose -d X` to bring up all the services in the background. They can be monitored using `Docker Desktop`.
+
+### 0.2.1 Docker Compose Example Use-Cases:
+- (0.2.1.a): `docker compose up -d core`
+  - Just brings up all core services for GDS IPC.
+- (0.2.1.b): `docker compose up -d pcap-data`
+  - Replays data from a PCAP recording into the IPC network (also brings up all core services for GDS IPC).
+- (0.2.1.c): `docker compose up -d gui pcap-data`
+  - Brings up the GDS-GUI and all its dependencies and then feeds data into the system from a PCAP recording.
+- (0.2.1.d): `docker compose up pcap-data message-printer`
+  - Feeds data into IPC from a PCAP recording and then brings up the Message Printer Display to visualize that data.
+    - Since `-d` is not used in this command, all prints from both services will be printed in the console.
+
+## 0.3 Development using Docker
+As mentioned above, it will be easier to develop by setting up GDS natively using the steps in **`Sections 1-`**.
+
+If you are developing using docker and you make any changes to the source of the Iris GDS or want to add any new files for testing, you may need to run the following:
+- `docker compose down` to bring down the services using the image
+- `docker compose build` to rebuild the image from the point the source changed (or just rerun `docker compose up` and the image should rebuild.)
+
 # 1. Install OS-Level Dependencies
 OS-level dependency install and setup only needs to be done once per machine.
 

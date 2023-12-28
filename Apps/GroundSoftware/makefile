@@ -4,7 +4,7 @@ PYTHON ?= python
 PYTHONVERSION ?= 3.10.8
 VENV_NAME ?= py_irisbackendv3
 
-.PHONY = help init update clean shell run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui
+.PHONY = help docker-build init update clean shell run run-infra run-tests proxies standards build-docs run-docs build-cte data data-image console xconsole console-debug xconsole-debug xterm-normal xterm-wide port-investigator port-culler cloc xcvr-slip xcvr-wifi xcvr app-commander app-telemetry-display app-message-printer app-packet-bytes-printer app-gui app-img
 
 .DEFAULT_GOAL = help
 all: help
@@ -12,6 +12,8 @@ all: help
 help:
 	@echo "---- Iris Backend v3 Makefile ----"
 	@echo "	make help: Information"
+	@echo " "
+	@echo "	make docker-build: Builds the docker image"
 	@echo " "
 	@echo "	make init: Clean and resetup the project on a *new* system"
 	@echo " "
@@ -74,8 +76,15 @@ help:
 	@echo "	make app-packet-bytes-printer: Run the PacketBytesPrinter IPC App."
 	@echo " "
 	@echo "	make app-gui: Bring up the server for the GDS GUI (viewed in a browser)."
+	@echo " "
+	@echo " make app-img: Bring up IPC app for reconstructing images streamed over IPC."
 	@echo "----------------------------------"
 
+####
+# Builds the docker image:
+####
+docker-build:
+	BUILDKIT_PROGRESS=plain docker compose build
 
 ####
 # Setup the Development Environment:
@@ -238,8 +247,9 @@ data:
 ####
 data-image:
 	./run-script.sh scripts/testing/ipc_demo/pcap_xcvr.py \
-		-t 15 -g 0 --no-loop \
-		-f test-data/img_rc9.5.3_em4_flight_lens_pocari_4__v4_cam_A_short_cable__sunlamp_pointed_up.pcap
+		-t 20 -g 0 --no-loop \
+		-f test-data/img_scs_em4_my_images.pcap
+#		-f test-data/img_rc9.5.3_em4_flight_lens_pocari_4__v4_cam_A_short_cable__sunlamp_pointed_up.pcap
 #		-f test-data/img_rc9.5.3_em4_flight_lens_pocari_2__v4_cam_A_short_cable.pcap
 #		-f test-data/img_rc9.5.3_v3_test_lens_flight_lens_pocari_2.pcap
 #		-f test-data/img_rc9.5.3_flight_lens_full_good_psu_try2__after_seamless_w_old_lens__no_harness_demate_just_lens_swap.pcap
@@ -373,3 +383,9 @@ app-packet-bytes-printer:
 ####
 app-gui:
 	./run-script.sh ipc_apps/gui.py
+
+####
+# Bring up IPC app for reconstructing images streamed over IPC:
+####
+app-img:
+	./run-script.sh ipc_apps/image_builder.py

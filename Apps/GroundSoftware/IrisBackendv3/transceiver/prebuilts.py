@@ -28,7 +28,7 @@ class PrebuiltTransceiver(Enum):
 def build_xcvr(xcvr_spec: PrebuiltTransceiver, **kwargs) -> Transceiver | None:
     match xcvr_spec:
         case PrebuiltTransceiver.WIFI:
-            return WifiTransceiver()
+            return WifiTransceiver()  # lander_ip=(0, 0, 0, 0))
         case PrebuiltTransceiver.PCAP_GENERIC:
             default_kwargs = dict(
                 fixed_period_ms=588,  # avg. period (204 packets in 120s)

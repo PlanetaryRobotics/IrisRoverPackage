@@ -9,6 +9,8 @@ Last Updated: 06/02/2023
 """
 from __future__ import annotations
 
+import os
+
 from typing import Any, Final, Dict, Tuple, List, Sequence, cast
 from datetime import datetime, timedelta
 import uuid
@@ -302,7 +304,7 @@ class _EventStreamAIO(html.Div):
         self.interval = dcc.Interval(
             id=self.ids.interval(aio_id),
             **{
-                'interval': 0.2*1000,  # ms
+                'interval': float(os.environ.get('IBv3_GDS_EVENTS_UPDATE_INTERVAL_MS', 0.2*1000)),
                 'n_intervals': 0,
                 **interval_props
             }

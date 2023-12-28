@@ -1,0 +1,82 @@
+# Git Files
+**/.git
+
+# Docker Files:
+**/.dockerignore
+**/Dockerfile
+**/docker-compose.yml
+
+# Ignore Python Bytecode Caching:
+*.py[cod]
+**/__pycache__/
+
+# Ignore linter cache:
+**/.mypy_cache/
+**/.pytest_cache/
+
+# Ignore tester cache:
+**/.pytest_cache/
+**/.coverage
+
+# Ignore (unsupported) editor settings:
+**/.idea/
+**/.vscode/
+
+# Ignore OS Files:
+**/.DS_Store
+
+# Testing Scripts & Logs:
+scripts/testing
+!scripts/testing/ipc_demo
+scripts/notebooks
+scripts/js
+node_modules/
+test-data/*.pcap*
+
+# Ignore all logging, caching, & data files, as well as interactive notebooks:
+**/*.ipynb
+**/*.md
+**/*.txt.ansi
+**/*.clog
+**/*.tsc
+**/*.dsc
+**/*.tvac
+**/*.pcap
+**/*.pcapng
+**/*.gif
+**/*.png
+**/*.jpg
+**/*.jpeg
+packet_prints/
+pcap_logs/
+transceiver_logs/
+raw-console-logs/
+sandbox-cache/
+DataStandardsCache/
+tvac_export/
+**/.ipynb_checkpoints/
+# Also, as a broad stroke, ignore Everything in `out/` by default:
+out/
+
+# Only allow specific files from the FSW directory to be included which are
+# needed to build the data standards:
+**/FlightSoftware/**/*
+!**/FlightSoftware/**/*.xml
+!**/FlightSoftware/**/*.h
+!**/FlightSoftware/**/*.hpp
+# For those which are mounted in the FSW directory:
+**/fprime/**/*
+!**/fprime/**/*.xml
+!**/fprime/**/*.h
+!**/fprime/**/*.hpp
+
+# Test Data Files to Explicitly Include:
+!test-data/img_scs_em4_my_images.pcap
+!test-data/img_rc9.5.3_em4_flight_lens_pocari_4__v4_cam_A_short_cable__sunlamp_pointed_up.pcap
+!test-data/telem_rc9_9.5.3_200packets_w_IMU.pcap
+!test-data/RC11_full_capture.pcap
+!test-data/RC12_Full_Wifi_Capture__just_iris.pcap
+!test-data/RC12_Full_Wifi_Capture__just_iris__trimmed_no_img.pcap
+!test-data/Iris_210503_18_hours_of_telem.pcap
+!test-data/SampleFPrimeXmlTopology.xml
+

@@ -1,0 +1,3 @@
+# By default, ignore everything in this directory (there are a lot of these):
+*
+!.gitignore

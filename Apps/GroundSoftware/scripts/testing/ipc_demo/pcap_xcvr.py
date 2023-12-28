@@ -83,12 +83,18 @@ manager = ipc.IpcAppManagerSync(socket_specs={
 
 n_packets_sent: int = 0  # count total packets sent for diagnostics
 while len(packets := xcvr.read()) != 0 or opts.loop:
-    msg = DownlinkedPacketsMessage(DownlinkedPacketsContent(
-        packets=packets
-    ))
-    manager.send_to('pub', msg, subtopic_bytes=b'pcap')
-    n_packets_sent += len(packets)
-    app.logger.notice(
-        f"[{n_packets_sent:5d}] "
-        f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PACKETS}"
-    )
+    try:
+        msg = DownlinkedPacketsMessage(DownlinkedPacketsContent(
+            packets=packets
+        ))
+        manager.send_to('pub', msg, subtopic_bytes=b'pcap')
+        n_packets_sent += len(packets)
+        app.logger.notice(
+            f"[{n_packets_sent:5d}] "
+            f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PACKETS}"
+        )
+    except Exception as e:
+        app.logger.error(
+            f"Uncaught exception in encoding packet(s): `{packets}`. \n"
+            f"Exception: `{e}`."
+        )

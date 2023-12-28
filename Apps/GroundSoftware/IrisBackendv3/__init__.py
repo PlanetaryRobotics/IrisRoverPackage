@@ -19,10 +19,16 @@ IB3.init_from_latest()
 If the standards source gets updated, just re-run
 `IB3.data_standards.build_and_cache()`.
 """
+# Load environment (which has no other dependencies) **immediately** so
+# env variables can be available in all later steps:
+from IrisBackendv3 import environ
+
 # Import `restricted_pickler` before **ANYTHING ELSE** so it has first dibs on
 # how the modules it cares about are imported:
 import IrisBackendv3.ipc.restricted_pickler
 
+
+# isort:skip
 # Import all top-level modules so they're dot-accessible if just
 # `IrisBackendv3` is imported:
 from IrisBackendv3 import codec
@@ -44,7 +50,13 @@ from IrisBackendv3.data_standards.data_standards import (
 )
 
 
+# Make sure all environment variables have been loaded:
+environ.ensure_env_loaded()
+
+
 # Helper functions for managing the lifecycle of the backend:
+
+
 def init_from_standards(standards: _DataStandards) -> None:
     """Initializes the backend GDS using the given `DataStandards` object."""
     _set_codec_standards(standards)

@@ -26,8 +26,8 @@ import subprocess
 from datetime import datetime, timedelta
 
 if sys.platform == "darwin":
-    from AppKit import NSWorkspace
-    from Quartz import (
+    from AppKit import NSWorkspace  # type: ignore
+    from Quartz import (  # type: ignore
         CGWindowListCopyWindowInfo,
         kCGWindowListOptionOnScreenOnly,
         kCGNullWindowID
@@ -66,8 +66,12 @@ from IrisBackendv3.codec.packet import (
     IrisCommonPacket,
     WatchdogDetailedStatusPacket,
     WatchdogCommandResponsePacket,
-    RadioUartBytePacket
+    RadioUartBytePacket,
+    RadioDownlinkFlushPacket,
+    WatchdogHeartbeatPacket,
+    WatchdogTvacHeartbeatPacket
 )
+from IrisBackendv3.codec.packet_classes.gds_packet_event_mixin import GdsPacketEventMixin
 
 
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
@@ -604,25 +608,42 @@ def packet_to_messages(
         if (
             (len([*packet.payloads[TelemetryPayload]]) == 0  # no telem
              and len([*packet.payloads[EventPayload]]) == 0  # no events
-             or isinstance(packet, (  # has telem/events but is special:
+             or isinstance(packet, (  # has telem/events but is special and should be printed anyway:
+                WatchdogHeartbeatPacket,
+                WatchdogTvacHeartbeatPacket,
                 WatchdogDetailedStatusPacket,
-                WatchdogCommandResponsePacket
-                 )))
+                WatchdogCommandResponsePacket,
+                GdsPacketEventMixin
+             )))
             and not isinstance(packet, (  # just never print these:
-                RadioUartBytePacket
+                RadioUartBytePacket,
+                RadioDownlinkFlushPacket
             ))
         ):
             messages.append(packet_print_string(packet, datetime_format))
 
     # Extract any events:
-    if echo_events:
+    # (except `GdsPacketEventMixin`, these contain events but should count as
+    # `message packets` and are handled with the above):
+    if echo_events and not isinstance(packet, GdsPacketEventMixin):
         events = [*packet.payloads[EventPayload]]
         for event in events:
+            event = cast(EventPayload, event)
+            message: str = ""
+            # Add SCET if we know the SCET:
+            if (scet := event.downlink_times.scet_est) is not None:
+                message += (
+                    f" \033[35;47;1m(SCET-{scet.strftime(datetime_format)})\033[0m "
+                )
+            # Build the rest of the message:
+            message += (
+                f"\033[35;47;1m(RCV-{datetime.now().strftime(datetime_format)})\033[0m "
+                f"{event!s}"
+            )
+
             # Push directly to the queue:
             # ... the handle_streamed_packet will take care of the refreshing
-            messages.append(
-                f"\033[35;47;1m({datetime.now().strftime(datetime_format)})\033[0m {event!s}"
-            )
+            messages.append(message)
 
     # If requested, tack on the packet bytes:
     if echo_all_packet_bytes:

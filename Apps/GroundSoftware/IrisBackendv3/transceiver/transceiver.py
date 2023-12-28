@@ -237,7 +237,7 @@ class Transceiver(ABC):
                             payload.downlink_times.pmcc_rx = datetime.now()
                         else:
                             # What's a non-DownlinkedPayload doing in here?:
-                            logger.warn(  # type: ignore
+                            logger.warning(  # type: ignore
                                 f"[{self.__class__.__name__}] When processing "
                                 f"a downlinked packet `{packet}`, a payload "
                                 "was found that's **NOT** a "
@@ -378,7 +378,7 @@ class Transceiver(ABC):
                 payload.uplink_times.pmcc_tx = datetime.now()
             else:
                 # What's a non-UplinkedPayload doing in here?:
-                logger.warn(  # type: ignore
+                logger.warning(  # type: ignore
                     f"[{self.__class__.__name__}] When uplinking packet "
                     f"`{packet}`, a payload was found that's **NOT** an "
                     f"`UplinkedPayload`: `{payload}`. "

@@ -40,7 +40,7 @@ class IpUdpEndec(Endec):
         full_packet = scp.IP(data)
         no_ip = full_packet.payload  # scrape off IP
         if no_ip.name.upper() != 'UDP':
-            logger.warn(
+            logger.warning(
                 "In `IpUdpEndec.decode`, after stripping off the IP header, a "
                 f"'UDP' header was expected but instead {no_ip.name} was "
                 "found. "

@@ -38,6 +38,30 @@ If you are developing using docker and you make any changes to the source of the
 - `docker compose down` to bring down the services using the image
 - `docker compose build` to rebuild the image from the point the source changed (or just rerun `docker compose up` and the image should rebuild.)
 
+## 0.4 A Note on Docker Networking
+If you need to connect to external servers from inside docker which use/overlap with docker's `172.17.0.0/16` subnet (e.g. a YAMCS server), you need to reconfigure the docker daemon to use a different address space for its bridge network.
+
+In mission, on a Windows 10 machine using docker in WSL2-mode (none of which should be relevant), the following `~/.docker/daemon.json` was used to avoid conflict.
+```json
+{
+  "bip": "198.18.1.1/24",
+  "fixed-cidr": "198.18.1.0/25",
+  "fixed-cidr-v6": "2001:db8::/64",
+  "mtu": 1500,
+  "default-gateway": "198.18.1.254",
+  "default-gateway-v6": "2001:db8:abcd::89",
+  "dns": ["10.20.1.2","10.20.1.3"],
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false
+}
+```
+Note: As of 1/2024, pasting this file in the Docker Engine config in Docker Desktop will result in complaining about IP formatting errors. This is due to tracked bug in Docker Desktop. Just edit the `~/.docker/daemon.json` file directly.
+
 # 1. Install OS-Level Dependencies
 OS-level dependency install and setup only needs to be done once per machine.
 

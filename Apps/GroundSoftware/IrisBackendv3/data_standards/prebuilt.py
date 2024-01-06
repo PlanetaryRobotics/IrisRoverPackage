@@ -178,7 +178,7 @@ watchdog_heartbeat: Module = Module(
         (0x00, 'BattAdcTempRaw'): TelemetryChannel(
             name='BattAdcTempRaw',
             ID=0x00,
-            datatype=FswDataType.U8
+            datatype=FswDataType.U16
         ),
         (0x01, 'BattAdcTempKelvin'): TelemetryChannel(
             name='BattAdcTempKelvin',
@@ -203,8 +203,10 @@ watchdog_heartbeat: Module = Module(
         ),
 
         (0x22, 'BatteryVoltageOk'): TelemetryChannel(
-            # Note: won't use FPrime BOOL std. (so treat as U8)
-            name='BatteryVoltageOk', ID=0x22, datatype=FswDataType.U8
+            # Note: doesn't use FPrime BOOL std., so is downlinked as U8 (not
+            # U32 which backs BOOL). We never send this back to WD, so it's
+            # okay for it to be 1-way compatible.
+            name='BatteryVoltageOk', ID=0x22, datatype=FswDataType.BOOL
         ),
 
         (0x30, 'CurrentRaw'): TelemetryChannel(
@@ -219,8 +221,10 @@ watchdog_heartbeat: Module = Module(
         ),
 
         (0x57, 'HeaterStatus'): TelemetryChannel(
-            # Note: won't use FPrime BOOL std. (so treat as U8)
-            name='HeaterStatus', ID=0x57, datatype=FswDataType.U8
+            # Note: doesn't use FPrime BOOL std., so is downlinked as U8 (not
+            # U32 which backs BOOL). We never send this back to WD, so it's
+            # okay for it to be 1-way compatible.
+            name='HeaterStatus', ID=0x57, datatype=FswDataType.BOOL
         )
     })
 )
@@ -479,15 +483,15 @@ watchdog_detailed_status_heartbeat: Module = Module(
 
 
         # FROM ADC:
-        nid_nic_entry(
-            TelemetryChannel, 0x20, 'Adc_LanderVoltageRaw', datatype=FswDataType.U8  # 7b
+        nid_nic_entry(  # 12b (upper 7b downlinked)
+            TelemetryChannel, 0x20, 'Adc_LanderVoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x21, 'Adc_LanderVoltage', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x22, 'Adc_BatteryChargingTempRaw', datatype=FswDataType.U16  # 9b
+        nid_nic_entry(  # 12b (upper 9b downlinked)
+            TelemetryChannel, 0x22, 'Adc_BatteryChargingTempRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x23, 'Adc_BatteryChargingTempKelvin', datatype=FswDataType.F64  # calc
@@ -506,50 +510,50 @@ watchdog_detailed_status_heartbeat: Module = Module(
             TelemetryChannel, 0x27, 'Adc_BatteryTempUncertaintyKelvin', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x28, 'Adc_FullSystemVoltageRaw', datatype=FswDataType.U8  # 5b
+        nid_nic_entry(  # 12b (upper 5b downlinked)
+            TelemetryChannel, 0x28, 'Adc_FullSystemVoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x29, 'Adc_FullSystemVoltage', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x2A, 'Adc_FullSystemCurrentRaw', datatype=FswDataType.U16  # 9b
+        nid_nic_entry(  # 12b (upper 9b downlinked)
+            TelemetryChannel, 0x2A, 'Adc_FullSystemCurrentRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x2B, 'Adc_FullSystemCurrent', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x2C, 'Adc_SwitchedBatteryVoltageRaw', datatype=FswDataType.U16  # 9b
+        nid_nic_entry(  # 12b (upper 9b downlinked)
+            TelemetryChannel, 0x2C, 'Adc_SwitchedBatteryVoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x2D, 'Adc_SwitchedBatteryVoltage', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x30, 'Adc_2V5VoltageRaw', datatype=FswDataType.U8  # 5b
+        nid_nic_entry(  # 12b (upper 5b downlinked)
+            TelemetryChannel, 0x30, 'Adc_2V5VoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x31, 'Adc_2V5Voltage', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x32, 'Adc_2V8VoltageRaw', datatype=FswDataType.U8  # 5b
+        nid_nic_entry(  # 12b (upper 5b downlinked)
+            TelemetryChannel, 0x32, 'Adc_2V8VoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x33, 'Adc_2V8Voltage', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x34, 'Adc_Vcc28VoltageRaw', datatype=FswDataType.U8  # 6b
+        nid_nic_entry(  # 12b (upper 6b downlinked)
+            TelemetryChannel, 0x34, 'Adc_Vcc28VoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x35, 'Adc_Vcc28Voltage', datatype=FswDataType.F64  # calc
         ),
 
-        nid_nic_entry(
-            TelemetryChannel, 0x36, 'Adc_Vcc24VoltageRaw', datatype=FswDataType.U8  # 7b
+        nid_nic_entry(  # 12b (upper 7b downlinked)
+            TelemetryChannel, 0x36, 'Adc_Vcc24VoltageRaw', datatype=FswDataType.U16
         ),
         nid_nic_entry(
             TelemetryChannel, 0x37, 'Adc_Vcc24Voltage', datatype=FswDataType.F64  # calc
@@ -1148,6 +1152,21 @@ peregrine: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x0A, 'DeckD3TempKelvin', datatype=FswDataType.F64
         ),
+        nid_nic_entry(
+            TelemetryChannel, 0x10, 'PeregrineMissionPhase', datatype=FswDataType.ENUM,
+            enum=[
+                EnumItem('PAD', 0),
+                EnumItem('CRUISE', 1),
+                EnumItem('LO1', 2),
+                EnumItem('LO2', 3),
+                EnumItem('LO3', 4),
+                EnumItem('DESCENT', 5),
+                EnumItem('DELTAV', 6),
+                EnumItem('SAFE', 7),
+                EnumItem('SURFACE', 8),
+                EnumItem('SIESTA', 9)
+            ]
+        ),
     ])
 )
 
@@ -1175,7 +1194,7 @@ def _packet_classes_to_events(
     ]
 
 
-# Registry of Packets which, if we receive them, represent an event:
+# Registry of (GdsPacketEventPacket) Packets which, if we receive them, represent an event:
 gds_packets: Module = Module(
     name="GdsPackets",
     ID=0xCF00,

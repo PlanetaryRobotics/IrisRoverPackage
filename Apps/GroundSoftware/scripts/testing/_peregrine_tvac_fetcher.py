@@ -47,6 +47,11 @@ from termcolor import colored
 
 from scripts.utils.trans_tools import *
 from IrisBackendv3.codec.payload import EventPayload
+from IrisBackendv3.transceiver.yamcs_helper import (
+    IRIS_TELEM_PARAMS,
+    ALL_YAMCS_PARAMS as IRIS_PARAMS,
+    IRIS_OPERATIONAL_POWER_PARAM
+)
 
 import ulid
 import numpy as np
@@ -70,31 +75,6 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 # Load Dependencies:
 
 TITLE: Final[str] = 'IRIS Lunar Rover — Peregrine TVAC YAMCS Fetcher — CLI'
-
-# All params Iris PMCC has access to:
-IRIS_PARAMS: Final[List[str]] = [
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Operational_EnabledFet',
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Release_EnabledFet',
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Operational_avgCurrent',
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Release_avgCurrent',
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Operational_maxCurrent',
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Release_maxCurrent',
-    '/Peregrine/PL1/SLIPsvc@3Status',
-    '/Peregrine/PL1/WIFIsvc@3Status',
-    '/Peregrine/FCPU/TMGR/TCS_DECKD_1/TCS_DECKD_1',
-    '/Peregrine/FCPU/TMGR/TCS_DECKD_2/TCS_DECKD_2',
-    '/Peregrine/FCPU/TMGR/TCS_DECKD_3/TCS_DECKD_3',
-    '/Peregrine/payloads/iris/iris-payload-tm-rs422',
-    '/Peregrine/payloads/iris/iris-payload-tm-wlan'
-]
-# Parameter that indicates when Iris has power:
-IRIS_OPERATIONAL_POWER_PARAM: Final[str] = \
-    '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Operational_EnabledFet'
-# Parameter(s) that contain Iris packets:
-IRIS_TELEM_PARAMS: Final[List[str]] = [
-    '/Peregrine/payloads/iris/iris-payload-tm-rs422',
-    '/Peregrine/payloads/iris/iris-payload-tm-wlan'
-]
 
 # Columns to plot:
 PLOT_TELEM_COLUMNS_AXIS_TEMP: Final[Dict[str, str]] = {
@@ -937,14 +917,14 @@ def plot_tvac_telem(opts, telem: DataSet) -> None:
     if (
         opts.plot_start_time_utc is not None
         # check for text in case someone misread the help and typed it out:
-        and opts.plot_start_time_utc.upper() != "NONE"
+        and str(opts.plot_start_time_utc).upper() != "NONE"
     ):
         start_bound = pd.to_datetime(str(opts.plot_start_time_utc), utc=True)
         plot_data = plot_data[plot_data.index >= start_bound]
     if (
         opts.plot_end_time_utc is not None
         # check for text in case someone misread the help and typed it out:
-        and opts.plot_end_time_utc.upper() != "NONE"
+        and str(opts.plot_end_time_utc).upper() != "NONE"
     ):
         end_bound = pd.to_datetime(str(opts.plot_end_time_utc), utc=True)
         plot_data = plot_data[plot_data.index <= end_bound]

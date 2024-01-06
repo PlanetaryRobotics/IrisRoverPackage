@@ -47,7 +47,7 @@ def get_opts():
                         help="Logging level.")
     parser.add_argument('--loop', default=True,
                         action=argparse.BooleanOptionalAction,
-                        help="Whether or not to loop the packet.")
+                        help="Whether or not to loop the pcap.")
     return parser.parse_args()
 
 

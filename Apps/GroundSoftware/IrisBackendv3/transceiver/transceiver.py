@@ -5,9 +5,6 @@ Abstract Base Class encapsulating common behaviors and interfaces for all
 transceiver classes.
 
 TODO: Handle setting `rover_ack` for `UplinkedPayload`s.
-TODO: Handle multi-packet unpackings like `FileBlockPayload`s.
-^ Do all this at the `Transceiver` level (not in subclasses) so all subclasses
-benefit from the impl.
 
 TODO: Handle auto-updating of seq-num (maybe this needs to work across
 Transceivers?)

@@ -84,7 +84,7 @@ help:
 # Builds the docker image:
 ####
 docker-build:
-	BUILDKIT_PROGRESS=plain docker compose build
+	docker compose build
 
 ####
 # Setup the Development Environment:

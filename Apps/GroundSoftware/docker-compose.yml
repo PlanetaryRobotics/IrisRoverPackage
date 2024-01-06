@@ -234,7 +234,7 @@ services:
 
 
   itvac-data:
-    container_name: "IBv3_pcap_data"
+    container_name: "IBv3_itvac_data"
     command: >
       python3 ./scripts/testing/ipc_demo/h5_xcvr.py
       --loop

@@ -29,6 +29,8 @@ from IrisBackendv3.data_standards.prebuilt import (
     add_to_standards, ALL_PREBUILT_MODULES
 )
 
+from IrisBackendv3.logs import VALID_LOG_LEVELS
+
 from IrisBackendv3.codec.settings import set_codec_standards
 
 from IrisBackendv3.transceiver.yamcs_helper import *
@@ -68,10 +70,26 @@ parser = argparse.ArgumentParser(description=(
 ))
 
 
-def get_opts():
+def get_opts(
+    default_log_level: str = 'VERBOSE'
+):
     parser.add_argument('-i', '--yamcs-ip', type=str, default="172.17.0.51")
     parser.add_argument('-p', '--yamcs-port', type=int, default=443)
     parser.add_argument('-x', '--yamcs-pass', type=str, default="NOTTHEPASS")
+
+    def str_to_log_level(s):
+        if isinstance(s, str) and s.upper() in VALID_LOG_LEVELS:
+            return s.upper()
+        else:
+            raise argparse.ArgumentTypeError(
+                f'Valid log level expected. Log levels are: {VALID_LOG_LEVELS}'
+            )
+
+    parser.add_argument('--log-level', type=str_to_log_level, default=default_log_level,
+                        help=('Logging level to be used (i.e. how annoying the logging '
+                              'printouts should be). Only logs with importance greater '
+                              'than or equal to the specified logging level are '
+                              f'displayed. Valid logging levels are: {VALID_LOG_LEVELS}'))
 
     return parser.parse_args()
 
@@ -267,12 +285,6 @@ if __name__ == "__main__":
     # Load data:
     xcvrLoggerLevel(opts.log_level)
     app.setLogLevel(opts.log_level)
-    kwargs = dict(
-        packetgap=opts.packet_gap,  # skip first 37000 packets (of 37644)
-        fixed_period_ms=opts.period_ms,
-        loop=opts.loop,
-        log_on_receive=False
-    )
     # Setup IPC:
     manager = ipc.IpcAppManagerSync(socket_specs={
         'pub': ipc.SocketSpec(

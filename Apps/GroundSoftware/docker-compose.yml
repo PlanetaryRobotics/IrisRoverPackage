@@ -211,7 +211,7 @@ services:
   iris-yamcs:
     container_name: "IBv3_iris_yamcs"
     command: >
-      python3 ./yamcs.py
+      python3 ./iris_yamcs.py
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"

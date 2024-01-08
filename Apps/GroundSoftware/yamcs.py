@@ -260,6 +260,10 @@ if __name__ == "__main__":
         f"Boot w/ {opts.yamcs_ip}:{opts.yamcs_port}"
     )
 
+    if 'IRIS_YAMCS_PASS' in os.environ:
+        opts.yamcs_pass = os.getenv('IRIS_YAMCS_PASS')
+        app.logger.notice("Loaded pass override.")
+
     # Load data:
     xcvrLoggerLevel(opts.log_level)
     app.setLogLevel(opts.log_level)

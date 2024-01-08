@@ -59,6 +59,8 @@ import numpy as np
 import pandas as pd
 import scapy.all as scp  # type: ignore
 
+import time
+
 
 IB3.init_from_latest()
 
@@ -330,3 +332,7 @@ if __name__ == "__main__":
         AVAIL_PARAM_QUAL_NAMES,
         on_data=ingest_yamcs_param
     )
+
+    while True:
+        time.sleep(5)
+        app.logger.verbose("Beat . . .")

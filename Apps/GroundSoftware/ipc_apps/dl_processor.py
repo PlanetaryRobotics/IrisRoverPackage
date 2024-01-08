@@ -9,7 +9,7 @@ TODO: Handle DL packet statistics here (top table in TelemetryDisplay). Emit as 
         - ^ as a metachannel?
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 12/27/2023
+@last-updated: 01/06/2024
 """
 from typing import cast, Final, List, Dict, Type
 from datetime import datetime, timedelta
@@ -45,6 +45,10 @@ manager = ipc.IpcAppManagerSync(socket_specs={
 })
 
 
+def process_metachannels(payloads: EnhancedPayloadCollection) -> EnhancedPayloadCollection:
+    """"""
+
+
 def process_dl_payloads(
     manager: ipc.IpcAppManager,
     payloads: IB3.codec.payload_collection.EnhancedPayloadCollection
@@ -64,6 +68,8 @@ def process_dl_payloads(
         # Add to payload times:
         p.downlink_times.scet_est = scet
         p.downlink_times.scet_dl_delay_est = delay
+
+    process_metachannels(payloads)
 
     return payloads
 

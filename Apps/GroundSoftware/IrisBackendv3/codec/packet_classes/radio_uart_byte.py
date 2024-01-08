@@ -17,7 +17,7 @@ from .gds_packet_event_mixin import GdsPacketEventPacket, GDS_EVT_PT
 
 from typing import Any, Final, Optional, List
 
-from scapy.all import hexdump
+from scapy.all import hexdump  # type: ignore
 
 from termcolor import colored
 

@@ -1144,13 +1144,13 @@ peregrine: Module = Module(
             ]
         ),
         nid_nic_entry(
-            TelemetryChannel, 0x08, 'DeckD1TempKelvin', datatype=FswDataType.F64
+            TelemetryChannel, 0x08, 'DeckD1TempCelsius', datatype=FswDataType.F64
         ),
         nid_nic_entry(
-            TelemetryChannel, 0x09, 'DeckD2TempKelvin', datatype=FswDataType.F64
+            TelemetryChannel, 0x09, 'DeckD2TempCelsius', datatype=FswDataType.F64
         ),
         nid_nic_entry(
-            TelemetryChannel, 0x0A, 'DeckD3TempKelvin', datatype=FswDataType.F64
+            TelemetryChannel, 0x0A, 'DeckD3TempCelsius', datatype=FswDataType.F64
         ),
         nid_nic_entry(
             TelemetryChannel, 0x10, 'PeregrineMissionPhase', datatype=FswDataType.ENUM,

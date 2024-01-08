@@ -45,10 +45,10 @@ LANDER_PARAMS_YAMCS_GDS_MAP: Final[Dict[str, str]] = {
     '/Peregrine/PL1/SLIPsvc@3Status': 'SlipServiceStatus',
     '/Peregrine/PL1/WIFIsvc@3Status': 'WifiServiceStatus',
     # deprecated (not flown)
-    '/Peregrine/FCPU/TMGR/TCS_DECKD_1/TCS_DECKD_1': 'DeckD1TempKelvin',
-    '/Peregrine/FCPU/TMGR/TCS_DECKD_2/TCS_DECKD_2': 'DeckD2TempKelvin',
+    '/Peregrine/FCPU/TMGR/TCS_DECKD_1/TCS_DECKD_1': 'DeckD1TempCelsius',
+    '/Peregrine/FCPU/TMGR/TCS_DECKD_2/TCS_DECKD_2': 'DeckD2TempCelsius',
     # deprecated (not flown)
-    '/Peregrine/FCPU/TMGR/TCS_DECKD_3/TCS_DECKD_3': 'DeckD3TempKelvin',
+    '/Peregrine/FCPU/TMGR/TCS_DECKD_3/TCS_DECKD_3': 'DeckD3TempCelsius',
     '/Peregrine/MO/missionPhase': 'PeregrineMissionPhase'
 }
 # Parameter(s) that contain Iris packets:

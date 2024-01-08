@@ -268,10 +268,71 @@ class YamcsInterface:
         return [(p.generation_time, p.eng_value) for p in history]
 
 
-def ingest_yamcs_param(data) -> None:
-    if data is not None:
-        for param in data.parameters:
-            app.logger.info(f"GOT {param.__str__()} . . .")
+def subscription_data_to_packets(data) -> List[Packet] | None:
+    packets: List[Packet] | None = None
+    if data is not None and data.parameters is not None:
+        if not isinstance(data.parameters, list):
+            data.parameters = [data.parameters]  # listify
+        # Build packets:
+        # Extract and process any Iris parameters into telem:
+        packets = [
+            iris_telem_param_to_packet(p) for p in data.parameters
+            if p.name in IRIS_TELEM_PARAMS
+        ]
+
+        # Lump all the rest into a packet of Peregrine telem:
+        peregrine_params = [
+            p for p in data.parameters if p.name not in IRIS_TELEM_PARAMS
+        ]
+        if len(peregrine_params) > 0:
+            packets.append(peregrine_telem_params_to_packet(peregrine_params))
+
+    return packets
+
+
+class YamcsParamIngestFunctor:
+    n_packets_sent: int
+    app: ipc.IpcAppHelper
+    manager: ipc.IpcAppManagerSync
+
+    def __init__(
+        self,
+        app: ipc.IpcAppHelper,
+        manager: ipc.IpcAppManagerSync
+    ) -> None:
+        self.n_packets_sent = 0
+        self.app = app
+        self.manager = manager
+
+    def __call__(self, data) -> None:
+        # Shorthand aliases (for legacy compat.):
+        app = self.app
+        manager = self.manager
+        if data is None or data.parameters is None:
+            return
+        try:
+            packets = subscription_data_to_packets(data)
+            if packets is None:
+                return
+            # Emit packets:
+            app.logger.notice(
+                f"Got {len(data.parameters)} params. "
+                f"Forwarding {len(packets)} packets . . ."
+            )
+            msg = DownlinkedPacketsMessage(DownlinkedPacketsContent(
+                packets=packets
+            ))
+            manager.send_to('pub', msg, subtopic_bytes=b'irisyamcs')
+            self.n_packets_sent += len(packets)
+            app.logger.notice(
+                f"[{self.n_packets_sent:5d}] "
+                f"Sent {msg.content.simple_str()} -> {ipc.Topic.DL_PACKETS}"
+            )
+        except Exception as e:
+            app.logger.error(
+                f"Uncaught exception in encoding packet(s): `{packets}`. \n"
+                f"Exception: `{e}`."
+            )
 
 
 if __name__ == "__main__":
@@ -330,7 +391,7 @@ if __name__ == "__main__":
     # Subscribe to every data parameter we have access to:
     yi.processor.create_parameter_subscription(
         AVAIL_PARAM_QUAL_NAMES,
-        on_data=ingest_yamcs_param
+        on_data=YamcsParamIngestFunctor(app, manager)
     )
 
     while True:

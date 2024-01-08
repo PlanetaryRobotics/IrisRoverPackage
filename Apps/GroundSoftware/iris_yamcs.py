@@ -44,6 +44,7 @@ from yamcs.tmtc.client import ProcessorClient  # type: ignore
 from yamcs.tmtc.model import ParameterValue  # type: ignore
 from yamcs.core.auth import Credentials as YamcsCredentials  # type: ignore
 
+import traceback
 from typing import Any, Final, Tuple, List, Dict, Optional
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -332,6 +333,10 @@ class YamcsParamIngestFunctor:
             app.logger.error(
                 f"Uncaught exception in encoding packet(s): `{packets}`. \n"
                 f"Exception: `{e}`."
+            )
+            trace = traceback.format_exc()
+            logger.verbose(
+                f"\t > The stack trace of this error was: `{trace}`."
             )
 
 

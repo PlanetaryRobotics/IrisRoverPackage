@@ -32,9 +32,9 @@ from IrisBackendv3.data_standards.prebuilt import (
 from IrisBackendv3.codec.settings import set_codec_standards
 
 from IrisBackendv3.transceiver.yamcs_helper import *
-from IrisBackendv3.transceiver.h5_transceiver import (
-    H5Transceiver
-)
+# from IrisBackendv3.transceiver.h5_transceiver import (
+#     H5Transceiver
+# )
 
 import warnings
 from yamcs.client import YamcsClient, MDBClient, ArchiveClient  # type: ignore

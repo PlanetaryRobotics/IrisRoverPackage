@@ -259,6 +259,7 @@
         "nontelem",
         "NORESP",
         "notcontains",
+        "NOTTHEPASS",
         "numalign",
         "numpy",
         "openpyxl",

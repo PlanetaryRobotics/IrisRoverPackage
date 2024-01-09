@@ -61,6 +61,7 @@ In mission, on a Windows 10 machine using docker in WSL2-mode (none of which sho
 }
 ```
 Note: As of 1/2024, pasting this file in the Docker Engine config in Docker Desktop will result in complaining about IP formatting errors. This is due to tracked bug in Docker Desktop. Just edit the `~/.docker/daemon.json` file directly.
+NOTE: More work needs to be done to investigate this approach. With this mod in place, docker images can't contact things like `pip` to install packages. To remedy this, the patch needs to be removed, `docker compose build`/`pip`/etc. run, and then the patch put back in place.
 
 # 1. Install OS-Level Dependencies
 OS-level dependency install and setup only needs to be done once per machine.

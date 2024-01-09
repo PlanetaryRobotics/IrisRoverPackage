@@ -6,6 +6,7 @@ name: "iris_backend_v3"
 x-common-volumes: &common-volumes
   - ./out/:/IRP/Apps/GroundSoftware/out/
   - ./test-data/:/IRP/Apps/GroundSoftware/test-data/
+  - ../../../fleur_backend/ipc:/IRP/Apps/GroundSoftware/deps/fleur_backend/ipc
 
 services:
   # Infrastructure:
@@ -151,6 +152,8 @@ services:
       IBv3_ipc__IP: "proxies"
     restart: "always"
     tty: true
+    cap_add:
+      - NET_ADMIN
     depends_on:
       - standards
       - proxies
@@ -210,6 +213,7 @@ services:
 
   iris-yamcs:
     container_name: "IBv3_iris_yamcs"
+    network_mode: "host"
     command: >
       python3 ./iris_yamcs.py
     image: "iris_backend_v3:latest"
@@ -225,9 +229,36 @@ services:
       - dl_processor
       - ul_processor
     volumes: *common-volumes
+    cap_add:
+      - NET_ADMIN
     labels:
       iris.backend.v3.service_type: "transceiver"
       iris.backend.v3.description: "YAMCS my g."
+
+  fleur-mdap:
+    container_name: "IBv3_fleur_backend_mdap"
+    command: >
+      python3 ./deps/fleur_backend/ipc/mdap.py
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+    volumes: *common-volumes
+    # ports:
+    #   - 3000:3000
+    #   - 8070:8070
+    #   - 8080:8080
+    #   - 8086:8086
+    labels:
+      iris.backend.v3.service_type: "interface"
+      iris.backend.v3.description: "Forwards telem and events to FLEUR backend."
 
   pcap-data-image:
     container_name: "IBv3_pcap_data_image"

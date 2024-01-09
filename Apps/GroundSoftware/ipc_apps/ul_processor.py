@@ -8,11 +8,12 @@ emit GDS events as commands get various stages checked off.
 @author: Connor W. Colombo (CMU)
 @last-updated: 06/20/2023
 """
-from typing import Any, Final, Dict, Type, List, TypeVar
+from typing import Any, Final, Dict, Type, List, TypeVar, cast
 
 import argparse
 
 import IrisBackendv3 as IB3
+from IrisBackendv3.codec.payload import CommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import (
@@ -173,6 +174,26 @@ def main(app: ipc.IpcAppHelper, opts: Any) -> None:
         )
 
         # Emit the packed packet(s) over IPC:
+        for packet in packets:
+            commands = packet.payloads[CommandPayload]
+            for command in commands:
+                command_payload = cast(CommandPayload, command)
+
+                # Build dumy uplink packet:
+                dummy_ul_packet = IB3.codec.packet.IrisCommonPacket(
+                    seq_num=0,  # just using 0 for now
+                    payloads=IB3.codec.payload_collection.EnhancedPayloadCollection(
+                        CommandPayload=[command_payload]
+                    )
+                )
+
+                # Print bytes for pasting into YAMCS:
+                pkt_data_str = ''.join(f'{x:02x}' for x in dummy_ul_packet.encode())
+                pathway_str = command.pathway.yamcs_suffix
+                app.logger.success(
+                    f"UL-REQ: {command.command.name}_{pathway_str}:\t\t"
+                    f"0x  {pkt_data_str}"
+                )
         for packet in packets:
             # Forward all payloads:
             try:

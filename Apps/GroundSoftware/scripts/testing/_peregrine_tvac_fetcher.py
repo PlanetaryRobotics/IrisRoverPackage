@@ -51,7 +51,7 @@ from scripts.utils.trans_tools import *
 from IrisBackendv3.codec.payload import EventPayload
 from IrisBackendv3.transceiver.yamcs_helper import (
     IRIS_TELEM_PARAMS,
-    ALL_PARAMS as IRIS_PARAMS,
+    ALL_YAMCS_PARAMS as IRIS_PARAMS,
     IRIS_OPERATIONAL_POWER_PARAM
 )
 

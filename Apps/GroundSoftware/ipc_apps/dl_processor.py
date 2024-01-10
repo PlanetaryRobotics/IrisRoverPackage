@@ -86,6 +86,16 @@ def handle_dl_packet(
     # Process all payloads in this packet:
     processed_payloads = process_dl_payloads(manager, packet.payloads)
 
+    # Report what we got (for addl. archiving):
+    data_str = ""
+    if isinstance(packet._raw, bytes):
+        data_str = f"0x{':'.join(f'{x:02X}' for x in packet._raw)}"
+    payloads: List[DownlinkedPayload] = [*packet.payloads[DownlinkedPayload]]
+    app.logger.debug(
+        f"Got: {data_str} at t0={payloads[0].downlink_times} with: "
+        + '\n\t'.join(p.__str__() for p in payloads)
+    )
+
     # Generate meta-payloads
     # TODO.
 

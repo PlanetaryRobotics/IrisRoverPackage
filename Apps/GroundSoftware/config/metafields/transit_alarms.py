@@ -10,7 +10,7 @@ from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.codec.payload import (
     DownlinkedPayload, TelemetryPayload, EventPayload
 )
-from IrisBackendv3.data_standards.metafield import (
+from IrisBackendv3.meta.metafield import (
     MetaModule, MetaChannel, MetaChannelUpdateBehavior
 )
 

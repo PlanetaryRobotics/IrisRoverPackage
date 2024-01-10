@@ -14,7 +14,7 @@ from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.codec.payload import (
     DownlinkedPayload, TelemetryPayload, EventPayload
 )
-from IrisBackendv3.data_standards.metafield import (
+from IrisBackendv3.meta.metafield import (
     MetaModule, MetaChannel, MetaChannelUpdateBehavior
 )
 
@@ -45,6 +45,13 @@ class _DownlinkTimesLatencySec(MetaChannel):
         super().__init__()
         self._AVG_BUFFER = []
         self._AVG_PAYLOADS = []
+
+    def _calculate(self) -> Tuple[Any | None, List[DownlinkedPayload]]:
+        raise NotImplementedError(
+            "`_calculate` is not relevant to `_DownlinkTimesLatencySec`. "
+            "Whatever internal method called it should be overridden in the "
+            "class."
+        )
 
     def process(
         self,

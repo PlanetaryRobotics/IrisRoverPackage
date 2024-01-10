@@ -10,7 +10,7 @@ based on other fields and those computation functions are included in the
 "Meta" definitions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/06/2024
+@last-updated: 01/10/2024
 """
 from typing import Any, Final, List, TypeVar, Generic, TypeAlias, Dict, Deque, Set, overload, cast, Tuple
 from enum import Enum, auto
@@ -28,7 +28,7 @@ from IrisBackendv3.data_standards.module import (
     Module, TelemetryChannel, Event
 )
 from IrisBackendv3.utils.nameiddict import NameIdDict
-from IrisBackendv3.data_standards.fsw_data_type import FswDataType
+from IrisBackendv3.data_standards.data_standards import DataStandards
 from IrisBackendv3.data_standards.exceptions import (
     StandardsFormattingException
 )
@@ -319,6 +319,9 @@ class MetaModule:
     # Based on op-code system inherited from FPrime:
     MAX_NUM_FIELDS: Final[int] = 0xFF
 
+    @property
+    def module(self) -> Module: return self._module
+
     def __post_init__(self) -> None:
         # Make sure there aren't too many entries in telemetry or events lists:
         if len(self.meta_channels) > self.MAX_NUM_FIELDS:
@@ -478,6 +481,26 @@ def process_payloads_for_meta_modules(
             process_payloads_for_meta_modules(
                 modules, generated_payloads, MAX_DEPTH-1)
         )
+
+
+def add_metamodules_to_standards(
+    standards: DataStandards,
+    meta_modules: MetaModule | List[MetaModule]
+) -> None:
+    """
+    Adds the given MetaModules to the given data standards so long as it
+    doesn't override anything.
+    """
+    # Support being given just a single module to add:
+    if (
+        not isinstance(meta_modules, list)
+        and isinstance(meta_modules, MetaModule)
+    ):
+        meta_modules = [meta_modules]
+    # Create modules:
+    modules = [mm.module for mm in meta_modules]
+    # Add all modules to standards:
+    standards.add_new_modules(modules)
 
 
 # ! TODO: (WORKING-HERE) ... This file should be done? Build out folder structure and start filling in. INTEGRATE INTO DATASTANDARDS MAKE PROCESS. Maybe test first with just what's built to make sure there are no major flaws (this will require integrating w/dl_processor after timestamping)

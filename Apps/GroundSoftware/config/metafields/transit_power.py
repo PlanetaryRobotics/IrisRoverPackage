@@ -11,7 +11,7 @@ from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.codec.payload import (
     DownlinkedPayload, TelemetryPayload, EventPayload
 )
-from IrisBackendv3.data_standards.metafield import (
+from IrisBackendv3.meta.metafield import (
     MetaModule, MetaChannel, MetaChannelUpdateBehavior
 )
 
@@ -40,6 +40,18 @@ class V_Heater_Live(MetaChannel):
         return v_heater if is_heating else 0, [vht, iht]
 
 
-ALL_META_MODULES: Final[List[MetaModule]] = [
+MOD_PEREGRINE = MetaModule(
+    # Note: this gets prefixed by `MetaModule.UNIVERSAL_PREFIX` b/c it's a MetaModule:
+    name="TransitPower",
+    ID=0xA2,
+    meta_channels=[
+        # NOTE: Order Matters
+        # To preserve backwards compatibility, don't delete, just deprecate.
+        V_Heater_Live()
+    ],
+    meta_events=[]
+)
 
+ALL_META_MODULES: Final[List[MetaModule]] = [
+    MOD_PEREGRINE
 ]

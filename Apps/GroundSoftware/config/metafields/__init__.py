@@ -3,7 +3,7 @@ Command Aliases for the Iris Lunar Rover FM1 Mission (c.2024)
 """
 from typing import Final, List
 
-from IrisBackendv3.data_standards.metafield import MetaModule
+from IrisBackendv3.meta.metafield import MetaModule
 
 from config.metafields import latency
 from config.metafields import peregrine

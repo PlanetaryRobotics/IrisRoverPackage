@@ -18,6 +18,8 @@ from IrisBackendv3.data_standards.logs import (
     logger as DsLogger,
     logger_setConsoleLevel as DsLoggerLevel
 )
+from IrisBackendv3.meta.metafield import add_metamodules_to_standards
+from config.metafields import ALL_META_MODULES
 from IrisBackendv3.data_standards.prebuilt import (
     add_to_standards, ALL_PREBUILT_MODULES
 )
@@ -107,6 +109,7 @@ PLOT_TELEM_COLUMNS_AXIS_WATTS: Final[Dict[str, str]] = {
 DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
+add_metamodules_to_standards(standards, ALL_META_MODULES)
 set_codec_standards(standards)
 
 parser = argparse.ArgumentParser(

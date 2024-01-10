@@ -72,7 +72,7 @@ DEFAULT_CORE_IMAGE_WIDTH: Final[int] = 2592
 # Event to listen for indicating the end of an image capture:
 DOWNLINK_END_EVENT_NAME: Final = 'CameraImageDownlinkComplete'
 # Max amount of time since last block before we just consider the image done:
-BLOCK_WAIT_TIMEOUT_SEC: Final = 5.0
+BLOCK_WAIT_TIMEOUT_SEC: Final = 10.0
 
 FileIdType: TypeAlias = int
 
@@ -1462,10 +1462,11 @@ def payload_processing_update(
             fgid_completed = img_dl_end.args.get('file_group_id', 0)
             app.logger.notice(
                 f"Done w/ FGID={fgid_completed}. "
-                f"Removing from buffer."
+                # f"Removing from buffer."
+                f"NOT Removing from buffer."
             )
-            if fgid_completed in decoder.images_in_progress:
-                del decoder.images_in_progress[fgid_completed]
+            # if fgid_completed in decoder.images_in_progress:
+            #     del decoder.images_in_progress[fgid_completed]
 
 
 def main(opts) -> None:

@@ -44,11 +44,11 @@ If you need to connect to external servers from inside docker which use/overlap 
 In mission, on a Windows 10 machine using docker in WSL2-mode (none of which should be relevant), the following `~/.docker/daemon.json` was used to avoid conflict.
 ```json
 {
-  "bip": "198.18.1.1/24",
-  "fixed-cidr": "198.18.1.0/25",
+  "bip": "10.0.1.1/24",
+  "fixed-cidr": "10.0.1.0/25",
   "fixed-cidr-v6": "2001:db8::/64",
   "mtu": 1500,
-  "default-gateway": "198.18.1.254",
+  "default-gateway": "10.0.1.254",
   "default-gateway-v6": "2001:db8:abcd::89",
   "dns": ["10.20.1.2","10.20.1.3"],
   "builder": {

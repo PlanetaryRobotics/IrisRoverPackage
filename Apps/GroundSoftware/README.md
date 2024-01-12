@@ -31,6 +31,28 @@ Post-RC12, the preferred (and greatly simplified) way to run the Iris GDS is to 
   - Feeds data into IPC from a PCAP recording and then brings up the Message Printer Display to visualize that data.
     - Since `-d` is not used in this command, all prints from both services will be printed in the console.
 
+### 0.2.1b. Remote Consoles
+In the case of a mission control center where the `IrisBackendv3` core is running on a server, remote computers won't need to (and shouldn't) run their own copies of the `IrisBackendv3` core.
+**To prevent core dependencies from being brought up when using remote consoles, run the following:**
+```
+docker compose run -i -e IBv3_ipc__IP=[MAIN-SERVER-IP] --name "YourAppNameThatsNotAlreadyUsedInDockerCompose" core-min your bash commands
+```
+
+Some examples:
+
+**RUNNING IRIS DONOR NAMES & MESSAGES PRINTER:**
+```
+docker compose run -i -e IBv3_ipc__IP=1.2.3.4 --name "CmmcRollCredits" core-min make app-roll-credits
+```
+**RUNNING MESSAGES PRINTER:**
+```
+docker compose run -i -e IBv3_ipc__IP=1.2.3.4 --name "CmmcMessagePrinter" core-min make app-message-printer
+```
+**RUNNING TELEMETRY DISPLAY:**
+```
+docker compose run -i -e IBv3_ipc__IP=1.2.3.4 --name "CmmcTelemetryDisplay" core-min make app-telemetry-display
+```
+
 ## 0.3 Development using Docker
 As mentioned above, it will be easier to develop by setting up GDS natively using the steps in **`Sections 1-`**.
 

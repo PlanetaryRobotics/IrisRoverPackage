@@ -367,6 +367,12 @@ app-telemetry-display:
 	./run-script.sh ipc_apps/telemetry_display.py
 
 ####
+# Run the Donor Names & Messages Display:
+####
+app-roll-credits:
+	./run-script.sh ipc_apps/names.py
+
+####
 # Run the MessagePrinter IPC App:
 ####
 app-message-printer:

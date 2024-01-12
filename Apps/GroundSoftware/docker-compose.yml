@@ -383,6 +383,26 @@ services:
       iris.backend.v3.service_type: "app-target"
       iris.backend.v3.description: "Prints all events & messages going through IPC."
 
+  roll-credits:
+    container_name: "IBv3_roll_credits"
+    command: "python3 ipc_apps/names.py"
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "app-target"
+      iris.backend.v3.description: "Prints all donor names & messages downlinked from the rover."
+
+
   telem-display:
     container_name: "IBv3_telem_display"
     command: "python3 ipc_apps/telemetry_display.py -r 1.0"

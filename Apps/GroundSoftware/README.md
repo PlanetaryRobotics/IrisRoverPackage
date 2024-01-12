@@ -35,22 +35,26 @@ Post-RC12, the preferred (and greatly simplified) way to run the Iris GDS is to 
 In the case of a mission control center where the `IrisBackendv3` core is running on a server, remote computers won't need to (and shouldn't) run their own copies of the `IrisBackendv3` core.
 **To prevent core dependencies from being brought up when using remote consoles, run the following:**
 ```
-docker compose run -i -e IBv3_ipc__IP=[MAIN-SERVER-IP] --name "YourAppNameThatsNotAlreadyUsedInDockerCompose" core-min your bash commands
+docker compose run --rm -i -e IBv3_ipc__IP=[MAIN-SERVER-IP] --name "YourAppNameThatsNotAlreadyUsedInDockerCompose" core-min your bash commands
 ```
 
-Some examples:
+
+**Some Examples:**
+
+Make sure to configure `osiris.milan` to the server's LAN IP in the hosts file first.
+- For Windows, add `1.2.3.4 osiris.milan` to `C:\Windows\System32\drivers\etc\hosts` (where `1.2.3.4` is the IP).
 
 **RUNNING IRIS DONOR NAMES & MESSAGES PRINTER:**
 ```
-docker compose run -i -e IBv3_ipc__IP=1.2.3.4 --name "CmmcRollCredits" core-min make app-roll-credits
+docker compose run --rm -i -e IBv3_ipc__IP=osiris.milan --name "CmmcRollCredits" core-min make app-roll-credits
 ```
 **RUNNING MESSAGES PRINTER:**
 ```
-docker compose run -i -e IBv3_ipc__IP=1.2.3.4 --name "CmmcMessagePrinter" core-min make app-message-printer
+docker compose run --rm -i -e IBv3_ipc__IP=osiris.milan --name "CmmcMessagePrinter" core-min make app-message-printer
 ```
 **RUNNING TELEMETRY DISPLAY:**
 ```
-docker compose run -i -e IBv3_ipc__IP=1.2.3.4 --name "CmmcTelemetryDisplay" core-min make app-telemetry-display
+docker compose run --rm -i -e IBv3_ipc__IP=osiris.milan --name "CmmcTelemetryDisplay" core-min make app-telemetry-display
 ```
 
 ## 0.3 Development using Docker

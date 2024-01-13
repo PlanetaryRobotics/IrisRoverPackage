@@ -142,7 +142,9 @@ if __name__ == "__main__":
             f"\t\t -> \t {command}"
         )
         app.logger.verbose(
-            f"\t\t > {command.command.name}_{pathway_str}:\t"
-            f"0x {pkt_data_str}"
+            f"\t\t -> {command.command.name}_{pathway_str}"
+        )
+        app.logger.verbose(
+            f"\t\t -> 0x {pkt_data_str}"
         )
     app.logger.notice("MESSAGES COMPLETE.")

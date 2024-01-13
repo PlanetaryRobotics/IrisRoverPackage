@@ -35,6 +35,7 @@ services:
   tests:
     container_name: "IBv3_tests"
     command: "python3 -m pytest --cov=IrisBackendv3"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -50,6 +51,7 @@ services:
   proxies:
     container_name: "IBv3_proxies"
     command: "make proxies"
+    stop_signal: SIGKILL
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -82,6 +84,7 @@ services:
   dl_processor:
     container_name: "IBv3_dl_processor"
     command: "python3 ipc_apps/dl_processor.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -101,6 +104,7 @@ services:
   ul_processor:
     container_name: "IBv3_ul_processor"
     command: "python3 ipc_apps/ul_processor.py --no-use-seq-num -l VERBOSE"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -121,6 +125,7 @@ services:
   image-builder:
     container_name: "IBv3_img_builder"
     command: "python3 ipc_apps/image_builder.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -147,6 +152,7 @@ services:
   core-min:
     container_name: "IBv3_core"
     image: "iris_backend_v3:latest"
+    stop_signal: SIGINT
     env_file:
       - ".env"
     environment:
@@ -164,6 +170,7 @@ services:
   core:
     container_name: "IBv3_core"
     image: "iris_backend_v3:latest"
+    stop_signal: SIGINT
     env_file:
       - ".env"
     environment:
@@ -186,6 +193,7 @@ services:
   core-host:
     container_name: "IBv3_core_host"
     image: "iris_backend_v3:latest"
+    stop_signal: SIGINT
     env_file:
       - ".env"
     environment:
@@ -212,6 +220,7 @@ services:
       --loop
       -t 588
       -f ./test-data/RC12_Full_Wifi_Capture__just_iris__trimmed_no_img.pcap
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -232,8 +241,8 @@ services:
   iris-yamcs:
     container_name: "IBv3_iris_yamcs"
     network_mode: "host"
-    command: >
-      python3 ./iris_yamcs.py
+    command: "python3 ./iris_yamcs.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -255,8 +264,8 @@ services:
 
   fleur-mdap:
     container_name: "IBv3_fleur_backend_mdap"
-    command: >
-      python3 ./deps/fleur_backend/ipc/mdap.py
+    command: "python3 ./deps/fleur_backend/ipc/mdap.py -i 0.0.0.0"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -285,6 +294,7 @@ services:
       --loop
       -t 25
       -f ./test-data/RC12_Full_Wifi_Capture__just_iris.pcap
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -309,10 +319,11 @@ services:
       python3 ./scripts/testing/ipc_demo/h5_xcvr.py
       --loop
       -s 1.0
-      -n _ref_iris-pgh-testing
       --start-time-utc 2020-01-01
       --jump-to-iris
+      -n _ref_iris-pgh-testing
     #  -n int-tvac-data2
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -333,6 +344,7 @@ services:
   xcvr-wifi:
     container_name: "IBv3_xcvr_wifi"
     command: "make xcvr-wifi"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -354,6 +366,7 @@ services:
   gui:
     container_name: "IBv3_gds_gui"
     command: "python3 ipc_apps/gui.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -384,6 +397,7 @@ services:
   message-printer:
     container_name: "IBv3_message_printer"
     command: "python3 ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -404,6 +418,7 @@ services:
   roll-credits:
     container_name: "IBv3_roll_credits"
     command: "python3 ipc_apps/names.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -424,6 +439,7 @@ services:
   telem-display:
     container_name: "IBv3_telem_display"
     command: "python3 ipc_apps/telemetry_display.py -r 1.0"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"

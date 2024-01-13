@@ -136,7 +136,7 @@ if __name__ == "__main__":
         pkt_data_str = ''.join(f'{x:02x}' for x in packet.encode())
         pathway_str = command.pathway.yamcs_suffix
         app.logger.success(
-            f"\t > {sender}: \t '{sub_message}' \t -> \t {command} !"
+            f"\t > {sender}: \t '{sub_message}' \t !"
         )
         app.logger.verbose(
             f"\t\t -> \t {command}"

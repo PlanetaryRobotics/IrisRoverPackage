@@ -59,3 +59,6 @@ if __name__ == "__main__":
                 name = payload.args['name']
                 message = payload.args['message']
                 app.logger.info(f"{name} says: '{message}'")
+            if payload.event.name == "NoOpStringReceived":
+                message = payload.args['message']
+                app.logger.notice(" >" + message)

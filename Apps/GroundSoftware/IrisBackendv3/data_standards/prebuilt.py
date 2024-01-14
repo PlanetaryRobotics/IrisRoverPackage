@@ -278,28 +278,28 @@ watchdog_detailed_status_heartbeat: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x06, 'Io_1V2PowerGood', datatype=FswDataType.ENUM,  # 1b
             enum=[
-                EnumItem('BAD', 0x00),
+                EnumItem('BAD/OFF', 0x00),
                 EnumItem('GOOD', 0x01)
             ]
         ),
         nid_nic_entry(
             TelemetryChannel, 0x07, 'Io_1V8PowerGood', datatype=FswDataType.ENUM,  # 1b
             enum=[
-                EnumItem('BAD', 0x00),
+                EnumItem('BAD/OFF', 0x00),
                 EnumItem('GOOD', 0x01)
             ]
         ),
         nid_nic_entry(
             TelemetryChannel, 0x08, 'Io_3V3PowerGood', datatype=FswDataType.ENUM,  # 1b
             enum=[
-                EnumItem('BAD', 0x00),
+                EnumItem('BAD/OFF', 0x00),
                 EnumItem('GOOD', 0x01)
             ]
         ),
         nid_nic_entry(
             TelemetryChannel, 0x09, 'Io_5V0PowerGood', datatype=FswDataType.ENUM,  # 1b
             enum=[
-                EnumItem('BAD', 0x00),
+                EnumItem('BAD/OFF', 0x00),
                 EnumItem('GOOD', 0x01)
             ]
         ),

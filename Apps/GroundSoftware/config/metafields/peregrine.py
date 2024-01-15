@@ -19,10 +19,10 @@ class DeckD2TempKelvin(MetaChannel):
     """Heater voltage, reflecting the actual current heater status."""
     _PROTO = TelemetryChannel('DeckD2TempKelvin', 0, FswDataType.F64)
     _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
-    _WATCHING = ['DeckD2TempKelvin']
+    _WATCHING = ['Peregrine_DeckD2TempCelsius']
 
     def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
-        T_D2_degC_telem = self._get_t('DeckD2TempKelvin')
+        T_D2_degC_telem = self._get_t('Peregrine_DeckD2TempCelsius')
         T_D2_degC: float = T_D2_degC_telem.data
         return T_D2_degC + 273.15, [T_D2_degC_telem]
 
@@ -30,7 +30,7 @@ class DeckD2TempKelvin(MetaChannel):
 MOD_PEREGRINE = MetaModule(
     # Note: this gets prefixed by `MetaModule.UNIVERSAL_PREFIX` b/c it's a MetaModule:
     name="Peregrine",
-    ID=0xA1,
+    ID=0xA100,
     meta_channels=[
         # NOTE: Order Matters
         # To preserve backwards compatibility, don't delete, just deprecate.

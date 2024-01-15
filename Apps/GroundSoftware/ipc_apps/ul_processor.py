@@ -179,7 +179,7 @@ def main(app: ipc.IpcAppHelper, opts: Any) -> None:
             for command in commands:
                 command_payload = cast(CommandPayload, command)
 
-                # Build dumy uplink packet:
+                # Build dummy uplink packet:
                 dummy_ul_packet = IB3.codec.packet.IrisCommonPacket(
                     seq_num=0,  # just using 0 for now
                     payloads=IB3.codec.payload_collection.EnhancedPayloadCollection(
@@ -212,9 +212,6 @@ def main(app: ipc.IpcAppHelper, opts: Any) -> None:
                     f"Failed to send Packet Uplink Request `{pkt_msg}` "
                     f"b/c: `{e!s}`."
                 )
-
-# ! TODO: WORKING-HERE: Integrate into run-infra. Re-run then test.
-
 
 # Run:
 if __name__ == "__main__":

@@ -16,9 +16,9 @@ from IrisBackendv3.meta.metafield import (
 )
 
 
-class V_Heater_Live(MetaChannel):
+class VHeaterLive(MetaChannel):
     """Heater voltage, reflecting the actual current heater status."""
-    _PROTO = TelemetryChannel('V_Heater_Live', 0, FswDataType.F64)
+    _PROTO = TelemetryChannel('VHeaterLive', 0, FswDataType.F64)
     _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
     _WATCHING = [
         'WatchdogDetailedStatus_Heater_EffectiveVoltage',
@@ -35,7 +35,7 @@ class V_Heater_Live(MetaChannel):
         if isinstance(is_heating_val, str):
             is_heating = is_heating_val.upper() == 'HEATING'
         else:
-            is_heating = is_heating_val == 0x00
+            is_heating = is_heating_val == 0x01
 
         return v_heater if is_heating else 0, [vht, iht]
 
@@ -43,11 +43,11 @@ class V_Heater_Live(MetaChannel):
 MOD_PEREGRINE = MetaModule(
     # Note: this gets prefixed by `MetaModule.UNIVERSAL_PREFIX` b/c it's a MetaModule:
     name="TransitPower",
-    ID=0xA2,
+    ID=0xA300,
     meta_channels=[
         # NOTE: Order Matters
         # To preserve backwards compatibility, don't delete, just deprecate.
-        V_Heater_Live()
+        VHeaterLive()
     ],
     meta_events=[]
 )

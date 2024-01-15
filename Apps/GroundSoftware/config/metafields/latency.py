@@ -60,7 +60,8 @@ class _DownlinkTimesLatencySec(MetaChannel):
         """Unlike most other handlers, we just ingest any payload and produce a
         latency update every N payloads."""
         if (
-            payload.downlink_times.lander_rx is None
+            payload.downlink_times is None
+            or payload.downlink_times.lander_rx is None
             or payload.downlink_times.amcc_rx is None
         ):
             # Don't have the right data
@@ -80,7 +81,7 @@ class _DownlinkTimesLatencySec(MetaChannel):
         avg_latency = sum(self._AVG_BUFFER) / self._N_AVG
         self._AVG_BUFFER = []
         self._AVG_PAYLOADS = []
-        return avg_latency
+        return avg_latency, [payload]
 
 
 class LanderToAmccLatencySec(_DownlinkTimesLatencySec):
@@ -107,7 +108,7 @@ class LanderToPmccLatencySec(_DownlinkTimesLatencySec):
 
 MOD_LATENCY = MetaModule(
     name="Latency",
-    ID=0xA0,
+    ID=0xA000,
     meta_channels=[
         # NOTE: Order Matters
         # To preserve backwards compatibility, don't delete, just deprecate.

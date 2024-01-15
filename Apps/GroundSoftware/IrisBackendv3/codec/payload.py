@@ -16,7 +16,7 @@ from enum import Enum
 from collections import OrderedDict
 
 import struct
-from datetime import datetime
+from datetime import datetime, timezone
 
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.metadata import DataPathway, DataSource, DownlinkTimes, UplinkTimes
@@ -379,7 +379,9 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
             # ! TODO: Shouldn't this be in UplinkedPayload?
             # automatically tag the payload with the generation time in
             # `UplinkTimes` if `uplink_times` not given.
-            kwargs['uplink_times'] = UplinkTimes(generated=datetime.now())
+            kwargs['uplink_times'] = UplinkTimes(
+                generated=datetime.now(timezone.utc)
+            )
 
         super().__init__(
             magic=magic, pathway=pathway, source=source,

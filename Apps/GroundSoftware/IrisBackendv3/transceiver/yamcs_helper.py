@@ -9,7 +9,7 @@ formatting.
 """
 from typing import Any, Final, Dict, List, cast
 
-from datetime import datetime
+from datetime import datetime, timezone
 import IrisBackendv3 as IB3
 from IrisBackendv3.data_standards.module import Module
 from IrisBackendv3.codec.packet import parse_packet
@@ -83,7 +83,7 @@ def iris_telem_param_to_packet(param: ParameterValue) -> Packet:
             # Add Downlink metadata:
             if payload.downlink_times is None:
                 payload.downlink_times = DownlinkTimes()
-            payload.downlink_times.pmcc_rx = datetime.now()
+            payload.downlink_times.pmcc_rx = datetime.now(timezone.utc)
             payload.downlink_times.amcc_rx = param.reception_time
             payload.downlink_times.lander_rx = param.generation_time
 
@@ -133,7 +133,7 @@ def peregrine_telem_params_to_packet(
             scet_est=param.generation_time,
             lander_rx=param.generation_time,
             amcc_rx=param.reception_time,
-            pmcc_rx=datetime.now()
+            pmcc_rx=datetime.now(timezone.utc)
         )
         telem_payloads.append(telem)
 

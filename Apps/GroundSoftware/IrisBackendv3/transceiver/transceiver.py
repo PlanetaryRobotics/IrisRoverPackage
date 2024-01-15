@@ -18,7 +18,7 @@ from __future__ import annotations  # Activate postponed annotations (for using 
 
 from typing import Optional, Awaitable, List, Type
 from abc import ABC, abstractmethod, abstractclassmethod, abstractproperty
-from datetime import datetime
+from datetime import datetime, timezone
 import scapy.all as scp  # type: ignore # no type hints
 import traceback
 import asyncio
@@ -231,7 +231,8 @@ class Transceiver(ABC):
                             # Add Downlink metadata:
                             if payload.downlink_times is None:
                                 payload.downlink_times = DownlinkTimes()
-                            payload.downlink_times.pmcc_rx = datetime.now()
+                            payload.downlink_times.pmcc_rx = \
+                                datetime.now(timezone.utc)
                         else:
                             # What's a non-DownlinkedPayload doing in here?:
                             logger.warning(  # type: ignore
@@ -372,7 +373,8 @@ class Transceiver(ABC):
                 # Add Uplink metadata:
                 if payload.uplink_times is None:
                     payload.uplink_times = UplinkTimes()
-                payload.uplink_times.pmcc_tx = datetime.now()
+                payload.uplink_times.pmcc_tx = \
+                    datetime.now(timezone.utc)
             else:
                 # What's a non-UplinkedPayload doing in here?:
                 logger.warning(  # type: ignore

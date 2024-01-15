@@ -10,11 +10,15 @@ from config.metafields import peregrine
 from config.metafields import transit_power
 from config.metafields import transit_messages
 from config.metafields import transit_alarms
+from config.metafields import temps
+from config.metafields import rover_power
 
 ALL_META_MODULES: Final[List[MetaModule]] = [
     *latency.ALL_META_MODULES,
     *peregrine.ALL_META_MODULES,
     *transit_power.ALL_META_MODULES,
     *transit_messages.ALL_META_MODULES,
-    *transit_alarms.ALL_META_MODULES
+    *transit_alarms.ALL_META_MODULES,
+    *temps.ALL_META_MODULES,
+    *rover_power.ALL_META_MODULES
 ]

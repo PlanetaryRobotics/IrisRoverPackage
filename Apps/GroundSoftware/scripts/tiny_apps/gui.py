@@ -1,7 +1,7 @@
 import attr
 from typing import Tuple, List, Dict
 
-from datetime import datetime
+from datetime import datetime, timezone
 import random
 
 import pandas as pd
@@ -98,7 +98,7 @@ def gen_fake_telem() -> GuiTelemetryItem:
         module_name=module_name,
         channel_name=channel_name,
         value=value,
-        timestamp=datetime.now()
+        timestamp=datetime.now(timezone.utc)
     )
 
 

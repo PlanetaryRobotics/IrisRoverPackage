@@ -158,7 +158,7 @@ def record_to_parameters(
     return [
         build_mock_yamcs_parameter(
             name=param_name,
-            reception_time=datetime.now(),
+            reception_time=datetime.now(timezone.utc),
             generation_time=time.to_pydatetime(),
             eng_value=param_val
         )
@@ -255,12 +255,12 @@ class H5Transceiver(Transceiver):
     def _reset_timing(self) -> None:
         """Resets all the time pointers."""
         # Start time in the real world:
-        self._t_start_world = datetime.now()
+        self._t_start_world = datetime.now(timezone.utc)
 
         # Start and end of the archive:
         if self._archive is None:
-            self._t_start_arch = datetime.now()
-            self._t_end_arch = datetime.now()
+            self._t_start_arch = datetime.now(timezone.utc)
+            self._t_end_arch = datetime.now(timezone.utc)
         else:
             self._t_start_arch = self._archive.index[0].to_pydatetime()
             self._t_end_arch = self._archive.index[-1].to_pydatetime()
@@ -372,7 +372,7 @@ class H5Transceiver(Transceiver):
         t_next_arch = next_up.index[0].to_pydatetime()
 
         # Find current time in archive time:
-        t_current_world = datetime.now()
+        t_current_world = datetime.now(timezone.utc)
         t_elapsed_world = (t_current_world - self._t_start_world).total_seconds()  # noqa
         t_elapsed_arch = timedelta(seconds=t_elapsed_world * speed)
         t_current_arch = self._t_start_arch + t_elapsed_arch
@@ -382,7 +382,7 @@ class H5Transceiver(Transceiver):
         if wait_seconds > 0:
             await asyncio.sleep(wait_seconds + 1/1000)
             # Re-compute replay time now that we've waited:
-            t_current_world = datetime.now()
+            t_current_world = datetime.now(timezone.utc)
             t_elapsed_world = (t_current_world - self._t_start_world).total_seconds()  # noqa
             t_elapsed_arch = timedelta(seconds=t_elapsed_world * speed)
             t_current_arch = self._t_start_arch + t_elapsed_arch

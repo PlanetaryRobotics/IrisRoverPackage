@@ -5,7 +5,7 @@ Author: Connor W. Colombo (colombo@cmu.edu)
 Last Updated: 12/27/2023
 """
 from typing import Any, Final, Callable, Protocol, ClassVar, List, cast, Dict, Type, TypedDict, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 
 from IrisBackendv3.codec.packet_classes.packet import Packet
@@ -61,7 +61,7 @@ class RoverTimeEstimator:
         # Grab a singular fixed value to consistently represent `now` for all
         # time operations on this collection:
         if not isinstance(now, datetime):
-            self.now = datetime.now()
+            self.now = datetime.now(timezone.utc)
         else:
             self.now = now
         if not isinstance(downlink_delay_est, timedelta):

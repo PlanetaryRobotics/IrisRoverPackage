@@ -61,4 +61,7 @@ if __name__ == "__main__":
                 app.logger.info(f"{name} says: '{message}'")
             if payload.event.name == "NoOpStringReceived":
                 message = payload.args['message']
-                app.logger.notice(" >" + message)
+                if 'Marry Me' in message:
+                    app.logger.success(" > " + message)
+                else:
+                    app.logger.notice(" >" + message)

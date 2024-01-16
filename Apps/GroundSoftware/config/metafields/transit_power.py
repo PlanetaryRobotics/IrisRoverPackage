@@ -40,7 +40,7 @@ class VHeaterLive(MetaChannel):
         return v_heater if is_heating else 0, [vht, iht]
 
 
-MOD_PEREGRINE = MetaModule(
+MOD_TRANSIT_POWER = MetaModule(
     # Note: this gets prefixed by `MetaModule.UNIVERSAL_PREFIX` b/c it's a MetaModule:
     name="TransitPower",
     ID=0xA300,
@@ -53,5 +53,5 @@ MOD_PEREGRINE = MetaModule(
 )
 
 ALL_META_MODULES: Final[List[MetaModule]] = [
-    MOD_PEREGRINE
+    MOD_TRANSIT_POWER
 ]

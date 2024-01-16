@@ -165,8 +165,6 @@ MOD_ROVER_POWER = MetaModule(
     meta_events=[]
 )
 
-print([m._PROTO for m in MOD_ROVER_POWER.meta_channels])
-
 ALL_META_MODULES: Final[List[MetaModule]] = [
     MOD_ROVER_POWER
 ]

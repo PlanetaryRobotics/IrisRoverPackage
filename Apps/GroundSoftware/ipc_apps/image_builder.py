@@ -10,7 +10,7 @@ Also run a data source like a Transceiver to supply packets
 (e.g. PcapTransceiver) via `make data-image`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 12/03/2023
+@last-updated: 01/15/2024
 """
 # Activate postponed annotations (for using classes as return type in their own methods):
 from __future__ import annotations
@@ -906,10 +906,16 @@ class Image:
         make_quick_build: bool = True,
         make_median_build: bool = True,
         make_gif: bool = True,
+        make_all_solo_frames: bool = True,
         make_map: bool = True,
-        make_smart_build: bool = True
+        make_smart_build: bool = True,
+        quick_output_dir: str | None = None
     ) -> None:
-        """Builds and saves all data products derived from this image."""
+        """Builds and saves all data products derived from this image.
+
+        Also outputs quick_build to a special `quick_output_dir` if not None
+        (for aggregating multiple images in one directory).
+        """
         # Extract RC11-style aligned image data:
         app.logger.notice(f"Processing Image: {self.file_name_base} . . .")
         image_data = self.decompress_and_extract_image_data_from_memory()
@@ -922,13 +928,19 @@ class Image:
             start_sec = time.time()
             image_quick = image_data.quick_build()
             end_sec = time.time()
-            path = os.path.join(OUTPUT_DIR, self.file_name_base + ".quick.png")
-            app.logger.notice(
-                f"\t\t Done in {(end_sec-start_sec):.1f}s. "
-                f"Saving to: {path} . . ."
-            )
-            pil = PIL.Image.fromarray(
-                image_quick.astype('uint8'), 'L').rotate(180)
+
+            pil = PIL.Image.fromarray(image_quick.astype('uint8'), 'L')
+            pil = pil.rotate(180)
+
+            app.logger.notice(f"\t\t Done in {(end_sec-start_sec):.1f}s.")
+
+            fnb = self.file_name_base
+            if quick_output_dir is not None:
+                path = os.path.join(quick_output_dir, fnb + ".quick.png")
+                pil.save(path)
+
+            path = os.path.join(OUTPUT_DIR, fnb + ".quick.png")
+            app.logger.notice(f"Saving to: {path} . . .")
             pil.save(path)
 
         if make_median_build:
@@ -951,6 +963,20 @@ class Image:
             pil = PIL.Image.fromarray(
                 image_median.astype('uint8'), 'L').rotate(180)
             pil.save(path)
+
+        if make_all_solo_frames:
+            app.logger.info("\tMaking Solo Frame Images . . .")
+            start_sec = time.time()
+            frames = image_data.build_or_fetch_all_frames()
+            end_sec = time.time()
+            app.logger.notice(f"\t\t Done in {(end_sec-start_sec):.1f}s.")
+            for i, frame in enumerate(frames):
+                path = os.path.join(
+                    OUTPUT_DIR, self.file_name_base + f".frame{i}.png")
+                app.logger.notice(f"Saving to: {path} . . .")
+                pil = PIL.Image.fromarray(frame.astype('uint8'), 'L')
+                pil = pil.rotate(180)
+                pil.save(path)
 
         if make_gif:
             # Quick after median has already built all the frames.
@@ -1355,19 +1381,33 @@ class BasicImageDecoder:
 
     def export_and_process_all(
         self,
-        fgid_filter: List[FileIdType] | None = None
+        fgid_filter: List[FileIdType] | None = None,
+        fast_only: bool = False,
+        quick_output_dir: str | None = None
     ):
         """Forces an export of raw data and all processed data products for all
         current in-process images.
 
         If `fgid_filter` is not `None`, only images with the given FGIDs will
         be exported.
+
+        Only builds things that are fast to build if `fast_only`.
         """
         for image in self.images_in_progress.values():
             if fgid_filter is None or image.file_group_id in fgid_filter:
                 image.save_raw()
-                image.build_and_save_products()
-                app.logger.success(f"Finished exporting FGID {image.file_group_id}.")
+                image.build_and_save_products(
+                    make_quick_build=True,
+                    make_median_build=(not fast_only),
+                    make_gif=(not fast_only),
+                    make_all_solo_frames=(not fast_only),
+                    make_map=(not fast_only),
+                    make_smart_build=(not fast_only),
+                    quick_output_dir=quick_output_dir
+                )
+                app.logger.success(
+                    f"Finished exporting FGID {image.file_group_id}."
+                )
 
     def process_file_blocks_in_packet(self, packet: Packet) -> None:
         for block in packet.payloads[FileBlockPayload]:
@@ -1452,7 +1492,11 @@ def payload_processing_update(
         )
         # Process all images in the queue that we've received data for
         # since the last export:
-        decoder.export_and_process_all(list(context.fgids_since_last_export))
+        decoder.export_and_process_all(
+            fgid_filter=list(context.fgids_since_last_export),
+            fast_only=opts.fast_only,
+            quick_output_dir=opts.quick_out
+        )
 
         # If we received downlink-complete events for any of these images,
         # remove them from the buffer (we're done with them).
@@ -1507,12 +1551,29 @@ def main(opts) -> None:
     decoder.export_and_process_all()
 
 
-parser = argparse.ArgumentParser(description=(
-    'IRIS Lunar Rover — Image Builder — CLI'
-))
-
-
 def get_opts():
+    parser = argparse.ArgumentParser(description=(
+        'IRIS Lunar Rover — Image Builder — CLI'
+    ))
+
+    def optional_str(x: str) -> str | None:
+        if isinstance(x, str) and x.upper() == "NONE":
+            return None
+        else:
+            return str(x)
+
+    parser.add_argument('--fast-only', default=False,
+                        action=argparse.BooleanOptionalAction,
+                        help=(
+                            "Only performs fast building options now. "
+                            "Saves the rest of the data for later in a `pkl`."
+                        ))
+    parser.add_argument('-q', '--quick-out', type=optional_str, default="None",
+                        help=(
+                            "If not None, outputs quick_build to a special "
+                            "`quick_output_dir` if not None (for aggregating "
+                            "multiple images in one directory)."
+                        ))
     return parser.parse_args()
 
 

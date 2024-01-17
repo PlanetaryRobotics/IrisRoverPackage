@@ -124,7 +124,10 @@ services:
   # Additional Infrastructure:
   image-builder:
     container_name: "IBv3_img_builder"
-    command: "python3 ipc_apps/image_builder.py"
+    command: >
+      python3 ipc_apps/image_builder.py
+      --fast-only
+      -q ./out/image_builder_quick_out/
     stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:

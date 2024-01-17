@@ -117,6 +117,9 @@ class RollAngleDeg(MetaChannel):
         z_acc = z_acc_telem.data
 
         pitch_deg = float(np.arctan2(x_acc, z_acc) * 180.0/np.pi) + 180
+        # Wrap to -180 to +180
+        if pitch_deg > 180:
+            pitch_deg = pitch_deg - 360
 
         return pitch_deg, [x_acc_telem, y_acc_telem, z_acc_telem]
 

@@ -1,5 +1,5 @@
 """
-Command Aliases for the Iris Lunar Rover FM1 Mission (c.2024)
+Registry of all MetaModules for the Iris Lunar Rover FM1 Mission (c.2024)
 """
 from typing import Final, List
 
@@ -13,6 +13,7 @@ from config.metafields import transit_alarms
 from config.metafields import temps
 from config.metafields import rover_power
 from config.metafields import imu
+from config.metafields import watchdog_monitor
 
 ALL_META_MODULES: Final[List[MetaModule]] = [
     *latency.ALL_META_MODULES,
@@ -22,5 +23,6 @@ ALL_META_MODULES: Final[List[MetaModule]] = [
     *transit_alarms.ALL_META_MODULES,
     *temps.ALL_META_MODULES,
     *rover_power.ALL_META_MODULES,
-    *imu.ALL_META_MODULES
+    *imu.ALL_META_MODULES,
+    *watchdog_monitor.ALL_META_MODULES
 ]

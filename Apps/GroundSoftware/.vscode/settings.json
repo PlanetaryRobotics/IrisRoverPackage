@@ -269,6 +269,8 @@
         "NORESP",
         "notcontains",
         "NOTTHEPASS",
+        "NPORRST",
+        "NRST",
         "numalign",
         "numpy",
         "openpyxl",

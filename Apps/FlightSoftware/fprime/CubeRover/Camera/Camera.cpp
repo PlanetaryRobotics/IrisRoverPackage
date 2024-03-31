@@ -295,7 +295,11 @@ namespace CubeRover {
     // TODO
     this->cmdResponse_out(opCode,cmdSeq,Fw::COMMAND_OK);
   }
-  
+
+  // ----------------------------------------------------------------------
+  // User Methods
+  // ----------------------------------------------------------------------
+
     void CameraComponentImpl::eraseFpgaFlash(){
         for(int i=0; i< 40; i++){
             m_fpgaFlash.sectorErase(i);

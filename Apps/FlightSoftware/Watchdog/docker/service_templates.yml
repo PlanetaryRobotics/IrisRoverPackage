@@ -1,0 +1,18 @@
+version: "3"
+
+# YAML anchor for referencing bind-mounted volumes common to all services:
+x-common-volumes: &common-volumes
+  #
+  #  Mount the source code:
+  - ../:${WD_PROJ_DIR}
+  # Mount the build directory:
+  - ../out/:${WD_PROJ_DIR}/out
+
+services:
+  wd-ccs-service:
+    image: "iris_fsw_ccs_watchdog:latest"
+    env_file:
+      - "../.env"
+    tty: true
+    volumes: *common-volumes
+    platform: "linux/amd64"

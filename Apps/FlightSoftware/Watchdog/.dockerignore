@@ -1,0 +1,29 @@
+# Git Files
+**/.git
+
+# Docker Files:
+**/.dockerignore
+**/Dockerfile
+**/docker-compose.yml
+
+# Ignore Python Bytecode Caching:
+*.py[cod]
+**/__pycache__/
+
+# Ignore linter cache:
+**/.mypy_cache/
+**/.pytest_cache/
+
+# Ignore tester cache:
+**/.pytest_cache/
+**/.coverage
+
+# Ignore (unsupported) editor settings:
+**/.idea/
+**/.vscode/
+
+# Ignore OS Files:
+**/.DS_Store
+
+# By default, ignore the build directory (that gets mounted separately):
+out/

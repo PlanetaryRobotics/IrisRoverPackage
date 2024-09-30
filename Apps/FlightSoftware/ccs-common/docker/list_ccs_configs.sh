@@ -1,5 +1,6 @@
 #!/bin/bash
-# Lists all available CCS project configurations.
+# Lists all available CCS project configurations for the project in the current directory.
+# (cd into the root directory of the project of interest then run this)
 # NOTE: Rebuild the docker image (`docker compose build`) if you change this.
 
 echo "All 'configuration' matches in '.cproject' :"

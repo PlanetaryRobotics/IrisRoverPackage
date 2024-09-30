@@ -1,0 +1,30 @@
+version: '3'
+name: "iris_fsw_ccs_common"
+
+services:
+  # Instructions for building ccs-common image (if not built already).
+  iris-ccs-common:
+    image: iris_ccs_common:latest
+    env_file:
+      - ".env"
+    tty: true
+    platform: "linux/amd64"
+    build:
+      # only provide the build instructions for this image here,
+      # all other projects requiring this image to be built can extend this:
+      context: ../ccs-common
+      cache_from:
+        - "iris_fsw_ccs_watchdog:latest"
+      network: host
+      additional_contexts:
+        fsw: ".."
+        gsw: "../../GroundSoftware/"
+      args:
+        # Only set to no-include-flash-tools if you don't want to include tools
+        # like Uniflash to support flashing from a Docker image (reduces image
+        # file size by ~1.7GB):
+        - BUILD_FLASHING_TOOLS=no-include-flash-tools
+      platforms:
+        # Necessary to set this to AMD64 explicitly so it can still run on
+        # other arch like ARM (e.g. Apple M):
+        - "linux/amd64"

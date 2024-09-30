@@ -2,10 +2,17 @@ version: '3'
 name: "iris_fsw_ccs_watchdog"
 
 services:
+  iris-ccs-common:
+    # Grab & use instructions for building ccs-common image (if not built already):
+    # (! don't add anything to this)
+    image: iris_ccs_common:latest
+    extends: {file: ../ccs-common/docker-compose.yml, service: iris-ccs-common}
+  
   wd-ccs-image:
     container_name: "iris_wd_ccs_image"
     labels:
       description: "Just a bare container wrapper around the image build."
+    depends_on: ['iris-ccs-common']
     extends: {file: docker/service_templates.yml, service: wd-ccs-service}
     image: "iris_fsw_ccs_watchdog:latest"
     build:
@@ -18,16 +25,13 @@ services:
         fsw: ".."
         gsw: "../../GroundSoftware/"
       cache_from:
+        - "iris_ccs_common:latest"
         - "iris_fsw_ccs_watchdog:latest"
       args:
         - WD_CCS_PROJ_NAME=$WD_CCS_PROJ_NAME
         - WD_CCS_PROJ_CFG_DEFAULT=$WD_CCS_PROJ_CFG_DEFAULT
         - WD_PROJ_DIR=$WD_PROJ_DIR
         - WD_CCS_WORKSPACE_DIR=$WD_CCS_WORKSPACE_DIR
-        # Only set to no-include-flash-tools if you don't want to include tools
-        # like Uniflash to support flashing from a Docker image (reduces image
-        # file size by ~1.7GB):
-        - BUILD_FLASHING_TOOLS=no-include-flash-tools
       platforms:
         - "linux/amd64"
 
@@ -35,13 +39,15 @@ services:
     container_name: "iris_wd_setup_project"
     labels:
       description: "Performs 1-time setup for the CCS project."
+    depends_on: ['wd-ccs-image']
     extends: {file: docker/service_templates.yml, service: wd-ccs-service}
-    command: "/setup_project.sh"
+    command: "/setup_project.sh ${WD_CCS_WORKSPACE_DIR} ${WD_PROJ_DIR}"
 
   wd-build:
     container_name: "iris_wd_build"
     labels:
       description: "Builds the Iris Watchdog source code. Typical incremental build, only compiling what's changed."
+    depends_on: ['wd-ccs-image']
     extends: {file: docker/service_templates.yml, service: wd-ccs-service}
     command: /build.sh intermediate ${WD_CONFIG:-${WD_CCS_PROJ_CFG_DEFAULT}}
 
@@ -49,6 +55,7 @@ services:
     container_name: "iris_wd_build_full"
     labels:
       description: "Performs a FULL build of the Iris Watchdog source code, recompiling everything."
+    depends_on: ['wd-ccs-image']
     extends: {file: docker/service_templates.yml, service: wd-ccs-service}
     command: /build.sh full
 
@@ -56,6 +63,7 @@ services:
     container_name: "iris_wd_clean"
     labels:
       description: "Cleans up (removes) build files. Subsequent intermediate build will be full."
+    depends_on: ['wd-ccs-image']
     extends: {file: docker/service_templates.yml, service: wd-ccs-service}
     command: /build.sh clean
 
@@ -63,5 +71,6 @@ services:
     container_name: "iris_wd_interactive_term"
     labels:
       description: "Creates an open session that can be used as interactive terminal within Docker Desktop or with `docker compose run -it --rm wd-term`."
+    depends_on: ['wd-ccs-image']
     extends: {file: docker/service_templates.yml, service: wd-ccs-service}
-    command: "bash"
+    command: bash

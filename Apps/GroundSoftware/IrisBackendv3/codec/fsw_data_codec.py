@@ -208,7 +208,8 @@ class NumberPacker(Codec[Union[int, float]]):
         if not valid:
             raise PacketEncodingException(
                 data,
-                f"Data `{data}` not able to be encoded as Number."
+                f"Data `{data}` w/ type `{type(data)}` not able to be encoded "
+                f"as Number."
             )
         return struct.pack(format_string, data)
 

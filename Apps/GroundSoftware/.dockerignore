@@ -71,6 +71,7 @@ out/
 !**/fprime/**/*.hpp
 
 # Test Data Files to Explicitly Include:
+!scripts/testing/_peregrine_tvac_fetcher.py
 !test-data/img_scs_em4_my_images.pcap
 !test-data/img_rc9.5.3_em4_flight_lens_pocari_4__v4_cam_A_short_cable__sunlamp_pointed_up.pcap
 !test-data/telem_rc9_9.5.3_200packets_w_IMU.pcap

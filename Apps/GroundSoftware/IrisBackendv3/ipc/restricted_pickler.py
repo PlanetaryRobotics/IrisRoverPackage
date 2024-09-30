@@ -17,7 +17,7 @@ import datetime
 
 if _USING_DILL := False:
     # using dill instead of pickle for more robust serialization, esp. with multiprocessing
-    import dill as pickle
+    import dill as pickle  # type: ignore
 else:
     import pickle
 
@@ -54,6 +54,7 @@ import IrisBackendv3.codec.packet_classes.watchdog_debug_important
 import IrisBackendv3.codec.packet_classes.watchdog_debug
 import IrisBackendv3.codec.packet_classes.radio_downlink_flush
 import IrisBackendv3.codec.packet_classes.safety_timer
+import IrisBackendv3.codec.packet_classes.peregrine_dummy_packet
 
 # Use the latest supported version of pickle (faster and more performant):
 # (don't worry, pickle handles compat. checking with messages).
@@ -136,7 +137,8 @@ _DEFAULT_APPROVED_IRIS_MODULES: Final[Dict[str, ModuleType]] = {
     **_m(IrisBackendv3.codec.packet_classes.watchdog_debug_important),
     **_m(IrisBackendv3.codec.packet_classes.watchdog_debug),
     **_m(IrisBackendv3.codec.packet_classes.radio_downlink_flush),
-    **_m(IrisBackendv3.codec.packet_classes.safety_timer)
+    **_m(IrisBackendv3.codec.packet_classes.safety_timer),
+    **_m(IrisBackendv3.codec.packet_classes.peregrine_dummy_packet)
 }
 
 

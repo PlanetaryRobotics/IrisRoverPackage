@@ -84,7 +84,7 @@ help:
 # Builds the docker image:
 ####
 docker-build:
-	BUILDKIT_PROGRESS=plain docker compose build
+	docker compose build
 
 ####
 # Setup the Development Environment:
@@ -365,6 +365,12 @@ app-commander:
 ####
 app-telemetry-display:
 	./run-script.sh ipc_apps/telemetry_display.py
+
+####
+# Run the Donor Names & Messages Display:
+####
+app-roll-credits:
+	./run-script.sh ipc_apps/names.py
 
 ####
 # Run the MessagePrinter IPC App:

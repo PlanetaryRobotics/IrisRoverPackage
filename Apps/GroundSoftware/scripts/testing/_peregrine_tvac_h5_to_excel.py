@@ -229,14 +229,14 @@ def time_filter(opts, df: pd.DataFrame) -> pd.DataFrame:
     if (
         opts.start_time_utc is not None
         # check for text in case someone misread the help and typed it out:
-        and opts.start_time_utc.upper() != "NONE"
+        and str(opts.start_time_utc).upper() != "NONE"
     ):
         start_bound = pd.to_datetime(str(opts.start_time_utc), utc=True)
         df = df[df.index >= start_bound]
     if (
         opts.end_time_utc is not None
         # check for text in case someone misread the help and typed it out:
-        and opts.end_time_utc.upper() != "NONE"
+        and str(opts.end_time_utc).upper() != "NONE"
     ):
         end_bound = pd.to_datetime(str(opts.end_time_utc), utc=True)
         df = df[df.index <= end_bound]

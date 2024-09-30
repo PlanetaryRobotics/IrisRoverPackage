@@ -1168,6 +1168,34 @@ prepared_commands: Dict[str, PreparedCommandType] = {
         DataPathway.WIRELESS
     ),
     # Herc Take Image
+    'cam-0-quick-frame-3': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImageSectionAdv',
+        OrderedDict(
+            camera_num=0,
+            start_line=int(243*(3-1)),
+            # grab a little extra jic
+            end_line=int(243*(3+0.25)),
+            callback_id=0, erase_first=True,
+            n_bin=7, compress_line=True
+        ),
+        DataPathway.WIRELESS
+    ),
+    'cam-0-quick-frame-3-fast': (
+        DataPathway.WIRELESS,
+        Magic.COMMAND,
+        'Camera_TakeImageSectionAdv',
+        OrderedDict(
+            camera_num=0,
+            start_line=int(243*(3-1)),
+            # grab a little extra jic
+            end_line=int(243*(3+0.25)),
+            callback_id=0, erase_first=True,
+            n_bin=12, compress_line=True
+        ),
+        DataPathway.WIRELESS
+    ),
     'take-image-0': (
         DataPathway.WIRED,
         Magic.COMMAND,

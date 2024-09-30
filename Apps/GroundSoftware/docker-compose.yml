@@ -6,6 +6,7 @@ name: "iris_backend_v3"
 x-common-volumes: &common-volumes
   - ./out/:/IRP/Apps/GroundSoftware/out/
   - ./test-data/:/IRP/Apps/GroundSoftware/test-data/
+  - ../../../fleur_backend/ipc:/IRP/Apps/GroundSoftware/deps/fleur_backend/ipc
 
 services:
   # Infrastructure:
@@ -34,6 +35,7 @@ services:
   tests:
     container_name: "IBv3_tests"
     command: "python3 -m pytest --cov=IrisBackendv3"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -49,6 +51,7 @@ services:
   proxies:
     container_name: "IBv3_proxies"
     command: "make proxies"
+    stop_signal: SIGKILL
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -81,6 +84,7 @@ services:
   dl_processor:
     container_name: "IBv3_dl_processor"
     command: "python3 ipc_apps/dl_processor.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -100,6 +104,7 @@ services:
   ul_processor:
     container_name: "IBv3_ul_processor"
     command: "python3 ipc_apps/ul_processor.py --no-use-seq-num -l VERBOSE"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -119,7 +124,11 @@ services:
   # Additional Infrastructure:
   image-builder:
     container_name: "IBv3_img_builder"
-    command: "python3 ipc_apps/image_builder.py"
+    command: >
+      python3 ipc_apps/image_builder.py
+      --fast-only
+      -q ./out/image_builder_quick_out/
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -142,15 +151,37 @@ services:
     ports:
       - 6379:6379
 
-  core:
+
+  core-min:
     container_name: "IBv3_core"
     image: "iris_backend_v3:latest"
+    stop_signal: SIGINT
     env_file:
       - ".env"
     environment:
       IBv3_ipc__IP: "proxies"
     restart: "always"
     tty: true
+    depends_on:
+      - standards
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "core"
+      iris.backend.v3.description: "Minimum core with no dependencies besides standards."
+
+
+  core:
+    container_name: "IBv3_core"
+    image: "iris_backend_v3:latest"
+    stop_signal: SIGINT
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    restart: "always"
+    tty: true
+    cap_add:
+      - NET_ADMIN
     depends_on:
       - standards
       - proxies
@@ -162,6 +193,27 @@ services:
       iris.backend.v3.service_type: "core"
       iris.backend.v3.description: "Basic shell that brings up all essential core infrastructure as dependencies"
 
+  core-host:
+    container_name: "IBv3_core_host"
+    image: "iris_backend_v3:latest"
+    stop_signal: SIGINT
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    restart: "always"
+    network_mode: "host"
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+      - image-builder
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "core"
+      iris.backend.v3.description: "Basic shell that brings up all essential core infrastructure as dependencies, on the host network."
 
   # Data Ingest / Emission:
   pcap-data:
@@ -171,6 +223,7 @@ services:
       --loop
       -t 588
       -f ./test-data/RC12_Full_Wifi_Capture__just_iris__trimmed_no_img.pcap
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -188,13 +241,63 @@ services:
       iris.backend.v3.service_type: "transceiver"
       iris.backend.v3.description: "Feeds data replayed from a pcap into the system."
 
+  iris-yamcs:
+    container_name: "IBv3_iris_yamcs"
+    network_mode: "host"
+    command: "python3 ./iris_yamcs.py"
+    stop_signal: SIGINT
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+    volumes: *common-volumes
+    cap_add:
+      - NET_ADMIN
+    labels:
+      iris.backend.v3.service_type: "transceiver"
+      iris.backend.v3.description: "YAMCS my g."
+
+  fleur-mdap:
+    container_name: "IBv3_fleur_backend_mdap"
+    command: "python3 ./deps/fleur_backend/ipc/mdap.py -i 0.0.0.0"
+    stop_signal: SIGINT
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+    volumes: *common-volumes
+    # ports:
+    #   - 3000:3000
+    #   - 8070:8070
+    #   - 8080:8080
+    #   - 8086:8086
+    labels:
+      iris.backend.v3.service_type: "interface"
+      iris.backend.v3.description: "Forwards telem and events to FLEUR backend."
+
   pcap-data-image:
-    container_name: "IBv3_pcap_data"
+    container_name: "IBv3_pcap_data_image"
     command: >
       python3 ./scripts/testing/ipc_demo/pcap_xcvr.py
       --loop
       -t 25
       -f ./test-data/RC12_Full_Wifi_Capture__just_iris.pcap
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -212,9 +315,39 @@ services:
       iris.backend.v3.service_type: "transceiver"
       iris.backend.v3.description: "Feeds data replayed from a pcap of an image into the system."
 
+
+  itvac-data:
+    container_name: "IBv3_itvac_data"
+    command: >
+      python3 ./scripts/testing/ipc_demo/h5_xcvr.py
+      --loop
+      -s 1.0
+      --start-time-utc 2020-01-01
+      --jump-to-iris
+      -n _ref_iris-pgh-testing
+    #  -n int-tvac-data2
+    stop_signal: SIGINT
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "transceiver"
+      iris.backend.v3.description: "Feeds data replayed from an H5 store of iTVAC telemetry from YAMCS into the system."
+
   xcvr-wifi:
     container_name: "IBv3_xcvr_wifi"
     command: "make xcvr-wifi"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -236,6 +369,7 @@ services:
   gui:
     container_name: "IBv3_gds_gui"
     command: "python3 ipc_apps/gui.py"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -266,6 +400,7 @@ services:
   message-printer:
     container_name: "IBv3_message_printer"
     command: "python3 ipc_apps/packet_printer.py -n MessagePrinter --no-full-packets --message-packets --events --no-packet-bytes"
+    stop_signal: SIGINT
     image: "iris_backend_v3:latest"
     env_file:
       - ".env"
@@ -278,8 +413,48 @@ services:
       - proxies
       - dl_processor
       - ul_processor
-      - redis
     volumes: *common-volumes
     labels:
       iris.backend.v3.service_type: "app-target"
       iris.backend.v3.description: "Prints all events & messages going through IPC."
+
+  roll-credits:
+    container_name: "IBv3_roll_credits"
+    command: "python3 ipc_apps/names.py"
+    stop_signal: SIGINT
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "app-target"
+      iris.backend.v3.description: "Prints all donor names & messages downlinked from the rover."
+
+
+  telem-display:
+    container_name: "IBv3_telem_display"
+    command: "python3 ipc_apps/telemetry_display.py -r 1.0"
+    stop_signal: SIGINT
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "app-target"
+      iris.backend.v3.description: "Low-level console telemetry display."

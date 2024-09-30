@@ -8,12 +8,12 @@ will operate off these same datastandards (so each process doesn't have to
 rebuild them itself).
 
 Created: 03/01/2023
-Last Update: 03/01/2023
+Last Update: 01/10/2024
 """
 import os.path
 import argparse
 
-from IrisBackendv3 import data_standards
+from IrisBackendv3 import data_standards, meta
 from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
 
 parser = argparse.ArgumentParser(
@@ -36,6 +36,13 @@ def get_opts():
                             'True = includes prebuilts, '
                             'False = only vanilla modules directly from '
                             'FPrime are included (no GSW-only modules).'
+                        ))
+    parser.add_argument('--metamodules', default=True,
+                        action=argparse.BooleanOptionalAction,
+                        help=(
+                            'Whether or not to include MetaModules. '
+                            'True = includes metamodules, '
+                            'False = no metamodules directly included. '
                         ))
 
     parser.add_argument('--suffix', default=True,
@@ -66,11 +73,12 @@ def build_datastandards_cache(opts) -> str:
     Returns absolute path to cache."""
     DsLoggerLevel(opts.log_level.upper())
 
-    filepath = data_standards.build_and_cache(
+    filepath = meta.build_standards_with_metamodules_and_cache(
         cache_dir=opts.dir,
         cache_name_base=opts.name,
         include_ulid_suffix=opts.suffix,
-        include_all_prebuilts=opts.prebuilts
+        include_all_prebuilts=opts.prebuilts,
+        include_all_metamodules=opts.metamodules
     )
 
     return filepath

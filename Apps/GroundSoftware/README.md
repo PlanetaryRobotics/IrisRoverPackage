@@ -31,12 +31,63 @@ Post-RC12, the preferred (and greatly simplified) way to run the Iris GDS is to 
   - Feeds data into IPC from a PCAP recording and then brings up the Message Printer Display to visualize that data.
     - Since `-d` is not used in this command, all prints from both services will be printed in the console.
 
+### 0.2.1b. Remote Consoles
+In the case of a mission control center where the `IrisBackendv3` core is running on a server, remote computers won't need to (and shouldn't) run their own copies of the `IrisBackendv3` core.
+**To prevent core dependencies from being brought up when using remote consoles, run the following:**
+```
+docker compose run --rm -i -e IBv3_ipc__IP=[MAIN-SERVER-IP] --name "YourAppNameThatsNotAlreadyUsedInDockerCompose" core-min your bash commands
+```
+
+
+**Some Examples:**
+
+Make sure to configure `osiris.milan` to the server's LAN IP in the hosts file first.
+- For Windows, add `1.2.3.4 osiris.milan` to `C:\Windows\System32\drivers\etc\hosts` (where `1.2.3.4` is the IP).
+
+**RUNNING IRIS DONOR NAMES & MESSAGES PRINTER:**
+```
+docker compose run --rm -i -e IBv3_ipc__IP=osiris.milan --name "CmmcRollCredits" core-min make app-roll-credits
+```
+**RUNNING MESSAGES PRINTER:**
+```
+docker compose run --rm -i -e IBv3_ipc__IP=osiris.milan --name "CmmcMessagePrinter" core-min make app-message-printer
+```
+**RUNNING TELEMETRY DISPLAY:**
+```
+docker compose run --rm -i -e IBv3_ipc__IP=osiris.milan --name "CmmcTelemetryDisplay" core-min make app-telemetry-display
+```
+
 ## 0.3 Development using Docker
 As mentioned above, it will be easier to develop by setting up GDS natively using the steps in **`Sections 1-`**.
 
 If you are developing using docker and you make any changes to the source of the Iris GDS or want to add any new files for testing, you may need to run the following:
 - `docker compose down` to bring down the services using the image
 - `docker compose build` to rebuild the image from the point the source changed (or just rerun `docker compose up` and the image should rebuild.)
+
+## 0.4 A Note on Docker Networking
+If you need to connect to external servers from inside docker which use/overlap with docker's `172.17.0.0/16` subnet (e.g. a YAMCS server), you need to reconfigure the docker daemon to use a different address space for its bridge network.
+
+In mission, on a Windows 10 machine using docker in WSL2-mode (none of which should be relevant), the following `~/.docker/daemon.json` was used to avoid conflict.
+```json
+{
+  "bip": "10.0.1.1/24",
+  "fixed-cidr": "10.0.1.0/25",
+  "fixed-cidr-v6": "2001:db8::/64",
+  "mtu": 1500,
+  "default-gateway": "10.0.1.254",
+  "default-gateway-v6": "2001:db8:abcd::89",
+  "dns": ["10.20.1.2","10.20.1.3"],
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false
+}
+```
+Note: As of 1/2024, pasting this file in the Docker Engine config in Docker Desktop will result in complaining about IP formatting errors. This is due to tracked bug in Docker Desktop. Just edit the `~/.docker/daemon.json` file directly.
+NOTE: More work needs to be done to investigate this approach. With this mod in place, docker images can't contact things like `pip` to install packages. To remedy this, the patch needs to be removed, `docker compose build`/`pip`/etc. run, and then the patch put back in place.
 
 # 1. Install OS-Level Dependencies
 OS-level dependency install and setup only needs to be done once per machine.

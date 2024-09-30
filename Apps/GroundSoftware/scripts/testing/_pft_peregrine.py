@@ -23,6 +23,8 @@ import scapy.all as scp  # type: ignore
 
 # Load Dependencies:
 from IrisBackendv3.codec.settings import set_codec_standards
+from IrisBackendv3.meta.metafield import add_metamodules_to_standards
+from config.metafields import ALL_META_MODULES
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, ALL_PREBUILT_MODULES
 from IrisBackendv3.data_standards.logs import (
     logger as DsLogger,
@@ -52,6 +54,7 @@ IRIS_TELEM_PARAM_NAME: Final[str] = '/Peregrine/payloads/iris/iris-payload-tm-rs
 DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
+add_metamodules_to_standards(standards, ALL_META_MODULES)
 set_codec_standards(standards)
 
 parser = argparse.ArgumentParser(

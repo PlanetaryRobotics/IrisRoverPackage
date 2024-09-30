@@ -194,4 +194,3 @@ df.plot.hexbin(
 print(f"Saving TDot Hexbin Results to {TDOT_OUT_FILE}_HEXBIN.png . . .")
 plt.savefig(f"{TDOT_OUT_FILE}_HEXBIN.png", dpi=1200)
 plt.close()
-

@@ -35,6 +35,8 @@ from IrisBackendv3.utils.nameiddict import NameIdDict
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.data_standards.logs import logger as DsLogger
 from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
+from IrisBackendv3.meta.metafield import add_metamodules_to_standards
+from config.metafields import ALL_META_MODULES
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
@@ -62,6 +64,7 @@ ser: Any = None
 DsLogger.setLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, watchdog_heartbeat_tvac)
+add_metamodules_to_standards(standards, ALL_META_MODULES)
 set_codec_standards(standards)
 
 all_payloads: EnhancedPayloadCollection = EnhancedPayloadCollection()

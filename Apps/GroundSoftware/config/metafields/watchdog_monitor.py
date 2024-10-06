@@ -29,12 +29,14 @@ def CDS_Builder(
         _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
         _WATCHING = ['WatchdogDetailedStatus_Watchdog_CombinedDigitalStates']
 
-        def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+        def _calculate(self) -> Tuple[int | None, List[DownlinkedPayload]]:
             t = self._get_t(
                 'WatchdogDetailedStatus_Watchdog_CombinedDigitalStates'
             )
             channel = t.channel
             bitfields = channel.bitfields
+            if bitfields is None:
+                return None, []  # can't proceed, abort
             n_bytes = bitfields.total_bits // 8
 
             cds_int = int(t.data)
@@ -56,7 +58,7 @@ def StateEnumStringBuilder(
         _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
         _WATCHING = [telem_channel_name]
 
-        def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+        def _calculate(self) -> Tuple[str, List[DownlinkedPayload]]:
             telem = self._get_t(telem_channel_name)
             int_val = telem.data
 

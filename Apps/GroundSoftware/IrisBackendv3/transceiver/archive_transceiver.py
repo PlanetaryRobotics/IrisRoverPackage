@@ -1,12 +1,25 @@
 """
-Defines the Transceiver class for reading telemetry from an h5 file (archived
-from iTVAC using `_peregrine_tvac_fetcher.py`).
+Defines the Transceiver class for reading telemetry from an archive file
+(e.g. Mission `parquet` file or iTVAC h5 file from `_peregrine_tvac_fetcher.py`).
 
-Includes any supporting functions necessary for processing the h5 file.
+Includes any supporting functions necessary for processing an archive file (h5,
+parquet, etc).
+
+Formerly: `h5_transceiver.py`.
+
+TODO: Read COMMAND columns from YAMCS archive, build command payloads, and
+replay into Uplink pathway (low priority b/c that wouldn't really go anywhere
+besides right back into the transceivers, which are likely just this one, and
+some displays.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/05/2024
+@last-updated: 10/01/2024
 """
+from IrisBackendv3.storage.settings import settings as STOR_SETTINGS
+import pandas as pd  # type: ignore
+from yamcs.protobuf.pvalue import pvalue_pb2  # type: ignore
+import yamcs.protobuf.yamcs_pb2 as yamcs_pb2  # type: ignore
+from yamcs.tmtc.model import ParameterValue  # type: ignore
 from typing import Any, Optional, Dict, List, cast
 
 import attr
@@ -19,172 +32,82 @@ from IrisBackendv3.transceiver.logs import logger
 
 from IrisBackendv3.codec.metadata import DataPathway, DataSource
 
-from IrisBackendv3.transceiver.yamcs_helper import (
-    IRIS_TELEM_PARAMS,
-    iris_telem_param_to_packet, peregrine_telem_params_to_packet
-)
+from IrisBackendv3.transceiver.yamcs_helper import IRIS_TELEM_PARAMS
 
 from typing import Any, Final, Tuple, List, Dict
 from datetime import datetime, timedelta, timezone
 
-from IrisBackendv3.codec.packet import parse_packet
 from IrisBackendv3.codec.packet_classes.packet import Packet
 from IrisBackendv3.codec.metadata import DataSource, DataPathway
 from IrisBackendv3.transceiver.logs import logger_setConsoleLevel as xcvrLoggerLevel
 from IrisBackendv3.transceiver.exceptions import TransceiverConnectionException
+from IrisBackendv3.storage.dataset import DataSet
+from IrisBackendv3.storage.telemetry import generate_all_packets
+from IrisBackendv3.storage.formatting import format_time
 
 import os.path
 
-import scripts.testing._peregrine_tvac_fetcher as ptf
-
-from yamcs.tmtc.model import ParameterValue  # type: ignore
-
-import yamcs.protobuf.yamcs_pb2 as yamcs_pb2  # type: ignore
-from yamcs.protobuf.pvalue import pvalue_pb2  # type: ignore
-
-import pandas as pd  # type: ignore
-
-# Key in the H5 DB where the raw YAMCS data is stored:
-_YAMCS_KEY: Final = '/yamcs'
-
 
 @attr.s(auto_attribs=True)
-class H5ParseOpts:
-    # Name of dataset ({db-dir}/{name}.h5):
-    name: str = '_ref_iris-pgh-testing',
+class ArchiveParseOpts:
+    # Name of dataset ({db-dir}/{name}.{ext}):
+    name: str = 'fm1_mission_archive.yamcs'
     # Directory where databases are kept:
-    db_dir: str = './out/databases',
+    db_dir: str = './out/databases'
+    # File extension (determines archive type). Parquet is now recommended over H5:
+    ext: str = 'parquet'
     # Playback speed (how many seconds of time in the archive should be played
     # for each second in the real world).
-    playback_speed: float = 1.0,
+    playback_speed: float = 1.0
     # Whether or not to loop the archive at the end:
-    loop: bool = True,
+    loop: bool = True
     # Earliest time to allow from the archive (UTC) or `None` for no limits on
     # start time. Should have one since some data in the archives was
     # erroneously labelled as being from 2001:
     start_time_utc: datetime | None = datetime(2020, 1, 1,
-                                               tzinfo=timezone.utc),
+                                               tzinfo=timezone.utc)
     # Latest time to allow from the archive (UTC) or `None` for no limits on
     # end time:
-    end_time_utc: datetime | None = None,
+    end_time_utc: datetime | None = None
     # Whether to jump to the first instance after start-time that Iris is emits
     # telem:
     jump_to_iris: bool = True
 
+    # Whether the reception_time (amcc_rx, pmcc_rx) should be generation_time
+    # (lander_rx), if this data is being replayed, or "now" if the data came in
+    # recently and we want it to sync up with the current time (rarely useful).
+    # For backwards compatibility, this defaults to `False` but in most cases
+    # you'll want it to be `True`.
+    rx_is_generation_time: bool = True
+
     @staticmethod
     def field_names() -> List[str]:
-        return [x.name for x in attr.fields(H5ParseOpts)]
+        return [x.name for x in attr.fields(ArchiveParseOpts)]
 
 
-def load_raw_yamcs_data(opts: H5ParseOpts) -> pd.DataFrame | None:
-    """Loads raw YAMCS data from the H5 database and returns it."""
-    in_file = os.path.join(opts.db_dir, f"{opts.name}.h5")
-    logger.notice(f"Connecting to Local DB: {in_file} . . .")
-    db = pd.HDFStore(in_file)
-    if db is None:
-        logger.critical(
-            f"YAMCS key {_YAMCS_KEY} not found in DB with keys {db_keys}."
-        )
-        return None
-
-    if _YAMCS_KEY not in (db_keys := [*db.keys()]):
-        logger.critical(
-            f"YAMCS key {_YAMCS_KEY} not found in DB with keys {db_keys}."
-        )
-        return None
-    logger.info("Loading Raw Data from YAMCS Save . . .")
-    yamcs = ptf.DataSet.load_from(_YAMCS_KEY, db)
-    db.close()
-
-    yamcs_df = yamcs.data
+def load_raw_yamcs_data(opts: ArchiveParseOpts) -> pd.DataFrame | None:
+    """Loads raw YAMCS data from the Archive and returns it."""
+    in_file = os.path.join(opts.db_dir, f"{opts.name}.{opts.ext}")
+    logger.notice(f"Opening Archive: {in_file} . . .")
+    yamcs_archive = DataSet.load_from_file(in_file, STOR_SETTINGS['YAMCS_KEY'])
+    yamcs_df = yamcs_archive.data
 
     return yamcs_df
 
 
-def _val_to_proto_val(val: Any) -> yamcs_pb2.Value:
-    """Wraps the given value in the appropriate protobuf Value expected by
-    YAMCS. As of 1.7.5, yamcs just echos back whatever value we send it, so
-    this whole typing is a charade atm but we adhere to it here in case that
-    changes."""
-    proto_val = yamcs_pb2.Value()
-    if isinstance(val, int):
-        proto_val.type = yamcs_pb2.Value.SINT64
-        proto_val.sint64Value = val
-    elif isinstance(val, float):
-        proto_val.type = yamcs_pb2.Value.DOUBLE
-        proto_val.doubleValue = val
-    elif isinstance(val, bytes):
-        proto_val.type = yamcs_pb2.Value.BINARY
-        proto_val.binaryValue = val
-    else:
-        # Just attempt to pass it through as a string.
-        # Even if it's not, the value just gets returned
-        # to us.
-        proto_val.type = yamcs_pb2.Value.STRING
-        proto_val.stringValue = val
-    return proto_val
-
-
-def build_mock_yamcs_parameter(
-    name: str,
-    reception_time: datetime,
-    generation_time: datetime,
-    eng_value: Any,
-    raw_value: Any | None = None
-) -> ParameterValue:
-    """Builds a mock YAMCS parameter with only the information we care about
-    (for passing around internally to things that ingest YAMCS parameters.)"""
-    proto_id = yamcs_pb2.NamedObjectId()
-    proto_id.name = name
-    proto_param = pvalue_pb2.ParameterValue()
-
-    proto_param.generationTime.FromDatetime(generation_time)
-    proto_param.acquisitionTime.FromDatetime(reception_time)
-
-    proto_param.engValue.CopyFrom(_val_to_proto_val(eng_value))
-    if raw_value is not None:
-        proto_param.rawValue.CopyFrom(_val_to_proto_val(raw_value))
-
-    return ParameterValue(proto=proto_param, id=proto_id)
-
-
-def record_to_parameters(
-    time: pd.Timestamp,
-    record: pd.Series
-) -> List[ParameterValue]:
-    """Converts an H5 database record to a list of equivalent YAMCS parameters
-    (as if they had been received from YAMCS)."""
-    valid_entries = record[~record.isna()]
-    return [
-        build_mock_yamcs_parameter(
-            name=param_name,
-            reception_time=datetime.now(timezone.utc),
-            generation_time=time.to_pydatetime(),
-            eng_value=param_val
-        )
-        for param_name, param_val in zip(valid_entries.index, valid_entries)
+def records_to_packets(
+    records: pd.DataFrame,
+    rx_is_generation_time: bool = False
+) -> List[Packet]:
+    """Creates all packets that should be generated from the given records,
+    sorted chronologically."""
+    # Generate packets:
+    times, packets = generate_all_packets(records, rx_is_generation_time)
+    # Sort chronologically (blends Peregrine packets into Iris packets):
+    sorted_packets = [
+        p for _, p in sorted(zip(times, packets), key=lambda pair: pair[0])
     ]
-
-
-def records_to_packets(records: pd.DataFrame) -> List[Packet]:
-    """Creates all packets that should be generated from the given records."""
-    for param_time, record in records.iterrows():
-        # Convert entries to equivalent YAMCS parameters:
-        params = record_to_parameters(param_time, record)
-        # Extract and process any Iris parameters into telem:
-        packets = [
-            iris_telem_param_to_packet(p) for p in params
-            if p.name in IRIS_TELEM_PARAMS
-        ]
-
-        # Lump all the rest into a packet of Peregrine telem:
-        peregrine_params = [
-            p for p in params if p.name not in IRIS_TELEM_PARAMS
-        ]
-        if len(peregrine_params) > 0:
-            packets.append(peregrine_telem_params_to_packet(peregrine_params))
-
-        return packets
+    return sorted_packets
 
 
 def filter_archive_by_time(archive: pd.DataFrame, opts) -> pd.DataFrame:
@@ -199,14 +122,14 @@ def filter_archive_by_time(archive: pd.DataFrame, opts) -> pd.DataFrame:
         # check for text in case someone misread the help and typed it out:
         and str(opts.start_time_utc).upper() != "NONE"
     ):
-        start_bound = pd.to_datetime(str(opts.start_time_utc), utc=True)
+        start_bound = format_time(str(opts.start_time_utc))
         archive = archive[archive.index >= start_bound]
     if (
         opts.end_time_utc is not None
         # check for text in case someone misread the help and typed it out:
         and str(opts.end_time_utc).upper() != "NONE"
     ):
-        end_bound = pd.to_datetime(str(opts.end_time_utc), utc=True)
+        end_bound = format_time(str(opts.end_time_utc))
         archive = archive[archive.index <= end_bound]
 
     # Jump to the first time iris starts emitting telem, if desired:
@@ -243,8 +166,8 @@ def filter_archive_by_time(archive: pd.DataFrame, opts) -> pd.DataFrame:
     return archive
 
 
-class H5Transceiver(Transceiver):
-    parser_opts: H5ParseOpts
+class ArchiveTransceiver(Transceiver):
+    parser_opts: ArchiveParseOpts
     _archive: pd.DataFrame | None
 
     _t_start_world: datetime
@@ -274,19 +197,19 @@ class H5Transceiver(Transceiver):
 
     def __init__(
         self,
-        parser_opts: H5ParseOpts,
+        parser_opts: ArchiveParseOpts,
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.NONE,  # Not used here
         source: DataSource = DataSource.NONE,  # Not used here
         **kwargs
     ) -> None:
-        """ Initializes a `PcapTransceiver`.
+        """ Initializes an `ArchiveTransceiver`.
 
         NOTE: You'll need to supply the appropriate list of `endecs` which were
-        used to encode the data that was put into the PCAP.
+        used to encode the data that was put into the Archive (likely none).
         """
         full_kwargs: Dict[str, Any] = {
-            'name': 'h5',  # allow this to be overridden in kwargs
+            'name': 'archive',  # allow this to be overridden in kwargs
             **kwargs  # fwd all other kwargs to parent
         }
         super().__init__(
@@ -299,10 +222,10 @@ class H5Transceiver(Transceiver):
         self.parser_opts = parser_opts
 
         # Initialize internal state:
-        self._t_start_world = 0
-        self._t_start_arch = 0
-        self._t_end_arch = 0
-        self._t_last_arch = 0
+        self._t_start_world = datetime.now(timezone.utc)
+        self._t_start_arch = datetime.now(timezone.utc)
+        self._t_end_arch = datetime.now(timezone.utc)
+        self._t_last_arch = datetime.now(timezone.utc)
         self._archive = None
 
     def begin(self) -> None:
@@ -313,13 +236,13 @@ class H5Transceiver(Transceiver):
 
         # Parse the file and store the data:
         logger.notice(  # type: ignore
-            f"Beginning `H5Transceiver` with:\n{self.parser_opts}"
+            f"Beginning `ArchiveTransceiver` with:\n{self.parser_opts}"
         )
 
         # Load the archive data:
         self._archive = load_raw_yamcs_data(self.parser_opts)
         self._archive = filter_archive_by_time(self._archive, self.parser_opts)
-        logger.success("Data loaded from H5 DB!")
+        logger.success("Data loaded from Archive!")
 
         # Only **after** the archive is loaded...
         # (Re)set the time pointers:
@@ -329,7 +252,7 @@ class H5Transceiver(Transceiver):
         """This transceiver does not (exclusively) transact in raw bytes,
         so byte_packets are not meaningful here."""
         raise NotImplementedError(
-            "The H5Transceiver does not (exclusively) transact in raw bytes,"
+            "The ArchiveTransceiver does not (exclusively) transact in raw bytes,"
             "so byte_packets are not meaningful here."
         )
 
@@ -344,7 +267,7 @@ class H5Transceiver(Transceiver):
         """
         if self._archive is None:
             logger.warning(
-                "Attempting to read from H5Transceiver but no archive has "
+                "Attempting to read from ArchiveTransceiver but no archive has "
                 "been loaded. Has this transceiver been initialized with "
                 "`begin()`?"
             )
@@ -352,7 +275,7 @@ class H5Transceiver(Transceiver):
 
         if self._t_last_arch >= self._t_end_arch:
             logger.verbose(
-                f"`H5Transceiver` has reached the end of the archive loaded "
+                f"`ArchiveTransceiver` has reached the end of the archive loaded "
                 f"from `{self.parser_opts.name}`."
             )
             if self.parser_opts.loop:
@@ -394,7 +317,10 @@ class H5Transceiver(Transceiver):
         records_in_range = self._archive[in_range]
 
         if records_in_range.size > 0:
-            packets = records_to_packets(records_in_range)
+            packets = records_to_packets(
+                records_in_range,
+                rx_is_generation_time=self.parser_opts.rx_is_generation_time
+            )
 
         self._t_last_arch = t_current_arch
 
@@ -443,11 +369,11 @@ class H5Transceiver(Transceiver):
 
         NOTE: `**uplink_metadata` is given in the superclass and contains any
         special data needed by methods further down the uplink pipeline, but is
-        unused by `H5Transceiver` since it doesn't even have a meaningful
+        unused by `ArchiveTransceiver` since it doesn't even have a meaningful
         uplink.
         """
         logger.debug(  # type: ignore
-            "`H5Transceiver._uplink_byte_packet` was called. "
+            "`ArchiveTransceiver._uplink_byte_packet` was called. "
             "This `Transceiver` replays a recording, so you can't send using "
             f"it. The data will be thrown out. Data was: `{packet_bytes!r}`."
         )

@@ -1,6 +1,10 @@
 """
 YAMCS!
 
+Scrappy, on-the-fly alternative to `YamcsTransceiver` used for Iris FM1 mission
+(because it happened sooner than expected and we had to make this quickly in a
+cave out of a box of scraps).
+
 01/08/2024
 Colombo, CMU
 """
@@ -30,15 +34,10 @@ from IrisBackendv3.logs import VALID_LOG_LEVELS
 from IrisBackendv3.codec.settings import set_codec_standards
 
 from IrisBackendv3.transceiver.yamcs_helper import *
-# from IrisBackendv3.transceiver.h5_transceiver import (
-#     H5Transceiver
-# )
 
 import warnings
 from yamcs.client import YamcsClient, MDBClient, ArchiveClient  # type: ignore
 from yamcs.tmtc.client import ProcessorClient  # type: ignore
-from yamcs.tmtc.model import ParameterValue  # type: ignore
-from yamcs.core.auth import Credentials as YamcsCredentials  # type: ignore
 
 import traceback
 from typing import Any, Final, Tuple, List, Dict, Optional
@@ -53,7 +52,7 @@ from termcolor import colored
 
 import ulid
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 import scapy.all as scp  # type: ignore
 
 import time
@@ -91,178 +90,6 @@ def get_opts(
                               f'displayed. Valid logging levels are: {VALID_LOG_LEVELS}'))
 
     return parser.parse_args()
-
-
-class YamcsInterface:
-    """Wrapper for common YAMCS interface tasks."""
-    # Private read-only:
-    _server: Final[str]
-    _port: Final[int]
-    _instance: Final[str]
-    _processor_name: Final[str]
-    _username: Final[Optional[str]]
-    _password: Final[Optional[str]]
-    _tls: Final[bool]
-
-    # Public:
-    client: Optional[YamcsClient]
-    mdb: Optional[MDBClient]
-    archive: Optional[ArchiveClient]
-    processor: Optional[ProcessorClient]
-
-    def __init__(
-        self,
-        server: str,
-        port: int,
-        instance: str,
-        processor: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        tls: bool = True,
-        auto_begin: bool = True,
-        **_  # allow (and ignore) extraneous kwargs - from opts.
-    ) -> None:
-        self._server = server
-        self._port = port
-        self._instance = instance
-        self._processor_name = processor
-        self._username = username
-        self._password = password
-        self._tls = tls
-
-        self.client = None
-        self.mdb = None
-        self.processor = None
-        self.archive = None
-
-        if auto_begin:
-            self.begin()
-
-    def begin(self) -> None:
-        self._obtain_client()
-        self._fetch_mdb()
-        self._obtain_archive_client()
-        self._get_processor()
-
-    def _obtain_client(self) -> None:
-        if self.client is None:
-            credentials: Optional[Any] = None
-            if self._username is not None or self._password is not None:
-                credentials = YamcsCredentials(
-                    username=self._username,
-                    password=self._password
-                )
-
-            self.client = YamcsClient(
-                f"{self._server}:{self._port}",
-                credentials=credentials,
-                tls=(self._tls),
-                tls_verify=(not self._tls)
-            )
-
-    def _fetch_mdb(self) -> None:
-        """Fetch the MDB (Mission Database - YAMCS version of DataStandards)"""
-        if self.mdb is None and self.client is not None:
-            self.mdb = self.client.get_mdb(instance=self._instance)
-
-    def _obtain_archive_client(self) -> None:
-        """Obtain a client to access the data archive."""
-        if self.archive is None and self.client is not None:
-            self.archive = self.client.get_archive(self._instance)
-
-    def _get_processor(self) -> None:
-        """Gets a hook to the specified processor from the client."""
-        if self.processor is None and self.client is not None:
-            self.processor = self.client.get_processor(
-                instance=self._instance,
-                processor=self._processor_name
-            )
-
-    def get_param_names(self) -> List[str]:
-        """Helper function that returns a list of the qualified names of all
-        parameters available in the MDB."""
-        names: List[str] = []
-        if self.mdb is not None:
-            params = [p for p in self.mdb.list_parameters()]
-            names = [p.qualified_name for p in params]
-        return names
-
-    def get_param_history(
-        self,
-        name: str,
-        start: Optional[datetime] = None,
-        stop: Optional[datetime] = None,
-        descending: bool = False
-    ) -> List[ParameterValue]:
-        """Gets a list of values for the parameter with the given name from
-        the archive between the specified start and stop time (or all time if
-        not specified).
-
-        Values are returned in descending order (most recent first).
-
-        :param name: parameter to query.
-        :type name: str
-        :param start: Datetime to start looking, defaults to `None`
-            (beginning of time).
-        :type start: Optional[datetime], optional
-        :param stop: Datetime to stop looking, defaults to `None`
-            (end of time).
-
-        :type stop: Optional[datetime], optional
-        :param descending: Most recent first if `True`, most recent last if
-            `False`, defaults to `False`.
-
-        :type descending: bool, optional
-        :return: List of all parameter values matching the query.
-        :rtype: List[ParameterValue]
-        """
-
-        history: List[ParameterValue] = []
-
-        if self.archive is not None:
-            history = self.archive.list_parameter_values(
-                parameter=name,
-                start=start,
-                stop=stop,
-                descending=descending,
-                parameter_cache=self._processor_name
-            )
-
-        return [h for h in history]  # decompose generator
-
-    def get_param_datapoints(
-        self,
-        name: str,
-        start: Optional[datetime] = None,
-        stop: Optional[datetime] = None,
-        descending: bool = False
-    ) -> List[Tuple[datetime, Any]]:
-        """Creates a list of (generation_time, eng_value) datapoint tuples for
-        the parameter with the given name from the archive between the
-        specified start and stop time (or all time if not specified).
-
-        Values are returned in descending order (most recent first).
-
-        :param name: parameter to query.
-        :type name: str
-
-        :param start: Datetime to start looking, defaults to `None`
-            (beginning of time).
-
-        :type start: Optional[datetime], optional
-        :param stop: Datetime to stop looking, defaults to `None`
-            (end of time).
-        :type stop: Optional[datetime], optional
-        :param descending: Most recent first if `True`, most recent last if
-            `False`, defaults to `False`.
-        :type descending: bool, optional
-        :return: List of all parameter values matching the query.
-        :rtype: List[ParameterValue]
-        """
-
-        history = self.get_param_history(name, start, stop, descending)
-
-        return [(p.generation_time, p.eng_value) for p in history]
 
 
 def subscription_data_to_packets(data) -> List[Packet] | None:
@@ -370,7 +197,11 @@ if __name__ == "__main__":
         tls=True,
         auto_begin=True
     )
-    params = [x for x in yi.mdb.list_parameters()]
+    if yi.mdb is None:
+        params = []
+        app.logger.warning("YamcsInterface has no MDB initialized yet...")
+    else:
+        params = [x for x in yi.mdb.list_parameters()]
     AVAIL_PARAM_QUAL_NAMES = [p.qualified_name for p in params]
     app.logger.notice(
         f"YAMCS PARAMS ACCESS: {AVAIL_PARAM_QUAL_NAMES}"

@@ -10,7 +10,7 @@ based on other fields and those computation functions are included in the
 "Meta" definitions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/10/2024
+@last-updated: 10/02/2024
 """
 from typing import Any, Final, List, TypeVar, Generic, TypeAlias, Dict, Deque, Set, overload, cast, Tuple
 from enum import Enum, auto
@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from collections import deque, OrderedDict
 from itertools import islice
+
+import traceback
 
 import attrs
 
@@ -258,7 +260,16 @@ class MetaField(Generic[_MF_DEF_T, _MF_CALC_T], ABC):
             return None, []
 
         # If we're here, we're ready to calculate:
-        val, factors = self._calculate()
+        try:
+            val, factors = self._calculate()
+        except Exception as e:
+            trace = traceback.format_exc()
+            logger.error(
+                f"Failed to calculate MetaField: {self} (name={self.name}) "
+                f"b/c `{e}`. Traceback: `{trace}`.\n"
+            )
+            val, factors = None, []
+            # Still proceed and reset timers so we don't get stuck here.
 
         # Reset counters and timers:
         self._received_since_last_calc = set()
@@ -397,7 +408,7 @@ class MetaModule:
         # Set all times based on those of the `most_recent_factor` (as if
         # this had been emitted at the same time):
         return attrs.evolve(
-            most_recent_factor.downlink_times
+            most_recent_factor.downlink_times or DownlinkTimes()
         )
 
     def process(self, in_payload: DownlinkedPayload) -> List[DownlinkedPayload]:
@@ -430,7 +441,7 @@ class MetaModule:
             else:
                 payload = EventPayload(
                     module_id=self.ID,
-                    channel_id=field._PROTO.ID,
+                    event_id=field._PROTO.ID,
                     timestamp=0,  # doesn't apply here
                     args=result
                 )
@@ -446,7 +457,7 @@ class MetaModule:
 def process_payloads_for_meta_modules(
     modules: List[MetaModule],
     payloads: List[DownlinkedPayload],
-    MAX_DEPTH: int = 5
+    MAX_DEPTH: int = 10
 ) -> List[DownlinkedPayload]:
     """
     Produces all meta-payloads that can be produced given the input payloads.
@@ -510,5 +521,4 @@ def add_metamodules_to_standards(
     standards.add_new_modules(modules)
 
 
-# ! TODO: (WORKING-HERE) ... This file should be done? Build out folder structure and start filling in. INTEGRATE INTO DATASTANDARDS MAKE PROCESS. Maybe test first with just what's built to make sure there are no major flaws (this will require integrating w/dl_processor after timestamping)
 # TODO: Also, add data rate (inst, 1 min, 1hr avg) telem to GDS dl_processor

@@ -319,12 +319,14 @@ services:
   itvac-data:
     container_name: "IBv3_itvac_data"
     command: >
-      python3 ./scripts/testing/ipc_demo/h5_xcvr.py
+      python3 ./scripts/testing/ipc_demo/archive_xcvr.py
       --loop
       -s 1.0
       --start-time-utc 2020-01-01
       --jump-to-iris
+      --no-rx-is-generation-time
       -n _ref_iris-pgh-testing
+      -e h5
     #  -n int-tvac-data2
     stop_signal: SIGINT
     image: "iris_backend_v3:latest"
@@ -342,7 +344,7 @@ services:
     volumes: *common-volumes
     labels:
       iris.backend.v3.service_type: "transceiver"
-      iris.backend.v3.description: "Feeds data replayed from an H5 store of iTVAC telemetry from YAMCS into the system."
+      iris.backend.v3.description: "Feeds data replayed from an Archive of iTVAC telemetry from YAMCS into the system."
 
   xcvr-wifi:
     container_name: "IBv3_xcvr_wifi"

@@ -25,7 +25,7 @@ class VHeaterLive(MetaChannel):
         'WatchdogDetailedStatus_Heater_IsHeating'
     ]
 
-    def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+    def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
         vht = self._get_t('WatchdogDetailedStatus_Heater_EffectiveVoltage')
         v_heater: float = vht.data
         iht = self._get_t('WatchdogDetailedStatus_Heater_IsHeating')

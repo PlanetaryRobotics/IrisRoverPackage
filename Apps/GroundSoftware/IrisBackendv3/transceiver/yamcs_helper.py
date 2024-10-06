@@ -5,9 +5,9 @@ Specifically, for inter-operating between Iris' data formatting and YAMCS's
 formatting.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/05/2024
+@last-updated: 09/30/2024
 """
-from typing import Any, Final, Dict, List, cast
+from typing import Any, Final, Dict, List, cast, Optional, Tuple
 
 from datetime import datetime, timezone
 import IrisBackendv3 as IB3
@@ -24,7 +24,13 @@ from IrisBackendv3.transceiver.logs import logger
 from IrisBackendv3.data_standards.data_standards import standardize_constant_name
 
 import yamcs.protobuf.yamcs_pb2 as yamcs_pb2  # type: ignore
+from yamcs.protobuf.pvalue import pvalue_pb2  # type: ignore
 from yamcs.tmtc.model import ParameterValue  # type: ignore
+
+from yamcs.client import YamcsClient, MDBClient, ArchiveClient  # type: ignore
+from yamcs.tmtc.client import ProcessorClient  # type: ignore
+from yamcs.tmtc.model import ParameterValue  # type: ignore
+from yamcs.core.auth import Credentials as YamcsCredentials  # type: ignore
 
 
 def get_peregrine_module() -> Module:
@@ -66,7 +72,10 @@ IRIS_OPERATIONAL_POWER_PARAM: Final[str] = \
     '/Peregrine/PL1/LSS1_Derived/LSS1_HK_Derived/Iris_Operational_EnabledFet'
 
 
-def iris_telem_param_to_packet(param: ParameterValue) -> Packet:
+def iris_telem_param_to_packet(
+    param: ParameterValue,
+    rx_is_generation_time: bool = False
+) -> Packet:
     """Converts the given YAMCS param of Iris Telemetry into the Iris Packet it
     represents."""
     # Build packet:
@@ -83,15 +92,21 @@ def iris_telem_param_to_packet(param: ParameterValue) -> Packet:
             # Add Downlink metadata:
             if payload.downlink_times is None:
                 payload.downlink_times = DownlinkTimes()
-            payload.downlink_times.pmcc_rx = datetime.now(timezone.utc)
+            # If we're replaying this, we can no longer create a good reception
+            # time estimate, so just go with generation time:
             payload.downlink_times.amcc_rx = param.reception_time
+            if rx_is_generation_time:
+                payload.downlink_times.pmcc_rx = param.generation_time
+            else:
+                payload.downlink_times.pmcc_rx = datetime.now(timezone.utc)
             payload.downlink_times.lander_rx = param.generation_time
 
     return packet
 
 
 def peregrine_telem_params_to_packet(
-    params: List[ParameterValue]
+    params: List[ParameterValue],
+    rx_is_generation_time: bool = False
 ) -> PeregrineDummyPacket:
     """Extract relevant data and metadata from the given YAMCS parameters of
     Peregrine telemetry and wraps the extracted data in a PeregrineDummyPacket.
@@ -133,7 +148,10 @@ def peregrine_telem_params_to_packet(
             scet_est=param.generation_time,
             lander_rx=param.generation_time,
             amcc_rx=param.reception_time,
-            pmcc_rx=datetime.now(timezone.utc)
+            pmcc_rx=(
+                param.generation_time if rx_is_generation_time
+                else datetime.now(timezone.utc)
+            )
         )
         telem_payloads.append(telem)
 
@@ -143,3 +161,222 @@ def peregrine_telem_params_to_packet(
     packet.source = DataSource.YAMCS
     packet.pathway = DataPathway.NONE
     return packet
+
+
+def _val_to_proto_val(val: Any) -> yamcs_pb2.Value:
+    """Wraps the given value in the appropriate protobuf Value expected by
+    YAMCS. As of 1.7.5, yamcs just echos back whatever value we send it, so
+    this whole typing is a charade atm but we adhere to it here in case that
+    changes."""
+    proto_val = yamcs_pb2.Value()
+    if isinstance(val, int):
+        proto_val.type = yamcs_pb2.Value.SINT64
+        proto_val.sint64Value = val
+    elif isinstance(val, float):
+        proto_val.type = yamcs_pb2.Value.DOUBLE
+        proto_val.doubleValue = val
+    elif isinstance(val, bytes):
+        proto_val.type = yamcs_pb2.Value.BINARY
+        proto_val.binaryValue = val
+    else:
+        # Just attempt to pass it through as a string.
+        # Even if it's not, the value just gets returned
+        # to us.
+        proto_val.type = yamcs_pb2.Value.STRING
+        proto_val.stringValue = val
+    return proto_val
+
+
+def build_mock_yamcs_parameter(
+    name: str,
+    reception_time: datetime,
+    generation_time: datetime,
+    eng_value: Any,
+    raw_value: Any | None = None
+) -> ParameterValue:
+    """Builds a mock YAMCS parameter with only the information we care about
+    (for passing around internally to things that ingest YAMCS parameters.)"""
+    proto_id = yamcs_pb2.NamedObjectId()
+    proto_id.name = name
+    proto_param = pvalue_pb2.ParameterValue()
+
+    proto_param.generationTime.FromDatetime(generation_time)
+    proto_param.acquisitionTime.FromDatetime(reception_time)
+
+    proto_param.engValue.CopyFrom(_val_to_proto_val(eng_value))
+    if raw_value is not None:
+        proto_param.rawValue.CopyFrom(_val_to_proto_val(raw_value))
+
+    return ParameterValue(proto=proto_param, id=proto_id)
+
+
+class YamcsInterface:
+    """Wrapper for common YAMCS interface tasks."""
+    # Private read-only:
+    _server: Final[str]
+    _port: Final[int]
+    _instance: Final[str]
+    _processor_name: Final[str]
+    _username: Final[Optional[str]]
+    _password: Final[Optional[str]]
+    _tls: Final[bool]
+
+    # Public:
+    client: Optional[YamcsClient]
+    mdb: Optional[MDBClient]
+    archive: Optional[ArchiveClient]
+    processor: Optional[ProcessorClient]
+
+    def __init__(
+        self,
+        server: str,
+        port: int,
+        instance: str,
+        processor: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        tls: bool = True,
+        auto_begin: bool = True,
+        **_  # allow (and ignore) extraneous kwargs - from opts.
+    ) -> None:
+        self._server = server
+        self._port = port
+        self._instance = instance
+        self._processor_name = processor
+        self._username = username
+        self._password = password
+        self._tls = tls
+
+        self.client = None
+        self.mdb = None
+        self.processor = None
+        self.archive = None
+
+        if auto_begin:
+            self.begin()
+
+    def begin(self) -> None:
+        self._obtain_client()
+        self._fetch_mdb()
+        self._obtain_archive_client()
+        self._get_processor()
+
+    def _obtain_client(self) -> None:
+        if self.client is None:
+            credentials: Optional[Any] = None
+            if self._username is not None or self._password is not None:
+                credentials = YamcsCredentials(
+                    username=self._username,
+                    password=self._password
+                )
+
+            self.client = YamcsClient(
+                f"{self._server}:{self._port}",
+                credentials=credentials,
+                tls=(self._tls),
+                tls_verify=(not self._tls)
+            )
+
+    def _fetch_mdb(self) -> None:
+        """Fetch the MDB (Mission Database - YAMCS version of DataStandards)"""
+        if self.mdb is None and self.client is not None:
+            self.mdb = self.client.get_mdb(instance=self._instance)
+
+    def _obtain_archive_client(self) -> None:
+        """Obtain a client to access the data archive."""
+        if self.archive is None and self.client is not None:
+            self.archive = self.client.get_archive(self._instance)
+
+    def _get_processor(self) -> None:
+        """Gets a hook to the specified processor from the client."""
+        if self.processor is None and self.client is not None:
+            self.processor = self.client.get_processor(
+                instance=self._instance,
+                processor=self._processor_name
+            )
+
+    def get_param_names(self) -> List[str]:
+        """Helper function that returns a list of the qualified names of all
+        parameters available in the MDB."""
+        names: List[str] = []
+        if self.mdb is not None:
+            params = [p for p in self.mdb.list_parameters()]
+            names = [p.qualified_name for p in params]
+        return names
+
+    def get_param_history(
+        self,
+        name: str,
+        start: Optional[datetime] = None,
+        stop: Optional[datetime] = None,
+        descending: bool = False
+    ) -> List[ParameterValue]:
+        """Gets a list of values for the parameter with the given name from
+        the archive between the specified start and stop time (or all time if
+        not specified).
+
+        Values are returned in descending order (most recent first).
+
+        :param name: parameter to query.
+        :type name: str
+        :param start: Datetime to start looking, defaults to `None`
+            (beginning of time).
+        :type start: Optional[datetime], optional
+        :param stop: Datetime to stop looking, defaults to `None`
+            (end of time).
+
+        :type stop: Optional[datetime], optional
+        :param descending: Most recent first if `True`, most recent last if
+            `False`, defaults to `False`.
+
+        :type descending: bool, optional
+        :return: List of all parameter values matching the query.
+        :rtype: List[ParameterValue]
+        """
+
+        history: List[ParameterValue] = []
+
+        if self.archive is not None:
+            history = self.archive.list_parameter_values(
+                parameter=name,
+                start=start,
+                stop=stop,
+                descending=descending,
+                parameter_cache=self._processor_name
+            )
+
+        return [h for h in history]  # decompose generator
+
+    def get_param_datapoints(
+        self,
+        name: str,
+        start: Optional[datetime] = None,
+        stop: Optional[datetime] = None,
+        descending: bool = False
+    ) -> List[Tuple[datetime, Any]]:
+        """Creates a list of (generation_time, eng_value) datapoint tuples for
+        the parameter with the given name from the archive between the
+        specified start and stop time (or all time if not specified).
+
+        Values are returned in descending order (most recent first).
+
+        :param name: parameter to query.
+        :type name: str
+
+        :param start: Datetime to start looking, defaults to `None`
+            (beginning of time).
+
+        :type start: Optional[datetime], optional
+        :param stop: Datetime to stop looking, defaults to `None`
+            (end of time).
+        :type stop: Optional[datetime], optional
+        :param descending: Most recent first if `True`, most recent last if
+            `False`, defaults to `False`.
+        :type descending: bool, optional
+        :return: List of all parameter values matching the query.
+        :rtype: List[ParameterValue]
+        """
+
+        history = self.get_param_history(name, start, stop, descending)
+
+        return [(p.generation_time, p.eng_value) for p in history]

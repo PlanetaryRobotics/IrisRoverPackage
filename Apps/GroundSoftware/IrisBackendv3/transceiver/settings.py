@@ -25,7 +25,7 @@ settings = {
 # Override settings with OS Environment variables if applicable:
 for key in settings.keys():
     if _KEY_ADDR_BASE+key in os.environ:
-        settings[key] = os.getenv(_KEY_ADDR_BASE+key)
+        settings[key] = os.getenv(_KEY_ADDR_BASE+key) or settings[key]
 
 
 def set_yamcs_credentials(user, password):

@@ -25,9 +25,7 @@ from IrisBackendv3.data_standards.data_standards import DataStandards
 
 from IrisBackendv3.utils.console_display import PreparedCommandType as LegacyPreparedCommandType
 
-# Default directory containing all the `command_aliases` files (w.r.t.
-# `GroundSoftware`):
-DEFAULT_COMMAND_ALIASES_DIR: Final[str] = "./config/command_aliases"
+from IrisBackendv3.config.settings import settings as _settings
 
 
 @dataclass
@@ -75,8 +73,8 @@ def CommandAliasesBuilder(func: CommandAliasesBuilderType) -> CommandAliasesBuil
 
 
 def import_command_aliases_file(
-    file_name: str,
-    command_aliases_dir: str = DEFAULT_COMMAND_ALIASES_DIR
+    file_name: str | None = None,
+    command_aliases_dir: str | None = None
 ) -> ModuleType:
     """
     Imports the `command_aliases` file called `file_name` from
@@ -86,6 +84,8 @@ def import_command_aliases_file(
     python modules containing a method called `ALIASES` with the signature
     `CommandAliasesBuilderType`.
     """
+    file_name = file_name or _settings['DEFAULT_COMMAND_ALIASES_FILE']
+    command_aliases_dir = command_aliases_dir or _settings['DEFAULT_COMMAND_ALIASES_DIR']
     # Add the `py` ending if not there:
     if not file_name.endswith('.py'):
         file_name = file_name + '.py'
@@ -95,7 +95,10 @@ def import_command_aliases_file(
     return sfl.load_module()
 
 
-def build_command_from_alias(prepared_cmd: PreparedCommand) -> CommandPayload:
+def build_command_from_alias(
+    prepared_cmd: PreparedCommand,
+    alias_name: str | None = None
+) -> CommandPayload:
     """Builds the given `PreparedCommand` (and inherently checks it for
     correctness).
     """
@@ -117,6 +120,7 @@ def build_command_from_alias(prepared_cmd: PreparedCommand) -> CommandPayload:
         magic=prepared_cmd.magic,
         module_id=module.ID,
         command_id=command.ID,
+        alias_name=alias_name,
         args=prepared_cmd.args
     )
 
@@ -166,7 +170,7 @@ class CommandAliasesTable:
         table: Dict[str, CommandAliasesTable.Entry] = dict()
         for alias_name, prep in aliases.items():
             # Build command:
-            compiled_cmd = build_command_from_alias(prep)
+            compiled_cmd = build_command_from_alias(prep, alias_name)
             # Build table entry:
             table[alias_name] = CommandAliasesTable.Entry(
                 alias=alias_name,
@@ -178,9 +182,11 @@ class CommandAliasesTable:
     @classmethod
     def load_from_file(
         cls: Type[CommandAliasesTable],
-        file_name: str,
-        file_dir: str = DEFAULT_COMMAND_ALIASES_DIR
+        file_name: str | None = None,
+        file_dir: str | None = None
     ) -> CommandAliasesTable:
+        file_name = file_name or _settings['DEFAULT_COMMAND_ALIASES_FILE']
+        file_dir = file_dir or _settings['DEFAULT_COMMAND_ALIASES_DIR']
         if file_name.endswith('.py'):
             # strip off '.py' if there (better strings):
             file_name = file_name[:-3]

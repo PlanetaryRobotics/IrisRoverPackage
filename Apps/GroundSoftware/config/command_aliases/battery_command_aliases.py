@@ -44,7 +44,7 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
         ),
         'SetChargerEn': PreparedCommand(
             'WatchDogInterface_SetChargerEnable',
-            OrderedDict(charge_en=False),
+            OrderedDict(charge_en='CHARGE_EN_OFF'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Set charger enable (CE). Default=OFF."
@@ -72,28 +72,28 @@ def ALIASES(standards: DataStandards) -> CommandAliases:
         ),
         'SetBatteryControlEnable': PreparedCommand(
             'WatchDogInterface_SetBatteryControlEnable',
-            OrderedDict(batt_ctrl_en=False),
+            OrderedDict(batt_ctrl_en='BATT_CTRL_EN_OFF'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Set state for battery controller circuitry (BCTRLE). Should be no-op. Default=OFF."
         ),
         'SetBatteryLatch': PreparedCommand(
             'WatchDogInterface_SetBatteryLatch',
-            OrderedDict(latch_batt=False),
+            OrderedDict(latch_batt='LATCH_BATT_OFF'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Set persisting battery latch state (LB). Default=LOW."
         ),
         'SetLatchSet': PreparedCommand(
             'WatchDogInterface_SetLatchSet',
-            OrderedDict(latch_set=False),
+            OrderedDict(latch_set='LATCH_SET_OFF'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Set state for battery latch set (LS). Should be no-op. Default=OFF."
         ),
         'SetLatchReset': PreparedCommand(
             'WatchDogInterface_SetLatchReset',
-            OrderedDict(latch_reset=False),
+            OrderedDict(latch_reset='LATCH_RESET_OFF'),
             DataPathway.WIRED,
             Magic.WATCHDOG_COMMAND,
             comment="Set state for battery latch reset (LR). Should be no-op. Default=OFF."

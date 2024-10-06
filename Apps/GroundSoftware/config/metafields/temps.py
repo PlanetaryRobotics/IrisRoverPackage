@@ -1,7 +1,7 @@
 """
 Metafields pertaining to thermals.
 
-Last Update: 01/14/2024
+Last Update: 10/03/2024
 """
 from typing import Final, List, Tuple, Type, Dict, TypedDict
 
@@ -15,6 +15,8 @@ from IrisBackendv3.codec.payload import (
 from IrisBackendv3.meta.metafield import (
     MetaModule, MetaChannel, MetaChannelUpdateBehavior
 )
+
+from datetime import timedelta
 
 
 class ThermistorLookupTable(TypedDict):
@@ -55,9 +57,9 @@ def BoardThermBuilder(N: int) -> Type[MetaChannel]:
         _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
         _WATCHING = [f'WatchDogInterface_Therm{N:d}']
 
-        def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+        def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
             adc_payload = self._get_t(f'WatchDogInterface_Therm{N:d}')
-            adc_val: float = adc_payload.data
+            adc_val: int = adc_payload.data
             temp_K = _adc_to_kelvin(_SBC_10K_THERMISTOR_LOOKUP_TABLE, adc_val)
 
             return temp_K, [adc_payload]
@@ -76,15 +78,47 @@ def RoverThermBuilder(N: int) -> Type[MetaChannel]:
         _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
         _WATCHING = [f'WatchDogInterface_Therm{N:d}']
 
-        def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+        def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
             adc_payload = self._get_t(f'WatchDogInterface_Therm{N:d}')
-            adc_val: float = adc_payload.data
+            adc_val: int = adc_payload.data
             temp_K = _adc_to_kelvin(
                 _ROVER_10K_THERMISTOR_LOOKUP_TABLE, adc_val)
 
             return temp_K, [adc_payload]
 
     return BoardTherm
+
+
+class BatteryTempAvgKelvin(MetaChannel):
+    """Latest battery temp in Kelvin from any source, averaging multiple if
+    they come in together (or updated within `_TIME_WINDOW`.)"""
+    _PROTO = TelemetryChannel('BatteryTempAvgKelvin', 0, FswDataType.F64)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = [
+        'WatchdogHeartbeat_BattAdcTempKelvin',
+        'WatchdogHeartbeatTvac_AdcTempKelvin',
+        'MetaModTemps_RoverTherm8_TMR3Kelvin'
+    ]
+    _TIME_WINDOW = timedelta(minutes=2)
+
+    def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
+        # Average all acceptable telem sources that have telemetered within the
+        # last `_TIME_WINDOW`:
+        payloads = [
+            self._get_t(n) for n in self._WATCHING
+        ]
+        times = [
+            p.downlink_times.scet_est for p in payloads
+            if p.downlink_times is not None and p.downlink_times.scet_est is not None
+        ]
+        latest_time = max(times)
+        payloads = [
+            p for p, t in zip(payloads, times)
+            if t > latest_time-self._TIME_WINDOW
+        ]
+        T_avg: float = sum(p.data for p in payloads) / len(payloads)
+
+        return T_avg, payloads  # type: ignore
 
 
 MOD_TEMPS = MetaModule(
@@ -97,7 +131,8 @@ MOD_TEMPS = MetaModule(
         # On-SBC Thermistors:
         *[BoardThermBuilder(n)() for n in range(6)],
         # Inside-Rover Thermistors:
-        *[RoverThermBuilder(n)() for n in range(6, 16)]
+        *[RoverThermBuilder(n)() for n in range(6, 16)],
+        BatteryTempAvgKelvin()
     ],
     meta_events=[]
 )

@@ -9,32 +9,6 @@ low-level IPC interface and implementation, see `wrapper.py`.
 @last-updated: 04/23/2023
 
 #! NOTE: Many of the example docstrings in here are out of date. Updating soon.
-
-# ! TODO: async queue the packets received from IPC so nothing is missed.
-# ^- low priority rn b/c we can keep from sending multiple messages in rapid
-# succession by just sending lists.
-# - will need this though.
-# -- seems like ZMQ already does this. Might not need to double-queue it.
-#    Determine how slow is too slow...
-
-# ! TODO: (WORKING-HERE):
-# - Finish `SocketTopicHandler` sync and async versions (like in SocketHandler).
-#   -- Double check how logic for async __call__ works (might have to consult SocketHandler solution)
-# - Integrate into `IpcAppManager` and subclasses.
-#   -- + finish impl.s
-# - At end, double check if _CT, _ST, and _HT need to be marked as covariant.
-#   -- Does having them as covariant break anything?
-#   -- Does changing them back to invariant break anything new?
-#   -- Particularly, be careful with TopicHandler Protocol (not sure why
-#       this stopped being a problem).
-# - Go through and update all docs + examples
-# - Build + Test XCVR demo
-#   -- Consider bringing any generic(able) messaging / queue impl.s used for
-#      XCVR demo into here
-#
-# !! How does IpcAppManager work with multiple SocketHandler types? Seems like
-# we'd need multiple (if we want reg. and topic handler versions but have to
-# enforce one...) <- might have to restructure when async is enforced.
 """
 # Activate postponed annotations (for using classes as return type in their own methods)
 from __future__ import annotations

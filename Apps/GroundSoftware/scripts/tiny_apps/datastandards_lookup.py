@@ -5,7 +5,7 @@ Module for looking up definitions from inside the latest Data Standards
 Created: 10/29/2021
 Last Update: 09/28/2022
 """
-import pandas as pd
+import pandas as pd  # type: ignore
 from styleframe import (  # type: ignore
     StyleFrame, Styler,
     utils as style_utils

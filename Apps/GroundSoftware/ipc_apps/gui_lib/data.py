@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import re
 
 import redis
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from IrisBackendv3.codec.packet_classes.packet import Packet
 from IrisBackendv3.codec.payload import TelemetryPayload, EventPayload

@@ -1075,7 +1075,7 @@ peregrine: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x00, 'IrisOperationalEnabledFet', datatype=FswDataType.ENUM,
             enum=[
-                EnumItem('DISABLED', 0x00,
+                EnumItem('DIS', 0x00,  # PM1 used this abbr. here but not ENA
                          comment="Iris Operational Power Circuit Disabled."
                          ),
                 EnumItem('ENABLED', 0x01,
@@ -1086,7 +1086,7 @@ peregrine: Module = Module(
         nid_nic_entry(
             TelemetryChannel, 0x01, 'IrisReleaseEnabledFet', datatype=FswDataType.ENUM,
             enum=[
-                EnumItem('DISABLED', 0x00,
+                EnumItem('DIS', 0x00,  # PM1 used this abbr. here but not ENA
                          comment="Iris Release Power Circuit Disabled."
                          ),
                 EnumItem('ENABLED', 0x01,

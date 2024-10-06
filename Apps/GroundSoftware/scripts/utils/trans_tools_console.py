@@ -340,7 +340,7 @@ class IrisConsoleDisplayDriver:
         something_changed: bool = False
 
         # If window is not focused, ignore input:
-        if not window_is_focused(self.ACTUAL_REFERENCE_WINDOW_TITLE):
+        if not window_is_focused(str(self.ACTUAL_REFERENCE_WINDOW_TITLE)):
             return
 
         if key == pynput.keyboard.Key.f2:

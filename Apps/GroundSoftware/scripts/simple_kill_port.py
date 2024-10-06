@@ -4,7 +4,7 @@ the given port address that it can.
 @author: Connor W. Colombo (CMU)
 @last-updated: 05/30/2023"""
 import argparse
-from psutil import process_iter
+from psutil import process_iter  # type: ignore
 from signal import SIGTERM  # or SIGKILL
 
 

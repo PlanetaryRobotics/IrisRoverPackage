@@ -5,7 +5,7 @@
 from typing import Final, Tuple
 
 # List of all valid log levels:
-VALID_LOG_LEVELS: Final[Tuple[str]] = (
+VALID_LOG_LEVELS: Final[Tuple[str, ...]] = (
     'SPAM',
     'DEBUG',
     'VERBOSE',

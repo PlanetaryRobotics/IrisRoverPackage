@@ -5,7 +5,7 @@ Finds who's using each GDS IPC port.
 @last-updated: 04/30/2023
 """
 import argparse
-import psutil
+import psutil  # type: ignore
 from typing import Any, Dict, Tuple
 from signal import SIGTERM  # use SIGTERM so it's graceful
 

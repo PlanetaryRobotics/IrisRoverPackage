@@ -1,11 +1,14 @@
 """
 Watchdog Monitor telemetry fields.
 
-(human-friendly versions of detailed status & keep alive packets.)
+(human-friendly versions of detailed status & keep alive packets as well as
+Watchdog-Hercules health messages).
 
 Last Update: 01/17/2024
 """
 from typing import Final, List, Tuple, Type, Dict
+
+import re
 
 from IrisBackendv3.data_standards.module import TelemetryChannel, Event
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
@@ -17,13 +20,12 @@ from IrisBackendv3.meta.metafield import (
 )
 import IrisBackendv3.codec.packet_classes.watchdog_detailed_status as WDS
 
-# Breakout all switch telem into strings (for state plot):
-
 
 def CDS_Builder(
     field_abbr: str,
     field_name: str
 ) -> Type[MetaChannel]:
+    """Breakout all switch telem into strings (for state plot)."""
     class CombinedDigitalState(MetaChannel):
         _PROTO = TelemetryChannel(field_name, 0, FswDataType.U8)
         _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
@@ -66,6 +68,133 @@ def StateEnumStringBuilder(
     return StateEnumString
 
 
+class WatchdogHerculesRoundtripTime_ms(MetaChannel):
+    """Round-trip ping time (RTT), in milliseconds, of "stroking" protocol
+    between Watchdog and Hercules. Good indicator of cumulative health of both
+    chips.
+    Normally this gets downlinked as a Debug packet, so we need to convert to
+    telem channel.
+    """
+    _PROTO = TelemetryChannel(
+        'WatchdogHerculesRoundtripTime_ms', 0, FswDataType.U16
+    )
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = ['GdsPackets_WatchdogDebugPacket']
+
+    def _calculate(self) -> Tuple[int | None, List[DownlinkedPayload]]:
+        message_evt = self._get_e('GdsPackets_WatchdogDebugPacket')
+        message_str = message_evt.formatted_string
+        matches = re.search(r"RTT:\s*(\d*)\s*ms", message_str)
+        rtt: int = 0
+        if matches is None:
+            return None, []
+        else:
+            try:
+                rtt = int(matches.groups()[0])
+            except ValueError:
+                # Bad match (very unlikely but technically possible).
+                # No telem here. Abort.
+                return None, []
+        return rtt, [message_evt]
+
+
+class HerculesWatchdogRoundtripTime_ms(MetaChannel):
+    """Round-trip ping time (RTT), in milliseconds, of "stroking" protocol
+    from Hercules to Watchdog to Hercules.
+    Good indicator of cumulative health of both chips.
+    Normally this gets downlinked as a Debug packet, so we need to convert to
+    telem channel.
+    """
+    _PROTO = TelemetryChannel(
+        'HerculesWatchdogRoundtripTime_ms', 0, FswDataType.U16
+    )
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = ['GdsPackets_WatchdogDebugPacket']
+
+    _RE_PATTERN = re.compile(r"RTT:\s*(\d*)\s*ms")
+
+    def _calculate(self) -> Tuple[int | None, List[DownlinkedPayload]]:
+        message_evt = self._get_e('GdsPackets_WatchdogDebugPacket')
+        message_str = message_evt.formatted_string
+        matches = self._RE_PATTERN.search(message_str)
+        rtt: int = 0
+        if matches is None or len(matches.groups()) < 1:
+            return None, []
+        else:
+            try:
+                rtt = int(matches.groups()[0])
+            except ValueError:
+                # Bad match (very unlikely but technically possible).
+                # No telem here. Abort.
+                return None, []
+        return rtt, [message_evt]
+
+
+class WatchdogMissedStrokes(MetaChannel):
+    """Number of times the Watchdog failed to respond to a stroke initiated by
+    Hercules, as reported by Hercules (since Hercules boot).
+    Good indicator of Watchdog health.
+    Normally this gets downlinked as a Debug packet, so we need to convert to
+    telem channel.
+    """
+    _PROTO = TelemetryChannel('WatchdogMissedStrokes', 0, FswDataType.U16)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = ['GdsPackets_WatchdogDebugPacket']
+
+    _RE_PATTERN = re.compile(
+        r"Missed\s*responses:\s*(\d*).*skipped\s*sends:\s*(\d*)"
+    )
+
+    def _calculate(self) -> Tuple[int | None, List[DownlinkedPayload]]:
+        message_evt = self._get_e('GdsPackets_WatchdogDebugPacket')
+        message_str = message_evt.formatted_string
+        matches = self._RE_PATTERN.search(message_str)
+        misses: int = 0
+        if matches is None or len(matches.groups()) < 1:
+            return None, []
+        else:
+            try:
+                misses = int(matches.groups()[0])
+            except ValueError:
+                # Bad match (very unlikely but technically possible).
+                # No telem here. Abort.
+                return None, []
+        return misses, [message_evt]
+
+
+class HerculesSkippedStrokes(MetaChannel):
+    """Number of times the Hercules had to skip sending a stroke to the
+    Watchdog (because a previous stroke was still pending), as reported by
+    Hercules (since Hercules boot).
+    Good indicator of Watchdog health.
+    Normally this gets downlinked as a Debug packet, so we need to convert to
+    telem channel.
+    """
+    _PROTO = TelemetryChannel('HerculesSkippedStrokes', 0, FswDataType.U16)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = ['GdsPackets_WatchdogDebugPacket']
+
+    _RE_PATTERN = re.compile(
+        r"Missed\s*responses:\s*(\d*).*skipped\s*sends:\s*(\d*)"
+    )
+
+    def _calculate(self) -> Tuple[int | None, List[DownlinkedPayload]]:
+        message_evt = self._get_e('GdsPackets_WatchdogDebugPacket')
+        message_str = message_evt.formatted_string
+        matches = self._RE_PATTERN.search(message_str)
+        skips: int = 0
+        if matches is None or len(matches.groups()) < 2:
+            return None, []
+        else:
+            try:
+                skips = int(matches.groups()[1])
+            except ValueError:
+                # Bad match (very unlikely but technically possible).
+                # No telem here. Abort.
+                return None, []
+        return skips, [message_evt]
+
+
 MOD_WATCHDOG_MON = MetaModule(
     # Note: this gets prefixed by `MetaModule.UNIVERSAL_PREFIX` b/c it's a MetaModule:
     name="WatchdogMonitor",
@@ -93,7 +222,10 @@ MOD_WATCHDOG_MON = MetaModule(
         CDS_Builder('BMS_BOOT', 'BmsBoot')(),
         CDS_Builder('LATCH_SET', 'LatchSet')(),
         CDS_Builder('LATCH_RESET', 'LatchReset')(),
-        CDS_Builder('BATT_STAT', 'BattStat')()
+        CDS_Builder('BATT_STAT', 'BattStat')(),
+        HerculesWatchdogRoundtripTime_ms(),
+        WatchdogMissedStrokes(),
+        HerculesSkippedStrokes()
     ],
     meta_events=[]
 )

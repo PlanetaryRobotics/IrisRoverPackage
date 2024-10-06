@@ -1,3 +1,4 @@
+# ! NOTE: This is legacy and doesn't work with images from RC11 onwards
 from typing import cast
 
 import numpy as np
@@ -48,27 +49,27 @@ if __name__ == "__main__":
     image_buf = np.zeros(image_height * image_width)
     image_data = np.array(image).flatten()
     image_buf[:image_data.shape[0]] = image_data
-    image = image_buf.reshape((image_height, image_width))
-    plt.imshow(image, cmap='gray')
+    image_np = image_buf.reshape((image_height, image_width))  # type: ignore
+    plt.imshow(image_np, cmap='gray')
     plt.show()
 
     n_interleave = 8
     im = []
-    for i in range(int(image.shape[0] / n_interleave)):
+    for i in range(int(image_np.shape[0] / n_interleave)):
         for n in range(n_interleave):
-            im.append(image[int(image.shape[0] / n_interleave * n + i)])
-    im = np.array(im)
+            im.append(image[int(image_np.shape[0] / n_interleave * n + i)])
+    im_np = np.array(im)  # type: ignore
     plt.imshow(im, cmap='gray')
     plt.show()
 
-    # Rearrage the four quadrants
+    # Rearrange the four quadrants
     splity, splitx = 1748, 1878
-    br = im[:splity, :splitx]
-    tr = im[splity:, :splitx]
-    bl = im[:splity, splitx:]
-    tl = im[splity:, splitx:]
+    br = im_np[:splity, :splitx]
+    tr = im_np[splity:, :splitx]
+    bl = im_np[:splity, splitx:]
+    tl = im_np[splity:, splitx:]
 
-    picture = np.ndarray(image.shape, dtype=np.uint8)
+    picture: np.ndarray = np.ndarray(image_np.shape, dtype=np.uint8)
     picture[:tl.shape[0], :tl.shape[1]] = tl
     picture[:tr.shape[0], tl.shape[1]:] = tr
     picture[tr.shape[0]:, tl.shape[1]:] = br

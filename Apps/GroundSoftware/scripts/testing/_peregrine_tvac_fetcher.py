@@ -12,8 +12,10 @@ it).
 """
 # Activate postponed annotations:
 from __future__ import annotations
+from IrisBackendv3.storage.settings import settings as STOR_SETTINGS
 from IrisBackendv3.data_standards import DataStandards
 from IrisBackendv3.codec.packet import parse_packet
+
 from IrisBackendv3.data_standards.logs import (
     logger as DsLogger,
     logger_setConsoleLevel as DsLoggerLevel
@@ -38,7 +40,7 @@ from yamcs.core.auth import Credentials as YamcsCredentials  # type: ignore
 
 from typing import Any, Final, Tuple, List, Dict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os.path
 
 import argparse
@@ -52,22 +54,32 @@ from IrisBackendv3.codec.payload import EventPayload
 from IrisBackendv3.transceiver.yamcs_helper import (
     IRIS_TELEM_PARAMS,
     ALL_YAMCS_PARAMS as IRIS_PARAMS,
-    IRIS_OPERATIONAL_POWER_PARAM
+    IRIS_OPERATIONAL_POWER_PARAM,
+    iris_telem_param_to_packet,
+    build_mock_yamcs_parameter
+)
+from IrisBackendv3.storage.dataset import DataSet
+from IrisBackendv3.storage.formatting import (
+    bytes_to_str, str_to_bytes_if_bytes
+)
+from IrisBackendv3.storage.telemetry import (
+    extract_packets,
+    packet_to_telem_rows,
+    _telem_row_aggregator
 )
 
 import ulid
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 import scapy.all as scp  # type: ignore
 
-from matplotlib import pyplot as plt
-from matplotlib import dates as mdates
+from matplotlib import pyplot as plt  # type: ignore
+from matplotlib import dates as mdates  # type: ignore
 from matplotlib import units as munits
 from matplotlib import ticker as mticker
-import seaborn as sns
+import seaborn as sns  # type: ignore
 plt.rcParams['text.usetex'] = False
 sns.set()  # Initialize Seaborn. Use default theme.
-
 
 # Suppress PerformanceWarning about pytables needing to pickle some fields
 # (that's fine - this is a once daily script that runs in minutes, performance
@@ -77,6 +89,8 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 # Load Dependencies:
 
 TITLE: Final[str] = 'IRIS Lunar Rover — Peregrine TVAC YAMCS Fetcher — CLI'
+# DataSet requires this to be the same across all tables/series:
+_TIME_COL_NAME: Final[str] = STOR_SETTINGS['TIME_COL_NAME']
 
 # Columns to plot:
 PLOT_TELEM_COLUMNS_AXIS_TEMP: Final[Dict[str, str]] = {
@@ -192,177 +206,20 @@ def get_opts():
     return opts
 
 
-@dataclass
-class DataSeries:
-    """Series of timestamped data-points
-    (DataFrame with a TimeSeries Datetimeindex of times and a column of values)
-    """
-    data: pd.DataFrame
-
-    def __post_init__(self) -> None:
-        """Make sure DataFrame formatting is correct."""
-        # Make sure index is datetime:
-        self.data.index = pd.to_datetime(self.data.index, utc=True)
-        # Make sure index is sorted by ascending time:
-        self.data.sort_index(ascending=True, inplace=True)
-
-    @classmethod
-    def from_lists(
-        cls,
-        name: str,
-        times: List[datetime],
-        values: List[Any]
-    ) -> DataSeries:
-        # Create basic data series:
-        time_name = 'time'  # DataSet requires this to be the same across all
-        df = pd.DataFrame({
-            time_name: times,
-            name: values
-        })
-        # Ensure proper time formatting and add Datetimeindex:
-        try:
-            df[time_name] = pd.to_datetime(df[time_name], utc=True)
-            df.set_index(time_name, inplace=True)
-        except Exception as e:
-            # Add some context:
-            print(df)
-            # print(times)
-            # Re-raise:
-            raise e
-        return DataSeries(df)
-
-    @classmethod
-    def from_tuples_list(
-        cls,
-        name: str,
-        data: List[Tuple[datetime, Any]]
-    ) -> DataSeries:
-        # Unzip tuples into two lists:
-        if len(data) > 0:
-            times, values = [*zip(*data)]  # type: ignore
-            return cls.from_lists(name, times, values)
-        else:
-            return cls.from_lists(name, [], [])
-
-
-@dataclass
-class DataSet:
-    """Collection of data containing multiple named DataSeries comprised of a
-    multiple timestamped data points
-    (basically just a way for merging a bunch of Timeseries DataFrames into
-    one).
-    """
-    data: pd.DataFrame
-
-    def __post_init__(self) -> None:
-        """Make sure DataFrame formatting is correct."""
-        # Make sure index is datetime:
-        self.data.index = pd.to_datetime(self.data.index, utc=True)
-        # Make sure index is sorted by ascending time:
-        self.data.sort_index(ascending=True, inplace=True)
-
-    def stack(self, other: DataSet) -> DataSet:
-        """Stacks this `DataSet` vertically on top of an `other` `DataSet`
-        (stacking, here, is in the sense of `numpy.vstack`, rows from `other`
-        will be added below the rows of this DataSet. Any columns that `other`
-        has but this doesn't have will be added)."""
-        df = pd.concat(
-            [self.data, other.data],
-            axis=0,
-            ignore_index=False
-        )
-        return DataSet(df)
-
-    def hstack(self, other: DataSet) -> DataSet:
-        """Stacks this `DataSet` horizontally to the left of `DataSet` `other`
-        (stacking, here, is in the sense of `numpy.hstack`, columns from
-        `other` will be added to the right of the columns of this DataSet.
-        Any rows that `other` has but this doesn't have will be added)."""
-        df = pd.concat(
-            [self.data, other.data],
-            axis=1,
-            ignore_index=False
-        )
-        return DataSet(df)
-
-    def store_in(self, name: str, store: pd.HDFStore) -> None:
-        """ Save in the given `HDFStore` with the given name.
-        Wrapped in case we want to add any pre-save logic.
-        """
-        store[name] = self.data
-
-    @classmethod
-    def load_from(cls, name: str, store: pd.HDFStore) -> DataSet:
-        """ Load from the given `HDFStore` with the given name.
-        Wrapped so we can perform any post-load logic.
-        """
-        df = pd.DataFrame()
-        if name in store:
-            df = store[name]
-        else:
-            df = pd.DataFrame()  # just create a DataSet around an empty df
-        return cls(df)
-
-    @classmethod
-    def from_dataseries(
-        cls,
-        datas: List[DataSeries],
-        time_tolerance: pd.Timedelta = pd.Timedelta('1us')
-    ) -> DataSet:
-        df = pd.DataFrame()
-        if len(datas) == 0:
-            df = pd.DataFrame()
-        elif len(datas) == 1:
-            df = datas[0]
-        else:
-            # Slice off the first dataset so it can serve as our base:
-            df, *remaining_datas = datas
-            df = df.data
-            # Round time index to time_tolerance before merging:
-            df.index = df.index.round(time_tolerance)
-            # Successively merge in each data series by time (index), ensuring
-            # all rows from both datasets are preserved but merging rows if
-            # they have the same time value:
-            for ds in remaining_datas:
-                df2 = ds.data
-                df2.index = df2.index.round(time_tolerance)
-                df = df.join(df2, how='outer')
-
-        return cls(df)
-
-    @classmethod
-    def from_tuples_dict(
-        cls,
-        data: Dict[str, List[Tuple[datetime, Any]]],
-        time_tolerance: pd.Timedelta = pd.Timedelta('1us')
-    ) -> DataSet:
-        """
-        Create from a dictionary that maps field names to lists of (time, data)
-        tuples.
-        When merging data series, events that happened within `time_tolerance`
-        of each other will be considered to have happened at the same time (and
-        thus be listed on the same row).
-        """
-        # Create a properly formatted DataSeries from each entry:
-        datas = [
-            DataSeries.from_tuples_list(name, points)
-            for name, points in data.items()
-            if len(points) > 0
-        ]
-        # Build DataSet:
-        return cls.from_dataseries(datas, time_tolerance=time_tolerance)
-
-
 class YamcsInterface:
-    """Wrapper for common YAMCS interface tasks."""
+    """Wrapper for common YAMCS interface tasks.
+
+    Local-only legacy version that was used in this script.
+    Real thing can be found in `IrisBackendv3.transceiver.yamcs_helper`.
+    """
     # Private read-only:
-    _server: Final[str]
-    _port: Final[int]
-    _instance: Final[str]
-    _processor_name: Final[str]
-    _username: Final[Optional[str]]
-    _password: Final[Optional[str]]
-    _tls: Final[bool]
+    _server: str
+    _port: int
+    _instance: str
+    _processor_name: str
+    _username: Optional[str]
+    _password: Optional[str]
+    _tls: bool
 
     # Public:
     client: Optional[YamcsClient]
@@ -549,10 +406,11 @@ def load_iris_yamcs_data(opts) -> DataSet:
     # Find the time range Iris had power:
     pwr_pts = yamcs.get_param_datapoints(IRIS_OPERATIONAL_POWER_PARAM)
     # Be very liberal with definition of "enabled" in case AMCC changes their
-    # derived strings to some text other than "Enabled" and "Disabled", we want
-    # this to still include all the data we're interested (bascially, make sure
-    # this fails into including too much data rather than too little):
-    pwr_on_times = [t for t, s in pwr_pts if "DISABLED" not in s.upper()]
+    # derived strings to some text other than "Enabled" and "Disabled"
+    # (or "DIS"), we want this to still include all the data we're interested
+    # (basically, make sure this fails into including too much data rather than
+    # too little):
+    pwr_on_times = [t for t, s in pwr_pts if "DIS" not in s.upper()]
     if len(pwr_on_times) > 0:
         pwr_on_start, pwr_on_end = min(pwr_on_times), max(pwr_on_times)
         print(f"\t Iris on span: {pwr_on_end - pwr_on_start}.")
@@ -565,7 +423,7 @@ def load_iris_yamcs_data(opts) -> DataSet:
     ):
         if opts.only_iris_power_on_data:
             # Pad cutoff times by 5 minutes (HK seems to be every ~4 mins):
-            # (first telem burst preceed ENABLED signal by a few seconds):
+            # (first telem burst precede ENABLED signal by a few seconds):
             pwr_on_start -= timedelta(minutes=5)
             pwr_on_end += timedelta(minutes=5)
             start, stop = pwr_on_start, pwr_on_end
@@ -583,56 +441,12 @@ def load_iris_yamcs_data(opts) -> DataSet:
     return dataset
 
 
-def extract_packets(
-    dataset: DataSet,
-    packet_cols: List[str]
-) -> Tuple[List[datetime], List[Packet]]:
-    """
-    Extracts packets that are contained in the columns `packet_cols` of the
-    given dataset. Returns a tuple containing a time stamp list and a
-    corresponding Packet list.
-    """
-    times: List[datetime] = []
-    packets: List[Packet] = []
-    # For every packet column that's actually present in the dataset:
-    for col in packet_cols:
-        if col in dataset.data:
-            # Grab all non-NaN data:
-            valid = dataset.data[col][~dataset.data[col].isna()]
-            times.extend(valid.index.tolist())
-            packets.extend(parse_packet(pb) for pb in valid.tolist())
-    return times, packets
-
-
-def packet_to_telem_row(time: datetime, packet: Packet) -> pd.DataFrame:
-    """Extracts telemetry (and events) from the given timestamped packet and
-    creates a DataFrame representing one row of "telemetry" for the telemetry
-    archive (in quotes here because non-telem items are also contained)."""
-    # Add packet as a field:
-    packet_data: Dict[str, List[Any]] = {
-        'time': [time],
-        'packet': [str(packet)]
-    }
-    # Add all TelemetryPayloads:
-    for p in packet.payloads[TelemetryPayload]:
-        p = cast(TelemetryPayload, p)
-        packet_data[f"{p.module.name}_{p.channel.name}"] = [p.data]
-    # Add all EventPayloads as strings:
-    for e in packet.payloads[EventPayload]:
-        e = cast(EventPayload, e)
-        packet_data[f"{e.module.name}_{e.event.name}"] = [str(e)]
-    # Convert data into df:
-    df = pd.DataFrame(packet_data)
-    df.set_index('time', inplace=True)
-    return df
-
-
 def packet_extract_messages(packet: Packet) -> List[str]:
     """ Determines if the given packet represents a message (contains an
     event or itself is a message string (e.g. WatchdogDebug) <- note these
     message string only packets are being deprecated and will be converted to
     events but, for the time being, they have to be supported).
-    If mesage string(s) (or events), a list of all strings will be returned
+    If message string(s) (or events), a list of all strings will be returned
     (empty if none).
     """
     messages: List[str] = []
@@ -845,6 +659,8 @@ def process_packets(opts, dataset: DataSet, packet_cols: List[str]) -> DataSet:
     """
     Processes packets that are contained in the columns `packet_cols` of the
     given dataset.
+
+    Legacy altered version of `IrisBackendv3.storage.iris_packets_to_telem`
     """
     # Extract all the packets:
     times, packets = extract_packets(dataset, packet_cols)
@@ -871,8 +687,11 @@ def process_packets(opts, dataset: DataSet, packet_cols: List[str]) -> DataSet:
             print_message(time, message, 'red', '\t\t')
 
     # Build the dataset:
-    telem_rows = [packet_to_telem_row(t, p) for t, p in zip(times, packets)]
+    telem_rows = [packet_to_telem_rows(t, p) for t, p in zip(times, packets)]
     data = pd.concat([*telem_rows], axis=0, ignore_index=False)
+    # Aggregate by time, joining multiple rows with the same timestamp:
+    data.index.name = _TIME_COL_NAME
+    data = data.groupby(_TIME_COL_NAME).agg(_telem_row_aggregator)
 
     # Build and return DataSet:
     return DataSet(data)
@@ -881,6 +700,7 @@ def process_packets(opts, dataset: DataSet, packet_cols: List[str]) -> DataSet:
 def process_peregrine_data(dataset: DataSet) -> DataSet:
     # Transpose the Peregrine Parameters into Iris GDS Telemetry:
     df = pd.DataFrame()
+
     df['Peregrine_IrisOperationalEnabledFet'] = dataset.data[
         '/Peregrine/PL1/LSS1_Derived/'
         'LSS1_HK_Derived/Iris_Operational_EnabledFet']
@@ -952,7 +772,11 @@ def plot_tvac_telem(opts, telem: DataSet) -> None:
     # multiply by it (I think this is b/c the field is an enum, which is backed
     # by an int (so not a bool) which gets converted to float).
     is_heating_field = 'WatchdogDetailedStatus_Heater_IsHeating'
-    is_heating_float = plot_data[is_heating_field].astype(float)
+    if pd.api.types.is_string_dtype(plot_data[is_heating_field].dtype):
+        is_heating_float = plot_data[is_heating_field] == 'HEATING'
+        is_heating_float = is_heating_float.astype(int).astype(float)
+    else:
+        is_heating_float = plot_data[is_heating_field].astype(float)
     df_volts['V_Heater'] = df_volts['V_Heater'] * is_heating_float
 
     # Apply the same thing to power:
@@ -1171,7 +995,7 @@ def plot_tvac_telem(opts, telem: DataSet) -> None:
 
     # Make a second plot for Tdot:
     print("Plotting Thermal Time Derivative . . .")
-    # Compute time derivatives for tempertatures:
+    # Compute time derivatives for temperatures:
     print("\t Computing ...")
 
     def compute_TDot(s):
@@ -1238,7 +1062,7 @@ def plot_tvac_telem(opts, telem: DataSet) -> None:
         # DTdt = remove_outliers(DTdt, 10.0)
 
         df = pd.DataFrame({
-            'time': DTdt.index,
+            _TIME_COL_NAME: DTdt.index,
             DTdt.name: DTdt
         })
         return df
@@ -1252,7 +1076,7 @@ def plot_tvac_telem(opts, telem: DataSet) -> None:
             axis=0,
             ignore_index=False
         )
-    df_Tdot_KperHr.set_index('time', inplace=True)
+    df_Tdot_KperHr.set_index(_TIME_COL_NAME, inplace=True)
     # Sort all the data:
     df_Tdot_KperHr.sort_index(ascending=True, inplace=True)
 
@@ -1310,7 +1134,7 @@ def plot_from_db(opts) -> None:
     print("Connecting to Local DB . . .")
     db = pd.HDFStore(os.path.join(opts.db_dir, f"{opts.name}.h5"))
     print("Loading Telem . . .")
-    telem = DataSet.load_from('telem', db)
+    telem = DataSet._load_from_hdf('telem', db)
     print("Plotting TVAC Progress . . .")
     plot_tvac_telem(opts, telem)
 
@@ -1322,7 +1146,7 @@ def print_from_db(opts) -> None:
     print("Connecting to Local DB . . .")
     db = pd.HDFStore(os.path.join(opts.db_dir, f"{opts.name}.h5"))
     print("Loading Stored YAMCS Data . . .")
-    lander_data = DataSet.load_from('yamcs', db)
+    lander_data = DataSet._load_from_hdf('yamcs', db)
 
     # There are duplicates of all rows in some time windows due to overlaps in
     # YAMCS archives that were replayed and reprocessing of some archives.
@@ -1370,7 +1194,7 @@ def fetch_and_plot_new_data_from_yamcs(opts) -> None:
     db = pd.HDFStore(os.path.join(opts.db_dir, f"{opts.name}.h5"))
 
     # Load any existing YAMCS data:
-    old_yamcs = DataSet.load_from('yamcs', db)
+    old_yamcs = DataSet._load_from_hdf('yamcs', db)
     # Load all new data from this YAMCS archive:
     print("Fetching YAMCS Data . . .")
     new_yamcs = load_iris_yamcs_data(opts)
@@ -1383,10 +1207,10 @@ def fetch_and_plot_new_data_from_yamcs(opts) -> None:
     print("Saving YAMCS Data . . .")
     yamcs_data = old_yamcs.stack(new_yamcs)
     # Store the combined dataset:
-    yamcs_data.store_in('yamcs', db)
+    yamcs_data._store_in_hdf('yamcs', db)
 
     # Load existing generated data:
-    old_telem = DataSet.load_from('telem', db)
+    old_telem = DataSet._load_from_hdf('telem', db)
     # Extract telem from **new** data:
     print("Parsing New Iris Packets . . .")
     new_telem = process_packets(opts, new_yamcs, IRIS_TELEM_PARAMS)
@@ -1400,7 +1224,7 @@ def fetch_and_plot_new_data_from_yamcs(opts) -> None:
 
     print("Saving Generated Data . . .")
     # Store the combined dataset:
-    telem.store_in('telem', db)
+    telem._store_in_hdf('telem', db)
 
     # Plot results:
     if opts.skip_plotting:

@@ -2,8 +2,10 @@
 Various Classes defining Metadata for Packets and Payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 12/27/2023
+@last-updated: 10/02/2024
 """
+# Activate postponed annotations (for using classes as return type in their own methods)
+from __future__ import annotations
 
 from typing import Optional, List
 
@@ -77,6 +79,16 @@ class DownlinkTimes():
     # When received by PMCC (Payload Mission Control <- the Iris GSW backend)
     pmcc_rx: Optional[datetime] = None
 
+    def pull_from(self, other: DownlinkTimes) -> None:
+        """Copies all entries from `other` that aren't `None` into this data
+        structure."""
+        for s in DownlinkTimes.__slots__:  # type: ignore
+            if s[:2] == '__':
+                # skip dunders like `__weakref__`:
+                continue
+            if other.__getattribute__(s) is not None:
+                self.__setattr__(s, other.__getattribute__(s))
+
 
 @attr.s(eq=True, order=True, slots=True, auto_attribs=True)
 class UplinkTimes():
@@ -89,12 +101,26 @@ class UplinkTimes():
     pmcc_rx: Optional[datetime] = None
     # When the PMCC GSW backend (this application) sent the data to AMCC:
     pmcc_tx: Optional[datetime] = None
-    # When AMCC acknowledged receipt of the data:
+    # When AMCC acknowledged receipt of the data (YAMCS Queued Time):
     amcc_rx: Optional[datetime] = None
-    # When AMCC reports having sent the data to the spacecraft / released it
-    # from the YAMCS queue:
+    # When the command was approved for release by AMCC, i/a (YAMCS Released Time):
+    amcc_ok: Optional[datetime] = None
+    # When AMCC reports having sent the data to the spacecraft (YAMCS SLE Radiated Time):
     amcc_tx: Optional[datetime] = None
+    # When the command's uplink was acknowledged by the spacecraft (lander)
+    # (YAMCS Acknowledge Time):
+    ack_lander: Optional[datetime] = None
     # When the rover indicates that it received the data:
     ack_rover: Optional[datetime] = None
     # DownlinkTimes for the rover acknowledgement packet:
     ack_downlink_times: DownlinkTimes = attr.field(factory=DownlinkTimes)
+
+    def pull_from(self, other: UplinkTimes) -> None:
+        """Copies all entries from `other` that aren't `None` into this data
+        structure."""
+        for s in UplinkTimes.__slots__:  # type: ignore
+            if s[:2] == '__':
+                # skip dunders like `__weakref__`:
+                continue
+            if other.__getattribute__(s) is not None:
+                self.__setattr__(s, other.__getattribute__(s))

@@ -188,10 +188,12 @@ def main(app: ipc.IpcAppHelper, opts: Any) -> None:
                 )
 
                 # Print bytes for pasting into YAMCS:
-                pkt_data_str = ''.join(f'{x:02x}' for x in dummy_ul_packet.encode())
+                pkt_data_str = ''.join(
+                    f'{x:02x}' for x in dummy_ul_packet.encode()
+                )
                 pathway_str = command.pathway.yamcs_suffix
                 app.logger.success(
-                    f"UL-REQ: {command.command.name}_{pathway_str}:\t\t"
+                    f"UL-REQ: {command_payload.command.name}_{pathway_str}:\t\t"
                     f"0x  {pkt_data_str}"
                 )
         for packet in packets:
@@ -212,6 +214,7 @@ def main(app: ipc.IpcAppHelper, opts: Any) -> None:
                     f"Failed to send Packet Uplink Request `{pkt_msg}` "
                     f"b/c: `{e!s}`."
                 )
+
 
 # Run:
 if __name__ == "__main__":

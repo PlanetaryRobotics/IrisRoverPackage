@@ -9,12 +9,12 @@ import os
 import io
 
 import json
-import plotly
-import pandas as pd
+import plotly  # type: ignore
+import pandas as pd  # type: ignore
 from enum import Enum
 import redis
-from celery import Celery
-from dash import CeleryManager
+from celery import Celery  # type: ignore
+from dash import CeleryManager  # type: ignore
 
 from .context import GuiContext
 

@@ -14,7 +14,7 @@ import pynput  # type: ignore
 import asyncio
 import argparse
 from datetime import datetime
-import pandas as pd
+import pandas as pd  # type: ignore
 from termcolor import colored
 from enum import Enum as PyEnum
 from collections import OrderedDict

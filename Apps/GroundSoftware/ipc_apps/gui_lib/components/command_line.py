@@ -12,17 +12,17 @@ from typing import Any, Final, Dict, Type, List, Tuple, cast
 from collections import OrderedDict
 
 from uuid import uuid4
-import pandas as pd
-import dash
+import pandas as pd  # type: ignore
+import dash  # type: ignore
 from dash import (
     ctx, no_update,
     html, dcc,
     Output, Input, State,
     callback, MATCH, ALL
 )
-from dash.dependencies import _Wildcard
-from dash.development.base_component import Component
-import dash_bootstrap_components as dbc
+from dash.dependencies import _Wildcard  # type: ignore
+from dash.development.base_component import Component  # type: ignore
+import dash_bootstrap_components as dbc  # type: ignore
 
 import IrisBackendv3 as IB3
 

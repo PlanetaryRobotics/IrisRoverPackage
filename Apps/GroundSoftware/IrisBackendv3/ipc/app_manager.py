@@ -19,7 +19,7 @@ import dataclasses
 import asyncio
 import traceback
 import atexit
-from verboselogs import VerboseLogger
+from verboselogs import VerboseLogger  # type: ignore
 
 from IrisBackendv3.ipc.wrapper import (
     Context, AsyncContext,
@@ -200,7 +200,7 @@ class SocketHandlerAsync(SocketHandlerAsync_T):
 TopicHandlerType: TypeAlias[_SHT, _AMT, _HRT] = \
     Callable[[_SHT, _AMT, IpcPayload], _HRT]
 
-_THT = TypeVar('_THT', bound=TopicHandlerType)
+_THT = TypeVar('_THT', bound=TopicHandlerType)  # type: ignore
 
 
 class SocketTopicHandler(SocketHandler[_HRT, _AMT], Generic[_SHT, _HRT, _AMT]):
@@ -450,6 +450,15 @@ class SocketSpec(Generic[_HT]):
     # `rx_handler` and `blind_consumer` settings.
     publish_only: bool = False
 
+    @property
+    def topics_list(self) -> List[Topic]:
+        if isinstance(self.topics, list):
+            return self.topics
+        elif isinstance(self.topics, Topic):
+            return [self.topics]
+        else:
+            return []
+
     def __str__(self) -> str:
         s = ""
         if self.topics is None:
@@ -612,10 +621,10 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         message with the given subtopic."""
         socket = self.sockets[sock_name]
         specs = self.socket_specs[sock_name]
-        if len(specs.topics) == 0:
+        if len(specs.topics_list) == 0:
             await async_send_to(socket, msg, subtopic_bytes, None)
         else:
-            for topic in specs.topics:
+            for topic in specs.topics_list:
                 await async_send_to(socket, msg, subtopic_bytes, topic)
 
     async def read(self, sock_name: str) -> IpcPayload:
@@ -714,7 +723,10 @@ class IpcAppManagerAsync(IpcAppManager[AsyncContext, AsyncSocket, SocketHandlerA
         the list of managed tasks to be run alongside this IPC App's core
         tasks."""
         self._tasks.extend(
-            asyncio.create_task(c, name=c.__name__)
+            asyncio.create_task(
+                c,
+                name=c.__name__ if hasattr(c, '__name__') else str(c)
+            )
             for c in other_coros
         )
 
@@ -839,12 +851,12 @@ class IpcAppManagerSync(IpcAppManager[Context, Socket, SocketHandlerSync_T]):
             for topic in topics:
                 send_to(socket, msg, subtopic_bytes, topic)
         else:
-            if len(specs.topics) == 0:
+            if len(specs.topics_list) == 0:
                 # Send to all topics on port:
                 send_to(socket, msg, subtopic_bytes, None)
             else:
                 # Send to all topics assigned to this socket:
-                for topic in specs.topics:
+                for topic in specs.topics_list:
                     send_to(socket, msg, subtopic_bytes, topic)
 
     def read(self, sock_name: str) -> IpcPayload:

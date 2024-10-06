@@ -631,7 +631,10 @@ def packet_to_messages(
             event = cast(EventPayload, event)
             message: str = ""
             # Add SCET if we know the SCET:
-            if (scet := event.downlink_times.scet_est) is not None:
+            if (
+                event.downlink_times is not None
+                and (scet := event.downlink_times.scet_est) is not None
+            ):
                 message += (
                     f" \033[35;47;1m(SCET-{scet.strftime(datetime_format)})\033[0m "
                 )

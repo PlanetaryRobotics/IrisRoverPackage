@@ -504,8 +504,9 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             return self.VSA_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_FullSystemVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
 
         @property
-        def Adc_FullSystemCurrent(self) -> float:
+        def Adc_FullSystemCurrent(self) -> float:  # [Amps]
             # uses *bottom* 9b, so we don't have to shift it, it just saturates earlier:
+            # NOTE: if near ISNSFH=6-7.6mA (6.9mA mean), that's OFF or FAULT
             full_adc_reading = self.Adc_FullSystemCurrentRaw
             return float(full_adc_reading) / 4095 * 3.3 * 4600/1000
 

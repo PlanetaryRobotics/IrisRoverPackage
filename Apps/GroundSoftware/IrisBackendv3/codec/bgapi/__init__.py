@@ -3,16 +3,16 @@ import os
 from typing import Any, Final, Dict, cast
 
 # Expose main BGAPI library endpoints:
-from bgapi.bglib import BGLib
-from bgapi.apiparser import ParsedApi
-from bgapi.serialconnector import SerialConnector
-from bgapi.socketconnector import SocketConnector
+from bgapi.bglib import BGLib  # type: ignore
+from bgapi.apiparser import ParsedApi  # type: ignore
+from bgapi.serialconnector import SerialConnector  # type: ignore
+from bgapi.socketconnector import SocketConnector  # type: ignore
 
 # Expose main BGAPI message types:
 from bgapi.bglib import BGMsg, BGCommand, BGResponse, BGEvent
 
 # Expose Serializer / Deserializer:
-from bgapi import serdeser
+from bgapi import serdeser  # type: ignore
 
 
 # Expose our custom handlers:

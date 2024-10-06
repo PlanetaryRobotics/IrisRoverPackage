@@ -16,7 +16,7 @@ Also run a data source like a Transceiver to supply packets
 from __future__ import annotations
 
 import os
-import cv2
+import cv2  # type: ignore
 import ulid
 import pickle
 import os.path
@@ -28,7 +28,7 @@ from collections import OrderedDict, Counter
 from typing import Any, Set, Dict, List, Tuple, cast, TypeAlias, Type, Final, Callable
 
 import numpy as np
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator  # type: ignore
 
 import time
 from types import SimpleNamespace
@@ -37,7 +37,7 @@ from IrisBackendv3.codec.payload import EventPayload
 
 import scripts.toolkit.rc11_image_toolkit as img11
 import scripts.toolkit.image_compression_toolkit as ic
-import PIL.Image
+import PIL.Image  # type: ignore
 
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
@@ -814,7 +814,7 @@ class Image:
         )
 
         if interactive_plot_result:
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as plt  # type: ignore
             plt.figure()
             plt.imshow(image_out, cmap='gray')
             plt.show()
@@ -1311,7 +1311,7 @@ class Image:
             lines_in_progress=OrderedDict()
         )
 
-    def build_raw_memory_view(self) -> np.ndarray[np.uint8]:
+    def build_raw_memory_view(self) -> np.ndarray[Any, np.dtype[np.uint8]]:
         """
         Build raw raw image memory (if it hasn't been already).
         """
@@ -1452,7 +1452,7 @@ def payload_processing_update(
     img_dl_end_events = [
         cast(EventPayload, e)
         for e in payloads[EventPayload]
-        if e.event.name == DOWNLINK_END_EVENT_NAME
+        if cast(EventPayload, e).event.name == DOWNLINK_END_EVENT_NAME
     ]
     if len(img_dl_end_events) > 0:
         app.logger.notice(

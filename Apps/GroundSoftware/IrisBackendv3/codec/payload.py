@@ -6,7 +6,7 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/16/2023
+@last-updated: 10/02/2024
 """
 from __future__ import annotations  # Activate postponed annotations (for using classes as return type in their own methods)
 
@@ -253,12 +253,15 @@ class CommandPayloadInterface(UplinkedPayload[PT], ABC):
         '_module_id',
         # ID for the Command Definition (from FPrime XML):
         '_command_id',
-        # Dictionary of arguments for the command
-        '_args'
+        # Dictionary of arguments for the command:
+        '_args',
+        # Name of alias used to generate this command (if applicable):
+        'alias_name'
     ]
     _module_id: int
     _command_id: int
     _args: Dict[str, Any]
+    alias_name: str | None
 
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
@@ -284,15 +287,41 @@ class CommandPayloadInterface(UplinkedPayload[PT], ABC):
 
     def __str__(self) -> str:
         return (
+            ("" if self.alias_name is None else f"{self.alias_name}: ") +
             f"{self.command.name}"
             f"[{', '.join(f'{a}={v}' for a,v in self.args.items())}]"
         )
 
     def __repr__(self) -> str:
         return (
+            ("" if self.alias_name is None else f"{self.alias_name}: ") +
             f"{self.command.name}(0x{self.opcode:04X})"
             f"[{', '.join(f'{a}={v}' for a,v in self.args.items())}]"
         )
+
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Encode metadata which is not derived from `_raw` as a state."""
+        return {
+            **super().__getstate__(),  # grab any relevant state managed by parent
+            'alias_name': self.alias_name
+        }
+
+    def __setstate__(self, data: Dict[str, Any]) -> None:
+        """Retrieve metadata which is not encoded in `_raw` as a state."""
+        # Let the parent extract any data it cares about (manages):
+        super().__setstate__(data)
+
+        # Then extract the state data managed by this class:
+        full_dict_spec_check(
+            data,
+            {
+                'alias_name': [str, type(None)]
+            },
+            name='data'
+        )
+
+        self.alias_name = data['alias_name']
 
     @abstractmethod
     def check_args(self) -> None:
@@ -368,11 +397,13 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
                  raw: Optional[bytes] = None,
                  endianness_code: str = ENDIANNESS_CODE,
                  auto_tag_generated_time: bool = True,
+                 alias_name: str | None = None,
                  **kwargs  # kwargs for UplinkedPayload super class
                  ) -> None:
         self._module_id = module_id
         self._command_id = command_id
         self._args = args
+        self.alias_name = alias_name
         self.check_args()
 
         if auto_tag_generated_time and 'uplink_times' not in kwargs:

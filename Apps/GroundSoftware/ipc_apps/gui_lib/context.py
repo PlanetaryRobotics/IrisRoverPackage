@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 
-from dash import Dash, CeleryManager
+from dash import Dash, CeleryManager  # type: ignore
 
 
 @dataclass

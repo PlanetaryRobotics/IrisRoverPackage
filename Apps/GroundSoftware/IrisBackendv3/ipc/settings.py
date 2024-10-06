@@ -29,7 +29,7 @@ settings = {
 # Override settings with OS Environment variables if applicable:
 for key in settings.keys():
     if (k := _KEY_ADDR_BASE+key) in os.environ:
-        settings[key] = os.getenv(k)
+        settings[key] = os.getenv(k) or settings[key]
 
 
 def set_ip(ip: str):

@@ -255,7 +255,8 @@ async def replay_telemetry_at_fixed_rate(
         Generator[List[TelemetryPayload]]: List of all payloads in the packet that's being replayed.
     """
     for packet in packets:
-        telemetry = packet.payloads.TelemetryPayload
+        telemetry = cast(List[TelemetryPayload],
+                         packet.payloads.TelemetryPayload)
         await asyncio.sleep(fixed_rate/1000.0)
         yield telemetry
 

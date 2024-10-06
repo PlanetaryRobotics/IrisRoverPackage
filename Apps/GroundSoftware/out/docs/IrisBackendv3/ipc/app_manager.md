@@ -10,14 +10,7 @@ low-level IPC interface and implementation, see `wrapper.py`.
 
 #! NOTE: Many of the example docstrings in here are out of date. Updating soon.
 
-# ! TODO: async queue the packets received from IPC so nothing is missed.
-# ^- low priority rn b/c we can keep from sending multiple messages in rapid
-# succession by just sending lists.
-# - will need this though.
-# -- seems like ZMQ already does this. Might not need to double-queue it.
-#    Determine how slow is too slow...
 
-# ! TODO: (WORKING-HERE):
 # - Finish `SocketTopicHandler` sync and async versions (like in SocketHandler).
 #   -- Double check how logic for async __call__ works (might have to consult SocketHandler solution)
 # - Integrate into `IpcAppManager` and subclasses.

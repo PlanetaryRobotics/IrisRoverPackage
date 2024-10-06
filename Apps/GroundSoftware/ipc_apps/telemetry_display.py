@@ -10,7 +10,7 @@ Last Updated: 04/30/2023
 import asyncio
 import argparse
 from datetime import datetime
-import pandas as pd
+import pandas as pd  # type: ignore
 from dataclasses import dataclass
 from typing import Callable, ClassVar, List
 

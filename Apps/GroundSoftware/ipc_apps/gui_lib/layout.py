@@ -9,9 +9,9 @@ from typing import Tuple, List
 import os
 import uuid
 
-from dash import Dash, html, dcc
-import dash_bootstrap_components as dbc
-import dash_bootstrap_templates as dbt
+from dash import Dash, html, dcc  # type: ignore
+import dash_bootstrap_components as dbc  # type: ignore
+import dash_bootstrap_templates as dbt  # type: ignore
 from flask import send_from_directory
 
 from .context import GuiContext

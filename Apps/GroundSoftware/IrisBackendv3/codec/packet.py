@@ -110,10 +110,9 @@ def parse_packet(
             )
 
     except Exception as e:
-        err = e
         trace = traceback.format_exc()
         logger.warning(
-            f"Had to abort packet parsing due to the following exception: `{err}`"
+            f"Had to abort packet parsing due to the following exception: `{e}`"
             f"The packet bytes being parsed were: \n"
             f"{scp.hexdump(packet_bytes, dump=True)}\n"
         )

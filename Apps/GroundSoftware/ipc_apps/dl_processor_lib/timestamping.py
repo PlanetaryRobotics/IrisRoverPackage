@@ -71,7 +71,7 @@ class RoverTimeEstimator:
         else:
             self._downlink_delay_est = downlink_delay_est
         if not isinstance(logger, logging.Logger):
-            self._logger = logger
+            self._logger = logger  # type: ignore
         else:
             self._logger = logging.getLogger(__file__)
 
@@ -109,7 +109,7 @@ class RoverTimeEstimator:
     def estimate_rover_scet(
         self,
         payload: DownlinkedPayload
-    ) -> (datetime, timedelta):
+    ) -> Tuple[datetime, timedelta]:
         """Estimates the rover time when the given `payload` was generated,
         assuming this payload belongs to the collection used to initialize this
         `RoverTimeEstimator`.

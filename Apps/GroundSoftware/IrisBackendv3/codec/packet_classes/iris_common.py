@@ -15,6 +15,7 @@ from IrisBackendv3.codec.packet_classes.packet import Packet, CT
 from collections import OrderedDict
 from typing import List, Any, Optional, cast, Dict
 import traceback
+import functools
 
 import struct
 import numpy as np  # type: ignore
@@ -87,6 +88,16 @@ class IrisCommonPacket(IrisCommonPacketInterface[IrisCommonPacketInterface]):
         _seq_num: int
         _vlp_len: int
         _checksum: bytes
+
+        @classmethod
+        @functools.lru_cache(maxsize=1)
+        def CPH_LENGTH(cls) -> int:
+            """Return the length of all Common Packet Headers.
+            Only computes on the first go based on class statics.
+            """
+            return struct.calcsize(
+                '<'+cls.SEQ_NUM_SYM+cls.VLP_LEN_SYM+cls.CHECKSUM_SYM
+            )
 
         # Make public get, private set to signal that you can freely use these values
         # but modifying them directly can yield undefined behavior (specifically

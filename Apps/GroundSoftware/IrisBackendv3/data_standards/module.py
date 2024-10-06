@@ -289,8 +289,8 @@ class DataUnit(GswMetadataContainer):
 
     def __init__(self,
                  datatype: FswDataType,
-                 enum: List[EnumItem] = None,
-                 bitfields: BitfieldStruct = None,
+                 enum: List[EnumItem] | None = None,
+                 bitfields: BitfieldStruct | None = None,
                  metadata_json_str: str = ""
                  ) -> None:
         self._datatype = datatype
@@ -477,8 +477,8 @@ class Argument(DataUnit):
     def __init__(self,
                  name: str,
                  datatype: FswDataType,
-                 enum: List[EnumItem] = None,
-                 bitfields: BitfieldStruct = None,
+                 enum: List[EnumItem] | None = None,
+                 bitfields: BitfieldStruct | None = None,
                  metadata_json_str: str = ""
                  ) -> None:
         self.name = name
@@ -558,7 +558,7 @@ class Command(GswMetadataContainer):
                  mnemonic: str = "",
                  ID: int = -1,
                  metadata_json_str: str = "",
-                 args: List[Argument] = None
+                 args: List[Argument] | None = None
                  ) -> None:
         self.name = name
         self.mnemonic = mnemonic
@@ -635,8 +635,8 @@ class TelemetryChannel(DataUnit):
                  name: str,
                  ID: int,
                  datatype: FswDataType,
-                 enum: List[EnumItem] = None,
-                 bitfields: BitfieldStruct = None,
+                 enum: List[EnumItem] | None = None,
+                 bitfields: BitfieldStruct | None = None,
                  metadata_json_str: str = ""
                  ) -> None:
         self.name = name
@@ -749,7 +749,7 @@ class Event(GswMetadataContainer):
                  severity_str: str = "",
                  format_string: str = "",
                  metadata_json_str: str = "",
-                 args: List[Argument] = None
+                 args: List[Argument] | None = None
                  ) -> None:
         self.name = name
         self.ID = ID

@@ -3,7 +3,7 @@ from scripts.utils.trans_tools import *
 from scripts.utils.__command_aliases import get_command
 from IrisBackendv3.utils.basic import bytearray_to_spaced_hex as hexstr
 
-import scapy.all as scp
+import scapy.all as scp  # type: ignore
 import socket
 import numpy as np
 import struct

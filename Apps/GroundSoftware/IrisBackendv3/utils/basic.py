@@ -8,7 +8,7 @@ A Collection of Basic Utility Functions.
 
 import re
 import string
-from typing import Optional, Type, Dict, Tuple, List, Any, Union, TypeVar
+from typing import Optional, Type, Dict, Tuple, List, Any, Union, TypeVar, cast
 import inspect
 
 _T = TypeVar('_T')
@@ -56,7 +56,7 @@ def type_guard_argument(
             i: int = 0
             while not cast_success and i < len(arg_type):
                 try:
-                    arg_val = arg_type[i](arg_val)
+                    arg_val = arg_type[i](arg_val)  # type: ignore
                     cast_success = True
                 except ValueError:
                     # try again
@@ -73,7 +73,7 @@ def type_guard_argument(
                 f"instead it had type `{type(arg_val)}` and value `{arg_val}`."
             )
 
-    return arg_val
+    return cast(_T, arg_val)
 
 
 def bytearray_to_spaced_hex(ba, spacer: str = ' ') -> str:
@@ -147,7 +147,12 @@ def flip_all_bits_in_bytes(bs: bytes) -> bytes:
     return bytes(flipped)
 
 
-def dict_field_type_check(data: Dict, field: str, desired_type: Union[type, List[type]], name: str = None) -> None:
+def dict_field_type_check(
+    data: Dict,
+    field: str,
+    desired_type: Union[type, List[type]],
+    name: str | None = None
+) -> None:
     """
     Check that the given field of a dict has the desired type. If not, raise a TypeError.
 
@@ -174,7 +179,11 @@ def dict_field_type_check(data: Dict, field: str, desired_type: Union[type, List
             )
 
 
-def dict_type_check(data: Dict, type_dict: Dict[str, Union[type, List[type]]], name: str = None) -> None:
+def dict_type_check(
+    data: Dict,
+    type_dict: Dict[str, Union[type, List[type]]],
+    name: str | None = None
+) -> None:
     """
     Check that all fields in the given dictionary have the desired types. If not, raise a TypeError.
 
@@ -197,7 +206,11 @@ def dict_type_check(data: Dict, type_dict: Dict[str, Union[type, List[type]]], n
         dict_field_type_check(data, k, type_dict[k], name)
 
 
-def full_dict_spec_check(data: Dict, spec_dict: Dict[str, Union[type, List[type]]], name: str = None) -> None:
+def full_dict_spec_check(
+    data: Dict,
+    spec_dict: Dict[str, Union[type, List[type]]],
+    name: str | None = None
+) -> None:
     """
     Check that the given `data` dictionary has, at least, all the fields
     specified in keys of `spec_dict` and that all of those fields have the

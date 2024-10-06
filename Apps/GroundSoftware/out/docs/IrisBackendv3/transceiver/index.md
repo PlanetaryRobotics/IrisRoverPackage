@@ -8,15 +8,19 @@ the outside/physical HW world).
 
 Sub-modules
 -----------
+* IrisBackendv3.transceiver.archive_transceiver
 * IrisBackendv3.transceiver.endec
 * IrisBackendv3.transceiver.endecs
 * IrisBackendv3.transceiver.exceptions
-* IrisBackendv3.transceiver.ipc_layer
-* IrisBackendv3.transceiver.logging
+* IrisBackendv3.transceiver.ipc_process
+* IrisBackendv3.transceiver.logs
 * IrisBackendv3.transceiver.pcap_transceiver
 * IrisBackendv3.transceiver.prebuilts
 * IrisBackendv3.transceiver.settings
 * IrisBackendv3.transceiver.slip_transceiver
 * IrisBackendv3.transceiver.transceiver
+* IrisBackendv3.transceiver.utils
+* IrisBackendv3.transceiver.wifi_transceiver
 * IrisBackendv3.transceiver.xcvr_enum
+* IrisBackendv3.transceiver.yamcs_helper
 * IrisBackendv3.transceiver.yamcs_transceiver

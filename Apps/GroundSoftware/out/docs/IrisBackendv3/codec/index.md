@@ -18,9 +18,7 @@ Sub-modules
 * IrisBackendv3.codec.exceptions
 * IrisBackendv3.codec.files
 * IrisBackendv3.codec.fsw_data_codec
-* IrisBackendv3.codec.ipc_messages
-* IrisBackendv3.codec.ipc_process
-* IrisBackendv3.codec.logging
+* IrisBackendv3.codec.logs
 * IrisBackendv3.codec.magic
 * IrisBackendv3.codec.metadata
 * IrisBackendv3.codec.packet

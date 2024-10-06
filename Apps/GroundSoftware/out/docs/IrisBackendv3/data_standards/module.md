@@ -10,7 +10,7 @@ Containers for Flight Software Modules/Components and their Relevant Fields
 Classes
 -------
 
-`Argument(name: str, datatype: FswDataType, enum: List[EnumItem] = None, bitfields: BitfieldStruct = None, metadata_json_str: str = '')`
+`Argument(name: str, datatype: FswDataType, enum: List[EnumItem] | None = None, bitfields: BitfieldStruct | None = None, metadata_json_str: str = '')`
 :   Container for FPrime (Command or Event) Argument and associated Ground Software Metadata
 
     ### Ancestors (in MRO)
@@ -55,7 +55,7 @@ Classes
     :   Unpacks the data given in the `data` bytes according to the fields 
         defined in this bitfield struct.
 
-`Command(name: str = '', mnemonic: str = '', ID: int = -1, metadata_json_str: str = '', args: List[Argument] = None)`
+`Command(name: str = '', mnemonic: str = '', ID: int = -1, metadata_json_str: str = '', args: List[Argument] | None = None)`
 :   Container for Data Standards for an FPrime Command and associated Ground Software Metadata.
 
     ### Ancestors (in MRO)
@@ -76,7 +76,7 @@ Classes
     `name`
     :   Return an attribute of instance, which is of type owner.
 
-`DataUnit(datatype: FswDataType, enum: List[EnumItem] = None, bitfields: BitfieldStruct = None, metadata_json_str: str = '')`
+`DataUnit(datatype: FswDataType, enum: List[EnumItem] | None = None, bitfields: BitfieldStruct | None = None, metadata_json_str: str = '')`
 :   Base class for any data container which carries a single unit of data.
     
     That is, containers that have a single `datatype`, namely `Argument`s and 
@@ -115,17 +115,17 @@ Classes
 
     ### Methods
 
-    `get_enum_formatted_str(self, data: Union[str, int]) ‑> Optional[str]`
+    `get_enum_formatted_str(self, data: Union[str, int]) ‑> str | None`
     :   Returns a nicely formatted string containing the name and value of
         the enum item matching the given data (either name or value).
 
     `get_enum_item(self, idx: Union[int, str]) ‑> Optional[IrisBackendv3.data_standards.module.EnumItem]`
     :   Returns the EnumItem that matches the given `str` name or `int` value in the enum (if there is one).
 
-    `get_enum_name(self, val: int) ‑> Optional[str]`
+    `get_enum_name(self, val: int) ‑> str | None`
     :   Returns the name that matches the given value in the enum (if there is one).
 
-    `get_enum_value(self, name: str) ‑> Optional[int]`
+    `get_enum_value(self, name: str) ‑> int | None`
     :   Returns the value that matches the given name in the enum (if there is one).
 
 `EnumItem(name: str, value: int, comment: str = '')`
@@ -142,7 +142,7 @@ Classes
     `value: int`
     :   Return an attribute of instance, which is of type owner.
 
-`Event(name: str = '', ID: int = -1, severity_str: str = '', format_string: str = '', metadata_json_str: str = '', args: List[Argument] = None)`
+`Event(name: str = '', ID: int = -1, severity_str: str = '', format_string: str = '', metadata_json_str: str = '', args: List[Argument] | None = None)`
 :   Container for Data Standards for an FPrime Event (aka Log) and associated Ground Software Metadata.
 
     ### Ancestors (in MRO)
@@ -224,7 +224,7 @@ Classes
     `telemetry`
     :   Return an attribute of instance, which is of type owner.
 
-`TelemetryChannel(name: str, ID: int, datatype: FswDataType, enum: List[EnumItem] = None, bitfields: BitfieldStruct = None, metadata_json_str: str = '')`
+`TelemetryChannel(name: str, ID: int, datatype: FswDataType, enum: List[EnumItem] | None = None, bitfields: BitfieldStruct | None = None, metadata_json_str: str = '')`
 :   Container for Data Standards for an FPrime Telemetry Channel and associated Ground Software Metadata.
 
     ### Ancestors (in MRO)

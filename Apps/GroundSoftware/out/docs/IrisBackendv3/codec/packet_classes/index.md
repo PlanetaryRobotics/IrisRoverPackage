@@ -9,13 +9,18 @@ readability.
 Sub-modules
 -----------
 * IrisBackendv3.codec.packet_classes.custom_payload
+* IrisBackendv3.codec.packet_classes.gds_packet_event_mixin
+* IrisBackendv3.codec.packet_classes.herc_radio_upl_ack
 * IrisBackendv3.codec.packet_classes.iris_common
 * IrisBackendv3.codec.packet_classes.packet
+* IrisBackendv3.codec.packet_classes.peregrine_dummy_packet
 * IrisBackendv3.codec.packet_classes.radio_bgapi_packet
 * IrisBackendv3.codec.packet_classes.radio_direct_message
+* IrisBackendv3.codec.packet_classes.radio_downlink_flush
 * IrisBackendv3.codec.packet_classes.radio_ground
 * IrisBackendv3.codec.packet_classes.radio_hello
 * IrisBackendv3.codec.packet_classes.radio_uart_byte
+* IrisBackendv3.codec.packet_classes.safety_timer
 * IrisBackendv3.codec.packet_classes.unsupported
 * IrisBackendv3.codec.packet_classes.watchdog_command_response
 * IrisBackendv3.codec.packet_classes.watchdog_debug

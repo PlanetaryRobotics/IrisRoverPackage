@@ -6,7 +6,7 @@ flight rover.
 
 Includes any supporting functions necessary for maintaining YAMCS connection.
 
-TODO: Consult script used for iTVAC...
+TODO: Consult `iris_yamcs.py` used for Mission
 
 @author: Connor W. Colombo (CMU)
 @last-updated: 07/03/2022
@@ -14,7 +14,7 @@ TODO: Consult script used for iTVAC...
 Classes
 -------
 
-`YamcsTransceiver(host: str, port: int, endecs: Optional[List[IrisBackendv3.transceiver.endecs.endec.Endec]] = None, pathway: IrisBackendv3.codec.metadata.DataPathway = DataPathway.NONE, source: IrisBackendv3.codec.metadata.DataSource = DataSource.YAMCS)`
+`YamcsTransceiver(host: str, port: int, endecs: Optional[List[IrisBackendv3.transceiver.endecs.endec.Endec]] = None, pathway: IrisBackendv3.codec.metadata.DataPathway = DataPathway.NONE, source: IrisBackendv3.codec.metadata.DataSource = DataSource.YAMCS, **kwargs)`
 :   Abstract base class for all `Transceivers`. This class handles all
     logic interfacing with `Packet` classes and `Endec`s so the implementation
     of the subclasses can be as simple as possible (just handling how to get

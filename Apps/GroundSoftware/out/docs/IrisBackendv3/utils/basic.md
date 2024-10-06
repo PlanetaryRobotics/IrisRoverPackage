@@ -21,7 +21,7 @@ Functions
 :   
 
     
-`dict_field_type_check(data: Dict, field: str, desired_type: Union[type, List[type]], name: str = None) ‑> None`
+`dict_field_type_check(data: Dict, field: str, desired_type: Union[type, List[type]], name: str | None = None) ‑> None`
 :   Check that the given field of a dict has the desired type. If not, raise a TypeError.
     
     Optionally, a `name` can be provided which matches the variable name of the
@@ -31,7 +31,7 @@ Functions
     `desired_type` can also be a list of types, only one of which need to match.
 
     
-`dict_type_check(data: Dict, type_dict: Dict[str, Union[type, List[type]]], name: str = None) ‑> None`
+`dict_type_check(data: Dict, type_dict: Dict[str, Union[type, List[type]]], name: str | None = None) ‑> None`
 :   Check that all fields in the given dictionary have the desired types. If not, raise a TypeError.
     
     Desired types are given in a type dictionary where each key matches a key in
@@ -62,7 +62,7 @@ Functions
 :   Reverses the order of all bits in the given byte (as an int or a 1 byte long bytes object).
 
     
-`full_dict_spec_check(data: Dict, spec_dict: Dict[str, Union[type, List[type]]], name: str = None) ‑> None`
+`full_dict_spec_check(data: Dict, spec_dict: Dict[str, Union[type, List[type]]], name: str | None = None) ‑> None`
 :   Check that the given `data` dictionary has, at least, all the fields
     specified in keys of `spec_dict` and that all of those fields have the
     types specified by the values of `spec_dict`. If not a KeyError or
@@ -219,7 +219,7 @@ Functions
 :   
 
     
-`type_guard_argument(arg_type: Union[Type, Tuple[Type, ...]], arg_name: str, arg_val: Any, attempt_cast: bool = True, calling_function_name: Optional[str] = None) ‑> Any`
+`type_guard_argument(arg_type: Union[Type[~_T], Tuple[Type[~_T], ...]], arg_name: str, arg_val: Any, attempt_cast: bool = True, calling_function_name: str | None = None) ‑> ~_T`
 :   A guard to add to the beginning of a function to make sure one of its
     arguments has one of the allowed types.
     

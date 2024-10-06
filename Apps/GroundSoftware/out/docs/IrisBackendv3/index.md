@@ -24,11 +24,13 @@ If the standards source gets updated, just re-run
 Sub-modules
 -----------
 * IrisBackendv3.codec
+* IrisBackendv3.config
 * IrisBackendv3.data_standards
+* IrisBackendv3.environ
 * IrisBackendv3.ipc
-* IrisBackendv3.logging
+* IrisBackendv3.logs
 * IrisBackendv3.main
-* IrisBackendv3.sandbox
+* IrisBackendv3.meta
 * IrisBackendv3.storage
 * IrisBackendv3.transceiver
 * IrisBackendv3.utils

@@ -25,7 +25,7 @@ Sub-modules
 * IrisBackendv3.data_standards.exceptions
 * IrisBackendv3.data_standards.fsw_data_type
 * IrisBackendv3.data_standards.gsw_metadata_tools
-* IrisBackendv3.data_standards.logging
+* IrisBackendv3.data_standards.logs
 * IrisBackendv3.data_standards.module
 * IrisBackendv3.data_standards.prebuilt
 

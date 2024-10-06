@@ -2,8 +2,10 @@ Module IrisBackendv3.ipc.port
 =============================
 This module supplies an Enum which defines all ports used in the IPC.
 
+Actual port numbers are defined in `ports.env`.
+
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/17/2021
+@last-updated: 11/30/2023
 
 Classes
 -------
@@ -17,30 +19,43 @@ Classes
 
     ### Ancestors (in MRO)
 
+    * IrisBackendv3.ipc.port._EnumFromEnv
     * enum.Enum
 
     ### Class variables
 
-    `ATLAS`
+    `ATLAS_PUB`
     :
 
-    `CLI_WINDOW`
+    `ATLAS_SUB`
     :
 
-    `CODEC`
+    `CODEC_PUB`
     :
 
-    `GUI`
+    `CODEC_SUB`
     :
 
-    `REMOTEDB`
+    `GUI_PUB`
     :
 
-    `STORAGE`
+    `GUI_SUB`
     :
 
-    `TELEM_WINDOW`
+    `REMOTEDB_PUB`
     :
 
-    `TRANSCEIVER`
+    `REMOTEDB_SUB`
+    :
+
+    `STORAGE_PUB`
+    :
+
+    `STORAGE_SUB`
+    :
+
+    `TRANSCEIVER_PUB`
+    :
+
+    `TRANSCEIVER_SUB`
     :

@@ -6,31 +6,43 @@ At this level, all IPC interface operations have been abstracted. For the
 low-level IPC interface and implementation, see `wrapper.py`.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 04/23/2023
 
 #! NOTE: Many of the example docstrings in here are out of date. Updating soon.
 
-
-# - Finish `SocketTopicHandler` sync and async versions (like in SocketHandler).
-#   -- Double check how logic for async __call__ works (might have to consult SocketHandler solution)
-# - Integrate into `IpcAppManager` and subclasses.
-#   -- + finish impl.s
-# - At end, double check if _CT, _ST, and _HT need to be marked as covariant.
-#   -- Does having them as covariant break anything?
-#   -- Does changing them back to invariant break anything new?
-#   -- Particularly, be careful with TopicHandler Protocol (not sure why
-#       this stopped being a problem).
-# - Go through and update all docs + examples
-# - Build + Test XCVR demo
-#   -- Consider bringing any generic(able) messaging / queue impl.s used for
-#      XCVR demo into here
-#
-# !! How does IpcAppManager work with multiple SocketHandler types? Seems like
-# we'd need multiple (if we want reg. and topic handler versions but have to
-# enforce one...) <- might have to restructure when async is enforced.
-
 Classes
 -------
+
+`IpcAppHelper(name: str, set_window_title: bool = True)`
+:   Basic class to manage the configuration surrounding an IpcApp.
+    Essentially just a collection of convenience features to streamline the
+    setup that occurs outside of an `IpcAppManager`.
+    
+    Sets up the IPC App.
+    
+    Args:
+        name (str): Name of the IPC App.
+        set_window_title (bool, optional): Whether or not to retitle the
+         terminal window. Defaults to `True`.
+
+    ### Class variables
+
+    `logger: verboselogs.VerboseLogger`
+    :
+
+    `name: str`
+    :
+
+    ### Methods
+
+    `setFileLogLevel(self, level: str) ‑> None`
+    :
+
+    `setLogLevel(self, level: str) ‑> None`
+    :
+
+    `set_window_title(self) ‑> None`
+    :   Helper function to set the title of the terminal window:
 
 `IpcAppManager(socket_specs: Dict[str, SocketSpec[_HT]], context_io_threads: int = 2, context: Optional[_CT] = None)`
 :   ABC Manager for an App that uses IPC to communicate with other apps.
@@ -112,7 +124,7 @@ Classes
     :   Asynchronously reads from the socket with the given name.
 
     `read_as(self, sock_name: str, message_type: Type[_IPMT]) ‑> Tuple[IrisBackendv3.ipc.ipc_payload.IpcPayload, ~_IPMT]`
-    :   Same as `read`, but instead of returning raw binary, it 
+    :   Same as `read`, but instead of returning raw binary, it
         parses the data read as the given IPC `InterProcessMessage`.
         Returns a tuple containing the raw `IpcPayload` alongside the
         interpreted `InterProcessMessage`.
@@ -132,6 +144,11 @@ Classes
                 status of internal tasks. From `asyncio.wait`.
             timeout (Optional[float], optional): Max runtime (as a failsafe).
                 From `asyncio.wait`.
+
+    `send_to(self, sock_name: str, msg: InterProcessMessage, subtopic_bytes: bytes = b'') ‑> None`
+    :   Asynchronously sends to the socket with the given name using its
+        assigned topic (or all if no topic is assigned), optionally tagging the
+        message with the given subtopic.
 
     `socket_rx_coro(self, sock_name: str) ‑> None`
     :   Coroutine for receiving data from a socket with the given name.
@@ -168,7 +185,7 @@ Classes
     :   Synchronously reads from the socket with the given name.
 
     `read_as(self, sock_name: str, message_type: Type[_IPMT]) ‑> Tuple[IrisBackendv3.ipc.ipc_payload.IpcPayload, ~_IPMT]`
-    :   Same as `read`, but instead of returning raw binary, it 
+    :   Same as `read`, but instead of returning raw binary, it
         parses the data read as the given IPC `InterProcessMessage`.
         Returns a tuple containing the raw `IpcPayload` alongside the
         interpreted `InterProcessMessage`.
@@ -176,6 +193,13 @@ Classes
     `read_msg(self, sock_name: str) ‑> Tuple[IrisBackendv3.ipc.ipc_payload.IpcPayload, IrisBackendv3.ipc.inter_process_message.InterProcessMessage]`
     :   Synchronously reads from the socket with the given name and decodes
         the message (based on the `Topic` of the `payload`).
+
+    `send_to(self, sock_name: str, msg: InterProcessMessage, topics: Topic | List[Topic] | None = None, subtopic_bytes: bytes = b'') ‑> None`
+    :   Synchronously sends to the socket with the given name using its
+        assigned topic(s) (or all topics on the Port if no topic is assigned),
+        unless a specific topic(s) is given, then the message is sent to that
+        topic.
+        The message is optionally tagged with the given subtopic.
 
 `SocketHandler()`
 :   Abstract base class for a functor to handle new payloads sent to a
@@ -273,7 +297,7 @@ Classes
     * IrisBackendv3.ipc.app_manager.SocketHandler
     * typing.Generic
 
-`SocketSpec(sock_type: SocketType, port: Port | List[Port], topics: Optional[Topic | List[Topic]] = None, rx_handler: Optional[_HT] = None, bind: Optional[bool] = None, blind_consumer: bool = False)`
+`SocketSpec(sock_type: SocketType, port: Port | List[Port], topics: Optional[Topic | List[Topic]] = None, rx_handler: Optional[_HT] = None, bind: Optional[bool] = None, blind_consumer: bool = False, publish_only: bool = False)`
 :   Specifications needed to create a socket.
 
     ### Ancestors (in MRO)
@@ -291,6 +315,9 @@ Classes
     `port: Union[IrisBackendv3.ipc.port.Port, List[IrisBackendv3.ipc.port.Port]]`
     :
 
+    `publish_only: bool`
+    :
+
     `rx_handler: Optional[+_HT]`
     :
 
@@ -298,6 +325,11 @@ Classes
     :
 
     `topics: Union[IrisBackendv3.ipc.topics_registry.Topic, List[IrisBackendv3.ipc.topics_registry.Topic], ForwardRef(None)]`
+    :
+
+    ### Instance variables
+
+    `topics_list: List[IrisBackendv3.ipc.topics_registry.Topic]`
     :
 
 `SocketTopicHandler()`

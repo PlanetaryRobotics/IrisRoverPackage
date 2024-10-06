@@ -7,7 +7,7 @@ parsed by the Watchdog. `IrisCommonPacket` is the current and
 required for backwards compatibility (reading old archived pcaps).
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/04/2022
+@last-updated: 06/22/2023
 
 Classes
 -------
@@ -22,7 +22,7 @@ Classes
     be handled and transformed and only packed into bytes when needed.
     
     @author: Connor W. Colombo (CMU)
-    @last-updated: 03/07/2022
+    @last-updated: 06/22/2023
 
     ### Ancestors (in MRO)
 

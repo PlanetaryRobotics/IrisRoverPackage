@@ -6,17 +6,17 @@ doesn't contain any telemetry but does contain a single EventPayload and is
 just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/14/2022
+@last-updated: 06/22/2023
 
 Classes
 -------
 
 `RadioHelloPacket(payloads: Optional[EnhancedPayloadCollection] = None, raw: Optional[bytes] = None, endianness_code: str = '<')`
-:   Creates a data-structure to allow storing and handling a debug string from
-    the Radio.
+:   Creates a data-structure to allow storing and handling a "Hello" message
+    from the Radio.
     
     @author: Connor W. Colombo (CMU)
-    @last-updated: 09/14/2022
+    @last-updated: 06/22/2023
 
     ### Ancestors (in MRO)
 

@@ -86,7 +86,7 @@ Functions
     Throws relevant error if attribute not found or invalid.
 
     
-`import_all_fprime_xml(node: etree.Element, search_dir: str = '../FlightSoftware/fprime', max_depth: int = 100) ‑> <cyfunction Element at 0x10d7618a0>`
+`import_all_fprime_xml(node: etree.Element, search_dir: str = '../FlightSoftware/fprime', max_depth: int = 100) ‑> <cyfunction Element at 0x11083a260>`
 :   Recursively import all XML files listed in fprime-style <import_*> elements.
     
     # Basic Notes:

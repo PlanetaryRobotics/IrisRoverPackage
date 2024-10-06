@@ -68,7 +68,7 @@ Classes
 
     ### Instance variables
 
-    `name: Optional[str]`
+    `name: str`
     :   attribute name
 
 `EnhancedPayloadCollection(**kwargs)`
@@ -126,7 +126,7 @@ Classes
 
     ### Static methods
 
-    `key_to_name(key: EPC_KT) ‑> Optional[str]`
+    `key_to_name(key: EPC_KT) ‑> str | None`
     :   Converts a given `key` used to identify a `Payload` subclass by
         several different means into the name of that `Payload` subclass.
         If the given `key` is not valid, `None` is returned.

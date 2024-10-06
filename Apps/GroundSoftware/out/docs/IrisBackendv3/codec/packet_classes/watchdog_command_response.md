@@ -5,7 +5,7 @@ This is used as a dense and minimally sized way to communicate the most
 important Watchdog statuses during cis-lunar transit.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/01/2022
+@last-updated: 06/01/2023
 
 Classes
 -------
@@ -58,6 +58,7 @@ Classes
     * IrisBackendv3.codec.container.ContainerCodec
     * typing.Generic
     * abc.ABC
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventMixin
 
     ### Class variables
 

@@ -25,17 +25,11 @@ Classes
     ### Descendants
 
     * IrisBackendv3.codec.packet_classes.custom_payload.CustomPayloadPacket
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventPacket
     * IrisBackendv3.codec.packet_classes.iris_common.IrisCommonPacketInterface
-    * IrisBackendv3.codec.packet_classes.radio_bgapi_packet.RadioBgApiPacketInterface
-    * IrisBackendv3.codec.packet_classes.radio_direct_message.RadioDirectMessagePacketInterface
+    * IrisBackendv3.codec.packet_classes.peregrine_dummy_packet.PeregrineDummyPacketInterface
     * IrisBackendv3.codec.packet_classes.radio_ground.RadioGroundPacketInterface
     * IrisBackendv3.codec.packet_classes.radio_hello.RadioHelloPacketInterface
-    * IrisBackendv3.codec.packet_classes.radio_uart_byte.RadioUartBytePacketInterface
-    * IrisBackendv3.codec.packet_classes.unsupported.UnsupportedPacketInterface
-    * IrisBackendv3.codec.packet_classes.watchdog_debug.WatchdogDebugPacketInterface
-    * IrisBackendv3.codec.packet_classes.watchdog_hello.WatchdogHelloPacketInterface
-    * IrisBackendv3.codec.packet_classes.watchdog_radio_debug.WatchdogRadioDebugPacketInterface
-    * IrisBackendv3.codec.packet_classes.watchdog_reset_specific_ack.WatchdogResetSpecificAckPacketInterface
 
     ### Static methods
 

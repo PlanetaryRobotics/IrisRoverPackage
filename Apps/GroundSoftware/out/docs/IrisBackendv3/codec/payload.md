@@ -4,12 +4,12 @@ Defines Common Data Required for Payloads. Support for Building and Parsing
 Payloads as part of a Variable Length Payload.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 09/19/2022
+@last-updated: 10/02/2024
 
 Classes
 -------
 
-`CommandPayload(module_id: int, command_id: int, args: Dict[str, Any], magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<', auto_tag_generated_time: bool = True, **kwargs)`
+`CommandPayload(module_id: int, command_id: int, args: Dict[str, Any], magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<', auto_tag_generated_time: bool = True, alias_name: str | None = None, **kwargs)`
 :   Implementation of Payload Interface for IRIS Telemetry Payloads.
 
     ### Ancestors (in MRO)
@@ -59,6 +59,9 @@ Classes
     * IrisBackendv3.codec.payload.CommandPayload
 
     ### Instance variables
+
+    `alias_name: str | None`
+    :   Return an attribute of instance, which is of type owner.
 
     `args: Dict[str, Any]`
     :
@@ -177,7 +180,7 @@ Classes
     `timestamp: int`
     :
 
-`FileBlockPayload(hashed_id: int, total_blocks: int, block_number: int, length: int, data: bytes, possible_corruption: bool = False, file_metadata: Optional[FileMetadata] = None, magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<')`
+`FileBlockPayload(file_group_id: int, file_group_line_number: int, total_blocks: int, block_number: int, length: int, data: bytes, possible_corruption: bool = False, file_metadata: Optional[FileMetadata] = None, magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<')`
 :   Implementation of Payload Interface for IRIS File Blocks.
 
     ### Ancestors (in MRO)
@@ -193,14 +196,15 @@ Classes
     ### Static methods
 
     `decode(data: bytes, endianness_code: str = '<') ‑> IrisBackendv3.codec.payload.FileBlockPayload`
-    :   From C&TL at time of writing (10/01/2021):
+    :   Based on C&TL from 10/01/2021. Revised on 04/14/2023.
         File Block Format:
-        Field           Type                Description
-        hashedId            uint16_t            A hash of the timestamp when file transmission started. Used to identify which blocks belong to the same file if multiple files are being sent at once. *NOT* a globally unique file identifier. Two files over the course of the entire mission could have the same hashedId. This is only unique up to the point that no two files with overlapping transmission periods should have the same hashedId.
-        totalBlocks         uint8_t                 Total number of blocks in this file (not including metadata block)
-        blockNumber         uint8_t                 Number of this block (**1 indexed** - 0 is for the metadata)
-        length          FileLength_t    Number of bytes in this block (not including header data - appears to be uint32_t in FSW as of 09/30/2021. Let's stick to this.)
-        data            uint8_t[]               All the data bytes. * The data of each block will be compressed using heatshrink
+        Field                   Type                Description
+        file_group_id           uint16_t        Which "File Group" this came from. Since we're downlinking image lines as a "File", we need a way for grouping them together so we know they're part of the same image. This is a hash of the image capture time. Two images over the course of the entire mission could have the same `fileGroupId`. This is only unique up to the point that no two files with overlapping or adjacent transmission periods should have the same `fileGroupId`.
+        file_group_line_number  uint16_t        This tells us distinctly which line in the "File Group" (image) this "File" is. Used to differentiate blocks so we know which file they came from. This is 0-indexed. (NOTE: This replaces the old hashedId.)
+        totalBlocks                 uint8_t                 Total number of blocks in this file (not including metadata block)
+        blockNumber                 uint8_t                 Number of this block (**1 indexed** - 0 is for the metadata)
+        length                  FileLength_t    Number of bytes in this block (not including header data - appears to be uint32_t in FSW as of 09/30/2021. Let's stick to this.)
+        data                    uint8_t[]               All the data bytes. * The data of each block will be compressed using heatshrink
 
 `FileBlockPayloadInterface(magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<', downlink_times: Optional[DownlinkTimes] = None)`
 :   Generic interface which defines all I/O for FileBlockPayload allowing it to be
@@ -237,10 +241,16 @@ Classes
     `data: bytes`
     :
 
+    `file_group_id: int`
+    :
+
+    `file_group_line_number: int`
+    :
+
     `file_metadata: Optional[IrisBackendv3.codec.payload.FileMetadata]`
     :
 
-    `hashed_id: int`
+    `is_metadata: bool`
     :
 
     `length: int`
@@ -252,7 +262,7 @@ Classes
     `total_blocks: int`
     :
 
-`FileMetadata(callback_id: int, timestamp: int, file_type_magic: FileMetadata.FileTypeMagic, raw: Optional[bytes] = None, endianness_code: str = '<')`
+`FileMetadata(callback_id: int, file_group_total_lines: int, timestamp: int, file_type_magic: FileMetadata.FileTypeMagic, raw: Optional[bytes] = None, endianness_code: str = '<')`
 :   Metadata about the file contained inside Block 0 of a `FileBlockPayload`.
 
     ### Ancestors (in MRO)
@@ -265,12 +275,13 @@ Classes
     ### Static methods
 
     `decode(data: bytes, endianness_code: str = '<') ‑> IrisBackendv3.codec.payload.FileMetadata`
-    :   From C&TL at time of writing (10/01/2021):
+    :   Based on C&TL from 10/01/2021. Revised on 04/15/2023.
         File Metadata Format:   (data in block 0)
-        Field           Type            Description
-        callbackId          uint16_t    Monotonically increasing callback ID of the command that triggered this file to be sent. Uniquely links this file to the command which requested it. Callback IDs are unique for images and UWB files. Callback IDs for commands requesting images start counting at 0. Callback IDs for commands requesting UWB files start counting at 2^5
-        timestamp           uint32_t    Time (in ms since Hercules power up) of when this file was generated.
-        fileTypeMagic   uint8_t         [See below]
+        Field               Type                Description
+        callbackId              uint16_t        Monotonically increasing callback ID of the command that triggered this file to be sent. Uniquely links this file to the command which requested it. Callback IDs are unique for images and UWB files. Callback IDs for commands requesting images start counting at 0. Callback IDs for commands requesting UWB files start counting at 2^5
+        fileGroupTotalLines uint16_t    Total Number of lines in the file group (i.e. image).
+        timestamp               uint32_t        Time (in ms since Hercules power up) of when this file was generated.
+        fileTypeMagic       uint8_t             [See below]
         
         File        Type Magic (in Metadata):   (data in block 0, inside File Metadata)
         Image:      0x01
@@ -311,6 +322,12 @@ Classes
     ### Instance variables
 
     `callback_id: int`
+    :
+
+    `camera_num: int`
+    :
+
+    `file_group_total_lines: int`
     :
 
     `file_type_magic: FileTypeMagic`
@@ -477,7 +494,7 @@ Classes
     `uplink_times: Optional[IrisBackendv3.codec.metadata.UplinkTimes]`
     :   Return an attribute of instance, which is of type owner.
 
-`WatchdogCommandPayload(module_id: int, command_id: int, args: Dict[str, Any], magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<', auto_tag_generated_time: bool = True, **kwargs)`
+`WatchdogCommandPayload(module_id: int, command_id: int, args: Dict[str, Any], magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<', auto_tag_generated_time: bool = True, alias_name: str | None = None, **kwargs)`
 :   Same as CommandPayload but with a special U8 Enum implementation.
 
     ### Ancestors (in MRO)

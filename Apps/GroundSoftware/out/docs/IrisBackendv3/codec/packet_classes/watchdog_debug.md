@@ -5,7 +5,7 @@ Watchdog. This packet type doesn't contain any telemetry (for now, should get
 converted to a `EventPayload` eventually) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 05/08/2022
+@last-updated: 06/01/2023
 
 Classes
 -------
@@ -15,15 +15,17 @@ Classes
     the Watchdog.
     
     @author: Connor W. Colombo (CMU)
-    @last-updated: 05/08/2022
+    @last-updated: 06/01/2023
 
     ### Ancestors (in MRO)
 
     * IrisBackendv3.codec.packet_classes.watchdog_debug.WatchdogDebugPacketInterface
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventPacket
     * IrisBackendv3.codec.packet_classes.packet.Packet
     * IrisBackendv3.codec.container.ContainerCodec
     * typing.Generic
     * abc.ABC
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventMixin
 
     ### Descendants
 
@@ -37,20 +39,21 @@ Classes
     `is_valid(data: bytes, endianness_code: str = '<') ‑> bool`
     :   Valid if the packet starts with `b'DEBUG'`.
 
-`WatchdogDebugPacketInterface(payloads: EnhancedPayloadCollection, raw: Optional[bytes] = None, endianness_code: str = '<')`
-:   A special `CodecContainer` used for Packet data which combines the
-    standardized data-encoding features of `ContainerCodec` with a standard
-    `EnhancedPayloadCollection`. All packets are essentially 
-    `EnhancedPayloadCollection`s with specialized encoding and decoding schemes
-    applied. Each `Packet` en/decodes raw bytes sent over a `Transceiver` layer
-    with any network headers (IP etc.) already stripped off.
+`WatchdogDebugPacketInterface(payloads: Optional[EnhancedPayloadCollection] = None, raw: Optional[bytes] = None, endianness_code: str = '<')`
+:   Stronger form of `GdsPacketEventMixin` that acts as a base class
+    alternative to `Packet[CT]`.
+    
+    This is to be used for packets which don't contain payloads inside them
+    but, instead, represent one singular event payload.
 
     ### Ancestors (in MRO)
 
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventPacket
     * IrisBackendv3.codec.packet_classes.packet.Packet
     * IrisBackendv3.codec.container.ContainerCodec
     * typing.Generic
     * abc.ABC
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventMixin
 
     ### Descendants
 

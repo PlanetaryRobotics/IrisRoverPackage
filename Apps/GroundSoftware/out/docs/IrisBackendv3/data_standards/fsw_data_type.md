@@ -111,6 +111,9 @@ Classes
     `STRING10`
     :
 
+    `STRING100`
+    :
+
     `STRING15`
     :
 
@@ -148,6 +151,9 @@ Classes
     :
 
     `U8`
+    :
+
+    `VARSTRING_10K`
     :
 
     `VARSTRING_255`

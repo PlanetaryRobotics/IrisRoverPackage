@@ -81,7 +81,6 @@ Classes
 
     ### Descendants
 
-    * IrisBackendv3.codec.ipc_messages.PayloadsToPacketRequestMessage
     * IrisBackendv3.ipc.inter_process_message.IpmSubclassFactory.<locals>.SubIpm
     * IrisBackendv3.ipc.inter_process_message.IpmSubclassFactory.<locals>.SubIpm
     * IrisBackendv3.ipc.inter_process_message.IpmSubclassFactory.<locals>.SubIpm
@@ -138,7 +137,6 @@ Classes
     * IrisBackendv3.ipc.messages.m_downlinked_packets.DownlinkedPacketsContent
     * IrisBackendv3.ipc.messages.m_downlinked_payloads.DownlinkedPayloadsContent
     * IrisBackendv3.ipc.messages.m_uplink_packet_request.UplinkPacketRequestContent
-    * IrisBackendv3.ipc.messages.m_uplink_payloads_request.UplinkPayloadsRequestContent
 
     ### Static methods
 
@@ -164,6 +162,7 @@ Classes
     ### Descendants
 
     * IrisBackendv3.ipc.inter_process_message.MessageContentAttrMixin
+    * IrisBackendv3.ipc.messages.m_uplink_payloads_request.UplinkPayloadsRequestContent
 
     ### Static methods
 

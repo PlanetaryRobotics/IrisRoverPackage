@@ -22,7 +22,7 @@ Functions
 Classes
 -------
 
-`SlipTransceiver(device_sn: Optional[str] = None, device_port: Optional[str] = None, baud: int = 57600, endecs: Optional[List[IrisBackendv3.transceiver.endecs.endec.Endec]] = None, pathway: IrisBackendv3.codec.metadata.DataPathway = DataPathway.WIRED, source: IrisBackendv3.codec.metadata.DataSource = DataSource.UDP_SERIAL_DIRECT, **kwargs)`
+`SlipTransceiver(device_sn: str | None = None, device_port: str | None = None, baud: int = 57600, endecs: Optional[List[IrisBackendv3.transceiver.endecs.endec.Endec]] = None, pathway: IrisBackendv3.codec.metadata.DataPathway = DataPathway.WIRED, source: IrisBackendv3.codec.metadata.DataSource = DataSource.UDP_SERIAL_DIRECT, **kwargs)`
 :   Abstract base class for all `Transceivers`. This class handles all
     logic interfacing with `Packet` classes and `Endec`s so the implementation
     of the subclasses can be as simple as possible (just handling how to get
@@ -83,10 +83,10 @@ Classes
 
     ### Instance variables
 
-    `device_port: Optional[str]`
+    `device_port: str | None`
     :
 
-    `device_sn: Optional[str]`
+    `device_sn: str | None`
     :
 
     ### Methods

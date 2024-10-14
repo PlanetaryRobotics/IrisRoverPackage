@@ -1,18 +1,20 @@
 """
 Metafields pertaining to rover power systems.
 
-Last Update: 10/03/2024
+Last Update: 10/06/2024
 """
-from typing import Final, List, Tuple, Dict, Type, Callable, TypedDict
+from typing import Final, List, Tuple, Dict, Type, Callable, TypedDict, cast
 
 import numpy as np
 from scipy import integrate  # type: ignore
+from datetime import datetime, timedelta
 
 from IrisBackendv3.data_standards.module import TelemetryChannel, Event, EnumItem
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.codec.payload import (
     DownlinkedPayload, TelemetryPayload, EventPayload
 )
+from IrisBackendv3.codec.packet_classes.watchdog_detailed_status import WatchdogDetailedStatusPacket
 from IrisBackendv3.meta.metafield import (
     MetaModule, MetaChannel, MetaChannelUpdateBehavior
 )
@@ -277,68 +279,174 @@ def BatteryParameter(
     return BatteryParam
 
 
-class LanderVoltage_FusedEst(MetaChannel):
-    """Lander Voltage Estimate, Fused from Multiple Sensor Readings."""
-    _PROTO = TelemetryChannel('LanderVoltage_FusedEst', 0, FswDataType.F64)
+class HerculesLanderVoltage(MetaChannel):
+    """Lander Voltage, as measured by Watchdog and reported by Hercules."""
+    _PROTO = TelemetryChannel('HerculesLanderVoltage', 0, FswDataType.F64)
     _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
-    _WATCHING = [
-        'WatchdogDetailedStatus_Adc_LanderVoltage',
-        'WatchdogDetailedStatus_Adc_Vcc28Voltage'
-    ]
-    V_LANDER_MAX = 1.10*28.0  # Maximum possible lander voltage (allowed)
-
-    @classmethod
-    def fused_est_lander_voltage(cls, VLander: float, Vcc28: float) -> float:
-        """
-        Fuses two sensor readings weighted based on their relative
-        uncertainties to estimated the true lander voltage, weighted by
-        sensor uncertainty.
-        """
-        dLander = 0.25  # [Volts] (uncertainty in LanderVoltage reading)
-        dVcc28 = 0.5  # [Volts] (uncertainty in Vcc28Voltage reading)
-
-        # Guard against 0:
-        if max(abs(VLander), abs(Vcc28)) == 0:
-            return 0
-
-        # If a significant difference exists (i.e. one sensor is likely faulty)...:
-        if (abs(Vcc28 - VLander) / max(abs(VLander), abs(Vcc28))) > 0.5:
-            # If one of them is significantly greater (50%) than the max
-            # possible lander voltage (i.e. way to large -- failed high),
-            # take the other one:
-            if (VLander > 1.5 * cls.V_LANDER_MAX) and (Vcc28 <= 1.5 * cls.V_LANDER_MAX):
-                return Vcc28
-            if (Vcc28 > 1.5 * cls.V_LANDER_MAX) and (VLander <= 1.5 * cls.V_LANDER_MAX):
-                return VLander
-            # otherwise, just use the larger of the two (since the lower
-            # one likely failed low):
-            return max(VLander, Vcc28)
-
-        # Guard against poor uncertainty settings:
-        if (dLander+dVcc28) == 0:
-            return 0
-
-        # Both sensors have consistent values, so fuse the results:
-        return VLander * (1.0-dLander/(dLander+dVcc28)) + Vcc28 * (1.0-dVcc28/(dLander+dVcc28))
+    _WATCHING = ['WatchDogInterface_Voltage28V']
 
     def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
+        tlm = self._get_t('WatchDogInterface_Voltage28V')
+        raw = tlm.data & ((1 << 12)-1)
+        # This is the same data as from the WD, so just use the same converter:
+        volts = WatchdogDetailedStatusPacket.CustomPayload.Adc2LanderVoltage(
+            raw
+        )
+        return volts, [tlm]
+
+
+class FullSystemPowerEst_W(MetaChannel):
+    """Estimated power of VSA bus"""
+    _PROTO = TelemetryChannel('FullSystemPowerEst_W', 0, FswDataType.F64)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _CACHE_DEPTH = 10
+    _WATCHING = [
+        'WatchdogDetailedStatus_Adc_FullSystemVoltage',
+        'MetaModRoverPower_FullSystemCurrent_mA'
+    ]
+    _TIME_WINDOW = timedelta(minutes=30)
+
+    def _calculate(self) -> Tuple[float | None, List[DownlinkedPayload]]:
+        tlm_Vs = self._get_t(
+            'WatchdogDetailedStatus_Adc_FullSystemVoltage', 10)
+        tlm_I = self._get_t('MetaModRoverPower_FullSystemCurrent_mA')
+
+        # Voltage reports much less frequently than time in mission mode.
+        # Grab the latest switched-on (>15V) voltage:
+        tlm_Vs = [
+            p for p in tlm_Vs
+            if p.data > 15 and p.scet_est is not None
+        ]
+        tlm_Vs = sorted(tlm_Vs, key=lambda x: cast(datetime, x.scet_est))
+        if len(tlm_Vs) == 0:
+            return None, []
+        tlm_V = tlm_Vs[-1]
+
+        # Only use if the values are roughly concurrent and possibly accurate
+        # (within `_TIME_WINDOW` of each other):
+        if tlm_V.scet_est is None or tlm_I.scet_est is None:
+            return None, []
+        if abs(tlm_V.scet_est - tlm_I.scet_est) > self._TIME_WINDOW:
+            return None, []
+
+        return tlm_V.data * tlm_I.data / 1000.0, [tlm_V, tlm_I]
+
+
+class MotorPowerEst_W(MetaChannel):
+    """Estimated power of 24V Motor bus"""
+    _PROTO = TelemetryChannel('MotorPowerEst_W', 0, FswDataType.F64)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _CACHE_DEPTH = 10
+    _WATCHING = [
+        'WatchdogDetailedStatus_Adc_Vcc24Voltage',
+        'MetaModRoverPower_MotorBusCurrent_mA'
+    ]
+    _TIME_WINDOW = timedelta(minutes=30)
+
+    def _calculate(self) -> Tuple[float | None, List[DownlinkedPayload]]:
+        tlm_Vs = self._get_t('WatchdogDetailedStatus_Adc_Vcc24Voltage', 10)
+        tlm_I = self._get_t('MetaModRoverPower_MotorBusCurrent_mA')
+
+        # Voltage reports much less frequently than time in mission mode.
+        # Grab the latest switched-on (>15V) voltage:
+        tlm_Vs = [
+            p for p in tlm_Vs
+            if p.data > 15 and p.scet_est is not None
+        ]
+        tlm_Vs = sorted(tlm_Vs, key=lambda x: cast(datetime, x.scet_est))
+        tlm_V: DownlinkedPayload | None
+        if len(tlm_Vs) == 0:
+            # We'll just est. this since it's very likely that for the entirety
+            # of a move (which will turn on 24V), we won't have gotten a 24V
+            # report from DetailedStatus yet since that's only on request in
+            # Mission Mode as of FM1:
+            voltage = 24
+            tlm_V = None
+        else:
+            tlm_V = tlm_Vs[-1]
+            voltage = tlm_V.data
+
+        if tlm_V is not None and tlm_V.scet_est is None:
+            # Not usable, just est:
+            voltage = 24
+            tlm_V = None
+
+        if (
+            tlm_V is not None and tlm_V.scet_est is not None
+            and tlm_I.scet_est is not None
+            and abs(tlm_V.scet_est - tlm_I.scet_est) > self._TIME_WINDOW
+        ):
+            if tlm_I.scet_est < tlm_V.scet_est:
+                # current data is too stale, abort:
+                return None, []
+            # otherwise, voltage data is too old, just est.:
+            voltage = 24
+            tlm_V = None
+
+        if tlm_I.scet_est is None and (tlm_V is None or tlm_V.scet_est is None):
+            # No usable timestamp on meaningful data, have to skip:
+            return None, []
+
+        if tlm_V is None:
+            return voltage * tlm_I.data / 1000.0, [tlm_I]
+        else:
+            return voltage * tlm_I.data / 1000.0, [tlm_V, tlm_I]
+
+
+class Power3V3Est_W(MetaChannel):
+    """Estimated power of full 3V3 Motor bus"""
+    _PROTO = TelemetryChannel('Power3V3Est_W', 0, FswDataType.F64)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = ['MetaModRoverPower_Full3V3Current_mA']
+
+    def _calculate(self) -> Tuple[float | None, List[DownlinkedPayload]]:
+        tlm_I = self._get_t('MetaModRoverPower_Full3V3Current_mA')
+        return 3.3 * tlm_I.data / 1000.0, [tlm_I]
+
+
+class LanderVoltage_FusedEst(MetaChannel):
+
+    """Lander Voltage Estimate, Fused from Multiple Sensor Readings, if they've
+    been updated within `_TIME_WINDOW`."""
+    _PROTO = TelemetryChannel('LanderVoltage_FusedEst', 0, FswDataType.F64)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _N_MIN_VALS = 0  # don't need to wait for at least 1 for every field
+    _CACHE_DEPTH = 4  # 1 more than num. watching
+    _WATCHING = [
+        'WatchdogDetailedStatus_Adc_LanderVoltage',
+        'WatchdogDetailedStatus_Adc_Vcc28Voltage',
+        'MetaModRoverPower_HerculesLanderVoltage'
+    ]
+    _TIME_WINDOW = timedelta(seconds=1.5*50)  # 1.5x max typ. packet interval
+    V_LANDER_MAX = 1.10*28.0  # Maximum possible lander voltage (allowed)
+
+    def _calculate(self) -> Tuple[float | None, List[DownlinkedPayload]]:
         """
         Fuses two sensor readings weighted based on their relative
         uncertainties to estimated the true lander voltage.
         """
-        tlm_VL = self._get_t('WatchdogDetailedStatus_Adc_Vcc28Voltage')
-        tlm_V28 = self._get_t('WatchdogDetailedStatus_Adc_Vcc28Voltage')
+        dVcc28 = 0.5  # [Volts] (uncertainty in WD's Vcc28 reading)
+        dLander_WD = 0.25  # [Volts] (uncertainty in WD's VL reading)
+        # [Volts] (uncertainty in Herc's VL reading)
+        dLander_Herc = dLander_WD * 7/12
 
-        V = self.__class__.fused_est_lander_voltage(tlm_VL.data, tlm_V28.data)
-        return V, [tlm_VL, tlm_V28]
+        def reasonable_value_filter(p: TelemetryPayload) -> bool:
+            return (
+                p.data is not None and
+                float(p.data) > 0.1 and
+                float(p.data) < 1.5 * self.V_LANDER_MAX
+            )
 
-
-# @property
-# def Adc_FullSystemCurrent(self) -> float:  # [Amps]
-#     # uses *bottom* 9b, so we don't have to shift it, it just saturates earlier:
-#     # NOTE: , that's OFF or FAULT
-#     full_adc_reading = self.Adc_FullSystemCurrentRaw
-#     return float(full_adc_reading) / 4095 * 3.3 * 4600/1000
+        return cast(Tuple[float, List[DownlinkedPayload]], self._get_time_weighted_avg(
+            last_n=self._CACHE_DEPTH,
+            time_window=self._TIME_WINDOW,
+            payload_filter=reasonable_value_filter
+            # extra_weights={
+            #     'WatchdogDetailedStatus_Adc_Vcc28Voltage': (1.0-dVcc28/(dLander_WD+dLander_Herc+dVcc28)),
+            #     'WatchdogDetailedStatus_Adc_LanderVoltage': (1.0-dLander_WD/(dLander_WD+dLander_Herc+dVcc28)),
+            #     'MetaModRoverPower_HerculesLanderVoltage': (1.0-dLander_Herc/(dLander_WD+dLander_Herc+dVcc28))
+            # }
+        ))
 
 
 class FullSystemCurrent_mA(MetaChannel):
@@ -414,7 +522,11 @@ MOD_ROVER_POWER = MetaModule(
         BatteryParameter("BatteryStateOfCharge", _battery_soce)(),
         LanderVoltage_FusedEst(),
         FullSystemCurrent_mA(),
-        FullSystemSwitch_FaultState()
+        FullSystemSwitch_FaultState(),
+        HerculesLanderVoltage(),
+        FullSystemPowerEst_W(),
+        MotorPowerEst_W(),
+        Power3V3Est_W()
     ],
     meta_events=[]
 

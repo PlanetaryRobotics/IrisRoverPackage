@@ -1,9 +1,9 @@
 """
 Metafields pertaining to thermals.
 
-Last Update: 10/03/2024
+Last Update: 10/06/2024
 """
-from typing import Final, List, Tuple, Type, Dict, TypedDict
+from typing import Final, List, Tuple, Type, Dict, TypedDict, cast
 
 import numpy as np
 
@@ -94,6 +94,8 @@ class BatteryTempAvgKelvin(MetaChannel):
     they come in together (or updated within `_TIME_WINDOW`.)"""
     _PROTO = TelemetryChannel('BatteryTempAvgKelvin', 0, FswDataType.F64)
     _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _N_MIN_VALS = 0  # don't need to wait for at least 1 for every field
+    _CACHE_DEPTH = 4  # 1 more than num. watching
     _WATCHING = [
         'WatchdogHeartbeat_BattAdcTempKelvin',
         'WatchdogHeartbeatTvac_AdcTempKelvin',
@@ -103,22 +105,11 @@ class BatteryTempAvgKelvin(MetaChannel):
 
     def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
         # Average all acceptable telem sources that have telemetered within the
-        # last `_TIME_WINDOW`:
-        payloads = [
-            self._get_t(n) for n in self._WATCHING
-        ]
-        times = [
-            p.downlink_times.scet_est for p in payloads
-            if p.downlink_times is not None and p.downlink_times.scet_est is not None
-        ]
-        latest_time = max(times)
-        payloads = [
-            p for p, t in zip(payloads, times)
-            if t > latest_time-self._TIME_WINDOW
-        ]
-        T_avg: float = sum(p.data for p in payloads) / len(payloads)
-
-        return T_avg, payloads  # type: ignore
+        # last `_TIME_WINDOW` as a time-weighted average:
+        return cast(Tuple[float, List[DownlinkedPayload]], self._get_time_weighted_avg(
+            last_n=self._CACHE_DEPTH,
+            time_window=self._TIME_WINDOW
+        ))
 
 
 MOD_TEMPS = MetaModule(

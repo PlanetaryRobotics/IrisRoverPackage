@@ -635,6 +635,13 @@ class DownlinkedPayload(Payload[PT]):
             endianness_code=endianness_code
         )
 
+    @property
+    def scet_est(self) -> datetime | None:
+        """Shorthand.
+        Returns the estimated spacecraft event time, if there is one."""
+        if self.downlink_times is None: return None
+        return self.downlink_times.scet_est
+
     def __getstate__(self) -> Dict[str, Any]:
         """Encode metadata which is not derived from `_raw` as a state."""
         return {

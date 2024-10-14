@@ -678,7 +678,7 @@ class DataSet:
             'WatchdogDetailedStatus_Heater_PwmLimit_DutyCycleCounter',
             'WatchdogDetailedStatus_Heater_PwmLimit_DutyCyclePercent',
             'WatchdogHeartbeatTvac_HeaterPwmDutyCycle',
-            'WatchdogHeartbeatTvac_HeaterPwmLimit',
+            'WatchdogHeartbeatTvac_HeaterPwmLimit'
         ]
         thermal_cols = [x for x in thermal_cols if x in df.columns]
         thermal = df[thermal_cols]
@@ -706,7 +706,11 @@ class DataSet:
             'MetaModRoverPower_BatteryStateOfCharge_Capacity',
             'MetaModRoverPower_BatteryStateOfCharge_Energy',
             'MetaModTemps_BatteryTempAvgKelvin',
+            'MetaModRoverPower_FullSystemPowerEst_W',
+            'MetaModRoverPower_MotorPowerEst_W',
+            'MetaModRoverPower_Power3V3Est_W',
             'WatchdogDetailedStatus_Heater_EffectivePower',
+            'MetaModTransitPower_HeaterPowerLive_W',
             'WatchdogDetailedStatus_Heater_EffectivePowerLimit',
             'MetaModPeregrine_OperationalPowerAvg_W',
             'MetaModPeregrine_OperationalPowerMax_W',
@@ -757,6 +761,7 @@ class DataSet:
             'WatchdogDetailedStatus_Io_1V2PowerGood',
             'WatchdogDetailedStatus_Adc_Vcc28Voltage',
             'WatchdogDetailedStatus_Adc_LanderVoltage',
+            'MetaModRoverPower_HerculesLanderVoltage',
             'MetaModRoverPower_LanderVoltage_FusedEst',
             'WatchdogDetailedStatus_Heater_EffectiveVoltage',
             'MetaModTransitPower_VHeaterLive',
@@ -954,9 +959,9 @@ class DataSet:
         Supports `h5` and `parquet`.
         """
         ext = file_path.split('.')[-1]
-        if ext.lower == 'parquet':
+        if ext.lower() == 'parquet':
             return cls.load_from_parquet(file_path)
-        elif ext.lower == 'h5':
+        elif ext.lower() == 'h5':
             return cls.load_from_h5(file_path, key)
         else:
             raise ValueError(

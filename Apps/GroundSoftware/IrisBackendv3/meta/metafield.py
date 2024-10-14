@@ -10,9 +10,9 @@ based on other fields and those computation functions are included in the
 "Meta" definitions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/02/2024
+@last-updated: 10/09/2024
 """
-from typing import Any, Final, List, TypeVar, Generic, TypeAlias, Dict, Deque, Set, overload, cast, Tuple
+from typing import Any, Final, List, TypeVar, Generic, TypeAlias, Dict, Deque, Set, overload, cast, Tuple, Callable
 from enum import Enum, auto
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -23,6 +23,9 @@ from itertools import islice
 import traceback
 
 import attrs
+
+import math
+from numbers import Real
 
 from IrisBackendv3.data_standards.logs import logger
 
@@ -155,6 +158,12 @@ class MetaField(Generic[_MF_DEF_T, _MF_CALC_T], ABC):
             for field_name in self._WATCHING
         }
 
+    def _field_has_data(self, field: str, amount: int = 1) -> bool:
+        """Checks that the `field` with the given name has at least the given
+        `amount` of entries in its FIFO. Most needed when `_N_MIN_VALS=0`,
+        meaning data isn't guaranteed."""
+        return len(self._deques[field]) >= amount
+
     @overload
     def _get(self, field: str) -> DownlinkedPayload: ...
     @overload
@@ -206,6 +215,183 @@ class MetaField(Generic[_MF_DEF_T, _MF_CALC_T], ABC):
         last_n: int = 1
     ) -> EventPayload | List[EventPayload]:
         return cast(EventPayload, self._get(field, last_n))
+
+    def _get_last_n(
+        self,
+        last_n: int,
+        time_window: timedelta | None = None,
+        payload_filter: Callable[[DownlinkedPayload], bool] | None = None
+    ) -> List[Tuple[str, DownlinkedPayload]]:
+        """Returns the `last_n` values received from any field this MetaField
+        is watching, sorted by `scet_est`.
+
+        If `time_window` is given, only times from within this time window from
+        the latest value will be considered.
+
+        If a `payload_filter` is given, values will only considered if
+        `payload_filter` returns `True` for them. Values will also be ignored
+        if they have no `downlink_times.scet_est`.
+
+        NOTE: If fewer than `last_n` values have been received overall,
+        the returned collection will be shorter than `last_n`.
+
+        Returns a list of (field_name, field_value) tuples, sorted by `scet_est`.
+        """
+        if payload_filter is None:
+            payload_filter = (lambda x: True)
+        all_values: List[Tuple[str, DownlinkedPayload]] = [
+            (k, x) for k, deq in self._deques.items() for x in deq
+            if (
+                x.scet_est is not None
+                and payload_filter(x)
+                and not (isinstance(x, TelemetryPayload) and (
+                    x.data is None
+                    or (isinstance(x.data, Real) and math.isnan(x.data))
+                ))
+            )
+        ]
+        all_values = cast(List[Tuple[str, DownlinkedPayload]], sorted(
+            all_values,
+            key=lambda e: e[1].scet_est  # type: ignore
+        ))
+        if time_window is not None:
+            t_last: datetime
+            t_last = all_values[-1][1].scet_est  # type: ignore
+            all_values = [
+                (k, x) for k, x in all_values
+                if cast(datetime, x.scet_est) > (t_last-time_window)
+            ]
+
+        return all_values[-last_n:]
+
+    def _get_last_n_dict(
+        self,
+        last_n: int,
+        time_window: timedelta | None = None,
+        payload_filter: Callable[[DownlinkedPayload], bool] | None = None
+    ) -> Dict[str, List[DownlinkedPayload]]:
+        """Returns the `last_n` values received from any field this MetaField
+        is watching, sorted by `scet_est`.
+
+        If `time_window` is given, only times from within this time window from
+        the latest value will be considered.
+
+        If a `payload_filter` is given, values will only considered if
+        `payload_filter` returns `True` for them. Values will also be ignored
+        if they have no `downlink_times.scet_est`.
+
+        NOTE: If fewer than `last_n` values have been received overall,
+        the returned collection will be shorter than `last_n`.
+
+        Returns a dict where these items are split by field name. Watched
+        fields which haven't been in the `last_n` received values won't have an
+        entry in the dictionary.
+        Returned values are sorted by `scet_est`.
+        """
+        last_values = self._get_last_n(last_n, time_window, payload_filter)
+        split: Dict[str, List[DownlinkedPayload]] = dict()
+        for k, v in last_values:
+            if k not in split:
+                split[k] = []
+            split[k].append(v)
+        return split
+
+    def _get_time_weighted_avg(
+        self,
+        last_n: int | None = None,
+        time_window: timedelta | None = None,
+        payload_filter: Callable[[TelemetryPayload], bool] | None = None,
+        extra_weights: Dict[str, float] | None = None
+    ) -> Tuple[float | None, List[TelemetryPayload]]:
+        """
+        Returns the time weighted average of all queued values received for
+        this fields this MetaField watches, or just up to the `last_n` if
+        `last_n` is given.
+
+        If `time_window` is given, only times from within this time window from
+        the latest value will be considered.
+
+        If an `extra_weights` dictionary is given, these will be applied to
+        values from the corresponding channels. Extra weights MUST have a key
+        for every watched field if given.
+
+        If a `payload_filter` is given, values will only considered if
+        `payload_filter` returns `True` for them. Values will also be ignored
+        if they have no `downlink_times.scet_est`.
+
+        Only works on `TelemetryPayloads`, ignores any `EventPayloads`.
+        See `_get_last_n` for more details on how filtering works.
+
+        Returns the average and all payloads used in that calculation
+        """
+        if extra_weights is not None:
+            if any(k not in extra_weights for k in self._WATCHING):
+                raise ValueError(
+                    f"`{extra_weights=}` must have an entry for every "
+                    f"watched field in `{self._WATCHING=}`!"
+                )
+
+        if last_n is None:
+            last_n = sum(len(x) for x in self._deques.values())
+
+        # Isolate `TelemetryPayloads`:
+        def base_filter(x: DownlinkedPayload) -> bool:
+            return isinstance(x, TelemetryPayload)
+
+        total_filter: Callable[[DownlinkedPayload], bool]
+        if payload_filter is None:
+            total_filter = base_filter
+        else:
+            def total_filter(x: DownlinkedPayload) -> bool:
+                pf = cast(Callable[[TelemetryPayload], bool], payload_filter)
+                return base_filter(x) and pf(cast(TelemetryPayload, x))
+
+        # Our `base_filter` guarantees that the results are TelemetryPayloads:
+        recents = cast(List[Tuple[str, TelemetryPayload]],
+                       self._get_last_n(last_n, time_window, total_filter))
+
+        if len(recents) == 0:
+            return None, []
+
+        if len(recents) == 1:
+            return recents[0][1].data, [recents[0][1]]
+
+        if len(recents) == 2:
+            avg = (recents[0][1].data + recents[1][1].data) / 2.0
+            return avg, [recents[0][1], recents[1][1]]
+
+        # Get duration:
+        # NOTE: `_get_last_n` guarantees sort by time and that all payloads
+        # have `downlink_times` and `scet_est`
+        t_start = cast(datetime, recents[0][1].scet_est)
+        t_end = cast(datetime, recents[-1][1].scet_est)
+        total_duration = (t_end - t_start).total_seconds()
+
+        # Perform weighted avg:
+        total_extra_weights: float = 0.0
+        weighted_sum: float = 0.0
+        for i, (k, p) in enumerate(recents):
+            v = p.data
+            t = cast(datetime, p.scet_est)
+            t_next: datetime
+            if (i+1) < len(recents):
+                t_next = cast(datetime, recents[i+1][1].scet_est)
+            else:
+                t_next = t_end
+            duration = (t_next - t).total_seconds()
+            contribution = v * duration
+            if extra_weights is not None:
+                contribution *= extra_weights[k]
+                total_extra_weights += extra_weights[k]
+            weighted_sum += contribution
+
+        twa: float = 0.0
+        if total_duration != 0.0:
+            twa = weighted_sum / total_duration
+        if total_extra_weights != 0.0:
+            twa = twa / total_extra_weights
+
+        return twa, [p for _, p in recents]
 
     def process(
         self,
@@ -277,7 +463,7 @@ class MetaField(Generic[_MF_DEF_T, _MF_CALC_T], ABC):
 
         return val, factors
 
-    @abstractmethod
+    @ abstractmethod
     def _calculate(self) -> Tuple[_MF_CALC_T | None, List[DownlinkedPayload]]:
         """Implementation of the actual calculation this field performs.
         Only called once enough data has been received for all fields and all
@@ -302,7 +488,7 @@ MetaChannel: TypeAlias = MetaField[TelemetryChannel, Any]
 MetaEvent: TypeAlias = MetaField[Event, Dict[str, Any]]
 
 
-@dataclass
+@ dataclass
 class MetaModule:
     """Container for meta-channels and meta-events.
 
@@ -330,7 +516,7 @@ class MetaModule:
     # Based on op-code system inherited from FPrime:
     MAX_NUM_FIELDS: Final[int] = 0xFF
 
-    @property
+    @ property
     def module(self) -> Module: return self._module
 
     def __post_init__(self) -> None:
@@ -365,7 +551,7 @@ class MetaModule:
             })
         )
 
-    @staticmethod
+    @ staticmethod
     def _determine_downlink_times(factors: List[DownlinkedPayload]) -> DownlinkTimes:
         """Determines the appropriate DownlinkTimes for the payload of a
         MetaField derived from (computed using) `factors`.

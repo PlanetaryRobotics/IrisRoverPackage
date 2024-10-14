@@ -356,7 +356,7 @@ namespace CubeRover
         {
             int16_t voltage_2V5;       // Current measured voltage of the 2.5V line as read from the Watchdog
             int16_t voltage_2V8;       // Current measured voltage of the 2.8V line as read from the Watchdog
-            int16_t voltage_24V;       // Current measured voltage of the 24V line as read from the Watchdog
+            int16_t voltage_24V;       // Current measured voltage of the 24V line as read from the Watchdog (actually this is VBS now)
             int16_t voltage_28V;       // Current measured voltage of the 28V line as read from the Watchdog
             int8_t battery_thermistor; // Current measured voltage of the watchdog battery thermistor as read from the Watchdog
             int8_t sys_status;         // 8 bit systems status where each bit represents a watchdog status

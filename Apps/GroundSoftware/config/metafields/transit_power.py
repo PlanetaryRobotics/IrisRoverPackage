@@ -2,7 +2,7 @@
 Metafields pertaining to power, current, & voltages that are relevant in
 transit.
 
-Last Update: 01/07/2024
+Last Update: 10/06/2024
 """
 from typing import Final, List, Tuple
 
@@ -40,6 +40,30 @@ class VHeaterLive(MetaChannel):
         return v_heater if is_heating else 0, [vht, iht]
 
 
+class HeaterPowerLive_W(MetaChannel):
+    """Heater voltage, reflecting the actual current heater status."""
+    _PROTO = TelemetryChannel('HeaterPowerLive_W', 0, FswDataType.F64)
+    _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
+    _WATCHING = [
+        'WatchdogDetailedStatus_Heater_EffectivePower',
+        'WatchdogDetailedStatus_Heater_IsHeating'
+    ]
+
+    def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
+        pht = self._get_t('WatchdogDetailedStatus_Heater_EffectivePower')
+        p_heater: float = pht.data
+        iht = self._get_t('WatchdogDetailedStatus_Heater_IsHeating')
+        is_heating_val: str | int = iht.data
+
+        is_heating: bool
+        if isinstance(is_heating_val, str):
+            is_heating = is_heating_val.upper() == 'HEATING'
+        else:
+            is_heating = is_heating_val == 0x01
+
+        return p_heater if is_heating else 0, [pht, iht]
+
+
 MOD_TRANSIT_POWER = MetaModule(
     # Note: this gets prefixed by `MetaModule.UNIVERSAL_PREFIX` b/c it's a MetaModule:
     name="TransitPower",
@@ -47,7 +71,8 @@ MOD_TRANSIT_POWER = MetaModule(
     meta_channels=[
         # NOTE: Order Matters
         # To preserve backwards compatibility, don't delete, just deprecate.
-        VHeaterLive()
+        VHeaterLive(),
+        HeaterPowerLive_W()
     ],
     meta_events=[]
 )

@@ -352,11 +352,11 @@ services:
       python3 ./scripts/testing/ipc_demo/archive_xcvr.py
       --loop
       -s 1.0
-      --start-time-utc 2024-01-09
+      --start-time-utc 2024-01-08
       --jump-to-iris
       --rx-is-generation-time
       -d ./out/fm1_data/yamcs_export
-      -n fm1_mission_archive.telem
+      -n fm1_mission_archive.yamcs
       -e parquet
     stop_signal: SIGINT
     image: "iris_backend_v3:latest"
@@ -376,6 +376,35 @@ services:
       iris.backend.v3.service_type: "transceiver"
       iris.backend.v3.description: "Feeds data replayed from an Archive of the FM1 mission from YAMCS into the system."
 
+  fm1-data-fast:
+    container_name: "IBv3_fm1_data_fast"
+    command: >
+      python3 ./scripts/testing/ipc_demo/archive_xcvr.py
+      --loop
+      -s 10.0
+      --start-time-utc 2024-01-08
+      --jump-to-iris
+      --rx-is-generation-time
+      -d ./out/fm1_data/yamcs_export
+      -n fm1_mission_archive.yamcs
+      -e parquet
+    stop_signal: SIGINT
+    image: "iris_backend_v3:latest"
+    env_file:
+      - ".env"
+    environment:
+      IBv3_ipc__IP: "proxies"
+    # network_mode: host
+    tty: true
+    depends_on:
+      - standards
+      - proxies
+      - dl_processor
+      - ul_processor
+    volumes: *common-volumes
+    labels:
+      iris.backend.v3.service_type: "transceiver"
+      iris.backend.v3.description: "Feeds data replayed from an Archive of the FM1 mission from YAMCS into the system at a faster-than-realtime speed."
 
   xcvr-wifi:
     container_name: "IBv3_xcvr_wifi"

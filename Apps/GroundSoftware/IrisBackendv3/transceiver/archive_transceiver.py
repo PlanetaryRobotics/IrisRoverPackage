@@ -101,8 +101,10 @@ def records_to_packets(
 ) -> List[Packet]:
     """Creates all packets that should be generated from the given records,
     sorted chronologically."""
+    # Wrap records in DataSet:
+    ds_records = DataSet(records)
     # Generate packets:
-    times, packets = generate_all_packets(records, rx_is_generation_time)
+    times, packets = generate_all_packets(ds_records, rx_is_generation_time)
     # Sort chronologically (blends Peregrine packets into Iris packets):
     sorted_packets = [
         p for _, p in sorted(zip(times, packets), key=lambda pair: pair[0])

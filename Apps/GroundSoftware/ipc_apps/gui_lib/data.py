@@ -11,6 +11,8 @@ import re
 import redis
 import pandas as pd  # type: ignore
 
+import traceback
+
 from IrisBackendv3.codec.packet_classes.packet import Packet
 from IrisBackendv3.codec.payload import TelemetryPayload, EventPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
@@ -389,8 +391,12 @@ def _push_telemetry_time_series(
         time = time + timedelta(microseconds=i)
         timestamp = ts_datetime_to_timestamp(time)
         key = channel_to_ts_key(telem.module.name, telem.channel.name)
+        if isinstance(telem.data, bool):
+            data = int(telem.data)
+        else:
+            data = telem.data 
         # Add the command to the pipe:
-        pipe.execute_command('ts.add', key, timestamp, telem.data)
+        pipe.execute_command('ts.add', key, timestamp, data)
 
     # Run all the commands in the pipe (push all the data):
     try:
@@ -400,6 +406,10 @@ def _push_telemetry_time_series(
             f"Failed to push time series for telemetry in payload collection: "
             f"`{payloads}` b/c: `{e}` (likely only a few values are at fault "
             "here)."
+        )
+        trace = traceback.format_exc()
+        context.ipc_app.logger.error(
+            f"\t > The stack trace of this error was: `{trace}`."
         )
 
 

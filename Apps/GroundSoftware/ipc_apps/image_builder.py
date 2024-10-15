@@ -30,6 +30,8 @@ from typing import Any, Set, Dict, List, Tuple, cast, TypeAlias, Type, Final, Ca
 import numpy as np
 from scipy.interpolate import LinearNDInterpolator  # type: ignore
 
+import traceback
+
 import time
 from types import SimpleNamespace
 from typing import Final
@@ -1542,8 +1544,12 @@ def main(opts) -> None:
         except Exception as e:
             app.logger.error(
                 f"Unhandled exception in packet processing loop: `{e}`. \n"
-                f"Failed to process: `{payloads}`."
+                f"Failed to process: `{payloads}`. "
                 f"Moving on . . ."
+            )
+            trace = traceback.format_exc()
+            app.logger.error(
+                f"\t > The stack trace of this error was: `{trace}`."
             )
 
     # App is over. Export everything:

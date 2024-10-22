@@ -31,12 +31,12 @@ import time
 import logging
 from typing import Optional
 
-from bgapi.apihelper import api_cmd_to_ascii, camelcase
-from bgapi.apiparser import ParsedApi
-from bgapi import serdeser
+from bgapi.apihelper import api_cmd_to_ascii, camelcase  # type: ignore
+from bgapi.apiparser import ParsedApi  # type: ignore
+from bgapi import serdeser  # type: ignore
 
-from bgapi.connector import ConnectorTimeoutException
-from bgapi.bglib import *
+from bgapi.connector import ConnectorTimeoutException  # type: ignore
+from bgapi.bglib import *  # type: ignore
 
 
 ERRORCODE_SUCCESS = 0

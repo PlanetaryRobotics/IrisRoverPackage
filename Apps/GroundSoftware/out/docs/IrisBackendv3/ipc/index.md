@@ -8,7 +8,7 @@ later if needed to support new requirements without disrupting the rest of the
 system.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 04/30/2023
 
 Sub-modules
 -----------
@@ -16,7 +16,7 @@ Sub-modules
 * IrisBackendv3.ipc.exceptions
 * IrisBackendv3.ipc.inter_process_message
 * IrisBackendv3.ipc.ipc_payload
-* IrisBackendv3.ipc.logging
+* IrisBackendv3.ipc.logs
 * IrisBackendv3.ipc.messages
 * IrisBackendv3.ipc.port
 * IrisBackendv3.ipc.restricted_pickler
@@ -24,6 +24,7 @@ Sub-modules
 * IrisBackendv3.ipc.settings
 * IrisBackendv3.ipc.signature
 * IrisBackendv3.ipc.topic_definition
+* IrisBackendv3.ipc.topic_proxy
 * IrisBackendv3.ipc.topics
 * IrisBackendv3.ipc.topics_registry
 * IrisBackendv3.ipc.wrapper

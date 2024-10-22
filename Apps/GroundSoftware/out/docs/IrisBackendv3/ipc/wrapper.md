@@ -11,7 +11,7 @@ being used for IPC. That is, if we ever decide to migrate away from ZMQ for IPC,
 the only area that should **need** to be changed would be this file.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/07/2023
+@last-updated: 04/29/2023
 
 Functions
 ---------
@@ -55,7 +55,7 @@ Functions
     If `bind=True`, binding will be attempted no matter the `socket_type` (can
     be useful for inverse topologies with many pubs and one sub which binds).
     If `bind` is not given (`bind is None`), binding will be chosen by default
-    behavior: servers & pubs bind, clients & subs don't.
+    behavior: server, xpub, and xsub bind, everything else just connects.
     
     NOTE: Bound sockets can only take one port. Unbound sockets that are not
     server or publisher can take multiple.
@@ -72,7 +72,7 @@ Functions
     If `bind=True`, binding will be attempted no matter the `socket_type` (can
     be useful for inverse topologies with many pubs and one sub which binds).
     If `bind` is not given (`bind is None`), binding will be chosen by default
-    behavior: servers & pubs bind, clients & subs don't.
+    behavior: server, xpub, and xsub bind, everything else just connects.
     
     NOTE: Bound sockets can only take one port. Unbound sockets that are not
     server or publisher can take multiple.
@@ -105,8 +105,15 @@ Functions
     This can be done even if `topic` isn't being used.
 
     
-`subscribe(socket: Union[Socket, AsyncSocket], topics: Union[Topic, List[Topic]]) ‑> None`
+`start_proxy(inbound: Socket, outbound: Socket) ‑> None`
+:   Starts a blocking proxy between the inbound and outbound sockets.
+    Simple wrapper for ZMQ proxy.
+
+    
+`subscribe(socket: Socket | AsyncSocket, topics: Topic | List[Topic] | None) ‑> None`
 :   Subscribes the given socket to the given topic(s).
+    Subscribes to all topics on the port (removes any filters) if
+    `topics is None`.
 
     
 `validate_ipc_payload(ipc_payload: IpcPayload) ‑> None`
@@ -134,4 +141,10 @@ Classes
     :
 
     `SUBSCRIBER`
+    :
+
+    `XPUBLISHER`
+    :
+
+    `XSUBSCRIBER`
     :

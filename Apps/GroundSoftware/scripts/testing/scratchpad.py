@@ -1,8 +1,8 @@
 import re
-from lxml import etree
+from lxml import etree  # type: ignore
 import os.path
 import pickle
-import jsonpickle
+import jsonpickle  # type: ignore
 from typing import List, Dict
 
 from IrisBackendv3.utils import NameIdDict

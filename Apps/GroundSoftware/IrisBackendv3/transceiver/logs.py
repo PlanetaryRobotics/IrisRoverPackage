@@ -2,7 +2,7 @@
 from typing import Final
 from IrisBackendv3.logs.logger_template import create_logger_from_template
 
-from IrisBackendv3.ipc.settings import settings
+from IrisBackendv3.transceiver.settings import settings
 
 logger_build: Final = create_logger_from_template(
     logger_name='IrisBackendv3.Transceiver',

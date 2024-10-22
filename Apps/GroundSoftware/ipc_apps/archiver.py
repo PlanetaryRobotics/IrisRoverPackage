@@ -1,10 +1,14 @@
 """
 Simple IPC App to archive traffic in all IPC `Topic`s into an AOF DB.
 
-TODO: Add replay functionality.
+TODO: Add support for automatically dumping to the archive format used by
+iTVAC and mission.
+
+~TODO: Add replay functionality.~
+# ^ SEE `archive_xcvr.py` (`IrisBackendv3.storage` largely handles this now)
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 01/11/2024
+@last-updated: 09/29/2024
 """
 from typing import cast, Final, List, Dict, Type, Set
 from datetime import datetime, timedelta, timezone
@@ -47,7 +51,7 @@ class IpcArchiveEntry:
 
 def archive(entry: IpcArchiveEntry) -> None:
     # Create binary:
-    restricted_pickler.dumps()
+    # restricted_pickler.dumps()
 
     raise NotImplementedError()
 

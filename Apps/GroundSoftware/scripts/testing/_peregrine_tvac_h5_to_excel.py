@@ -5,6 +5,11 @@ the raw `yamcs` table containing raw data received from YAMCS.
 NOTE: If this gives protobuf warnings, either resolve them or run:
 - `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python ./run-script.sh ...`
 - instead of: `./run-script.sh ...`
+
+NOTE: This is a legacy support script for iTVAC archives. As of 09/2024, all
+archives should be processed by just using the appropriate method in 
+`IrisBackendv3.storage.dataset.DataSet` to open the archive and then another
+method to export it to any other desired format.
 """
 # Activate postponed annotations:
 from __future__ import annotations
@@ -24,7 +29,7 @@ import argparse
 from dataclasses import dataclass
 from termcolor import colored
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 import warnings
 # Suppress PerformanceWarning about pytables needing to pickle some fields

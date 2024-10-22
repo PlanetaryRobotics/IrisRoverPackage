@@ -6,7 +6,7 @@ Last Updated: 05/30/2023
 """
 from typing import Final, List, Tuple, Dict
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
 
 def seconds_to_str(

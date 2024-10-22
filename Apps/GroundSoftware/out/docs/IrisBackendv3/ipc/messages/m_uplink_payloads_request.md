@@ -5,7 +5,7 @@ requesting that a Transceiver(s) Uplink these Payloads, either as one or
 multiple payloads.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/06/2023
+@last-updated: 06/21/2023
 
 Classes
 -------
@@ -28,7 +28,7 @@ Classes
     `TOGETHER`
     :
 
-`UplinkPayloadsRequestContent(payloads: List[IrisBackendv3.codec.payload.Payload], split: IrisBackendv3.ipc.messages.m_uplink_payloads_request.UplinkPayloadsPacketSplit = UplinkPayloadsPacketSplit.ANY, packet_class: Optional[Type[IrisBackendv3.codec.packet_classes.packet.Packet]] = None, target_xcvr: IrisBackendv3.transceiver.xcvr_enum.TransceiverEnum = TransceiverEnum.ALL)`
+`UplinkPayloadsRequestContent(payloads: List[Payload], split: UplinkPayloadsPacketSplit = UplinkPayloadsPacketSplit.ANY, packet_class: Type[Packet] | None = None, target_xcvr: TransceiverEnum = TransceiverEnum.ALL)`
 :   Defines the Message Content for a Request to a collection of `Payloads` in
     the uplink direction.
     
@@ -52,9 +52,13 @@ Classes
 
     ### Ancestors (in MRO)
 
-    * IrisBackendv3.ipc.inter_process_message.MessageContentAttrMixin
     * IrisBackendv3.ipc.inter_process_message.MessageContentInterface
     * abc.ABC
+
+    ### Static methods
+
+    `from_dict(d: Dict) ‑> IrisBackendv3.ipc.messages.m_uplink_payloads_request.UplinkPayloadsRequestContent`
+    :
 
     ### Instance variables
 
@@ -73,4 +77,7 @@ Classes
     ### Methods
 
     `simple_str(self) ‑> str`
+    :
+
+    `to_dict(self) ‑> Dict`
     :

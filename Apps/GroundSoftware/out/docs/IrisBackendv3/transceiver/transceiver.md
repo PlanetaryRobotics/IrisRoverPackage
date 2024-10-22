@@ -4,9 +4,6 @@ Abstract Base Class encapsulating common behaviors and interfaces for all
 transceiver classes.
 
 TODO: Handle setting `rover_ack` for `UplinkedPayload`s.
-TODO: Handle multi-packet unpackings like `FileBlockPayload`s.
-^ Do all this at the `Transceiver` level (not in subclasses) so all subclasses
-benefit from the impl.
 
 TODO: Handle auto-updating of seq-num (maybe this needs to work across
 Transceivers?)
@@ -19,7 +16,7 @@ TODO: Add pcap-save function (writes every outbound bytes_packet to a pcap).
 Classes
 -------
 
-`Transceiver(endecs: Optional[List[Endec]] = None, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, log_on_send: bool = True, log_on_receive: bool = True, **_)`
+`Transceiver(name: str, endecs: Optional[List[Endec]] = None, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, log_on_send: bool = True, log_on_receive: bool = True, **_)`
 :   Abstract base class for all `Transceivers`. This class handles all
     logic interfacing with `Packet` classes and `Endec`s so the implementation
     of the subclasses can be as simple as possible (just handling how to get
@@ -38,8 +35,10 @@ Classes
 
     ### Descendants
 
+    * IrisBackendv3.transceiver.archive_transceiver.ArchiveTransceiver
     * IrisBackendv3.transceiver.pcap_transceiver.PcapTransceiver
     * IrisBackendv3.transceiver.slip_transceiver.SlipTransceiver
+    * IrisBackendv3.transceiver.wifi_transceiver.WifiTransceiver
     * IrisBackendv3.transceiver.yamcs_transceiver.YamcsTransceiver
 
     ### Class variables
@@ -57,6 +56,9 @@ Classes
     :
 
     `log_on_send: bool`
+    :
+
+    `name: str`
     :
 
     `seq_num: int`

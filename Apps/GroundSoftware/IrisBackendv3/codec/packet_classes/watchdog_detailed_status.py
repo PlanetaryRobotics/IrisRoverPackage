@@ -456,9 +456,14 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             """
             return [name.replace('RABI__', '') for name, val in self.Watchdog_ResetLogs_Dict.items() if val != 0]  # noqa (don't wrap this line around)
 
+        @classmethod
+        def Adc2LanderVoltage(cls, x: float) -> float:
+            # Broken out so MetaChannels can use this too
+            return cls.VL_ADC_FM1_CORRECTION_FACTOR * x / 4095.0 * 3.3 * (232.0+2000.0)/232.0
+
         @property
         def Adc_LanderVoltage(self) -> float:
-            return self.VL_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_LanderVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
+            return self.Adc2LanderVoltage(float(self.Adc_LanderVoltageRaw))
 
         @property
         def Adc_BatteryChargingTempKelvin(self) -> float:
@@ -504,8 +509,9 @@ class WatchdogDetailedStatusPacketInterface(CustomPayloadPacket[CT, CPCT]):
             return self.VSA_ADC_FM1_CORRECTION_FACTOR * float(self.Adc_FullSystemVoltageRaw) / 4095.0 * 3.3 * (232.0+2000.0)/232.0
 
         @property
-        def Adc_FullSystemCurrent(self) -> float:
+        def Adc_FullSystemCurrent(self) -> float:  # [Amps]
             # uses *bottom* 9b, so we don't have to shift it, it just saturates earlier:
+            # NOTE: if near ISNSFH=6-7.6mA (6.9mA mean), that's OFF or FAULT
             full_adc_reading = self.Adc_FullSystemCurrentRaw
             return float(full_adc_reading) / 4095 * 3.3 * 4600/1000
 
@@ -1012,7 +1018,7 @@ class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
     def __repr__(self) -> str:
         return self.custom_payload.__repr__() + f' {hexstr(self.raw)}'
 
-    @ classmethod
+    @classmethod
     def decode(cls,
                data: bytes,
                endianness_code: str = ENDIANNESS_CODE
@@ -1077,7 +1083,7 @@ class WatchdogDetailedStatusPacket(WDS_PI[WDS_PI, WDS_CP]):
         # TODO (not really a typical use case so not super necessary besides for completeness)
         raise NotImplementedError()
 
-    @ classmethod
+    @classmethod
     def is_valid(cls, data: bytes, endianness_code: str = ENDIANNESS_CODE) -> bool:
         """
         Determines whether the given bytes constitute a valid packet of this type.

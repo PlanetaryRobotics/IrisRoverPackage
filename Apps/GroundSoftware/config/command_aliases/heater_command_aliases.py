@@ -11,7 +11,7 @@ from IrisBackendv3.data_standards.data_standards import DataStandards
 from IrisBackendv3.config.command_aliases import PreparedCommand, CommandAliases, CommandAliasesBuilder
 
 
-def power_level_to_duty_cycle(P: float) -> float:
+def power_level_to_duty_cycle(P: float) -> int:
     """Converts a power percentage `P` to a duty cycle."""
     # TODO: Move this to Iris system config?
     # NOTE: this is actually setting the TB0CCR2 on counter.
@@ -21,7 +21,7 @@ def power_level_to_duty_cycle(P: float) -> float:
     duty = round(10000*(P/100)**0.5)
     # Make sure duty stays between >=0 and <=9999
     # (DON'T set to the full value of 10000 (since cutoff is 1 less))
-    return min(max(duty, 0), 9999)
+    return int(min(max(duty, 0), 9999))
 
 
 @CommandAliasesBuilder

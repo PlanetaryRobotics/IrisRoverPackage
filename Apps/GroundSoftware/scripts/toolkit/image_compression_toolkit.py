@@ -8,7 +8,7 @@ RC11-style metadata.
 @last-updated: 10/16/2023
 """
 
-import heatshrink2 as hs2
+import heatshrink2 as hs2  # type: ignore
 from typing import Final, Tuple, List, Dict
 
 

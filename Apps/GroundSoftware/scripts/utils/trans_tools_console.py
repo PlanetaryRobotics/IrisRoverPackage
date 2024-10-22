@@ -52,7 +52,8 @@ from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logs import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
-from scripts.utils.__command_aliases import prepared_commands, Parameter, PreparedCommandType
+from IrisBackendv3.config.command_aliases import Parameter
+from scripts.utils.__command_aliases import prepared_commands
 
 from IrisBackendv3.utils.console_display import *
 
@@ -340,7 +341,7 @@ class IrisConsoleDisplayDriver:
         something_changed: bool = False
 
         # If window is not focused, ignore input:
-        if not window_is_focused(self.ACTUAL_REFERENCE_WINDOW_TITLE):
+        if not window_is_focused(str(self.ACTUAL_REFERENCE_WINDOW_TITLE)):
             return
 
         if key == pynput.keyboard.Key.f2:

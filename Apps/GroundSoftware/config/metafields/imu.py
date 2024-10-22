@@ -38,7 +38,7 @@ def AccMS2Builder(
         _UPDATE_BEHAVIOR = MetaChannelUpdateBehavior.ANY
         _WATCHING = [f'Imu_{acc_name}']
 
-        def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+        def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
             telem = self._get_t(f'Imu_{acc_name}')
             raw_val = telem.data
             ms2_val = _imu_raw_to_m_s(raw_val)
@@ -61,7 +61,7 @@ class GravityMagnitudeMS2(MetaChannel):
         'MetaModImu_ZAcc_MS2'
     ]
 
-    def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+    def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
         x_acc_telem = self._get_t('MetaModImu_XAcc_MS2')
         y_acc_telem = self._get_t('MetaModImu_YAcc_MS2')
         z_acc_telem = self._get_t('MetaModImu_ZAcc_MS2')
@@ -84,7 +84,7 @@ class PitchAngleDeg(MetaChannel):
         'MetaModImu_ZAcc_MS2'
     ]
 
-    def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+    def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
         x_acc_telem = self._get_t('MetaModImu_XAcc_MS2')
         y_acc_telem = self._get_t('MetaModImu_YAcc_MS2')
         z_acc_telem = self._get_t('MetaModImu_ZAcc_MS2')
@@ -93,7 +93,12 @@ class PitchAngleDeg(MetaChannel):
         z_acc = z_acc_telem.data
 
         acc_mag = float(np.sqrt(x_acc**2 + y_acc**2 + z_acc**2))
-        pitch_deg = float(np.arcsin(y_acc / acc_mag) * 180.0/np.pi)
+        if acc_mag == 0:
+            pitch_deg = 0
+        else:
+            pitch_deg = float(  # type: ignore
+                np.arcsin(y_acc / acc_mag) * 180.0/np.pi
+            )
 
         return pitch_deg, [x_acc_telem, y_acc_telem, z_acc_telem]
 
@@ -108,7 +113,7 @@ class RollAngleDeg(MetaChannel):
         'MetaModImu_ZAcc_MS2'
     ]
 
-    def _calculate(self) -> Tuple[TelemetryPayload, List[DownlinkedPayload]]:
+    def _calculate(self) -> Tuple[float, List[DownlinkedPayload]]:
         x_acc_telem = self._get_t('MetaModImu_XAcc_MS2')
         y_acc_telem = self._get_t('MetaModImu_YAcc_MS2')
         z_acc_telem = self._get_t('MetaModImu_ZAcc_MS2')

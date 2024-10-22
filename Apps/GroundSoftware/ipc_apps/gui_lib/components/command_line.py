@@ -12,21 +12,22 @@ from typing import Any, Final, Dict, Type, List, Tuple, cast
 from collections import OrderedDict
 
 from uuid import uuid4
-import pandas as pd
-import dash
+import pandas as pd  # type: ignore
+import dash  # type: ignore
 from dash import (
     ctx, no_update,
     html, dcc,
     Output, Input, State,
     callback, MATCH, ALL
 )
-from dash.dependencies import _Wildcard
-from dash.development.base_component import Component
-import dash_bootstrap_components as dbc
+from dash.dependencies import _Wildcard  # type: ignore
+from dash.development.base_component import Component  # type: ignore
+import dash_bootstrap_components as dbc  # type: ignore
 
 import IrisBackendv3 as IB3
 
 from IrisBackendv3.config import command_aliases
+from IrisBackendv3.config.settings import settings as CONFIG_SETTINGS
 from IrisBackendv3.transceiver.xcvr_enum import TransceiverEnum
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.metadata import DataPathway
@@ -872,15 +873,10 @@ def make_command_line_aio(context: GuiContext, *args, **kwargs) -> _CommandLineA
     # Load Aliases Table:
     # TODO: Should we make the file selectable (for procedures?) or just
     # always provide the maximal set?
-    # "Name of the command_aliases file in the "
-    # f"`{command_aliases.DEFAULT_COMMAND_ALIASES_DIR}` "
-    # "directory which defines which commands are "
-    # "available."
-    COMMAND_ALIASES_FILE: Final = "standard_command_aliases"
 
     # Load aliases table for:
     aliases_table: Final = command_aliases.CommandAliasesTable.load_from_file(
-        COMMAND_ALIASES_FILE
+        CONFIG_SETTINGS['DEFAULT_COMMAND_ALIASES_FILE']
     )
 
     class _CommandLineAIO_w_Callbacks(_CommandLineAIO):

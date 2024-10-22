@@ -8,7 +8,7 @@ Designed for use leading up to RC4.
 
 from asyncio import events
 import os
-from serial.tools import list_ports, list_ports_common
+from serial.tools import list_ports, list_ports_common  # type: ignore
 from datetime import datetime
 from dataclasses import dataclass, InitVar, field
 from typing import Any, Final, Optional, Dict, cast, Union, List

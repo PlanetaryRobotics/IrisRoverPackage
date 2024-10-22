@@ -276,6 +276,9 @@ Classes
 
     ### Static methods
 
+    `Adc2LanderVoltage(x: float) ‑> float`
+    :
+
     `battery_adc_reading_to_kelvin(adc_reading) ‑> float`
     :
 

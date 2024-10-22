@@ -1,0 +1,26 @@
+2023-10-23 02:13:50,129: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:13:50,132: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:19:41,283: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:19:41,287: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:19:54,895: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:19:54,897: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:20:48,967: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:20:48,971: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:23:02,945: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:23:02,948: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:23:51,150: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:23:51,153: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:24:12,552: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:24:12,556: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:24:26,540: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:24:26,543: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 02:25:07,312: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 02:25:07,315: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 09:03:45,342: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 09:03:45,347: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 09:05:55,792: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 09:05:55,797: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 09:08:18,589: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 09:08:18,592: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).
+2023-10-23 09:12:59,436: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.PUBLISHER: 2>`.
+2023-10-23 09:12:59,439: INFO     Created a `SocketType.PUBLISHER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_PUB: 61453>]` (`0xF00D`).

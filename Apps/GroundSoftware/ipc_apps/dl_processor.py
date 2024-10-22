@@ -6,16 +6,30 @@ DL_PAYLOADS topic.
 
 TODO: Handle MetaChannel processing here.
 TODO: Handle DL packet statistics here (top table in TelemetryDisplay). Emit as a MetaChannel / MetaChannels in a Module?
+        - ^ as a metachannel?
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 04/30/2023
+@last-updated: 01/10/2024
 """
+from typing import cast, Final, List, Dict, Type
+from datetime import datetime, timedelta
+
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
 from IrisBackendv3.ipc.messages import (
     DownlinkedPacketsMessage, DownlinkedPacketsContent,
     DownlinkedPayloadsMessage, DownlinkedPayloadsContent
 )
+from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
+from IrisBackendv3.codec.payload import (
+    TelemetryPayload, EventPayload, FileBlockPayload, DownlinkedPayload
+)
+from IrisBackendv3.meta.metafield import process_payloads_for_meta_modules
+
+from ipc_apps.dl_processor_lib.timestamping import RoverTimeEstimator
+
+
+from config.metafields import ALL_META_MODULES
 
 IB3.init_from_latest()
 
@@ -33,6 +47,77 @@ manager = ipc.IpcAppManagerSync(socket_specs={
         topics=[ipc.Topic.DL_PAYLOADS]
     ),
 })
+
+
+def generate_metafields(payloads: EnhancedPayloadCollection) -> EnhancedPayloadCollection:
+    """Generates all metafields that can be generated, adds them to the given
+    `payloads` collection, and returns it (for chaining)."""
+    meta_payloads = process_payloads_for_meta_modules(
+        modules=ALL_META_MODULES,
+        payloads=[*payloads[DownlinkedPayload]]
+    )
+    payloads.extend(meta_payloads)
+    return payloads
+
+
+def process_dl_payloads(
+    manager: ipc.IpcAppManager,
+    payloads: IB3.codec.payload_collection.EnhancedPayloadCollection
+) -> IB3.codec.payload_collection.EnhancedPayloadCollection:
+    """Performs post-processing on all the given payloads."""
+    # Create a tool to estimate the on-rover emission datetime for
+    # any payloads in this collection:
+    time_est = RoverTimeEstimator(payloads)
+
+    # Add SCET-estimate to all payloads that don't already have one:
+    for i, p in enumerate(payloads[DownlinkedPayload]):
+        p = cast(DownlinkedPayload, p)
+        scet, delay = time_est.estimate_rover_scet(p)
+        # Add a microsecond offset of the index to increase the odds that
+        # timestamps are unique to minimize the odds of a collision:
+        scet = scet + timedelta(microseconds=i)
+        # Add to payload times:
+        p.downlink_times.scet_est = scet
+        p.downlink_times.scet_dl_delay_est = delay
+
+    payloads = generate_metafields(payloads)
+
+    return payloads
+
+
+def handle_dl_packet(
+    manager: ipc.IpcAppManager,
+    packet: IB3.codec.packet.Packet
+) -> None:
+    """Handles all processing and forwarding on a downlinked packet."""
+    if len(packet.payloads) == 0:
+        # Packet has no payloads. Don't bother with the rest of this:
+        return
+
+    # Process all payloads in this packet:
+    processed_payloads = process_dl_payloads(manager, packet.payloads)
+
+    # Report what we got (for addl. archiving):
+    data_str = ""
+    if isinstance(packet._raw, bytes):
+        data_str = f"0x{':'.join(f'{x:02X}' for x in packet._raw)}"
+    payloads: List[DownlinkedPayload] = [*packet.payloads[DownlinkedPayload]]
+    if len(payloads) > 0:
+        app.logger.debug(
+            f"Got: {data_str} at t0={payloads[0].downlink_times} with: \n\t"
+            + '\n\t'.join(p.__str__() for p in payloads)
+        )
+
+    # Forward all payloads:
+    # (forward downlinked payloads and meta-payloads at the same time):
+    msg = DownlinkedPayloadsMessage(DownlinkedPayloadsContent(
+        payloads=processed_payloads
+    ))
+    manager.send_to(
+        'pub', msg,
+        subtopic_bytes=ipc_payload.subtopic_bytes
+    )
+
 
 # Run:
 if __name__ == "__main__":
@@ -53,15 +138,4 @@ if __name__ == "__main__":
 
         # Process the Packets:
         for packet in packets:
-            if len(packet.payloads) == 0:
-                # Packet has no payloads. Don't bother with the rest of this:
-                continue
-
-            # Forward all payloads:
-            msg = DownlinkedPayloadsMessage(DownlinkedPayloadsContent(
-                payloads=packet.payloads
-            ))
-            manager.send_to(
-                'pub', msg,
-                subtopic_bytes=ipc_payload.subtopic_bytes
-            )
+            handle_dl_packet(manager, packet)

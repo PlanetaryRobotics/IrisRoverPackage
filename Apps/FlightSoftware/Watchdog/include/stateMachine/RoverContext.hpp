@@ -19,7 +19,7 @@ namespace iris
             UART__State* m_uart0State;
             UART__State* m_uart1State;
 
-            volatile uint16_t m_watchdogFlags;
+            volatile uint32_t m_watchdogFlags;
             uint8_t m_watchdogOpts;
 
             I2C_Sensors__Readings m_i2cReadings;

@@ -46,7 +46,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="1">Get_Status</td>
 			<td rowspan="1">4352 (0x1100)</td>
-			<td rowspan="1">Get camera status</td>
+			<td rowspan="1">DEPRECATED. Does nothing.</td>
 				<td></td>
 				<td></td>
 				<td></td>
@@ -104,9 +104,304 @@ html {
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
+			<td rowspan="8">Take_Image_Section_Adv</td>
+			<td rowspan="8">4514 (0x11a2)</td>
+			<td rowspan="8">Take a Full Image but only downlink a subset of the FileGroup Lines from memory (from start_line to end_line).
+                Offers advanced capture and downlink settings.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>camera_num</td>
+						<td>U8</td>
+						<td>
+                        0: Camera 0     1: Camera 1
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>startLine</td>
+						<td>U16</td>
+						<td>
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>endLine</td>
+						<td>U16</td>
+						<td>
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>callback_id</td>
+						<td>U16</td>
+						<td>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>eraseFirst</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to erase the flash before capturing an image.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>n_bin</td>
+						<td>U8</td>
+						<td>
+                        Binning setting: factor by which lines should be downsampled through binning. Values gt 2 will trigger an attempt at binning. This is a Bayer-preserving binning process that skips over any line or frame headers embedded in the image by the FPGA FW. Also RLEs homogeneous lines.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>compressLine</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to attempt to compress lines (after binning if performed). Also RLEs homogeneous lines.
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="5">Read_Image_Section_Adv</td>
+			<td rowspan="5">4515 (0x11a3)</td>
+			<td rowspan="5">Downlinks an image from flash based on the given settings. Doesn't capture an image or erase flash first, just sends whatever's already there.
+                Camera number, callback_id, and capture time (file group id) are stored in Hercules voltile mem. since the last command that triggered an image capture. If Hercules has rebooted since then, this will still work but those values will be wrong.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>startLine</td>
+						<td>U16</td>
+						<td>
+                		Line in full image memory to start downlinking. Inclusive (max is 1944). In memory space not pixel space. Indexed from 0.
+                	</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>endLine</td>
+						<td>U16</td>
+						<td>
+                		Line in full image memory to stop downlinking. Exclusive (max is 1943). In memory space not pixel space. Indexed from 0.
+                	</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>n_bin</td>
+						<td>U8</td>
+						<td>
+                        Binning setting: factor by which lines should be downsampled through binning. Values gt 2 will trigger an attempt at binning. This is a Bayer-preserving binning process that skips over any line or frame headers embedded in the image by the FPGA FW. Also RLEs homogeneous lines.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>compressLine</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to attempt to compress lines (after binning if performed). Also RLEs homogeneous lines.
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">Capture_Image_Only</td>
+			<td rowspan="4">4516 (0x11a4)</td>
+			<td rowspan="4">Trigger Image Capture but don't downlink it (that can be done later with: `Read_Image_Section_Adv`).</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>camera_num</td>
+						<td>U8</td>
+						<td>
+                        0: Camera 0     1: Camera 1
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>callback_id</td>
+						<td>U16</td>
+						<td>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>eraseFirst</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to erase the flash before capturing an image.
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="23">Capture_Deployment_Image</td>
+			<td rowspan="23">4527 (0x11af)</td>
+			<td rowspan="23">Waits to capture an image until a series of trigger condition is satisfied. 
+
+                Triggers conditions are defined as a window around a sensor value. A trigger can be defined as 
+
+                The following trigger variables are available:
+                - Imu_XAcc (raw reading)
+                - Imu_YAcc (raw reading)
+                - Imu_ZAcc (raw reading)
+                - Voltage28V (raw ADC value, as reported by WatchDogInterface)
+                These values correspond to what's reported in telemetry from Hercules.
+
+                A window is specified around each sensor variable and a trigger can be defined as the
+                reading being inside or outside the window on a per-sensor basis.
+
+                Each sensor trigger condition can be turned ON or OFF.
+
+                `conditionModeAll` sets whether ALL or just 1 of the trigger conditions must be satisfied
+
+                The camera will stop waiting for a trigger after `timeoutMs`.
+                If `triggerOnTimeout`, an image will be captured when timeout occurs.
+
+                This is a late add, definitely a trick, and may or may not work but we'll try it.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>camera_num</td>
+						<td>U8</td>
+						<td>
+                        0: Camera 0     1: Camera 1
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>callback_id</td>
+						<td>U16</td>
+						<td>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>eraseFirst</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to erase the flash before capturing an image.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>timeoutMs</td>
+						<td>U32</td>
+						<td>
+                        Max time to wait for a trigger condition before timing out (ms).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>triggerOnTimeout</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to capture an image on timeout just in case.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>conditionModeAll</td>
+						<td>bool</td>
+						<td>
+                        True: ALL trigger conditions that are ON must be met. False: ANY of the trigger conditions that are ON (i.e. just 1) will trigger image capture.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_on</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to use the IMU X Acceleration window as a trigger.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_triggerMode</td>
+						<td>bool</td>
+						<td>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_min</td>
+						<td>I16</td>
+						<td>
+                        Lower bound (inclusive) of window for IMU X Acceleration (raw reading).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuXAcc_max</td>
+						<td>I16</td>
+						<td>
+                        Upper bound (exclusive) of window for IMU X Acceleration (raw reading).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_on</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to use the IMU Y Acceleration window as a trigger.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_triggerMode</td>
+						<td>bool</td>
+						<td>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_min</td>
+						<td>I16</td>
+						<td>
+                        Lower bound (inclusive) of window for IMU Y Acceleration (raw reading).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuYAcc_max</td>
+						<td>I16</td>
+						<td>
+                        Upper bound (exclusive) of window for IMU Y Acceleration (raw reading).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_on</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to use the IMU Z Acceleration window as a trigger.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_triggerMode</td>
+						<td>bool</td>
+						<td>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_min</td>
+						<td>I16</td>
+						<td>
+                        Lower bound (inclusive) of window for IMU Z Acceleration (raw reading).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>imuZAcc_max</td>
+						<td>I16</td>
+						<td>
+                        Upper bound (exclusive) of window for IMU Z Acceleration (raw reading).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>wdi28V_on</td>
+						<td>bool</td>
+						<td>
+                        Whether or not to use the 28V voltage reported by WatchDogInterface as a trigger;
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>wdi28V_triggerMode</td>
+						<td>bool</td>
+						<td>
+                        True: Trigger will occur if the sensor value is in the window. False: Trigger will occur if sensor value is outside the window.
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>wdi28V_min</td>
+						<td>I16</td>
+						<td>
+                        Lower bound (inclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                    </td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>wdi28V_max</td>
+						<td>I16</td>
+						<td>
+                        Upper bound (exclusive) of window for 28V voltage reported by WatchDogInterface (raw ADC value).
+                    </td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Error</td>
 			<td rowspan="2">4354 (0x1102)</td>
-			<td rowspan="2">Get camera status</td>
+			<td rowspan="2">DEPRECATED. Does nothing.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>action</td>
 						<td>U8</td>
@@ -118,7 +413,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Configure_Camera0</td>
 			<td rowspan="2">4355 (0x1103)</td>
-			<td rowspan="2">Configure camera 0</td>
+			<td rowspan="2">DEPRECATED. Does nothing. Configs are now downlinked as command args in capture commands.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>config</td>
 						<td>U64</td>
@@ -130,7 +425,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Camera0_Crop</td>
 			<td rowspan="2">4356 (0x1104)</td>
-			<td rowspan="2">Defines the crop for camera 0</td>
+			<td rowspan="2">DEPRECATED. Does nothing. Use section commands for cropping.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>config</td>
 						<td>U64</td>
@@ -142,7 +437,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Configure_Camera1</td>
 			<td rowspan="2">4357 (0x1105)</td>
-			<td rowspan="2">Configure camera 1</td>
+			<td rowspan="2">DEPRECATED. Does nothing. Configs are now downlinked as command args in capture commands.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>config</td>
 						<td>U64</td>
@@ -154,7 +449,7 @@ html {
 		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Camera1_Crop</td>
 			<td rowspan="2">4358 (0x1106)</td>
-			<td rowspan="2">Defines the crop for camera 1</td>
+			<td rowspan="2">DEPRECATED. Does nothing. Use section commands for cropping.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>config</td>
 						<td>U64</td>
@@ -164,29 +459,22 @@ html {
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="2">Read_Image</td>
-			<td rowspan="2">4359 (0x1107)</td>
-			<td rowspan="2">Downlink image generated by a sequence number</td>
+			<td rowspan="2">Erase_Flash</td>
+			<td rowspan="2">4360 (0x1108)</td>
+			<td rowspan="2">Erases camera flash (writes 0xFF in all data).
+                Only erases up to the given sector number.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
-						<td>callbackID</td>
-						<td>U16</td>
+						<td>numSectors</td>
+						<td>U8</td>
 						<td>
-                        DRedownlink an image generated from the specified callbac
+                        Number of sectors to erase. Default is 40. Only change if you have a reason.
                     </td>
 					</tr>
 		</tr>
 		<tr style = "border: 2px solid black;">
-			<td rowspan="1">Erase_Image</td>
-			<td rowspan="1">4360 (0x1108)</td>
-			<td rowspan="1">TBD</td>
-				<td></td>
-				<td></td>
-				<td></td>
-		</tr>
-		<tr style = "border: 2px solid black;">
 			<td rowspan="2">Soft_Camera_Reset</td>
 			<td rowspan="2">4361 (0x1109)</td>
-			<td rowspan="2">Does a soft reset of the camera (and something with the FPGA)</td>
+			<td rowspan="2">DEPRECATED. Does nothing. Command WD directly to power off or reset FPGA.</td>
 					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
 						<td>cameraNum</td>
 						<td>U8</td>
@@ -200,7 +488,8 @@ html {
 			<td rowspan="1">4362 (0x110a)</td>
 			<td rowspan="1">Dump (downlink) whatever is stored in the the camera flash rn 
                 without capturing a new image or writing anything to flash 
-                first.</td>
+                first. Use `Read_Image_Section_Adv` for a more advanced image downlink.
+                Camera number, callback_id, and capture time (file group id) are stored in Hercules volatile mem. since the last command that triggered an image capture. If Hercules has rebooted since then, this will still work but those values will be wrong.</td>
 				<td></td>
 				<td></td>
 				<td></td>

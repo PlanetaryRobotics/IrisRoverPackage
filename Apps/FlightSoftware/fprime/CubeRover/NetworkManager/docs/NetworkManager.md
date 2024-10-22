@@ -83,12 +83,10 @@
 |Channel Name|ID|Type|Description|
 |---|---|---|---|
 |RSSI|0 (0x0)|I8|Received Signal Strength Indication abt WF121 connection to AP in dB|
-|SNR|1 (0x1)|I8|Signal to noise radio|
+|NumCompleteDirectMessages|1 (0x1)|U8|Number of Successfully Parsed Direct Messages from the Radio (a basic vital for if Radio-Herc comms are still working).|
 |PktRecv|2 (0x2)|U32|Number of packets received (uplink)|
 |PktSent|3 (0x3)|U32|Number of packets sent (downlink)|
-|WIFIErrorStatus|4 (0x4)|WIFIErrorCode|Returned Error code of WIFI chip|
 |WIFIStateStatus|5 (0x5)|WIFIState|Returned State Transition code of WIFI chip|
-|UartBytesReceived|6 (0x6)|U32|Number of raw bytes received over UART from the Radio (valid or invalid - used for diagnostics).|
 
 ## Event List
 

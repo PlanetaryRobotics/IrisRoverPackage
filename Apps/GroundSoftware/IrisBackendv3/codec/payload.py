@@ -16,7 +16,7 @@ from enum import Enum
 from collections import OrderedDict
 
 import struct
-from datetime import datetime
+from datetime import datetime, timezone
 
 from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.metadata import DataPathway, DataSource, DownlinkTimes, UplinkTimes
@@ -379,7 +379,9 @@ class CommandPayload(CommandPayloadInterface[CommandPayloadInterface]):
             # ! TODO: Shouldn't this be in UplinkedPayload?
             # automatically tag the payload with the generation time in
             # `UplinkTimes` if `uplink_times` not given.
-            kwargs['uplink_times'] = UplinkTimes(generated=datetime.now())
+            kwargs['uplink_times'] = UplinkTimes(
+                generated=datetime.now(timezone.utc)
+            )
 
         super().__init__(
             magic=magic, pathway=pathway, source=source,
@@ -1084,8 +1086,11 @@ class FileMetadataInterface(ContainerCodec[FMIT], ABC):
     # Make public get, private set to signal that you can freely use these values
     # but modifying them directly can yield undefined behavior (specifically
     # `raw` not syncing up with whatever other data is in the container)
+    # Top bit of callback Id has been reserved for camera number:
     @property
-    def callback_id(self) -> int: return self._callback_id
+    def callback_id(self) -> int: return (self._callback_id & 0x7FFF)
+    @property
+    def camera_num(self) -> int: return ((self._callback_id >> 15) & 0x01)
 
     @property
     def file_group_total_lines(self) -> int:

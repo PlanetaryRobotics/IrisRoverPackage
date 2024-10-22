@@ -1,14 +1,9 @@
 # Installs all linux-specific dependencies for the project:
 set -x
-# Update package managers:
-sudo apt update
-sudo apt-get update
-# Upgrade system:
-sudo apt-get upgrade -y
 
-# Install Ubuntu prerequisites:
-sudo apt-get install build-essential libffi-dev libsqlite3-dev zlib1g-dev xz-utils sqlite3 llvm libreadline-dev libgdbm-dev openssl libxml2-dev libbz2-dev curl libxmlsec1-dev wget tk-dev libssl-dev libncursesw5-dev libgdbm-compat-dev liblzma-dev uuid-dev bzip2 aria2
-sudo apt-get install pass gnupg
+# Install linux dependencies:
+chmod +x ./linux_deps_os_core.sh
+./linux_deps_os_core.sh
 
 # Add python PPA and install python 3.10:
 sudo apt-get install -y software-properties-common
@@ -17,6 +12,7 @@ sudo apt-get update
 sudo apt-get -y install python3.10
 
 # Install Git Credential Manager:
+sudo apt-get install pass gnupg
 cd ~ # go to home (so GCM isn't installed in the repo)
 curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh && sh ./install-from-source.sh && git-credential-manager-core configure
 cd - # return here for subsequent ops

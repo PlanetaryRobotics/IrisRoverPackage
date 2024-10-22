@@ -29,7 +29,7 @@ if [[ $answer = [Yy] ]]; then
 	# Setup common grep search string:
 	GREP_SEARCH_STR="Building\|[Cc]omplete\|[Ee]rror[^_=]\|Fail\|[Ff]ailure\|[Ww]arning[^s_=]\|291\|136"
 	# Lines for grep to exclude (known "not a problem" errors):
-	GREP_EXCLUDE_STR="[Ee]rror 127\|[Ee]rror 2\|error #291\|error #136\|error #249"
+	GREP_EXCLUDE_STR="[Ee]rror 127\|[Ee]rror 2$\|error #291\|error #136\|error #249"
 	# Make sure output directory exists
 	sudo mkdir $OUTPUTS_DIR > /dev/null 2>&1
 	# Make sure all the appropriate pre-reqs are installed:

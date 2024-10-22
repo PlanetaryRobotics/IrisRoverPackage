@@ -1,0 +1,10 @@
+	Report for Image 11211: 
+		File Group (Image) ID:	 11211,
+		Image Valid / Internally Consistent:	 True,
+		Image Complete:	 False,
+		Total Image Lines:	 1944,
+		Lines Found:	 298,
+		Lines w/ Metadata:	 5,
+		Lines Completed:	 298,
+		Invalid / Internally Inconsistent Lines:	 0,
+		Lines with Corrupted Data:	 0

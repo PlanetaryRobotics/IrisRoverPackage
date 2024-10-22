@@ -14,6 +14,8 @@ import ulid
 from typing import List, Type
 
 from IrisBackendv3.data_standards import DataStandards
+from IrisBackendv3.meta.metafield import add_metamodules_to_standards
+from config.metafields import ALL_META_MODULES
 from IrisBackendv3.data_standards.prebuilt import add_to_standards, watchdog_heartbeat_tvac
 from IrisBackendv3.codec.payload import Payload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
@@ -65,6 +67,7 @@ print(f"Standards match: {uncached_standands == standards}")
 
 # Extract Payloads from a sample pcap:
 add_to_standards(standards, watchdog_heartbeat_tvac)
+add_metamodules_to_standards(standards, ALL_META_MODULES)
 set_codec_standards(standards)
 # Data Transport:
 # Iris_FSWv1.0.0_210409_Telemetry.pcapng'  # PCAP logs

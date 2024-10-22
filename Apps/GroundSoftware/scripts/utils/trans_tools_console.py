@@ -40,6 +40,8 @@ from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.data_standards.fsw_data_type import FswDataType
 from IrisBackendv3.data_standards.logs import logger as DsLogger
 from IrisBackendv3.data_standards.logs import logger_setConsoleLevel as DsLoggerLevel
+from IrisBackendv3.meta.metafield import add_metamodules_to_standards
+from config.metafields import ALL_META_MODULES
 from IrisBackendv3.data_standards.prebuilt import ALL_PREBUILT_MODULES, add_to_standards, watchdog_heartbeat_tvac, watchdog_heartbeat, watchdog_command_response, watchdog_detailed_status_heartbeat
 from IrisBackendv3.codec.payload import Payload, TelemetryPayload, CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection, extract_downlinked_payloads
@@ -58,6 +60,7 @@ from IrisBackendv3.utils.console_display import *
 DsLoggerLevel('CRITICAL')
 standards = DataStandards.build_standards()
 add_to_standards(standards, ALL_PREBUILT_MODULES)
+add_metamodules_to_standards(standards, ALL_META_MODULES)
 set_codec_standards(standards)
 
 

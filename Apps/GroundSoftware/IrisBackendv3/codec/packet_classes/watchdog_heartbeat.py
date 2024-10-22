@@ -215,7 +215,7 @@ class WatchdogHeartbeatPacketInterface(CustomPayloadPacket[CT, CPCT]):
         def __repr__(self) -> str:
             return (
                 f"[HEAT]: {' ON' if self.HeaterStatus else 'OFF'} \t\t "
-                f"[BATT]: Voltage: {'GOOD' if self.BatteryVoltageOk else 'BAD'}, "
+                f"[BATT]: Voltage: {'GOOD' if self.BatteryVoltageOk else 'BAD/OFF'}, "
                 f"Charge: {self.ChargeMah:4.0f}mAh = {self.ChargePercent:5.1f}%, "
                 f"Temp: {self.BattAdcTempKelvin:5.1f}°K]"
             )

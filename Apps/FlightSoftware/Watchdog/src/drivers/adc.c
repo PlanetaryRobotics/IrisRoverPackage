@@ -31,9 +31,9 @@
  */
 
 static AdcValues *outputValues = NULL;
-static volatile uint16_t *watchdogFlagsPtr = NULL;
+static volatile uint32_t *watchdogFlagsPtr = NULL;
 
-void adc_init(volatile uint16_t *watchdogFlags)
+void adc_init(volatile uint32_t *watchdogFlags)
 {
     watchdogFlagsPtr = watchdogFlags;
 

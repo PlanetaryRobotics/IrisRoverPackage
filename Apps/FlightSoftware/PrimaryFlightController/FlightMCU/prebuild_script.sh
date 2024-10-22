@@ -1,7 +1,11 @@
 #!/bin/bash
 
 FlightMCU_path=$(dirname $0)
+FPrime_path=$(dirname $0)/../../fprime/CubeRover
+SharedLibs_path=$(dirname $0)/../../../../Libs/FlightSoftware
 
+rm -rf $FPrime_path/MotorControl/ICD_*
+cp -r $SharedLibs_path/MotorControl/ICD_* $FPrime_path/MotorControl/
 
 ### Patch HAL's rti.c by appending a C preprocessor #endif since there is no user code section
 rti_c_path=$FlightMCU_path/HAL/source/rti.c

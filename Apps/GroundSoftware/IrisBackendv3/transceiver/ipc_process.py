@@ -19,7 +19,7 @@ if __name__ == "__main__":
 import yaml
 import asyncio
 import argparse
-import scapy.all as scp
+import scapy.all as scp  # type: ignore
 from dataclasses import dataclass, field
 
 from IrisBackendv3.transceiver.logs import logger_setConsoleLevel as xcvrLoggerLevel

@@ -441,7 +441,7 @@ namespace CubeRover {
         // ASK CAMERA TO TAKE A LOW RES IMAGE
         cameraTakePictureOut_out(0, CameraNum, m_moveRecord[m_currMove].Callback_ID);
         m_Image_Size += NAV_LOW_RES_SIZE;
-        tlmWrite_Nav_Image_Size(m_Image_Size);
+//        tlmWrite_Nav_Image_Size(m_Image_Size); // DEPRECATED TELEM FIELD (see note in XML)
       }
 
       // Med Res
@@ -451,7 +451,7 @@ namespace CubeRover {
         // ASK CAMERA TO TAKE A MED RES IMAGE
         cameraTakePictureOut_out(0, CameraNum, m_moveRecord[m_currMove].Callback_ID);
         m_Image_Size += NAV_MED_RES_SIZE;
-        tlmWrite_Nav_Image_Size(m_Image_Size);
+//        tlmWrite_Nav_Image_Size(m_Image_Size); // DEPRECATED TELEM FIELD (see note in XML)
       }
         
     }
@@ -540,22 +540,22 @@ namespace CubeRover {
     {
       case CubeRoverPorts::MC_Forward:
         m_tlm_Forward_Disp += Convert_Command_Dist_To_Telem(Distance);
-        tlmWrite_Nav_Moved_Forward(m_tlm_Forward_Disp);
+//        tlmWrite_Nav_Moved_Forward(m_tlm_Forward_Disp); // DEPRECATED TELEM FIELD (see note in XML)
         break;
 
       case CubeRoverPorts::MC_Backward:
         m_tlm_Backwards_Disp += Convert_Command_Dist_To_Telem(Distance);
-        tlmWrite_Nav_Moved_Backward(m_tlm_Backwards_Disp);
+//        tlmWrite_Nav_Moved_Backward(m_tlm_Backwards_Disp); // DEPRECATED TELEM FIELD (see note in XML)
         break;
 
       case CubeRoverPorts::MC_Left:
         m_tlm_Left_Disp += Convert_Command_Angle_To_Telem(Distance);
-        tlmWrite_Nav_Turned_Left(m_tlm_Left_Disp);
+//        tlmWrite_Nav_Turned_Left(m_tlm_Left_Disp); // DEPRECATED TELEM FIELD (see note in XML)
         break;
 
       case CubeRoverPorts::MC_Right:
         m_tlm_Right_Disp += Convert_Command_Angle_To_Telem(Distance);
-        tlmWrite_Nav_Turned_Right(m_tlm_Right_Disp);
+//        tlmWrite_Nav_Turned_Right(m_tlm_Right_Disp); // DEPRECATED TELEM FIELD (see note in XML)
         break;
 
       // If it isn't one of these, just don't do anything

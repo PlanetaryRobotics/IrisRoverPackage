@@ -50,6 +50,8 @@ def run_dash():
     context.dash_app = callbacks.add_app_callbacks(context)
     # Run:
     context.dash_app.run_server(
+        host=os.environ.get('IBv3_GDS_GUI_HOST', '127.0.0.1'),
+        port=int(os.environ.get('IBv3_GDS_GUI_PORT', '8050')),
         debug=False,  # sometimes `True` causes a "no module named gui" issue
         processes=min(os.cpu_count() // 2 + 1, os.cpu_count()),
         threaded=False  # use multiprocessing not threads

@@ -154,7 +154,7 @@ def _create_socket(
     if bind:
         # Bind Servers and Publishers:
         if len(ports) > 1:
-            logger.warn(
+            logger.warning(
                 f"Attempting to bind with `{socket_type=}` in `_create_socket`"
                 f"but multiple `{ports=}` were given. Need exactly 1."
                 f"Proceeding with the first port in the list: `{ports[0]=}`."
@@ -171,7 +171,7 @@ def _create_socket(
         # Make sure that we're not connecting to multiple ports if this is a
         # server, publisher, etc where that's not allowed on a single socket:
         if len(ports) > 1 and not socket_type._multiple_ports_allowed:
-            logger.warn(
+            logger.warning(
                 f"Socket with `{socket_type=}` given multiple ports in "
                 f"`_create_socket` (`{ports=}`) but exactly 1 should be given."
                 f"Proceeding with the first port in the list: `{ports[0]=}`."

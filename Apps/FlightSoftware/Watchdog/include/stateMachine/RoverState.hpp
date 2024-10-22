@@ -14,7 +14,7 @@ namespace iris
         ENTERING_SERVICE = 3, //!< Performing all non-instant tasks to set up the appropriate system state for SERVICE
         SERVICE = 4, //!< In diagnostic service mode, which is also a precondition of entering MISSION
         ENTERING_MISSION = 15, //!< Performing all non-instant tasks to set up the appropriate system state for MISSION.
-        MISSION = 16, //!< In the fully-powered on mode to perform the mission.
+        MISSION = 16, //!< In the fully-powered on mode to perform the mission. **UPDATE DEFINE IN `watchdog.c` IF YOU CHANGE THIS** (can't incl. there b/c it's C)
         ENTERING_STASIS = 31, //!< Performing all non-instant tasks to set up the appropriate system state for STASIS
         STASIS = 32, //!< In mission, enter low-power stasis.
 

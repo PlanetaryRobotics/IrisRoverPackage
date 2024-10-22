@@ -9,6 +9,8 @@ Last Updated: 05/30/2023
 """
 from __future__ import annotations
 
+import os
+
 from typing import Any, Dict, Tuple, List, TypedDict, TypeAlias
 from datetime import datetime, timedelta
 import dateutil.parser
@@ -212,7 +214,7 @@ class _TimePlotAIO(html.Div):
         self.interval = dcc.Interval(
             id=self.ids.interval(aio_id),
             **{
-                'interval': 0.2*1000,  # ms
+                'interval': float(os.environ.get('IBv3_GDS_TIME_PLOT_UPDATE_INTERVAL_MS', 0.2*1000)),
                 'n_intervals': 0,
                 **interval_props
             }

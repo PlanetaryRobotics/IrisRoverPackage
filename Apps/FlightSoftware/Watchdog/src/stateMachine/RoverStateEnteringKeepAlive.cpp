@@ -92,7 +92,7 @@ namespace iris
             DebugComms__tryPrintfToLanderNonblocking("New Lander UART Rx Rb failures, total count = %u\n", count);
         }
 
-        if (theContext.m_details.m_hParams.m_heatingControlEnabled)
+        if (theContext.m_details.m_hParams.persistent->m_heatingControlEnabled)
         {
             // Update the Heater State (PWM remains unchanged here):
             heaterControl(theContext);

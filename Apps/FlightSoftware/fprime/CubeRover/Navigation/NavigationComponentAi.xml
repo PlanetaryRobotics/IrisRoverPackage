@@ -127,6 +127,7 @@
     </events>
 
     <!-- TELEMETRY -->
+    <!-- DEPRECATED ALL NAV TELEMETRY TO MAKE ROOM FOR REMAINING THERMISTOR CHANNELS (this component is going the way of the Dodo:
     <telemetry>
         <channel id="0" name="Nav_Moved_Forward" data_type="U16" update = "on_change">
             <comment> The distance moved forward in cm </comment>
@@ -146,6 +147,6 @@
 
         <channel id="4" name="Nav_Image_Size" data_type="U16" update = "on_change">
             <comment> Image size </comment>
-        </channel>
-    </telemetry>
+        </channel> 
+    </telemetry> -->
 </component>

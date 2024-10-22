@@ -167,7 +167,8 @@ extern "C"
                                                           AdcValues *adcValues,
                                                           WatchdogStateDetails *details,
                                                           DetailedReport *hb,
-                                                          uint8_t *reportBuffer);
+                                                          uint8_t *reportBuffer,
+                                                          bool *persistentDeployed);
 
 #ifdef __cplusplus
 } /* close extern "C" */

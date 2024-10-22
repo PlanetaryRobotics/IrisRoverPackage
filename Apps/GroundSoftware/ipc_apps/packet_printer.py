@@ -96,7 +96,7 @@ def packet_to_log_level(packet: IB3.codec.packet.Packet) -> Callable:
     # (remember: order matters in structural pattern checking):
     match packet:
         case IB3.codec.packet.UnsupportedPacket():
-            log_func = app.logger.warn
+            log_func = app.logger.warning
 
         case IB3.codec.packet.WatchdogCommandResponsePacket() as cr if cr.custom_payload.ErrorFlagName == 'NO_ERROR':
             log_func = app.logger.success
@@ -182,7 +182,7 @@ class DownlinkSub(ipc.SocketTopicHandlerAsync['DownlinkSub']):
                     echo_events=opts.events,
                     echo_all_packet_bytes=opts.packet_bytes
                 )
-                log += "\n" + '\n'.join(messages) + "\n"
+                log += '\n'.join(messages) + "\n"
 
             # Pick log-level based on packet type and log:
             log_func = packet_to_log_level(packet)

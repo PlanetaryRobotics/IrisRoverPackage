@@ -1,0 +1,4 @@
+2023-10-23 09:12:37,979: VERBOSE  Using default binding scheme (`bind=False`) for `socket_type=<SocketType.SUBSCRIBER: 3>`.
+2023-10-23 09:12:37,980: INFO     Created a `SocketType.SUBSCRIBER` connected to `tcp://127.0.0.1` on ports `[<Port.TRANSCEIVER_SUB: 61454>]` (`0xF00E`).
+2023-10-23 09:12:37,980: VERBOSE  Subscribing `sub` to: [<Topic.DL_PAYLOADS: b'\xfe\xee'>] . . .
+2023-10-23 09:14:17,450: NOTICE   Closing App's IPC socket(s) and context . . .

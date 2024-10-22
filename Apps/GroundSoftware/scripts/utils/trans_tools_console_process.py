@@ -17,6 +17,7 @@ from termcolor import colored
 from scripts.utils.trans_tools import *
 from scripts.utils.trans_tools_console import IrisConsoleDisplayDriver
 from IrisBackendv3.codec.payload import EventPayload
+from IrisBackendv3.codec.packet_classes.gds_packet_event_mixin import GdsPacketEventMixin
 
 import scapy.all as scp  # type: ignore
 
@@ -339,17 +340,26 @@ async def run_forever():
 def handle_async_packet(packet: Packet) -> None:
     """Handles a packet pushed asynchronously to a queue."""
     driver = app_context['console_driver']
-    # If there are any EventPayloads in the packet,
-    # print them in the order received (NOTE: some
-    # don't have timestamps - e.g. RadioGround - so
-    # sorting by time would be hairy):
-    events = [*packet.payloads[EventPayload]]
-    for event in events:
-        # Push directly to the queue:
-        # ... the handle_streamed_packet will take care of the refreshing
+
+    # If this is a GdsPacketEvent (i.e. a packet that's also an event)
+    # just print the packet (since the event string contains HTML):
+    if isinstance(packet, GdsPacketEventMixin):
         driver.nontelem_packet_prints.appendleft(
-            f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {event!s}"
+            f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {packet!s}"
         )
+    else:
+        # Just print the events in the packet.
+        # If there are any EventPayloads in the packet,
+        # print them in the order received (NOTE: some
+        # don't have timestamps - e.g. RadioGround - so
+        # sorting by time would be hairy):
+        events = [*packet.payloads[EventPayload]]
+        for event in events:
+            # Push directly to the queue:
+            # ... the handle_streamed_packet will take care of the refreshing
+            driver.nontelem_packet_prints.appendleft(
+                f"\033[35;47;1m({datetime.now().strftime(DATETIME_FORMAT_STR)})\033[0m {event!s}"
+            )
 
     if app_context['echo_all_packet_bytes']:
         # Echo the data out...

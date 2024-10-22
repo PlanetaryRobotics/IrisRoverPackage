@@ -30,8 +30,17 @@ Classes
     `SERIAL_SLIP`
     :
 
+    `WIFI`
+    :
+
     `YAMCS`
     :
 
     `transceiver_class: Optional[Type[IrisBackendv3.transceiver.transceiver.Transceiver]]`
     :
+
+    ### Methods
+
+    `matches(self, xcvr: IrisBackendv3.transceiver.transceiver.Transceiver) ‑> bool`
+    :   Checks if the given transceiver matches the one specified by enum
+        instance.

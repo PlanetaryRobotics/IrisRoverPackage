@@ -1,6 +1,24 @@
 Module IrisBackendv3.storage
 ============================
-Module for storing & archiving all data from across the entire system.
+Module for storing & archiving data from mission.
+
+Goal is to store all from across the entire system (all IPC transactions) but
+current approach is to just archive all data in and out of the transceiver
+layer so it can be replayed into the system and used to regenerate all the
+other data.
+
+Initially only archives exported from YAMCS data are supported.
+
+Usage:
+- To open or save an archive file use `IrisBackendv3.storage.DataSet`.
+- The `DataSet.data` member can then be used to explore the data.
+- `.yamcs.X` files archive just data received from / sent to YAMCS.
+- `.telem.X` files archive all telemetry data extracted from YAMCS data
+- `.h5` files store both under `yamcs` and `telem` keys. Not suitable for
+multi-day / high data volume missions.
+
+TODO: Add archiver process that pulls data from transceiver layer and stores it
+in `DataSet`. 
 
 # TODO: Create a system (seq_id?) for making sure important sent from xcvr layer
 # through IPC isn't lost since there are presently no **guarantees** that
@@ -13,6 +31,10 @@ Module for storing & archiving all data from across the entire system.
 
 Sub-modules
 -----------
-* IrisBackendv3.storage.metachannel
-* IrisBackendv3.storage.metachannels
-* IrisBackendv3.storage.telemetry_store
+* IrisBackendv3.storage.commands
+* IrisBackendv3.storage.dataset
+* IrisBackendv3.storage.formatting
+* IrisBackendv3.storage.logs
+* IrisBackendv3.storage.settings
+* IrisBackendv3.storage.telemetry
+* IrisBackendv3.storage.utils

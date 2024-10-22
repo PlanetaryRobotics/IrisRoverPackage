@@ -5,7 +5,7 @@ flight rover.
 
 Includes any supporting functions necessary for maintaining YAMCS connection.
 
-TODO: Consult script used for iTVAC...
+TODO: Consult `iris_yamcs.py` used for Mission
 
 @author: Connor W. Colombo (CMU)
 @last-updated: 07/03/2022
@@ -51,16 +51,22 @@ class YamcsTransceiver(Transceiver):
         port: int,  # port number (e.g. 11234)
         endecs: Optional[List[Endec]] = None,
         pathway: DataPathway = DataPathway.NONE,  # is variable
-        source: DataSource = DataSource.YAMCS
+        source: DataSource = DataSource.YAMCS,
+        **kwargs
     ) -> None:
         """ Initializes a `YamcsTransceiver`.
 
         NOTE: By default, no `endecs` should be required.
         """
+        full_kwargs: Dict[str, Any] = {
+            'name': 'YAMCS',  # allow this to be overridden in kwargs
+            **kwargs  # fwd all other kwargs to parent
+        }
         super().__init__(
             endecs=endecs,
             pathway=pathway,
-            source=source
+            source=source,
+            **full_kwargs
         )
 
         # Validate input:

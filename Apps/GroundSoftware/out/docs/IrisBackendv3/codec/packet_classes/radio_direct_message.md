@@ -6,7 +6,7 @@ should get converted to a `EventPayload` or a `TelemetryPayload` containing radi
 activity, etc.) and is just printed to the console.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 08/26/2022
+@last-updated: 06/01/2023
 
 Classes
 -------
@@ -16,15 +16,17 @@ Classes
     the Radio.
     
     @author: Connor W. Colombo (CMU)
-    @last-updated: 08/26/2022
+    @last-updated: 06/01/2023
 
     ### Ancestors (in MRO)
 
     * IrisBackendv3.codec.packet_classes.radio_direct_message.RadioDirectMessagePacketInterface
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventPacket
     * IrisBackendv3.codec.packet_classes.packet.Packet
     * IrisBackendv3.codec.container.ContainerCodec
     * typing.Generic
     * abc.ABC
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventMixin
 
     ### Static methods
 
@@ -33,22 +35,24 @@ Classes
 
     `is_valid(data: bytes, endianness_code: str = '<') ‑> bool`
     :   Valid if the packet starts with b'DEBUG' then `0xE6E7E7E6`.
-        Note the b'DEBUG' prefix is there b/c this is sent through the Hercules then through the Watchdog using the debug messaging system.
+        Note the b'DEBUG' prefix is there b/c this is sent through the Hercules
+        then through the Watchdog using the debug messaging system.
 
-`RadioDirectMessagePacketInterface(payloads: EnhancedPayloadCollection, raw: Optional[bytes] = None, endianness_code: str = '<')`
-:   A special `CodecContainer` used for Packet data which combines the
-    standardized data-encoding features of `ContainerCodec` with a standard
-    `EnhancedPayloadCollection`. All packets are essentially 
-    `EnhancedPayloadCollection`s with specialized encoding and decoding schemes
-    applied. Each `Packet` en/decodes raw bytes sent over a `Transceiver` layer
-    with any network headers (IP etc.) already stripped off.
+`RadioDirectMessagePacketInterface(payloads: Optional[EnhancedPayloadCollection] = None, raw: Optional[bytes] = None, endianness_code: str = '<')`
+:   Stronger form of `GdsPacketEventMixin` that acts as a base class
+    alternative to `Packet[CT]`.
+    
+    This is to be used for packets which don't contain payloads inside them
+    but, instead, represent one singular event payload.
 
     ### Ancestors (in MRO)
 
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventPacket
     * IrisBackendv3.codec.packet_classes.packet.Packet
     * IrisBackendv3.codec.container.ContainerCodec
     * typing.Generic
     * abc.ABC
+    * IrisBackendv3.codec.packet_classes.gds_packet_event_mixin.GdsPacketEventMixin
 
     ### Descendants
 

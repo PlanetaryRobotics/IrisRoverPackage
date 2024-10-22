@@ -21,17 +21,17 @@ import os.path
 
 from termcolor import colored
 
-import scripts.testing._peregrine_tvac_fetcher as ptf
+from IrisBackendv3.storage.dataset import DataSet
 
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 import scapy.all as scp  # type: ignore
 
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 from matplotlib import dates as mdates
 from matplotlib import units as munits
 from matplotlib import ticker as mticker
-import seaborn as sns
+import seaborn as sns  # type: ignore
 plt.rcParams['text.usetex'] = False
 sns.set()  # Initialize Seaborn. Use default theme.
 
@@ -46,7 +46,7 @@ print("Connecting to Local DB . . .")
 db = pd.HDFStore(DB_PATH)
 
 print("Loading Telem . . .")
-telem = ptf.DataSet.load_from('telem', db)
+telem = DataSet._load_from_hdf('telem', db)
 
 print("Analyzing Data . . .")
 

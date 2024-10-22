@@ -30,6 +30,12 @@ Post-RC12, the preferred (and greatly simplified) way to run the Iris GDS is to 
 - (0.2.1.d): `docker compose up pcap-data message-printer`
   - Feeds data into IPC from a PCAP recording and then brings up the Message Printer Display to visualize that data.
     - Since `-d` is not used in this command, all prints from both services will be printed in the console.
+- (0.2.1.e): `docker compose up -d fm1-data`
+  - Similar to PCAP data this prints all data from the FM1 mission, starting when Iris first transmitted.
+- (0.2.1.f): `docker compose up -d fm1-data-fast`
+  - Similar to `fm-data` but data is played at an accelerated speed.
+- (0.2.1.g): `docker compose up -d fm1-data-fast message-printer telem-display gui roll-credits fleur-mdap`
+  - Brings up all key GDS software displays and replays all Iris FM1 mission data into GDS. Great for mission displays in Mission Control.
 
 ### 0.2.1b. Remote Consoles
 In the case of a mission control center where the `IrisBackendv3` core is running on a server, remote computers won't need to (and shouldn't) run their own copies of the `IrisBackendv3` core.

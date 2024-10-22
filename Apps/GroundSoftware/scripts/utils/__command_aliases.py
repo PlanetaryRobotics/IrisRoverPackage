@@ -23,6 +23,11 @@ from IrisBackendv3.codec.magic import Magic
 import IrisBackendv3.codec.bgapi as bgapi
 from IrisBackendv3.utils.crc import crc32_fsw
 
+from IrisBackendv3.config.command_aliases import (
+    Parameter,
+    LegacyPreparedCommandType as PreparedCommandType
+)
+
 source = DataSource.GENERATED
 
 # Test BGAPI Passthrough data:
@@ -72,42 +77,6 @@ BGAPI_DL5_CMD: Final = bgapi.build_command(
 BGAPI_DL5_BYTES: Final[bytes] = bgapi.encode_command(
     bgapi.BGAPI_WIFI_ENCODER, BGAPI_DL5_CMD)
 
-
-class Parameter(Enum):
-    """
-    Enum used to indicate that a parameter should be pasted in the
-    given argument slot.
-
-    Better said with an example:
-    If a command alias has kwargs:
-        ```
-        OrderedDict(
-            'arg1': 42,
-            'arg2': Parameter.PASTE,
-            'arg3': 'something else'
-            'arg4': PARAMETER.PASTE
-            'arg5': 0xBEEF
-        )
-        ```
-    and `get_command` is called with `params=[1, 2]` then the command will be built with:
-        ```
-        args={'arg1': 42,
-        'arg2': 1,
-        'arg3': 'something else'
-        'arg4': 2
-        'arg5': 0xBEEF}
-        ```
-    """
-    PASTE = 0
-
-
-PreparedCommandType = Tuple[
-    DataPathway,
-    Magic,
-    str,
-    'OrderedDict[str, Any]',
-    DataPathway
-]
 
 prepared_commands: Dict[str, PreparedCommandType] = {
     'radio-bgapi-set-transmit-size-10': (

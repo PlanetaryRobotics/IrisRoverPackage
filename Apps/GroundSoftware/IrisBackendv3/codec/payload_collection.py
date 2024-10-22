@@ -36,7 +36,7 @@ def catalog_payload_subclass(c: Type[Payload]):
 
 # Note on ignore: mypy has an unfixed bug where it doesn't allow abstract
 # classes as arguments to functions using `Type` like this:
-catalog_payload_subclass(Payload)  # type: ignore[misc]
+catalog_payload_subclass(Payload)  # type: ignore
 
 
 @attr.define(slots=True)
@@ -103,7 +103,7 @@ class PayloadTreeNode:
         """
         # Note on ignore: mypy has an unfixed bug where it doesn't allow
         # abstract classes as arguments to functions using `Type` like this:
-        return cls.build_class_tree(Payload)  # type: ignore[misc]
+        return cls.build_class_tree(Payload)  # type: ignore
 
     def __repr__(self) -> str:
         s = f"\n{self.payload_class.__name__} -> ["
@@ -181,7 +181,7 @@ EPC_KT = EnhancedPayloadCollection_KeyType  # alias for the above
 class BadEnhancedPayloadCollectionKeyError(AttributeError):
     func_name: str
     key: EPC_KT
-    name: Optional[str]
+    name: str
     tree_map: Dict[str, PayloadTreeNode]
 
     def __init__(
@@ -196,7 +196,7 @@ class BadEnhancedPayloadCollectionKeyError(AttributeError):
         """
         self.func_name = func_name
         self.key = key
-        self.name = name
+        self.name = str(name)
         super().__init__(
             f"`EnhancedPayloadCollection.{func_name}` must be given a "
             "`Payload` subclass, or the name of a `Payload` subclass, or "

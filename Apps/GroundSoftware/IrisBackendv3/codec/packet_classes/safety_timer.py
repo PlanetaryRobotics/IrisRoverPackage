@@ -188,7 +188,7 @@ class WatchdogSafetyTimerPacket(WatchdogSafetyTimerPacketInterface[WatchdogSafet
             # If both `payloads` and `raw` are `None`, what even caused
             # this to be generated?
             logger.debug(
-                "A `WatchdogSafetyTimerP` was constructed with no `payloads` and "
+                "A `WatchdogSafetyTimerPacket` was constructed with no `payloads` and "
                 "no `raw` data. This suggests it's being created from "
                 "nothing as a completely empty packet. Was this "
                 "intentional or is this a bug?"

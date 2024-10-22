@@ -301,7 +301,7 @@ class ExtractionSuite(object):
         assert built_module == self.expected_module, f"""
             Built module doesn't match expected module.
             \nExpected: {self.expected_module}
-            \Built: {built_module}
+            \nBuilt: {built_module}
         """
 
 
@@ -580,7 +580,7 @@ class ImportSuite(object):
         assert built_module.commands == expected_commands, f"""
             The commands of the module built with imported XML don't match expected module's commands.
             \nExpected: {expected_commands}
-            \Built: {built_module.commands}
+            \nBuilt: {built_module.commands}
         """
 
         #! TODO: Actually checkout the rest of the module (not just commands)

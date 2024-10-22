@@ -16,7 +16,7 @@ import attr
 import operator as op
 import numpy as np
 import pandas as pd  # type: ignore
-import requests
+import requests  # type: ignore
 import panel as pn  # type: ignore
 import hvplot.pandas  # type: ignore
 import hvplot.streamz  # type: ignore

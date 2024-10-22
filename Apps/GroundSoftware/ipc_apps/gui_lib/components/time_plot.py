@@ -17,16 +17,16 @@ import dateutil.parser
 from dataclasses import dataclass
 import uuid
 
-import plotly.graph_objs as go
-import dash
+import plotly.graph_objs as go  # type: ignore
+import dash  # type: ignore
 from dash import (
     html, dcc,
     Output, Input, State,
     callback, MATCH,
     ctx, no_update
 )
-import dash_bootstrap_components as dbc
-import dash_daq as daq
+import dash_bootstrap_components as dbc  # type: ignore
+import dash_daq as daq  # type: ignore
 
 from . import aio
 from ..context import GuiContext

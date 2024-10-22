@@ -14,7 +14,7 @@ These functions could probably be wrapped pretty easily to make it stateful but
 that's super low priority right now since it all works.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 03/08/2023
+@last-updated: 10/14/2024
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from typing import Any, Final, List, Type, cast, Union, Dict, Tuple, Optional
@@ -73,12 +73,13 @@ from IrisBackendv3.codec.packet import (
 )
 from IrisBackendv3.codec.packet_classes.gds_packet_event_mixin import GdsPacketEventMixin
 
+from ipc_apps.dl_processor_lib.processor import process_dl_payloads
 
-from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
-from IrisBackendv3.codec.logs import logger as CodecLogger
-from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
+from IrisBackendv3.config.command_aliases import (
+    Parameter,
+    LegacyPreparedCommandType as PreparedCommandType
+)
 
-from scripts.utils.__command_aliases import prepared_commands, Parameter, PreparedCommandType
 
 USER_PROMPT_COMMAND: Final[str] = "Command"
 USER_PROMPT_ARG: Final[str] = "Argument"
@@ -96,7 +97,7 @@ def tabs2spaces(x: str) -> str:
 
 def remove_ansi_escape_codes(x: str) -> str:
     # removes any ansi escape codes from given string:
-    return re.sub('\033\[[^m]*m', '', x)
+    return re.sub('\033\\[[^m]*m', '', x)
 
 
 def len_noCodes(x: str) -> int:
@@ -145,7 +146,7 @@ def get_active_window_title() -> Optional[str]:
                 ['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
             stdout, stderr = root.communicate()
 
-            m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
+            m = re.search(br'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
             if m is not None:
                 window_id = m.group(1)
                 window = subprocess.Popen(
@@ -154,7 +155,7 @@ def get_active_window_title() -> Optional[str]:
             else:
                 return None
 
-            match = re.match(b"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
+            match = re.match(br"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
             if match is not None:
                 return match.group("name").strip(b'"').decode()
             return None
@@ -563,9 +564,18 @@ def packet_print_string(
     packet: Optional[Packet],
     datetime_format: str = '%m-%d %H:%M:%S'
 ) -> str:
+    packet
+    # Check if any payloads have a SCET and use the latest:
+    scets = [
+        cast(datetime, cast(TelemetryPayload | EventPayload, p).scet_est) for
+        p in [*packet.payloads[TelemetryPayload],
+              *packet.payloads[EventPayload]]
+        if cast(TelemetryPayload | EventPayload, p).scet_est is not None
+    ] if packet is not None else []
+    t = max(scets) if len(scets) > 0 else datetime.now()
     # Creates a "Print" string of the given packet, along with accompanying metadata like the current time:
     return (
-        f"\033[35;47;1m({datetime.now().strftime(datetime_format)})\033[0m "
+        f"\033[35;47;1m({t.strftime(datetime_format)})\033[0m "
         f"\033[48;5;248m\033[38;5;233m\033[1m {packet.pathway.name if packet is not None else 'NONE'} \033[0m "
         f"{packet!s}"
     )
@@ -598,6 +608,11 @@ def packet_to_messages(
             f"Received: {packet.__class__.__name__}"
         )
 
+    # Repeat DL-processor here and extract all meta-messages
+    # (also computes and adds SCETs if needed):
+    from config.metafields import ALL_META_MODULES  # only import when running
+    all_payloads = process_dl_payloads(packet.payloads, ALL_META_MODULES)
+
     # If the packet doesn't contain any telemetry or events (i.e. log,
     # debug print, etc.), add it to the messages list in LiFo manner:
     # - Also do this for WatchdogDetailedStatusPacket since they're *very* detailed (contain way too much data to display so we're just
@@ -606,8 +621,8 @@ def packet_to_messages(
     # - So long as it's not a `RadioUartBytePacket` (they clog the interface):
     if echo_message_packets:
         if (
-            (len([*packet.payloads[TelemetryPayload]]) == 0  # no telem
-             and len([*packet.payloads[EventPayload]]) == 0  # no events
+            (len([*all_payloads[TelemetryPayload]]) == 0  # no telem
+             and len([*all_payloads[EventPayload]]) == 0  # no events
              or isinstance(packet, (  # has telem/events but is special and should be printed anyway:
                 WatchdogHeartbeatPacket,
                 WatchdogTvacHeartbeatPacket,
@@ -626,12 +641,12 @@ def packet_to_messages(
     # (except `GdsPacketEventMixin`, these contain events but should count as
     # `message packets` and are handled with the above):
     if echo_events and not isinstance(packet, GdsPacketEventMixin):
-        events = [*packet.payloads[EventPayload]]
+        events = [*all_payloads[EventPayload]]
         for event in events:
             event = cast(EventPayload, event)
             message: str = ""
             # Add SCET if we know the SCET:
-            if (scet := event.downlink_times.scet_est) is not None:
+            if (scet := event.scet_est) is not None:
                 message += (
                     f" \033[35;47;1m(SCET-{scet.strftime(datetime_format)})\033[0m "
                 )

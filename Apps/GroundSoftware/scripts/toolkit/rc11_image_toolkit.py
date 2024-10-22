@@ -8,12 +8,12 @@ Each image is composed of multiple interleaved frames.
 """
 import re
 import numpy as np
-from scipy.interpolate import LinearNDInterpolator
-from scipy import ndimage as nd
+from scipy.interpolate import LinearNDInterpolator  # type: ignore
+from scipy import ndimage as nd  # type: ignore
 from dataclasses import dataclass, field
 from collections import Counter, OrderedDict
 from typing import Any, Final, Dict, Tuple, List, cast
-import PIL.Image
+import PIL.Image  # type: ignore
 
 # Indices of Important Data in each Line Header:
 FRAME_NUM_IDX: Final[int] = 0x03

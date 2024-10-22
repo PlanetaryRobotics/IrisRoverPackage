@@ -13,8 +13,8 @@ import os
 from typing import Dict, Type, List, ClassVar
 import uuid
 
-import pandas as pd
-from dash import (
+import pandas as pd  # type: ignore
+from dash import (  # type: ignore
     no_update,
     html, dcc, dash_table,
     Output, Input, State,

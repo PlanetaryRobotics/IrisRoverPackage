@@ -14,7 +14,7 @@ import pynput  # type: ignore
 import asyncio
 import argparse
 from datetime import datetime
-import pandas as pd
+import pandas as pd  # type: ignore
 from termcolor import colored
 from enum import Enum as PyEnum
 from collections import OrderedDict
@@ -38,6 +38,7 @@ from IrisBackendv3.ipc.messages import (
 
 from IrisBackendv3.utils import console_display
 from IrisBackendv3.config import command_aliases
+from IrisBackendv3.config.settings import settings as CONFIG_SETTINGS
 from IrisBackendv3.transceiver.xcvr_enum import TransceiverEnum
 from IrisBackendv3.codec.magic import Magic
 from IrisBackendv3.codec.metadata import DataPathway
@@ -58,10 +59,10 @@ def get_opts():
                             "accomplish different goals)."
                         ))
     parser.add_argument('-c', '--command-aliases', type=str,
-                        default="standard_command_aliases",
+                        default=CONFIG_SETTINGS['DEFAULT_COMMAND_ALIASES_FILE'],
                         help=(
                             "Name of the command_aliases file in the "
-                            f"`{command_aliases.DEFAULT_COMMAND_ALIASES_DIR}` "
+                            f"`{CONFIG_SETTINGS['DEFAULT_COMMAND_ALIASES_DIR']}` "
                             "directory which defines which commands are "
                             "available."
                         ))

@@ -21,7 +21,7 @@ PCAP using a PcapTransceiver:
 from __future__ import annotations
 
 import os
-import cv2
+import cv2  # type: ignore
 import ulid
 import pickle
 import os.path
@@ -33,7 +33,7 @@ from collections import OrderedDict, Counter
 from typing import Any, Dict, List, Tuple, cast, TypeAlias, Type, Final, Callable
 
 import numpy as np
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator  # type: ignore
 
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc
@@ -814,7 +814,7 @@ class Image:
         )
 
         if interactive_plot_result:
-            import matplotlib.pyplot as plt
+            import matplotlib.pyplot as plt  # type: ignore
             plt.figure()
             plt.imshow(image_out, cmap='gray')
             plt.show()

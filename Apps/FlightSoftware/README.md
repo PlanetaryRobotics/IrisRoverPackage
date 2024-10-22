@@ -1,6 +1,6 @@
 # Iris Lunar Rover Flight Software (c.2023)
 
-![Iris Embedded Systems Architecture, Detailed](resources/Embedded Architecture 5.0, Detailed.png?raw=true "Iris Embedded Systems Architecture, Detailed")
+![Iris Embedded Systems Architecture, Detailed](./resources/Embedded%20Architecture%205.0,%20Detailed.png?raw=true "Iris Embedded Systems Architecture, Detailed")
 
 ## Watchdog (MSP430): `./Watchdog`
 - Uses TI CSS v9 on Ubuntu

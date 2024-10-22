@@ -109,6 +109,10 @@ Classes
     `downlink_times: Optional[IrisBackendv3.codec.metadata.DownlinkTimes]`
     :   Return an attribute of instance, which is of type owner.
 
+    `scet_est: Optional[datetime.datetime]`
+    :   Shorthand.
+        Returns the estimated spacecraft event time, if there is one.
+
 `EventPayload(module_id: int, event_id: int, args: Dict[str, Any], timestamp: int, magic: Magic = Magic.MISSING, pathway: DataPathway = DataPathway.NONE, source: DataSource = DataSource.NONE, raw: Optional[bytes] = None, endianness_code: str = '<')`
 :   Implementation of Payload Interface for IRIS Event Payloads.
 

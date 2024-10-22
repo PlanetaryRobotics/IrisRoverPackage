@@ -66,6 +66,41 @@ Classes
     :   Returns the entry in the `CommandAliasesTable` corresponding with
         the given `alias_name`.
 
+`Parameter(value, names=None, *, module=None, qualname=None, type=None, start=1)`
+:   Enum used to indicate that a parameter should be pasted in the
+    given argument slot.
+    Used for legacy applications where variable arguments needed to be flagged.
+    Used with `LegacyPreparedCommandType`.
+    
+    Better said with an example:
+    If a command alias has kwargs:
+        ```
+        OrderedDict(
+            'arg1': 42,
+            'arg2': Parameter.PASTE,
+            'arg3': 'something else'
+            'arg4': PARAMETER.PASTE
+            'arg5': 0xBEEF
+        )
+        ```
+    and `get_command` is called with `params=[1, 2]` then the command will be built with:
+        ```
+        args={'arg1': 42,
+        'arg2': 1,
+        'arg3': 'something else'
+        'arg4': 2
+        'arg5': 0xBEEF}
+        ```
+
+    ### Ancestors (in MRO)
+
+    * enum.Enum
+
+    ### Class variables
+
+    `PASTE`
+    :
+
 `PreparedCommand(name: str, args: OrderedDict, pathway: DataPathway, magic: Magic, comment: str = '')`
 :   Pre-prepared command.
 

@@ -11,7 +11,7 @@ based on other fields and those computation functions are included in the
 "Meta" definitions.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/02/2024
+@last-updated: 10/09/2024
 
 Functions
 ---------
@@ -74,82 +74,6 @@ Classes
 
     * typing.Generic
     * abc.ABC
-
-    ### Descendants
-
-    * config.metafields.imu.AccMS2Builder.<locals>.AccMS2
-    * config.metafields.imu.AccMS2Builder.<locals>.AccMS2
-    * config.metafields.imu.AccMS2Builder.<locals>.AccMS2
-    * config.metafields.imu.GravityMagnitudeMS2
-    * config.metafields.imu.PitchAngleDeg
-    * config.metafields.imu.RollAngleDeg
-    * config.metafields.latency._DownlinkTimesLatencySec
-    * config.metafields.peregrine.DeckD2TempKelvin
-    * config.metafields.peregrine.OperationalCorrectedCurrentAvg_mA
-    * config.metafields.peregrine.OperationalCorrectedCurrentMax_mA
-    * config.metafields.peregrine.OperationalPowerAvg_W
-    * config.metafields.peregrine.OperationalPowerMax_W
-    * config.metafields.peregrine.ReleaseCurrentAvg_mA
-    * config.metafields.peregrine.ReleaseCurrentMax_mA
-    * config.metafields.peregrine.ReleasePowerAvg_W
-    * config.metafields.peregrine.ReleasePowerMax_W
-    * config.metafields.rover_power.BatteryParameter.<locals>.BatteryParam
-    * config.metafields.rover_power.BatteryParameter.<locals>.BatteryParam
-    * config.metafields.rover_power.BatteryParameter.<locals>.BatteryParam
-    * config.metafields.rover_power.BatteryParameter.<locals>.BatteryParam
-    * config.metafields.rover_power.BatteryParameter.<locals>.BatteryParam
-    * config.metafields.rover_power.CurrentReading1V2F
-    * config.metafields.rover_power.CurrentReading1V2H
-    * config.metafields.rover_power.CurrentReading3V3
-    * config.metafields.rover_power.CurrentReading3V3F
-    * config.metafields.rover_power.CurrentReading3V3H
-    * config.metafields.rover_power.CurrentReading3V3R
-    * config.metafields.rover_power.CurrentReadingMotors
-    * config.metafields.rover_power.FullSystemCurrent_mA
-    * config.metafields.rover_power.FullSystemSwitch_FaultState
-    * config.metafields.rover_power.LanderVoltage_FusedEst
-    * config.metafields.temps.BatteryTempAvgKelvin
-    * config.metafields.temps.BoardThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.BoardThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.BoardThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.BoardThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.BoardThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.BoardThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.temps.RoverThermBuilder.<locals>.BoardTherm
-    * config.metafields.transit_power.VHeaterLive
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.CDS_Builder.<locals>.CombinedDigitalState
-    * config.metafields.watchdog_monitor.HerculesSkippedStrokes
-    * config.metafields.watchdog_monitor.HerculesWatchdogRoundtripTime_ms
-    * config.metafields.watchdog_monitor.WatchdogHerculesRoundtripTime_ms
-    * config.metafields.watchdog_monitor.WatchdogMissedStrokes
 
     ### Static methods
 

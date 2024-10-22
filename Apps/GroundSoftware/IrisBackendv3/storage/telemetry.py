@@ -14,7 +14,7 @@ from IrisBackendv3.data_standards.fsw_data_type import (
     FswDataType,
     Category as FswDataCategory
 )
-from ipc_apps.dl_processor import process_dl_payloads
+from ipc_apps.dl_processor_lib.processor import process_dl_payloads
 
 from datetime import datetime, timedelta, timezone
 
@@ -125,7 +125,10 @@ def packet_to_telem_rows(
 
     # Act as DownlinkProcessor and add in all Metafields that would have been
     # generated live:
-    payloads_and_metapayloads = process_dl_payloads(packet.payloads)
+    from config.metafields import ALL_META_MODULES  # only import when running
+    payloads_and_metapayloads = process_dl_payloads(
+        packet.payloads, ALL_META_MODULES
+    )
 
     def _store_payload(p: DownlinkedPayload, n: str) -> None:
         """Internal helper for building dataframe."""

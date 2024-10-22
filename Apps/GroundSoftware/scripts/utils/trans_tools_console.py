@@ -52,7 +52,8 @@ from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
 from IrisBackendv3.codec.logs import logger as CodecLogger
 from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
 
-from scripts.utils.__command_aliases import prepared_commands, Parameter, PreparedCommandType
+from IrisBackendv3.config.command_aliases import Parameter
+from scripts.utils.__command_aliases import prepared_commands
 
 from IrisBackendv3.utils.console_display import *
 

@@ -16,6 +16,7 @@ from types import ModuleType
 from collections import OrderedDict
 
 import typeguard
+from enum import Enum
 
 import IrisBackendv3
 from IrisBackendv3.codec.magic import Magic
@@ -23,9 +24,46 @@ from IrisBackendv3.codec.metadata import DataPathway, DataSource
 from IrisBackendv3.codec.payload import CommandPayload, WatchdogCommandPayload
 from IrisBackendv3.data_standards.data_standards import DataStandards
 
-from IrisBackendv3.utils.console_display import PreparedCommandType as LegacyPreparedCommandType
-
 from IrisBackendv3.config.settings import settings as _settings
+
+
+class Parameter(Enum):
+    """
+    Enum used to indicate that a parameter should be pasted in the
+    given argument slot.
+    Used for legacy applications where variable arguments needed to be flagged.
+    Used with `LegacyPreparedCommandType`.
+
+    Better said with an example:
+    If a command alias has kwargs:
+        ```
+        OrderedDict(
+            'arg1': 42,
+            'arg2': Parameter.PASTE,
+            'arg3': 'something else'
+            'arg4': PARAMETER.PASTE
+            'arg5': 0xBEEF
+        )
+        ```
+    and `get_command` is called with `params=[1, 2]` then the command will be built with:
+        ```
+        args={'arg1': 42,
+        'arg2': 1,
+        'arg3': 'something else'
+        'arg4': 2
+        'arg5': 0xBEEF}
+        ```
+    """
+    PASTE = 0
+
+
+LegacyPreparedCommandType = Tuple[
+    DataPathway,
+    Magic,
+    str,
+    'OrderedDict[str, Any]',
+    DataPathway
+]
 
 
 @dataclass

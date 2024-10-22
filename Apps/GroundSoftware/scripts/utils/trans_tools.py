@@ -803,60 +803,60 @@ def stream_data_ip_udp_serial(use_console_view: bool = False) -> None:
             slip_state = SlipState.FIRST_BYTE_OR_STARTING_END
 
 
-"""
-def stream_data_ip_udp_serial() -> None:
-    escape = False
-    keep_running = True
-    nrx = 0
-    line = b''
-    bin_file = 'file.bin'
-    data_bytes = bytearray(b'')
-    full_packets: List[bytes] = []
+# """
+# def stream_data_ip_udp_serial() -> None:
+#     escape = False
+#     keep_running = True
+#     nrx = 0
+#     line = b''
+#     bin_file = 'file.bin'
+#     data_bytes = bytearray(b'')
+#     full_packets: List[bytes] = []
 
-    if ser is not None:
-        ready = True
-    else:
-        ready = False
-        cprint("Can't read data, serial connection not started. Try `connect_serial()`.",
-               'red')
+#     if ser is not None:
+#         ready = True
+#     else:
+#         ready = False
+#         cprint("Can't read data, serial connection not started. Try `connect_serial()`.",
+#                'red')
 
-    while keep_running and ready:
-        b: Any = ser.read(1)
-        line += b
-        b = int.from_bytes(b, 'big')
-        if escape:
-            if b == 0xDC:
-                data_bytes.append(0xC0)
-            elif b == 0xDD:
-                data_bytes.append(0xDB)
-            escape = False
-        else:
-            if b == 0xC0:
-                if len(data_bytes) >= 1:  # packet baked:
-                    # Process it:
-                    packet = parse_ip_udp_packet(data_bytes)
-                    if packet is None:
-                        print("\> Empty packet received.")
-                    else:
-                        # Log the data:
-                        all_payloads.extend(packet.payloads)
-                        print(packet)
-                        # Feed the streams:
-                        update_telemetry_streams(packet)
-                    # Move on:
-                    data_bytes = bytearray(b'')
-                pass
-            elif b == 0xDB:
-                escape = True
-            else:
-                data_bytes.append(b)
-                # data_bytes.append(bytes(b.hex(), 'utf-8'))
+#     while keep_running and ready:
+#         b: Any = ser.read(1)
+#         line += b
+#         b = int.from_bytes(b, 'big')
+#         if escape:
+#             if b == 0xDC:
+#                 data_bytes.append(0xC0)
+#             elif b == 0xDD:
+#                 data_bytes.append(0xDB)
+#             escape = False
+#         else:
+#             if b == 0xC0:
+#                 if len(data_bytes) >= 1:  # packet baked:
+#                     # Process it:
+#                     packet = parse_ip_udp_packet(data_bytes)
+#                     if packet is None:
+#                         print("\> Empty packet received.")
+#                     else:
+#                         # Log the data:
+#                         all_payloads.extend(packet.payloads)
+#                         print(packet)
+#                         # Feed the streams:
+#                         update_telemetry_streams(packet)
+#                     # Move on:
+#                     data_bytes = bytearray(b'')
+#                 pass
+#             elif b == 0xDB:
+#                 escape = True
+#             else:
+#                 data_bytes.append(b)
+#                 # data_bytes.append(bytes(b.hex(), 'utf-8'))
 
-        # print stuff
-        print('%02x ' % b, end='', flush=True)
-        nrx += 1
-        if (nrx % 16) == 0:
-            print('')
-            # print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
-            line = b''
-"""
+#         # print stuff
+#         print('%02x ' % b, end='', flush=True)
+#         nrx += 1
+#         if (nrx % 16) == 0:
+#             print('')
+#             # print('    ' + re.sub(r'[^\x00-\x7F]+', '.', line.decode('ascii', 'ignore')))
+#             line = b''
+# """

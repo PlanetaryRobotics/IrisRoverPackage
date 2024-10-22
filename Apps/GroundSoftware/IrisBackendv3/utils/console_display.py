@@ -14,7 +14,7 @@ These functions could probably be wrapped pretty easily to make it stateful but
 that's super low priority right now since it all works.
 
 @author: Connor W. Colombo (CMU)
-@last-updated: 10/24/2024
+@last-updated: 10/14/2024
 """
 from __future__ import annotations  # Support things like OrderedDict[A,B]
 from typing import Any, Final, List, Type, cast, Union, Dict, Tuple, Optional
@@ -73,13 +73,13 @@ from IrisBackendv3.codec.packet import (
 )
 from IrisBackendv3.codec.packet_classes.gds_packet_event_mixin import GdsPacketEventMixin
 
-from ipc_apps.dl_processor import process_dl_payloads
+from ipc_apps.dl_processor_lib.processor import process_dl_payloads
 
-from IrisBackendv3.codec.magic import Magic, MAGIC_SIZE
-from IrisBackendv3.codec.logs import logger as CodecLogger
-from IrisBackendv3.codec.settings import ENDIANNESS_CODE, set_codec_standards
+from IrisBackendv3.config.command_aliases import (
+    Parameter,
+    LegacyPreparedCommandType as PreparedCommandType
+)
 
-from scripts.utils.__command_aliases import prepared_commands, Parameter, PreparedCommandType
 
 USER_PROMPT_COMMAND: Final[str] = "Command"
 USER_PROMPT_ARG: Final[str] = "Argument"
@@ -97,7 +97,7 @@ def tabs2spaces(x: str) -> str:
 
 def remove_ansi_escape_codes(x: str) -> str:
     # removes any ansi escape codes from given string:
-    return re.sub('\033\[[^m]*m', '', x)
+    return re.sub('\033\\[[^m]*m', '', x)
 
 
 def len_noCodes(x: str) -> int:
@@ -146,7 +146,7 @@ def get_active_window_title() -> Optional[str]:
                 ['xprop', '-root', '_NET_ACTIVE_WINDOW'], stdout=subprocess.PIPE)
             stdout, stderr = root.communicate()
 
-            m = re.search(b'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
+            m = re.search(br'^_NET_ACTIVE_WINDOW.* ([\w]+)$', stdout)
             if m is not None:
                 window_id = m.group(1)
                 window = subprocess.Popen(
@@ -155,7 +155,7 @@ def get_active_window_title() -> Optional[str]:
             else:
                 return None
 
-            match = re.match(b"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
+            match = re.match(br"WM_NAME\(\w+\) = (?P<name>.+)$", stdout)
             if match is not None:
                 return match.group("name").strip(b'"').decode()
             return None
@@ -610,7 +610,8 @@ def packet_to_messages(
 
     # Repeat DL-processor here and extract all meta-messages
     # (also computes and adds SCETs if needed):
-    all_payloads = process_dl_payloads(packet.payloads)
+    from config.metafields import ALL_META_MODULES  # only import when running
+    all_payloads = process_dl_payloads(packet.payloads, ALL_META_MODULES)
 
     # If the packet doesn't contain any telemetry or events (i.e. log,
     # debug print, etc.), add it to the messages list in LiFo manner:

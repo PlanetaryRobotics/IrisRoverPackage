@@ -14,7 +14,6 @@ from IrisBackendv3.data_standards.fsw_data_type import (
     FswDataType,
     Category as FswDataCategory
 )
-from ipc_apps.dl_processor import process_dl_payloads
 
 from datetime import datetime, timedelta, timezone
 

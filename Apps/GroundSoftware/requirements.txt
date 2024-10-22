@@ -2,6 +2,7 @@ mypy~=1.0.1
 typing_extensions>=4.0.0
 typeguard~=2.13.3
 ipykernel~=6.21.2
+cryptography < 43.0.0
 scapy~=2.5.0
 python-pcapng~=2.1.1
 numba~=0.56.4

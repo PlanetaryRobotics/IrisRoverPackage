@@ -13,12 +13,6 @@ from IrisBackendv3.codec.payload import (
     TelemetryPayload, EventPayload, FileBlockPayload, DownlinkedPayload
 )
 from IrisBackendv3.codec.payload_collection import EnhancedPayloadCollection
-from IrisBackendv3.utils.console_display import (
-    init_telemetry_payload_log_dataframe,
-    update_telemetry_payload_log_from_payloads,
-    init_packet_log_dataframe,
-    update_packet_log_dataframe
-)
 
 import IrisBackendv3 as IB3
 import IrisBackendv3.ipc as ipc

@@ -247,6 +247,56 @@ def plot_main(
     settings.colors.rotate(-len(df.columns))  # advance color cycle
 
 
+def _get_run_lengths(
+    series: pd.Series,
+    run_value: Any = True
+) -> pd.Series:
+    """Returns the lengths of runs of a given value in the
+    given series, which does NOT share the same index as the given series.
+    For more advanced conditional checks, just feed in a conditional series and
+    leave `run_value=True.`
+    """
+    series = series.ffill()
+    is_running = (series == run_value)
+    times = pd.Series(
+        (series.index - series.index[0]).total_seconds(),
+        index=series.index
+    )
+    run_start = is_running & (~is_running.shift(1, fill_value=False))
+    run_start_times = series.index[run_start]
+    run_end = is_running & (~is_running.shift(-1, fill_value=False))
+    run_end_times = series.index[run_end]
+
+    run_lengths = (run_end_times - run_start_times)
+    in_run = run_lengths.total_seconds() > 0
+    return run_lengths[in_run]
+
+
+def _get_run_lengths_series_seconds(
+    series: pd.Series,
+    run_value: Any = True
+) -> pd.Series:
+    """Returns a plottable series of lengths (in seconds) of runs of a given value in the
+    given series, which shares the same index as the given series.
+    For more advanced conditional checks, just feed in a conditional series and
+    leave `run_value=True.`
+    """
+    series = series.ffill()
+    is_running = (series == run_value)
+    times = pd.Series(
+        (series.index - series.index[0]).total_seconds(),
+        index=series.index
+    )
+    run_start = is_running & (~is_running.shift(1, fill_value=False))
+    run_start_times = times.where(run_start).ffill()
+    run_end = is_running & (~is_running.shift(-1, fill_value=False))
+    run_end_times = times.where(run_end).bfill()
+
+    run_lengths = (times - run_start_times)
+    run_lengths = run_lengths.where(times < run_end_times, 0)
+    return run_lengths
+
+
 def _flag_nan_runs(
     series: pd.Series,
     threshold: timedelta,

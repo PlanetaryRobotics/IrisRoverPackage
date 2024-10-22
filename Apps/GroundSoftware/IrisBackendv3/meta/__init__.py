@@ -20,8 +20,6 @@ from IrisBackendv3.meta.metafield import (
     add_metamodules_to_standards as _add_metamodules_to_standards
 )
 
-from config.metafields import ALL_META_MODULES as _ALL_META_MODULES
-
 # Helper to build and manage datastandards that incl. meta_modules
 
 
@@ -31,6 +29,9 @@ def build_standards_with_metamodules(
 ) -> DataStandards:
     """Helper to build DataStandards, optionally including all prebuilt
     modules and/or metamodules. Returns the DataStandards."""
+    # Only import modules at runtime (not module load time):
+    from config.metafields import ALL_META_MODULES as _ALL_META_MODULES
+
     standards = build_base_standards(
         include_all_prebuilts=include_all_prebuilts)
     if include_all_metamodules:

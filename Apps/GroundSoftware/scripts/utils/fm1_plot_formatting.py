@@ -179,6 +179,7 @@ class RoverPlotData:
         '*Data_Iris_Rate_bps_w_CCSDS': 'Avg. Data Rate, w/Overhead Penalty'
     })
 
+    drop_na_rows: bool = True
     thermal: pd.DataFrame = field(init=False)
     currents: pd.DataFrame = field(init=False)
     power: pd.DataFrame = field(init=False)
@@ -192,8 +193,8 @@ class RoverPlotData:
     data: pd.DataFrame = field(init=False)
     data_rate: pd.DataFrame = field(init=False)
 
-    @staticmethod
     def _get_cols(
+        self,
         df: pd.DataFrame,
         cols_map: Dict[str, str]
     ) -> pd.DataFrame:
@@ -207,7 +208,8 @@ class RoverPlotData:
         df2 = df[[*cols_map.keys()]]
         # Remove any rows that now don't contain any data
         # (b/c their data was only in other cols):
-        df2 = df2.dropna(axis=0, how='all')
+        if self.drop_na_rows:
+            df2 = df2.dropna(axis=0, how='all')
         # Rename columns:
         df2 = df2.rename(columns=cols_map)
         return df2
@@ -866,28 +868,51 @@ def make_diode_leakage_plot(
     start_time: datetime | None = None,
     end_time: datetime | None = None,
     averaging_interval: timedelta = timedelta(seconds=120),
+    extra_label: str = "(Mission)",
+    existing_figure: Tuple[Figure, List[Axis]] | None = None,
+    external_curves: Tuple[pd.Series, pd.Series, pd.Series] | None = None,
+    line_styles: Dict[str, Any] = dict(
+        marker='o',
+        markersize=2,
+        linestyle='none'  # just scatter plot these so we know where data is
+    ),
     **plot_settings_kwargs
 ) -> Tuple[PlotSettings, Figure, List[Axis]] | None:
     title = (
-        "Iris Diode-OR Leakage at High Temperature\n"
-        "(Voltage at Battery Switch Output with Switch Off)"
+        "Iris Diode-OR Leakage at High Temperature"
+        # "\n(Voltage at Battery Switch Output with Switch Off)"
     )
     cfg = PlotSettings(
         suptitle=title,
         title=files_title,
         start_time=start_time,
         end_time=end_time,
-        figsize=(14, 8),
-        dpi=dpi,
-        **plot_settings_kwargs
+        **{
+            **dict(
+                figsize=(14, 8),
+                dpi=dpi
+            ),
+            **plot_settings_kwargs
+        }  # type: ignore
     )
-    fig, axs = create_figure(cfg)
+    if existing_figure is None:
+        fig, axs = create_figure(cfg)
+    else:
+        fig, axs = existing_figure
 
     # Collect all Iris on-board RT temperAture readings and VBS readings:
-    battRTCelsius = data.telem_full['MetaModTemps_BatteryTempAvgKelvin'] - 273.15
-    vbs = data.telem_full['WatchdogDetailedStatus_Adc_SwitchedBatteryVoltage']
-    batt_off = data.telem_full['WatchdogDetailedStatus_Io_BatteryState'].ffill(
-    ) == 'DISCONNECTED'
+    if external_curves is None:
+        if 'MetaModTemps_BatteryTempAvgKelvin' in data.telem_full.columns:
+            battRTCelsius = data.telem_full['MetaModTemps_BatteryTempAvgKelvin'] - 273.15
+        else:
+            battRTCelsius = data.telem_full['WatchdogHeartbeat_BattAdcTempKelvin'] - 273.15
+        vbs = data.telem_full['WatchdogDetailedStatus_Adc_SwitchedBatteryVoltage']
+        batt_off = (
+            data.telem_full['WatchdogDetailedStatus_Io_BatteryState'].ffill()
+                .isin([0.0, 'DISCONNECTED'])
+        )
+    else:
+        battRTCelsius, vbs, batt_off = external_curves
 
     # Prune obviously junk data:
     battRTCelsius.loc[battRTCelsius < (200-273.15)] = np.nan
@@ -928,30 +953,31 @@ def make_diode_leakage_plot(
                        on=vbs.index.name, direction='nearest')
 
     # Rename columns to make them easier to handle:
+    VBS_KEY = 'VBS '+extra_label
     df.rename(columns={
-        'WatchdogDetailedStatus_Adc_SwitchedBatteryVoltage': 'VBS',
+        'WatchdogDetailedStatus_Adc_SwitchedBatteryVoltage': VBS_KEY,
+        'WatchdogHeartbeat_BattAdcTempKelvin': 'battCelsius',
         'MetaModTemps_BatteryTempAvgKelvin': 'battCelsius'
     }, inplace=True)
 
     df.set_index('battCelsius', inplace=True)
-    df = df.drop(columns=[data.telem_full.index.name])
+    df = pd.DataFrame(df[VBS_KEY], index=df.index)
+    df.index.name = 'battCelsius'
 
     if df.size == 0:
         return None  # Nothing to plot
 
     df.plot(
-        figsize=cfg.figsize,
+        # figsize=cfg.figsize,
         ax=axs[0],
         grid=True,
         xlabel='Avg. Battery Temperature [°C]',
         ylabel=(
-            'Battery Switch Output Voltage (VBS) w/ Switch OFF [V]\n'
-            '(note: poor accuracy at low voltages)'
+            'Battery Switch Output w/ Switch OFF [V]'
+            # '\n(note: poor accuracy at low voltages)'
         ),
         legend=False,
-        marker='o',
-        markersize=2,
-        linestyle='none'  # just scatter plot these so we know where data is
+        **line_styles
     )
 
     return cfg, fig, axs

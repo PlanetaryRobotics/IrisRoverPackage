@@ -1,0 +1,10 @@
+	Report for Image 12499: 
+		File Group (Image) ID:	 12499,
+		Image Valid / Internally Consistent:	 True,
+		Image Complete:	 False,
+		Total Image Lines:	 1944,
+		Lines Found:	 127,
+		Lines w/ Metadata:	 2,
+		Lines Completed:	 1,
+		Invalid / Internally Inconsistent Lines:	 0,
+		Lines with Corrupted Data:	 0

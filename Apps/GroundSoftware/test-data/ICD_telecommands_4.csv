@@ -1,0 +1,124 @@
+﻿This sheet contains the latest release of the Telecommand List to Astrobotic (via the ICD). Only update when a new release is being prepared for Astrobotic.,,,,
+IRIS Opcode,Hazard Category,YAMCS Command Name,Description,Usage
+0x0800,Independent,CommandDispatcher_Cmdnoop_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0800,Independent,CommandDispatcher_Cmdnoop_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0801,Independent,CommandDispatcher_Cmdnoopstring_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0801,Independent,CommandDispatcher_Cmdnoopstring_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0802,Independent,CommandDispatcher_Cmdtestcmd1_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0802,Independent,CommandDispatcher_Cmdtestcmd1_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0803,Independent,CommandDispatcher_Cmdcleartracking_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0803,Independent,CommandDispatcher_Cmdcleartracking_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b00,Independent,ActiveLogger_Alogseteventreportfilter_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b00,Independent,ActiveLogger_Alogseteventreportfilter_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b01,Independent,ActiveLogger_Alogseteventsendfilter_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b01,Independent,ActiveLogger_Alogseteventsendfilter_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b02,Independent,ActiveLogger_Alogdumpeventlog_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b02,Independent,ActiveLogger_Alogdumpeventlog_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b03,Independent,ActiveLogger_Alogsetidfilter_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b03,Independent,ActiveLogger_Alogsetidfilter_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b04,Independent,ActiveLogger_Alogdumpfilterstate_wired,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0b04,Independent,ActiveLogger_Alogdumpfilterstate_wifi,Firmware debugging command.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f00,Independent,Imu_ImuReportData_wired,A command to force an IMU data.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f00,Independent,Imu_ImuReportData_wifi,A command to force an IMU data.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f01,Independent,Imu_ImuTurnOn_wired,A command to turn on the IMU hardware,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f01,Independent,Imu_ImuTurnOn_wifi,A command to turn on the IMU hardware,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f02,Independent,Imu_ImuTurnOff_wired,A command to turn off the IMU hardware,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f02,Independent,Imu_ImuTurnOff_wifi,A command to turn off the IMU hardware,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e00,Independent,MotorControl_McCurrentPid_wired,Set the control constants for the electrical current controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0e00,Independent,MotorControl_McCurrentPid_wifi,Set the control constants for the electrical current controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0e01,Independent,MotorControl_McSpeedPid_wired,Set the control constants for the speed controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0e01,Independent,MotorControl_McSpeedPid_wifi,Set the control constants for the speed controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0f02,Independent,MotorControl_McPositionPid_wired,Set the control constants for the position controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0f02,Independent,MotorControl_McPositionPid_wifi,Set the control constants for the position controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0e03,Independent,MotorControl_McAcceleration_wired,Set the acceleration and deceleration windows for the controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0e03,Independent,MotorControl_McAcceleration_wifi,Set the acceleration and deceleration windows for the controller of the specified motor.,Following deployment from the SPACECRAFT.
+0x0e04,Independent,MotorControl_McStallDetection_wired,Enables or disables stall detection for the specified motor.,Following deployment from the SPACECRAFT.
+0x0e04,Independent,MotorControl_McStallDetection_wifi,Enables or disables stall detection for the specified motor.,Following deployment from the SPACECRAFT.
+0x0e05,Independent,MotorControl_McResetPosition_wired,Reset the position reading to 0 for encoder of the specified motor.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e05,Independent,MotorControl_McResetPosition_wifi,Reset the position reading to 0 for encoder of the specified motor.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e06,Dependent,MotorControl_McSpin_wired,Start or stops a spin test on the specified motor.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e06,Dependent,MotorControl_McSpin_wifi,Start or stops a spin test on the specified motor.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e07,Dependent,MotorControl_McPowerBoost_wired,"Enable or disables a power boost for the specified motor which, when enabled, sets the max power threshold to maximum.",Following deployment from the SPACECRAFT.
+0x0e07,Dependent,MotorControl_McPowerBoost_wifi,"Enable or disables a power boost for the specified motor which, when enabled, sets the max power threshold to maximum.",Following deployment from the SPACECRAFT.
+0x0e08,Dependent,MotorControl_McSetParameter_wired,Change internal parameters of the module,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e08,Dependent,MotorControl_McSetParameter_wifi,Change internal parameters of the module,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f09,Dependent,MotorControl_McGetParameters_wired,Returns all current parameters of the module,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f09,Dependent,MotorControl_McGetParameters_wifi,Returns all current parameters of the module,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e10,Dependent,MotorControl_McUpdateTelemetry_wired,Forces a telemetry update from the motors,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0e10,Dependent,MotorControl_McUpdateTelemetry_wifi,Forces a telemetry update from the motors,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f98,Dependent,MotorControl_McDriveTest_wired,Allows the direct commanding of moves bypassing Nav if things are incorrect,Following deployment from the SPACECRAFT.
+0x0f98,Dependent,MotorControl_McDriveTest_wifi,Allows the direct commanding of moves bypassing Nav if things are incorrect,Following deployment from the SPACECRAFT.
+0x0f99,Dependent,MotorControl_McSelfTest_wired,Runs through a routine to confirms the MSP are functioning properly,Following deployment from the SPACECRAFT.
+0x0f99,Dependent,MotorControl_McSelfTest_wifi,Runs through a routine to confirms the MSP are functioning properly,Following deployment from the SPACECRAFT.
+0x0d00,Dependent,Navigation_NavDriveForward_wired,Move the rover forward a specified distance at a specified speed.,Following deployment from the SPACECRAFT.
+0x0d00,Dependent,Navigation_NavDriveForward_wifi,Move the rover forward a specified distance at a specified speed.,Following deployment from the SPACECRAFT.
+0x0d01,Dependent,Navigation_NavDriveBackwards_wired,Move the rover backward a specified distance at a specified speed.,Following deployment from the SPACECRAFT.
+0x0d01,Dependent,Navigation_NavDriveBackwards_wifi,Move the rover backward a specified distance at a specified speed.,Following deployment from the SPACECRAFT.
+0x0d02,Dependent,Navigation_NavRotateRight_wired,Turn the turns the rover right (clockwise) a specified amount at a specified roational speed.,Following deployment from the SPACECRAFT.
+0x0d02,Dependent,Navigation_NavRotateRight_wifi,Turn the turns the rover right (clockwise) a specified amount at a specified roational speed.,Following deployment from the SPACECRAFT.
+0x0d03,Dependent,Navigation_NavRotateLeft_wired,Turn the turns the rover left (counterclockwise) a specified amount at a specified roational speed.,Following deployment from the SPACECRAFT.
+0x0d03,Dependent,Navigation_NavRotateLeft_wifi,Turn the turns the rover left (counterclockwise) a specified amount at a specified roational speed.,Following deployment from the SPACECRAFT.
+0x0d04,Independent,Navigation_NavStopMovement_wired,Stop all rover motion immediately.,Following deployment from the SPACECRAFT.
+0x0d04,Independent,Navigation_NavStopMovement_wifi,Stop all rover motion immediately.,Following deployment from the SPACECRAFT.
+0x1100,Independent,Camera_GetStatus_wired,Report status of cameras.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1100,Independent,Camera_GetStatus_wifi,Report status of cameras.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1101,Independent,Camera_TakeImage_wired,Take an image from specified camera with latest configuration.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1101,Independent,Camera_TakeImage_wifi,Take an image from specified camera with latest configuration.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1102,Independent,Camera_Error_wired,Return the camera error register to ground or reset it.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1102,Independent,Camera_Error_wifi,Return the camera error register to ground or reset it.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1103,Independent,Camera_ConfigureCamera0_wired,Update the camera 0 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1103,Independent,Camera_ConfigureCamera0_wifi,Update the camera 0 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1104,Independent,Camera_Camera0Crop_wired,Update the camera 0 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1104,Independent,Camera_Camera0Crop_wifi,Update the camera 0 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1105,Independent,Camera_ConfigureCamera1_wired,Update the camera 1 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1105,Independent,Camera_ConfigureCamera1_wifi,Update the camera 1 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1106,Independent,Camera_Camera1Crop_wired,Update the camera 1 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1106,Independent,Camera_Camera1Crop_wifi,Update the camera 1 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1107,Independent,Camera_ReadImage_wired,Read the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1107,Independent,Camera_ReadImage_wifi,Read the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1108,Independent,Camera_EraseImage_wired,Erase the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1108,Independent,Camera_EraseImage_wifi,Erase the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1109,Independent,Camera_SoftCameraReset_wired,Soft reset the camera and reinitialize FPGA.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1109,Independent,Camera_SoftCameraReset_wifi,Soft reset the camera and reinitialize FPGA.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x110a,Independent,Camera_ImageDump_wired,Start or stop sending all images stored in onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x110a,Independent,Camera_ImageDump_wifi,Start or stop sending all images stored in onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,,
+,,,,
+0x1000,Dependent,WatchDogInterface_ResetSpecific_wired,Set power status for the specified hardware or software component to ON or OFF. All software and power ON commands are rejected unless in SERVICE mode.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1000,Dependent,WatchDogInterface_ResetSpecific_wifi,Set power status for the specified hardware or software component to ON or OFF. All software and power ON commands are rejected unless in SERVICE mode.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1001,Hazardous,WatchDogInterface_PrepareForDeployment_wired,"Prepare for deployment by powering on all systems (Hercules, Camera, etc.)",After surface checkout phase on the SPACECRAFT and before deployment from the SPACECRAFT.
+0x1001,Hazardous,WatchDogInterface_PrepareForDeployment_wifi,"Prepare for deployment by powering on all systems (Hercules, Camera, etc.)",After surface checkout phase on the SPACECRAFT and before deployment from the SPACECRAFT.
+0x1002,Hazardous,WatchDogInterface_DisengageFromLander_wired,Tell the Watchdog to issue it's interlock signal for deployment. Note: the rover won't deploy unless both the Primary MCU and Watchdog independently issue this signal.,After surface checkout phase on the SPACECRAFT to initiate deployment from the SPACECRAFT.
+0x1002,Hazardous,WatchDogInterface_DisengageFromLander_wifi,Tell the Watchdog to issue it's interlock signal for deployment. Note: the rover won't deploy unless both the Primary MCU and Watchdog independently issue this signal.,After surface checkout phase on the SPACECRAFT to initiate deployment from the SPACECRAFT.
+0x1003,Hazardous,WatchDogInterface_SwitchConnectionMode_wired,Set the Watchdog connection mode to either wired (RS-422) wherein the Watchdog gets data and forwards it to the Primary MCU or wireless (WiFi) where the primary MCU gets data and forwards it to the Watchdog.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1003,Hazardous,WatchDogInterface_SwitchConnectionMode_wifi,Set the Watchdog connection mode to either wired (RS-422) wherein the Watchdog gets data and forwards it to the Primary MCU or wireless (WiFi) where the primary MCU gets data and forwards it to the Watchdog.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1004,Independent,WatchDogInterface_EngageFromLander_wired,Tells Watchdog and Hercules to turn off their deployment signals (re-engage their interlocks).,Following deployment from the SPACECRAFT or possibly during surface checkout phase on the SPACECRAFT if deployment failed.
+0x1004,Independent,WatchDogInterface_EngageFromLander_wifi,Tells Watchdog and Hercules to turn off their deployment signals (re-engage their interlocks).,Following deployment from the SPACECRAFT or possibly during surface checkout phase on the SPACECRAFT if deployment failed.
+0x10AA,Dependent,WatchDogInterface_SetKpSpecific_wired,Set the Kp constant for the heater controller to the specified value.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10AA,Dependent,WatchDogInterface_SetKpSpecific_wifi,Set the Kp constant for the heater controller to the specified value.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10ad,Dependent,WatchDogInterface_SetHeaterDutyCycleMax_wired,Sets the maximum duty cycle for the heater controller on the Watchdog.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10ad,Dependent,WatchDogInterface_SetHeaterDutyCycleMax_wifi,Sets the maximum duty cycle for the heater controller on the Watchdog.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10ae,Dependent,WatchDogInterface_SetHeaterDutyCyclePeriod_wired,Sets the duty cycle period for the heater controller on the Watchdog.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10ae,Dependent,WatchDogInterface_SetHeaterDutyCyclePeriod_wifi,Sets the duty cycle period for the heater controller on the Watchdog.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10af,Dependent,WatchDogInterface_SetHeaterWindow_wired,Sets the deadband window width for the heater controller on the Watchdog.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10af,Dependent,WatchDogInterface_SetHeaterWindow_wifi,Sets the deadband window width for the heater controller on the Watchdog.,During transit on the SPACECRAFT and possibly during surface checkout phase on the SPACECRAFT if a thermal anomaly occurs.
+0x10DA,Dependent,WatchDogInterface_SetHeaterSetpoint_wired,Set the voltage setpoint of the heater controller in raw ADC units.,During transit on the SPACECRAFT.
+0x10DA,Dependent,WatchDogInterface_SetHeaterSetpoint_wifi,Set the voltage setpoint of the heater controller in raw ADC units.,During transit on the SPACECRAFT.
+0x10ea,Independent,WatchDogInterface_SwitchToSleepMode_wired,Set Watchdog mode to Sleep. Turn everything off and prepare for removal of power. [Can only be entered from KEEPALIVE],Never in nominal operation.
+0x10ea,Independent,WatchDogInterface_SwitchToSleepMode_wifi,Set Watchdog mode to Sleep. Turn everything off and prepare for removal of power. [Can only be entered from KEEPALIVE],Never in nominal operation.
+0x10eb,Independent,WatchDogInterface_SwitchToKeepAliveMode_wired,Set Watchdog mode to Keep Alive during which it sends heartbeats and ensures everything else is powered everything off. All commands to power something on are rejected. [Can be entered from SLEEP or SERVICE],During transit on the SPACECRAFT.
+0x10eb,Independent,WatchDogInterface_SwitchToKeepAliveMode_wifi,Set Watchdog mode to Keep Alive during which it sends heartbeats and ensures everything else is powered everything off. All commands to power something on are rejected. [Can be entered from SLEEP or SERVICE],During transit on the SPACECRAFT.
+0x10ec,Dependent,WatchDogInterface_SwitchToServiceMode_wired,Enter Service Mode. All Watchdog functionality is active. Able to power on subsystems. [only enter if in KEEPALIVE],During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x10ec,Dependent,WatchDogInterface_SwitchToServiceMode_wifi,Enter Service Mode. All Watchdog functionality is active. Able to power on subsystems. [only enter if in KEEPALIVE],During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,,
+,,,,
+0x0900,Independent,GroundInterface_SetPrimaryInterface_wired,Selects the interface (wireless via radio or wired via watchdog) over which the main CPU (Hercules) will downlink its telemetry.,During surface checkout phase on the SPACECRAFT.
+0x0900,Independent,GroundInterface_SetPrimaryInterface_wifi,Selects the interface (wireless via radio or wired via watchdog) over which the main CPU (Hercules) will downlink its telemetry.,During surface checkout phase on the SPACECRAFT.
+0x0901,Independent,GroundInterface_SetGroundInterfaceTelemetryLevel_wired,Sets the downlink telemetry level from the Hercules.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0901,Independent,GroundInterface_SetGroundInterfaceTelemetryLevel_wifi,Sets the downlink telemetry level from the Hercules.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+,,,,
+,,,,
+0x1300,Independent,UWB_RateChange_wired,Set the time interval for data sampling of the Primary MCU's UWB module to the specified value.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1300,Independent,UWB_RateChange_wifi,Set the time interval for data sampling of the Primary MCU's UWB module to the specified value.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1301,Independent,UWB_ModeChange_wired,"Set the mode of the UWB module to the specified value: Off, Continuous (constantly sampling data at a fixed rate), or Triggered (only sample data on request).",During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x1301,Independent,UWB_ModeChange_wifi,"Set the mode of the UWB module to the specified value: Off, Continuous (constantly sampling data at a fixed rate), or Triggered (only sample data on request).",During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.

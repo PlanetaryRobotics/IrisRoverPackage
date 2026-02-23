@@ -515,6 +515,12 @@ class ModelParser(object):
                     else:
                         t = "Fw::CmdStringArg"
                     typeinfo = "string"
+                elif t in ["IrisCmdByteString", "IrisCmdByteStringArg", "Fw::IrisCmdByteStringArg"]:
+                    if from_proto:
+                        t = "const Fw::IrisCmdByteStringArg&"
+                    else:
+                        t = "Fw::IrisCmdByteStringArg"
+                    typeinfo = "string"
                 c = a.get_comment()
                 # Add namespace to type here...
                 # If serialize type set it here...

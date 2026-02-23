@@ -1,0 +1,134 @@
+# Automated behavior that attempts to  start the UDP services.
+# If it fails, it catches it and retries after a delay.
+# If it fails too many times, it restarts the radio.
+# ! Update state_driver.puml if you make changes here.
+
+# Handle for the single shot timer to know what event triggered it
+const TIMER_HANDLE = $B3  # Handle is only uint8
+# Max number of times to try before resetting:
+const COUNTER_MAX = 5
+# Time to wait before trying again, in ms:
+const RETRY_WAIT_MS = 500
+
+# How many times it's been tried unsuccessfully so far.
+dim counter
+# Whether we've started UDP setup already (i.e. from this point on, we want the UDP client active):
+dim assert_udp_client_active
+dim assert_udp_server_active
+
+# Temp. variables:
+dim result, endpoint
+
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    # init vars:
+    counter = 0
+    assert_udp_client_active = 0
+    assert_udp_server_active = 0
+end
+
+
+# Procedure called in any failure case:
+# NOTE: The weird name is because of a bug discovered in BGScript where the
+# first declared `handle_failure` would be called... even if it was in a
+# different `bgs` file and not exported. To be safe, all procedures should have
+# unique names, even if not exported.
+procedure su__handle_failure()
+    if DEBUG = 1 then
+        call hercules_direct_message_ascii(29, "Handling Start UDP Failure...")
+    end if
+    counter = counter + 1
+    if (counter < COUNTER_MAX) then
+        if DEBUG = 1 then
+            call hercules_compile_dm__new()
+            call hercules_compile_dm__append_message(20, "SUF awaiting handle:")
+            call hercules_compile_dm__append_hex_buffer(1, TIMER_HANDLE) # handle is only 1B
+            call hercules_compile_dm__send()
+        end if
+        call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
+    else
+        # failed too many times. something must be wrong. Reboot!
+        call HR_FATAL_START_UDP_MAX_TRIES() # Let Herc know before resetting
+        call system_reset(0)
+    end if
+end
+
+
+# Attempt to connect:
+procedure start_udp_service()
+    # Check if we've previously been connected, if so, scrap those previous
+    # endpoints:
+    if udp_client_endpoint != UDP_NULL_ENDPOINT then
+        call endpoint_close(udp_client_endpoint)
+        # indicate that we no longer care about this endpoint (so nothing
+        # freaks out when it closes):
+        udp_client_endpoint = UDP_NULL_ENDPOINT
+    end if
+    if udp_server_endpoint != UDP_NULL_ENDPOINT then
+        call endpoint_close(udp_server_endpoint)
+        # indicate that we no longer care about this endpoint (so nothing
+        # freaks out when it closes):
+        udp_server_endpoint = UDP_NULL_ENDPOINT
+    end if
+
+    # Connect to port on Spacecraft:
+    assert_udp_client_active = 1
+    # NOTE: routing to -1 b/c it doesn't matter where data from this node goes (b/c, as a client, it receives no data to pass along)
+    call tcpip_udp_connect(NETWORK__SPACECRAFT_ADDRESS, NETWORK__SPACECRAFT_UDP_PORT, -1)(result, endpoint)
+    if result != 0 then
+        call su__handle_failure()
+    else
+        udp_client_endpoint = endpoint
+    end if
+
+    # Set message origins to the correct port on the rover:
+    call tcpip_udp_bind(udp_client_endpoint, NETWORK__ROVER_UDP_PORT)(result)
+    if result != 0 then
+        call su__handle_failure()
+    end if
+    
+    # Create a local UDP server to receive data from spacecraft:
+    # Note: destination of -1 means data gets routed to `event tcpip_udp_data` instead of an explicit endpoint (this will show up on any BGAPI endpoints).
+    assert_udp_server_active = 1
+    call tcpip_start_udp_server(NETWORK__ROVER_UDP_PORT, -1)(result, endpoint)
+    if result != 0 then
+        call su__handle_failure()
+    else
+        udp_server_endpoint = endpoint
+    end if
+end
+
+
+export procedure START_UDP()
+    counter = 0
+    call HR_DOING_STARTING_UDP()
+    call start_udp_service()
+end
+
+
+event endpoint_status(ep, type, streaming, destination, active)
+    if ep != UDP_NULL_ENDPOINT then
+        # NOTE: retrieve_info (getting radio status) will generate this event too
+        if ep = udp_client_endpoint && type = 16 then # endpoint_udp=16
+            if assert_udp_client_active = 1 && active = 0 then
+                # We've already initiated UDP client. It should be active now but it's not. Take care of this:
+                # (this applies for both 1. if we've just attempted to set up the client and it failed and 2. if the client goes down for any reason):
+                call su__handle_failure()
+            end if
+        end if
+
+        if ep = udp_server_endpoint && type = 32 then # endpoint_udp_server=32
+            if assert_udp_server_active = 1 && active = 0 then
+                # We've already initiated UDP server. It should be active now but it's not. Take care of this:
+                # (this applies for both 1. if we've just attempted to set up the server and it failed and 2. if the server goes down for any reason):
+                call su__handle_failure()
+            end if
+        end if
+    end if
+end
+
+
+event hardware_soft_timer(handle)
+    if handle = TIMER_HANDLE then
+        call start_udp_service()
+    end if
+end

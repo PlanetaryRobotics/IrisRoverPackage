@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?oxygen RNGSchema="file:../xml/ISF_Component_Schema.rnc" type="compact"?>
+
+<component name="Camera" kind="passive" namespace="CubeRover">
+    <import_port_type>SampleFPrimeXml_FileDownlinkPortAi.xml</import_port_type>
+    <import_port_type>SampleFPrimeXml_CameraTakePicturePortAi.xml</import_port_type>
+    <import_dictionary>SampleFPrimeXml_EventsDict.xml</import_dictionary>
+
+    <comment>Manages the CubeRover cameras</comment>
+    <ports>
+        <port name="takePicture" data_type="CubeRover::CameraTakePicture" kind="sync_input" max_number="2">
+            <comment>
+                This port is for other components to request an picture to be taken (Navigation).
+            </comment>
+        </port>
+        <port name="downlinkImage" data_type="CubeRover::FileDownlink" kind="output" max_number="1">
+            <comment>
+                Send an image to GroundInterface for downlink.
+            </comment>
+        </port>
+    </ports>
+
+    <import_dictionary>SampleFPrimeXml_TelemetryDict.xml</import_dictionary>
+        
+    <commands>
+        <command kind="sync" opcode="0x0" mnemonic="Get_Status">
+            <comment>
+                Get camera status
+                <![CDATA[{JSONSTART{{
+                        "description": "Get camera status.",
+                        "YAMCS_queue": "dependent"
+                    }}JSONEND}]]>
+            </comment>
+        </command>
+        <command kind="sync" opcode="0x1" mnemonic="Take_Image">
+            <comment>
+                Take an Image
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+
+            <args>
+                <arg name="camera_num" type="U8">
+                    <comment>
+                        0: Camera 0     1: Camera 1
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+                <arg name="callback_id" type="U16">
+                    <comment>
+                        Identifier which will be downlinked with the images from this command, allowing us to map which downlinked images related to which 'take photo' command
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x2" mnemonic="Error">
+            <comment>
+                Get camera status
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="action" type="U8">
+                    <comment>
+                        0x00: Clear Error     0xff: Read Error  !! Not sure how this is being used
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "CLEAR": 0,
+                                    "READ": 255
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x3" mnemonic="Configure_Camera0">
+            <comment>
+                Configure camera 0
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing camera configurations. TODO: Copy the bit fields from C&amp;TL to here
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x4" mnemonic="Camera0_Crop">
+            <comment>
+                Defines the crop for camera 0
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing crop locations. TODO: Copy bitfields from C&amp;TL to here
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x5" mnemonic="Configure_Camera1">
+            <comment>
+                Configure camera 1
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing camera configurations. TODO: Copy the bit fields from C&amp;TL to here
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x6" mnemonic="Camera1_Crop">
+            <comment>
+                Defines the crop for camera 1
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="config" type="U64">
+                    <comment>
+                        Packed bitfield containing crop locations. TODO: Copy bitfields from C&amp;TL to here
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x7" mnemonic="Read_Image">
+            <comment>
+                Downlink image generated by a sequence number
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="callbackID" type="U16">
+                    <comment>
+                        DRedownlink an image generated from the specified callbac
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+             </args>
+        </command>
+        <command kind="sync" opcode="0x8" mnemonic="Erase_Image">
+            <comment>
+                TBD
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+        </command>
+        <command kind="sync" opcode="0x9" mnemonic="Soft_Camera_Reset">
+            <comment>
+                Does a soft reset of the camera (and something with the FPGA)
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+            <args>
+                <arg name="cameraNum" type="U8">
+                    <comment>
+                        Camera Number
+                        <![CDATA[{JSONSTART{{
+                                "hello": "sir",
+                                "i_am": "Test Data",
+                                "BEEP": "0xB009",
+                                "enum": {
+                                    "FRONT": 0,
+                                    "REAR": 1
+                                }
+                            }}JSONEND}]]>
+                    </comment>
+                </arg>
+            </args>
+        </command>
+        <command kind="sync" opcode="0xa" mnemonic="Image_Dump">
+            <comment>
+                TBD
+                <![CDATA[{JSONSTART{{
+                        "description": "I am a command.",
+                        "YAMCS_queue": "much_danger"
+                    }}JSONEND}]]>
+            </comment>
+        </command>
+    </commands>
+</component>

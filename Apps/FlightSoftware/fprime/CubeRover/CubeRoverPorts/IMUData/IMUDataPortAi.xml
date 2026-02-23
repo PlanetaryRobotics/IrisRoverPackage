@@ -1,0 +1,15 @@
+<interface name="IMUData" namespace="CubeRoverPorts">
+    <comment>
+    Port to return the data from the IMU
+    </comment>
+    <args>
+        <arg name="roll_ptr" type="I16">
+        </arg>
+
+        <arg name="pitch_ptr" type="I16">
+        </arg>
+
+        <arg name="yaw_ptr" type="I16">
+        </arg>
+    </args>
+</interface>

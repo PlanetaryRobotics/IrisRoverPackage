@@ -90,7 +90,7 @@ extern "C" {
 *
 *	@note: Use this macro for IRQ Mode Stack length (in bytes)
 */
-#define IRQ_STACK_LENGTH    0x00000100U
+#define IRQ_STACK_LENGTH    0x00000800U
 
 /** @def ABORT_STACK_LENGTH
 *   @brief ABORT Mode Stack length (in bytes)

@@ -3,6 +3,7 @@
 
 #include <Fw/Cfg/Config.hpp>
 #include <Fw/Types/BasicTypes.hpp>
+#include <assert.h>
 
 #if FW_ASSERT_LEVEL == FW_NO_ASSERT
 
@@ -17,9 +18,9 @@
     (Fw::SwAssert(ASSERT_FILE_ID, __LINE__, ##__VA_ARGS__))))
 #else
 #define FILE_NAME_ARG U8*
-#define FW_ASSERT(cond, ...) \
-    ((void) ((cond) ? (0) : \
-    (Fw::SwAssert((U8*)__FILE__, __LINE__, ##__VA_ARGS__))))
+#define FW_ASSERT(cond, ...) assert(cond)
+    //((void) ((cond) ? (0) : \
+    //(Fw::SwAssert((U8*)__FILE__, __LINE__, ##__VA_ARGS__))))
 #endif
 
 namespace Fw {

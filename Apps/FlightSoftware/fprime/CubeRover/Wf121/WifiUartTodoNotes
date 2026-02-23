@@ -1,0 +1,93 @@
+
+// Add callbacks to catch exceptions/warnings like `system_sw_exception` (?)
+
+// TODO: Test UART sync-loss by having radio send some garbage to the UART endpoint (with `send_endpoint` not `hercules_direct_messge_ascii`) and make sure it still works.
+
+// Allow for querying Herc from ground for all info it has about Radio (e.g. last received error).
+
+// - TODO: Lastly go back and review diffs from checkpoint commits (specifically notifications.c)
+//    - Make sure those changes match with the current DMA-ISR system.
+
+// ! TODO: Make sure fixed strings in DirectMessageDriver and heartbeatMessage structure are correct
+
+// Update RadioDriver callback len (now only needs to be 1 long)
+
+// ! TODO: Add stack overflow detection and reset on overflow.
+// ! TODO: Make sure WD reset Herc if it hangs.
+
+// reimpl debugPrintfToWatchdog for passing all radio direct messages to WD RS422
+
+// Co-opt a command to make a NM "echo" command?
+
+// ! TODO: Can WD DetailedStatusPacket give us a Hercules reset counter (I think it gives us a flag which we could just count on gnd to get a minimum count):
+
+// !!! TODO: Make all Queues statically allocated (RxQueue)
+
+// ! Examine what happens if the Radio disconnects while we're sending (i.e. no response / error response) - we should handle this safely. Just give up on the send?
+// ^ this should be handled correctly now in the `udpTxUpdateHandler` State Machine.
+
+// ! TODO: Once everything "works", make sure nothing blows up if you disconnect for:
+//      A.) a couple seconds (less than a UDP TX Queue fill time)
+//      B.) a long time (several times the UDP TX Queue fill time)
+
+// ! TODO: In `udpTxUpdateHandler`, handle flag from `cb_EventEndpointSyntaxError` (re-send last command b/c Radio didn't understand it? - look for either the expected semaphore or the syntax error semaphore)
+// Implement this is such a way so that if Radio doesn't respond as expect (due to Lunar EMI interference), we break out of the blocking wait for SetTransmitSize or SendUdpChunk mailboxes in the `udpTxUpdateHandler` state machine.
+// ^ Use a QueueSet to OR the mailbox queues?
+
+// TODO: Await `CanSendData` (CTS) before `dmaSend` in `Wf121UdpTxTask`?
+// doing this properly would require a GIO interrupt and semaphoreGive ... lower priority
+// (doing this improperly would involve a poll-vDelay loop)
+// ... CTS shouldn't really matter since we're waiting for command responses anyway (so we should be CTS by that point no matter what)
+// - still could be worth doing b/c what if the Radio processor gets really busy with something and drops CTS briefly
+
+// TODO: Diagram TX state machine.
+// TODO: Make diagram that makes clear all the externally available endpoints (should be anything that can be accessed through publics)
+// TODO: Put all docs/diagrams into a quick README.
+
+// ! TODO: Investigate if we should be using `WatchdogResetRequest` port in NM (instead of just calling resets directly)?
+
+// Implement 'RESET-ALL-BUFFERS' command on ground.
+// Update C&TL with all new Radio-Ground and Ground-Direct TMTC.
+
+// TODO: Re-impl. Connection RSSI callbacks (for back-tracking) - lower priority, need to verify Navigation first before this is even useful.
+
+// TODO: Refactor to not use redundant "Wf121" file prefixes or class prefixes (everything's already in a namespace). Make sure to update any comments that reference those objects too (for consistency).
+
+// TODO: Update NM XML so `ExecuteCallbackError` can be a different error (i.e. Radio fault)
+
+// ! TODO: Add a command that lets us update the stored network info in the radio (in case it gets corrupted during transit).
+// This should be paired with an echo so we know the data got to Hercules okay.
+
+// ! TODO: Max sure default state of RTS (WF121 CTS) is active.
+
+//
+//
+//
+
+// TODO: Diagram UDP TX State Machine
+
+////
+// POTENTIAL BUG REMEDIES:
+////
+
+// mod.mk for Wf121?
+
+// ! Adjust KRAM to free up more RAM: https://e2e.ti.com/support/microcontrollers/arm-based-microcontrollers-group/arm-based-microcontrollers/f/arm-based-microcontrollers-forum/949585/compiler-rm46l852-can-i-resize-kram
+
+// Determine task size for idle task (fprime) - almost certainly needs to be bigger than 128.
+//   (NULL)
+// xPortGetFreeHeapSize as the contrast
+// ^ TODO: Add both of these as a telemetry item for FPrime (detect memory leaks)
+// TODO: Can we also add a jitter/overdue-clock item? (determine if the scheduler is being overwhelmed)
+
+// Determine if we need taskENTER_CRITICAL()/taskEXIT_CRITICAL() around certain write operations to prevent them from being interrupted? (only do this if it looks like we're getting garbled data due to interruptions)
+
+// TODO: If RX bugs, re-test `SimpleAsyncFifoBuffer` in REPL (don't recall how comprehensive testing was before). Would break entire RX pipeline if it doesn't work as expected.
+
+// Check if stack size needs to be at least as big as all variables in the task. If so, update this. Note: this would apply to WatchDogRxTask too (it has a 650B buffer but 256word stack)
+// Yeah, probably... just add sizeof(Task)/4 (bytes->words) to the stack size.
+// ... switch to xTaskCreateStatic (so no memory leaks or surprises)
+// There's 768B of overhead per Task? (on ESP32 FreeRTOS port only it seems)
+
+// NOTE: If buffer copy times end up being too laggy, switch from static to careful dynamic allocation as used in the FreeRTOS+UDP layer and described here: https://www.freertos.org/FreeRTOS_Support_Forum_Archive/March_2013/freertos_Safe_passing_of_buffers_through_a_queue_7177431.html
+// ^ rem. we're still talking <1ms every couple seconds here. Probably fine for this application. Only redo if determined necessary by testing.

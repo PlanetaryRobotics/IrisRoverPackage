@@ -1,0 +1,7 @@
+A colored-text log of the print outs of all packets received during the RC7_jumper_out_noboot_check_2 session:
+NOTE: This includes any ANSI escape codes (like coloring) which will show up weird if viewed as plain-text. To view this appropriately, use the terminal `cat` command or view in VSCode with the `ANSI Colors` extension installed.
+
+[35;47;1m(01-02 06:28:26)[0m [48;5;248m[38;5;233m[1m WIRED [0m  [1m[38;5;243m[23B]: Watchdog in Init state[0m
+0000  44 45 42 55 47 57 61 74 63 68 64 6F 67 20 69 6E  DEBUGWatchdog in
+0010  20 49 6E 69 74 20 73 74 61 74 65 0A               Init state.
+

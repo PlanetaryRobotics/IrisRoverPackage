@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>groundInterface:GroundInterface Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+<h1><b>Events: groundInterface:GroundInterface</b></h1>
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">GI_UplinkedPacketError</td>
+			<td rowspan="4">2304 (0x900)</td>
+			<td rowspan="4">Error validating uplinked packet. Expected field is only logged for MISMATCHED_LENGTH and OUT_OF_SEQUENCE.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>errorType</td>
+						<td>uplinkedPacketError</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>expected</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>got</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">GI_UplinkedBadMagic</td>
+			<td rowspan="2">2305 (0x901)</td>
+			<td rowspan="2">Error validating uplinked packet. The first payload in the variable length payload section had an incorrect magic.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>magicReceived</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">GI_CommandReceived</td>
+			<td rowspan="3">2306 (0x902)</td>
+			<td rowspan="3">A command packet was received. One command per packet (and datagram) is strictly enforced</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>seq</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>checksum</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">GI_DownlinkedPacket</td>
+			<td rowspan="4">2307 (0x903)</td>
+			<td rowspan="4">A packet sent to UDP receiver for downlink</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>seq</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>checksum</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>length</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">GI_DownlinkedItem</td>
+			<td rowspan="3">2308 (0x904)</td>
+			<td rowspan="3">An item was added to the packet for downlink. This will be basically never used since using it would mean adding 1 downlink item for every item downlinked (which would run away).</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>seq</td>
+						<td>U8</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>from</td>
+						<td>downlinkPacketType</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">InterfaceAutoSwitchChanged</td>
+			<td rowspan="2">2309 (0x905)</td>
+			<td rowspan="2">Whether or not `GroundInterface` is allowed to automatically change
+            Hercules' downlink interface based on the WiFi connection state.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>on</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">InterfaceAutoSwitch</td>
+			<td rowspan="3">2310 (0x906)</td>
+			<td rowspan="3">`GroundInterface` has automatically changed its downlink interface
+            based on the WiFi connection state.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>from</td>
+						<td>FromInterface</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to</td>
+						<td>ToInterface</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">BroughtToYouBy</td>
+			<td rowspan="2">2464 (0x9a0)</td>
+			<td rowspan="2">Thank you to an Iris member / donor stored on the Rover.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>name</td>
+						<td>Fw::LogStringArg&</td>
+						<td>50</td>
+						<td>Name of an Iris member / donor stored on the Rover.</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">SpecialMessage</td>
+			<td rowspan="3">2465 (0x9a1)</td>
+			<td rowspan="3">Message from an Iris member / donor.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>name</td>
+						<td>Fw::LogStringArg&</td>
+						<td>50</td>
+						<td>Name of an Iris member / donor stored on the Rover who sent a message.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>message</td>
+						<td>Fw::LogStringArg&</td>
+						<td>100</td>
+						<td>Their special message.</td>
+					</tr>
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

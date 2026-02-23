@@ -1,0 +1,43 @@
+0x0f00,,CommandDispatcher_Cmdnoop,,
+0x0f01,,CommandDispatcher_Cmdnoopstring,,
+0x0f02,,CommandDispatcher_Cmdtestcmd1,,
+0x0f03,,CommandDispatcher_Cmdcleartracking,,
+0x0f00,,ActiveLogger_Alogseteventreportfilter,,
+0x0f01,,ActiveLogger_Alogseteventsendfilter,,
+0x0f02,,ActiveLogger_Alogdumpeventlog,,
+0x0f03,,ActiveLogger_Alogsetidfilter,,
+0x0f04,,ActiveLogger_Alogdumpfilterstate,,
+0x0f00,,WatchDogInterface_ResetSpecific,,
+0x0f01,,WatchDogInterface_DisengageFromLander,,
+0x0f00,,Imu_ImuReportData,,
+0x0f01,,Imu_ImuTurnOn,,
+0x0f02,,Imu_ImuTurnOff,,
+0x0f00,,MotorControl_McCurrentPid,,
+0x0f01,,MotorControl_McSpeedPid,,
+0x0f02,,MotorControl_McPositionPid,,
+0x0f03,,MotorControl_McAcceleration,,
+0x0f04,,MotorControl_McStallDetection,,
+0x0f05,,MotorControl_McResetPosition,,
+0x0f06,,MotorControl_McSpin,,
+0x0f07,,MotorControl_McPowerBoost,,
+0x0f08,,MotorControl_McSetParameter,,
+0x0f09,,MotorControl_McGetParameters,,
+0x0f10,,MotorControl_McUpdateTelemetry,,
+0x0f98,,MotorControl_McDriveTest,,
+0x0f99,,MotorControl_McSelfTest,,
+0x0f00,,Navigation_NavDriveForward,,
+0x0f01,,Navigation_NavDriveBackwards,,
+0x0f02,,Navigation_NavRotateRight,,
+0x0f03,,Navigation_NavRotateLeft,,
+0x0f04,,Navigation_NavStopMovement,,
+0x0f00,Independent,Camera_GetStatus,Report status of cameras.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f01,Independent,Camera_TakeImage,Take an image from specified camera with latest configuration.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f02,Independent,Camera_Error,Return the camera error register to ground or reset it.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f03,Independent,Camera_ConfigureCamera0,Update the camera 0 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f04,Independent,Camera_Camera0Crop,Update the camera 0 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f05,Independent,Camera_ConfigureCamera1,Update the camera 1 configuration register.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f06,Independent,Camera_Camera1Crop,Update the camera 1 cropping settings.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f07,Independent,Camera_ReadImage,Read the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f08,Independent,Camera_EraseImage,Erase the image with the specified index from the onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f09,Independent,Camera_SoftCameraReset,Soft reset the camera and reinitialize FPGA.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.
+0x0f0a,Independent,Camera_ImageDump,Start or stop sending all images stored in onboard flash storage.,During surface checkout phase on the SPACECRAFT and following deployment from the SPACECRAFT.

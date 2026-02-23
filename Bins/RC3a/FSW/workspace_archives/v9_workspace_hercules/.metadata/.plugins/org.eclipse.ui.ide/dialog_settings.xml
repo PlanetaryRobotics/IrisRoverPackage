@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+		<item value="/home/iris/Desktop/Working_Folders/alec_testing/motor_control_alec/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Working_Folders/Navigation/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Stable_Testing_Repos/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Stable_Testing_Repos/flight_staging/CubeRoverPackage/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+		<item value="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/PrimaryFlightController/FlightMCU"/>
+	</list>
+	<section name="CleanDialogSettings">
+		<item value="563" key="DIALOG_WIDTH"/>
+		<item value="true" key="BUILD_ALL"/>
+		<item value="false" key="TOGGLE_SELECTED"/>
+		<item value="504" key="DIALOG_HEIGHT"/>
+		<item value="712" key="DIALOG_X_ORIGIN"/>
+		<item value="218" key="DIALOG_Y_ORIGIN"/>
+		<item value="true" key="BUILD_NOW"/>
+	</section>
+	<section name="NewWizardAction">
+	</section>
+	<section name="ChooseWorkspaceDialogSettings">
+		<item value="532" key="DIALOG_X_ORIGIN"/>
+		<item value="180" key="DIALOG_Y_ORIGIN"/>
+	</section>
+</section>

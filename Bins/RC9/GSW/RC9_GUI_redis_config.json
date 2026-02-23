@@ -1,0 +1,50 @@
+[
+  {
+    "id": "bd650a31-e0cc-453c-8ccf-7b583b8bca7e",
+    "host": "127.0.0.1",
+    "port": 6379,
+    "name": "127.0.0.1:6379",
+    "db": 0,
+    "username": null,
+    "password": null,
+    "connectionType": "STANDALONE",
+    "nameFromProvider": null,
+    "provider": "LOCALHOST",
+    "lastConnection": "2023-06-02T22:12:57.990Z",
+    "nodes": [],
+    "modules": [
+      {
+        "name": "ReJSON",
+        "version": 20406,
+        "semanticVersion": "2.4.6"
+      },
+      {
+        "name": "timeseries",
+        "version": 10809,
+        "semanticVersion": "1.8.9"
+      },
+      {
+        "name": "graph",
+        "version": 21009,
+        "semanticVersion": "2.10.9"
+      },
+      {
+        "name": "search",
+        "version": 20606,
+        "semanticVersion": "2.6.6"
+      },
+      {
+        "name": "bf",
+        "version": 20405,
+        "semanticVersion": "2.4.5"
+      }
+    ],
+    "tls": null,
+    "tlsServername": null,
+    "verifyServerCert": null,
+    "caCert": null,
+    "clientCert": null,
+    "ssh": null,
+    "sshOptions": null
+  }
+]

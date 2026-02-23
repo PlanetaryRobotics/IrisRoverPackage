@@ -1,0 +1,78 @@
+{
+  "py/object": "IrisBackendv3.utils.nameiddict.NameIdDict",
+  "py/state": [
+    {
+      "names": [
+        "move",
+        "mover"
+      ],
+      "ID": 1,
+      "val": {
+        "py/object": "IrisBackendv3.data_standards.module.Argument",
+        "py/state": {
+          "name": "amount",
+          "type": {
+            "py/reduce": [
+              {
+                "py/type": "IrisBackendv3.data_standards.fsw_data_type.FswDataType"
+              },
+              {
+                "py/tuple": [
+                  "uint8"
+                ]
+              }
+            ]
+          },
+          "enum": [],
+          "bitfields": null,
+          "metadata": {}
+        }
+      }
+    },
+    {
+      "names": [
+        "image"
+      ],
+      "ID": 2,
+      "val": {
+        "py/object": "IrisBackendv3.data_standards.module.Argument",
+        "py/state": {
+          "name": "speed",
+          "type": {
+            "py/id": 6
+          },
+          "enum": [],
+          "bitfields": null,
+          "metadata": {}
+        }
+      }
+    },
+    {
+      "names": [
+        "reset"
+      ],
+      "ID": 3,
+      "val": {
+        "py/object": "IrisBackendv3.data_standards.module.Argument",
+        "py/state": {
+          "name": "callback",
+          "type": {
+            "py/reduce": [
+              {
+                "py/type": "IrisBackendv3.data_standards.fsw_data_type.FswDataType"
+              },
+              {
+                "py/tuple": [
+                  "uint16"
+                ]
+              }
+            ]
+          },
+          "enum": [],
+          "bitfields": null,
+          "metadata": {}
+        }
+      }
+    }
+  ]
+}

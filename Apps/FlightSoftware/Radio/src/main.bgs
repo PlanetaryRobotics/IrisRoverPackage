@@ -1,0 +1,60 @@
+# Load helpers (once imported, these are accessible globally, even in subsequently imported scripts):
+import "src/global_buffers.bgs"
+import "src/comms/wd_comms.bgs"
+import "src/comms/hercules_messaging.bgs"
+import "src/comms/hercules_reports.bgs"
+import "src/debug.bgs"
+import "src/network_settings.bgs"
+
+# Import automated behaviors (primary taken by the system):
+import "src/behaviors/behaviors.bgs"
+
+# global_status just watches everything, so it should come after all the
+# behaviors but before the state implementations (it needs access to behavior
+# data but the state driver needs access to it):
+import "src/global_status.bgs"
+
+# Messages to send to Earth: (depends on data from behaviors and status
+# (must be included after). Anomaly handling, heartbeat, and state driver use
+# it (so must come before):
+import "src/comms/ground_reports.bgs"
+# Ground Commands comes right after Ground Reports b/c some commands trigger
+# reports so we need access to them:
+import "src/comms/ground_cmds.bgs"
+
+# Include state driver at the end of the main source but before main::system_boot
+# so its event hooks get called after any others (transition after all other
+# actions that need to be taken for that event are complete):
+import "src/state_driver.bgs"
+
+# Handle anomalies and get back to a known good state (depends on state so must come after):
+import "src/anomaly_handling.bgs"  
+
+# Heartbeat services just observe everything, so they can be imported last:
+import "src/heartbeat.bgs"
+
+# Main boot event listener
+# (call this last so all other on-boot setup is completed first):
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+	# Immediately initialize hercules report buffers:
+	call INIT_HR()
+	# Let Hercules know we just booted (possibly after a reset):
+	call HR_BOOT()
+
+	# Initialize flags:
+	call INIT_GLOBAL_STATUS()
+
+	# Enter low-latency power-saving mode by default:
+	# Only turn this on (uncomment) if necessary (comms not working in sleep).
+	# Currently seems unnecessary.
+	# call system_set_max_power_saving_state(0)
+
+	# Setup network settings:
+	call SETUP_NETWORK()
+
+	# Kick off the state driver:
+	call START_STATE_DRIVER()
+
+	# Now that everything is set up and working, kick off heartbeat services:
+	call HEARTBEAT_INIT()
+end

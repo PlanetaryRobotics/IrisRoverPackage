@@ -34,8 +34,10 @@ CFDP_GTEST_MODULES := \
 	CFDP/Checksum/GTest
 	
 UTILS_MODULES := \
-	Utils/Hash
+	Utils/Hash \
+	Utils/Types
         
+# Svc/UdpSender Svc/SocketGndIf Svc/GroundInterface
 SVC_MODULES := \
 	Svc/BufferAccumulator \
 	Svc/BufferLogger \
@@ -43,13 +45,10 @@ SVC_MODULES := \
 	Svc/CmdDispatcher \
 	Svc/CmdSequencer \
 	Svc/Seq \
-	Svc/GndIf \
 	Svc/ActiveRateGroup \
 	Svc/RateGroupDriver \
 	Svc/Sched \
 	Svc/ComLogger \
-	Svc/SocketGndIf \
-	Svc/BuffGndSockIf \
 	Svc/TlmChan \
 	Svc/PassiveTextLogger \
 	Svc/PassiveConsoleTextLogger \
@@ -63,15 +62,13 @@ SVC_MODULES := \
 	Svc/PolyDb \
 	Svc/PrmDb \
 	Svc/Ping \
-	Svc/Health \
 	Svc/WatchDog \
+	Svc/Health \
 	Svc/FileUplink \
 	Svc/FileDownlink \
-    Svc/AssertFatalAdapter \
-    Svc/FatalHandler \
-	Svc/FileManager \
-	Svc/UdpSender \
-	Svc/UdpReceiver
+  Svc/AssertFatalAdapter \
+  Svc/FatalHandler \
+	Svc/FileManager
 	
 DEMO_DRV_MODULES := \
 	Drv/DataTypes \
@@ -200,14 +197,32 @@ acdev_MODULES := \
 	$(OS_MODULES) \
 	\
 	$(ACDEVTEST_MODULES)
+
+CubeRoverPorts_MODULES := \
+	CubeRover/CubeRoverPorts/CameraTakePicture \
+	CubeRover/CubeRoverPorts/FileDownlink \
+	CubeRover/CubeRoverPorts/IMUData \
+	CubeRover/CubeRoverPorts/MotorData \
+	CubeRover/CubeRoverPorts/MotorCommand \
+	CubeRover/CubeRoverPorts/WatchdogResetRequest
 	
 CubeRover_MODULES := \
 	CubeRover/Top \
 	CubeRover/CubeRoverPorts \
+	CubeRover/IMU \
+	CubeRover/Navigation \
+	CubeRover/MotorControl \
+	CubeRover/UdpInterface \
+	CubeRover/NetworkManager \
+	CubeRover/GroundInterface \
+	CubeRover/WatchDogInterface \
+	CubeRover/Camera \
 	$(FW_MODULES) \
 	$(OS_MODULES) \
 	$(SVC_MODULES) \
-	$(CUBEROVER_DRV_MODULES)
+	$(CUBEROVER_DRV_MODULES) \
+	$(CubeRoverPorts_MODULES) \
+	$(UTILS_MODULES)
 	
 # Other modules to build, but not to link with deployment binaries
 OTHER_MODULES := \

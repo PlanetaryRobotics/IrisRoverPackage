@@ -1,0 +1,266 @@
+# A registry of frequent reports to be sent to Hercules.
+# Serves as a central place for Hercules developers to find what messages they should expect.
+
+##
+# Fixed buffers:
+##
+
+# Buffers for prefixes on frequently used messages (which need to append a
+# prefix to some variable data):
+
+# State message contains the current state of the state driver:
+const STATE_MSG_PREFIX_LEN = 6  # "state:"
+dim state_msg_buffer(21) # STATE_MSG_PREFIX_LEN(6) + MAX_STATE_LEN(15) (unfortunately we can't just add consts here)
+dim state_msg_body_len # Length of the current state message (excluding prefix)
+
+# Doing indicates what action the radio is primarily working on right now (it's current goal):
+const DOING_MSG_PREFIX_LEN = 6  # "doing:"
+dim doing_msg_buffer(31) # DOING_MSG_PREFIX_LEN(6) + MAX_DOING_MSG_BODY_LEN(25) (unfortunately we can't just add consts here)
+dim doing_msg_body_len # Length of the current doing message (excluding prefix)
+
+# Separate message buffer for sending information about the UDP interlock:
+const ILOCK_MSG_PREFIX_LEN = 6  # "ilock:"
+dim ilock_msg_buffer(10) # ILOCK_MSG_PREFIX_LEN(6) + MAX_ILOCK_MSG_BODY_LEN(4) (unfortunately we can't just add consts here)
+dim ilock_msg_body_len # Length of the current interlock message (excluding prefix)
+
+# Heartbeat takes the form of "thump:[client_endpoint_in_raw_hex]:[server_endpoint_in_raw_hex]:[CURRENT_STATE>CURRENTLY_DOING]"
+# We do this in case Hercules crashes or resets and has thus forgotten our
+# current state. We want to remind it regularly just in case.
+const HB_MSG_PREFIX_LEN = 6  # "thump:"
+dim hb_msg_buffer(50) # HB_MSG_PREFIX_LEN + client_endp(1) + ':'(1) + server_endp(1) + ':'(1) + MAX_STATE_LEN(15) + '>'(1) + MAX_DOING_MSG_BODY_LEN(25) (unfortunately we can't just add consts here)
+procedure load_heartbeat_data()
+    # Load endpoint data:
+    # NOTE: We're about to send raw un-escaped hex in a heartbeat message BUT
+    # since each field is only 1 byte and the separator isn't a valid DM header
+    # byte, there's no chance of accidentally sending a valid DM header which
+    # could get caught by Hercules while scanning for a valid header.
+    hb_msg_buffer(HB_MSG_PREFIX_LEN:1) = udp_client_endpoint
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+2:1) = udp_server_endpoint
+    # Load heartbeat data from state_ and doing_ message buffers:
+    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+4), state_msg_buffer(STATE_MSG_PREFIX_LEN), state_msg_body_len)
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+4+state_msg_body_len:1) = ">" # add state-doing separator
+    memcpy(hb_msg_buffer(HB_MSG_PREFIX_LEN+4+state_msg_body_len+1), doing_msg_buffer(DOING_MSG_PREFIX_LEN), doing_msg_body_len)
+end
+
+
+# Set up hercules reporting buffers:
+export procedure INIT_HR()
+    # Initial state:
+    state_msg_body_len = 4
+    state_msg_buffer(0:STATE_MSG_PREFIX_LEN+state_msg_body_len) = "state:BOOT" # BOOT = state_driver hasn't initialzed yet
+
+    doing_msg_body_len = 7
+    doing_msg_buffer(0:DOING_MSG_PREFIX_LEN+doing_msg_body_len) = "doing:BOOTING"
+
+    ilock_msg_body_len = 3
+    ilock_msg_buffer(0:ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len) = "ilock:OFF"
+
+
+    hb_msg_buffer(0:HB_MSG_PREFIX_LEN) = "thump:"
+    # Add fixed separators:
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+1:1) = ":"
+    hb_msg_buffer(HB_MSG_PREFIX_LEN+3:1) = ":"
+    # Init heartbeat message with initial values for state_ and doing_ messages:
+    call load_heartbeat_data()
+end
+
+
+##
+# Actual message sending protocols:
+##
+# Report that we just booted:
+export procedure HR_BOOT()
+    call hercules_direct_message_ascii(4, "BOOT")
+end
+
+# Heartbeat message:
+# Let's Hercules know Radio is still alive (even if data hasn't been received in a while)
+# *and* serves to progressively push any bad data out of its buffer to help with faster out-of-sync recovery.
+export procedure HR_HEARTBEAT()
+    call load_heartbeat_data()
+    call hercules_direct_message_ascii(HB_MSG_PREFIX_LEN+4+state_msg_body_len+1+doing_msg_body_len, hb_msg_buffer(0:HB_MSG_PREFIX_LEN+4+state_msg_body_len+1+doing_msg_body_len))
+end
+
+# Report the current state to Hercules:
+export procedure HR_STATE()
+    # Send the update:
+    call hercules_direct_message_ascii(STATE_MSG_PREFIX_LEN+state_msg_body_len, state_msg_buffer(0:STATE_MSG_PREFIX_LEN+state_msg_body_len))
+end
+
+# Report what the Radio's currently focused on doing (it's goal) to Hercules:
+export procedure HR_DOING()
+    # Send the update:
+    call hercules_direct_message_ascii(DOING_MSG_PREFIX_LEN+doing_msg_body_len, doing_msg_buffer(0:DOING_MSG_PREFIX_LEN+doing_msg_body_len))
+end
+
+
+##
+# State Messages:
+##
+export procedure HR_STATE_INIT()
+    # Update the current state string:
+    state_msg_body_len = 4
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "INIT"
+    # Send it to Herc:
+    call HR_STATE()
+end
+
+export procedure HR_STATE_WIFI_ON()
+    # Update the current state string:
+    state_msg_body_len = 7
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "WIFI_ON"
+    # Send it to Herc:
+    call HR_STATE()
+end
+
+export procedure HR_STATE_CONNECTED()
+    # Update the current state string:
+    state_msg_body_len = 9
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "CONNECTED"
+    # Send it to Herc:
+    call HR_STATE()
+end
+
+export procedure HR_STATE_UDP_CONNECTED()
+    # Update the current state string:
+    state_msg_body_len = 13
+    state_msg_buffer(STATE_MSG_PREFIX_LEN:state_msg_body_len) = "UDP_CONNECTED"
+    # Send it to Herc:
+    call HR_STATE()
+end
+
+
+##
+# Behavior Messages (what it's currently trying to do):
+##
+export procedure HR_DOING_TURNING_WIFI_ON()
+    doing_msg_body_len = 15
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "TURNING_WIFI_ON"
+    call HR_DOING()
+end
+
+export procedure HR_DOING_CONNECTING_NETWORK()
+    doing_msg_body_len = 18
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "CONNECTING_NETWORK"
+    call HR_DOING()
+end
+
+export procedure HR_DOING_STARTING_UDP()
+    doing_msg_body_len = 12
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "STARTING_UDP"
+    call HR_DOING()
+end
+
+# A notice to Hercules that the Radio has engaged the UDP interlock and it's
+# clear to send UDP data for `HERCULES_INTERLOCK_PERIOD_MS`.
+export procedure HR_UDP_INTERLOCK_IS_ON()
+    ilock_msg_body_len = 2
+    ilock_msg_buffer(ILOCK_MSG_PREFIX_LEN:ilock_msg_body_len) = "ON" # UDP Clear To Send
+    # Send the update:
+    call hercules_direct_message_ascii(ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len, ilock_msg_buffer(0:ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len))
+end
+# A notice to Hercules that the Radio has engaged the UDP interlock and it's
+# no longer clear to send UDP data:
+export procedure HR_UDP_INTERLOCK_IS_OFF()
+    ilock_msg_body_len = 3
+    ilock_msg_buffer(ILOCK_MSG_PREFIX_LEN:ilock_msg_body_len) = "OFF" # Do Not Send UDP
+    # Send the update:
+    call hercules_direct_message_ascii(ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len, ilock_msg_buffer(0:ILOCK_MSG_PREFIX_LEN+ilock_msg_body_len))
+end
+
+# Doing nothing, just remaining vigilent (a more fun name than just "NOTHING"):
+# (Also, "NOTHING" would imply that we couldn't be actively passing data to,
+# Hercules issuing Heartbeats, or monitoring events, which we are even when 
+# we're "doing:NOTHING")
+export procedure HR_DOING_REMAINING_VIGILENT()
+    doing_msg_body_len = 18
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "REMAINING_VIGILENT"
+    call HR_DOING()
+end
+
+# Currently waiting some period of time before issuing a corrective action:
+export procedure HR_WAITING_THEN_CORRECTING()
+    doing_msg_body_len = 23
+    doing_msg_buffer(DOING_MSG_PREFIX_LEN:doing_msg_body_len) = "WAITING_THEN_CORRECTING"
+    call HR_DOING()
+end
+
+
+##
+# Error reports:
+# Problems that kick off corrective action but don't require a system reset (yet).
+##
+export procedure HR_ERROR_DISCONNECT()
+    call hercules_direct_message_ascii(18, "error:DISCONNECTED")
+end
+
+export procedure HR_ERROR_UDP_LOST()
+    call hercules_direct_message_ascii(14, "error:UDP_LOST")
+end
+
+# Hercules sent us garbage data (this is more for the WD to pass on to Earth
+# while on the lander than for Hercules' sake):
+export procedure HR_ERROR_BAD_HERCULES_DATA()
+    call hercules_direct_message_ascii(14, "error:BAD_HERC")
+end
+
+
+##
+# Fatal reports:
+# Problems that require a system reset.
+# All fatal reports preceed an auto reset of the radio.
+##
+export procedure HR_FATAL_TCP_CFG_FAIL()
+    call hercules_direct_message_ascii(20, "fatal:TCPIP_CFG_FAIL")
+end
+
+export procedure HR_FATAL_PASSWORD_FAIL()
+    call hercules_direct_message_ascii(23, "fatal:SET_PASSWORD_FAIL")
+end
+
+export procedure HR_FATAL_SET_SCAN_CHAN_FAIL()
+    call hercules_direct_message_ascii(24, "fatal:SET_SCAN_CHAN_FAIL")
+end
+
+export procedure HR_FATAL_CONNECT_NETWORK_MAX_TRIES()
+    call hercules_direct_message_ascii(23, "fatal:CONNECT_MAX_TRIES")
+end
+
+export procedure HR_FATAL_WIFI_OFF_DURING_CONNECT()
+    # Radio went down while trying to connect. Bad news (and weird, shouldn't ever happen).
+    call hercules_direct_message_ascii(29, "fatal:WIFI_OFF_DURING_CONNECT")
+end
+
+export procedure HR_FATAL_START_UDP_MAX_TRIES()
+    call hercules_direct_message_ascii(25, "fatal:START_UDP_MAX_TRIES")
+end
+
+export procedure HR_FATAL_WIFI_ON_MAX_TRIES()
+    call hercules_direct_message_ascii(23, "fatal:WIFI_ON_MAX_TRIES")
+end
+
+export procedure HR_FATAL_SELF_WD_NOT_IN_GOOD_STATE()
+    # We weren't in "good state" when the self watchdog woke up and checked on us:
+    call hercules_direct_message_ascii(22, "fatal:SELF_WD_NOT_GOOD")
+end
+
+# Let Hercules know we're about to perform a "Critical reset" b/c
+# `anomaly_handling` noticed something failed due a `reason` deemed CRITICAL
+# (out of memory, HW fault, etc). Pass along the two bytes indicating that too:
+export procedure HR_FATAL_CRITICAL_RESET_REASON(reason)
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_message(12, "fatal:CRIT!h")
+    call hercules_compile_dm__append_hex_buffer(2, reason) # reason is only 2B (lowest 2B, which come first in little endian)
+    call hercules_compile_dm__send()
+end
+
+# Let Hercules know we're about to perform a "Critical reset"
+# b/c a software exception was caught.
+export procedure HR_FATAL_CRITICAL_RESET_SW_EXCEPTION(address, type)
+    call hercules_compile_dm__new()
+    call hercules_compile_dm__append_message(11, "fatal:SWE!h")
+    call hercules_compile_dm__append_hex_buffer(4, address) # address is a full 4B uint32
+    call hercules_compile_dm__append_message(2, ":h")
+    call hercules_compile_dm__append_hex_buffer(1, type) # type is only 1B (lowest 1B, which come first in little endian)
+    call hercules_compile_dm__send()
+end

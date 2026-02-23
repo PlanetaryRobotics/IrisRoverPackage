@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>networkManager:NetworkManager Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+<h1><b>Events: networkManager:NetworkManager</b></h1>
+
+<table>
+	<thead>
+		<tr style = "border-right: 2px solid black; border-left: 2px solid black; border-top: 2px solid black;">
+			<th rowspan = "2">Event Name</th>
+			<th rowspan = "2">ID</th>
+			<th rowspan = "2">Description</th>
+			<th rowspan = "1" colspan = "4">Arguments</th>
+		</tr>
+		<tr style = "border-right: 2px solid black; ">
+			<th>Argument</th>
+			<th>Type</th>
+			<th>Size</th>
+			<th>Description</th>
+		<tr>
+	</thead>
+	<tbody>
+
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">StateChange</td>
+			<td rowspan="3">2560 (0xa00)</td>
+			<td rowspan="3">Emit event when ever a state transition occurs within the WF121</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>from_state</td>
+						<td>networkmanager_state_from</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to_state</td>
+						<td>networkmanager_state_to</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">ExecuteCallbackError</td>
+			<td rowspan="2">2561 (0xa01)</td>
+			<td rowspan="2">Emit event when there is an error executing a WF121 callback</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>ErrorCode</td>
+						<td>U16</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="1">WF121InitializationFailed</td>
+			<td rowspan="1">2562 (0xa02)</td>
+			<td rowspan="1">Emit event when there is an error executing a WF121 callback</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="3">RadioCommunicationsModeChange</td>
+			<td rowspan="3">2563 (0xa03)</td>
+			<td rowspan="3">Emit event whenever the radio communications mode is changed.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>from_mode</td>
+						<td>nm_radio_communications_mode_from</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to_mode</td>
+						<td>nm_radio_communications_mode_to</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="2">RadioCommunicationsModeState</td>
+			<td rowspan="2">2564 (0xa04)</td>
+			<td rowspan="2">Current state of the Radio Communications mode. Emitted anytime a change is requested, even if a change isn't performed because the radio is already in the desired mode.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;border-bottom: 2px solid black;">
+						<td>mode</td>
+						<td>nm_radio_communications_mode_now</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">RadioUartBaudRateChange</td>
+			<td rowspan="4">2565 (0xa05)</td>
+			<td rowspan="4">Fired in response to a `Set_Radio_Uart_Baud` command.
+                `fromBaud` will always be the baud rate before the command. 
+                `toBaud` will always be the actual baud rate after running this command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested baud rate is the current baud rate). 
+ 
+                This event will also be fired once upon boot with 
+                `changeMade=FALSE` and `fromBaud=toBaud` to indicate the 
+                current value of the persistent baud rate.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>changeMade</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>fromBaud</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>toBaud</td>
+						<td>U32</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="4">RadioBgApiPassthroughChange</td>
+			<td rowspan="4">2566 (0xa06)</td>
+			<td rowspan="4">Fired in response to a `Set_Radio_BgApi_Passthrough` command. 
+                `from` will always be the state before the command. 
+                `to` will always be the actual state after running this command. 
+                `changeMade` indicates whether the change was actually 
+                (successfully) changed. It can be false because either the 
+                change was not able to be made or because it didn't need to be 
+                made (requested state is the current state). 
+
+                This event will also be fired once upon boot with 
+                `changeMade=FALSE` and `from=to` to indicate the 
+                current value of the passthrough state.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>changeMade</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>from</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>to</td>
+						<td>bool</td>
+						<td></td>
+						<td></td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="5">RadioSendBgApiCommandAck</td>
+			<td rowspan="5">2567 (0xa07)</td>
+			<td rowspan="5">Fired in response to a `Send_BgApi_Command` command.
+
+                Not actually a warning but sent using the `WARNING_LO` queue 
+                because it has high importance, a (comparatively) large buffer, 
+                and not many events use the `WARNING_LO` queue.
+
+                NOTE: CRC values will only be populated if command FAILED
+                validation (for any reason, including CRC failure). If status
+                indicates there was no validation error, both CRCs will be
+                `0xFF'FF'FF'FF`.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>packetId</td>
+						<td>U32</td>
+						<td></td>
+						<td>Packet ID given from ground.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>targetCrc32</td>
+						<td>U32</td>
+						<td></td>
+						<td>Uplinked CRC32 (as received), or `0xFF'FF'FF'FF` if no validation error.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>computedCrc32</td>
+						<td>U32</td>
+						<td></td>
+						<td>CRC32 of the `bgapiPacket` received, as a uint32, or `0xFF'FF'FF'FF` if no validation error.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>status</td>
+						<td>nm_radio_send_bgapi_command_ack_status</td>
+						<td></td>
+						<td>Status of the `Send_BgApi_Command`.</td>
+					</tr>
+		</tr>
+		<tr style = "border: 2px solid black;">
+			<td rowspan="7">RadioBgApiCommandRecords</td>
+			<td rowspan="7">2568 (0xa08)</td>
+			<td rowspan="7">Fired in response to a `Downlink_BgApi_Command_Records` command. 
+                Downlinks the GSW-Assigned `PacketId` of the last 3 
+                `Send_BgApi_Command` s processed by the NetworkManager as well 
+                as what the resulting status of that downlink was (used for 
+                ensuring all packets in a programming sequence are uplinked 
+                correctly and in the correct order).
+ 
+                Technically it's a bit hacky to just have three args with 
+                manually synced enums and, instead, this should be using an 
+                FPrime Array of custom serializables but we don't have that 
+                serialization built in our GDS and don't have time to add it 
+                since it would be non-trivial.
+ 
+                Not actually a warning but sent using the `WARNING_LO` queue 
+                because it has high importance, a (comparatively) large buffer, 
+                and not many events use the `WARNING_LO` queue.</td>
+					<tr style = "border-right: 2px solid black;border-top: 2px solid black;">
+						<td>packetId0</td>
+						<td>U32</td>
+						<td></td>
+						<td>GSW-Assigned Packet ID of the most recently processed BgApi Packet.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>result0</td>
+						<td>nm_radio_rec0_bgapi_command_ack_status</td>
+						<td></td>
+						<td>Result of processing the most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>packetId1</td>
+						<td>U32</td>
+						<td></td>
+						<td>GSW-Assigned Packet ID of the 2nd most recently processed BgApi Packet.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>result1</td>
+						<td>nm_radio_rec1_bgapi_command_ack_status</td>
+						<td></td>
+						<td>Result of processing the 2nd most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;">
+						<td>packetId2</td>
+						<td>U32</td>
+						<td></td>
+						<td>GSW-Assigned Packet ID of the 3rd most recently processed BgApi Packet.</td>
+					</tr>
+					<tr style = "border-right: 2px solid black;border-bottom: 2px solid black;">
+						<td>result2</td>
+						<td>nm_radio_rec2_bgapi_command_ack_status</td>
+						<td></td>
+						<td>Result of processing the 3rd most recently processed BgApi Packet.
+                        NOTE: This enum needs to EXACTLY match 
+                        `nm_radio_send_bgapi_command_ack_status` in `status` of 
+                        `RadioSendBgApiCommandAck` (with the exception of 
+                        `_EMPTY_RECORD` which is used to indicate
+                        that the record is empty).</td>
+					</tr>
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

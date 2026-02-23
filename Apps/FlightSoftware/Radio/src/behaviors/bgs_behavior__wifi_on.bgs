@@ -1,0 +1,91 @@
+# Automated behavior that attempts to turn on the wifi radio.
+# If turning on the radio fails, it catches it and retries after a delay.
+# If it fails too many times, it restarts the radio.
+# ! Update state_driver.puml if you make changes here.
+
+# Handle for the single shot timer to know what event triggered it
+const TIMER_HANDLE = $B1  # Handle is only uint8
+# Max number of times to try before resetting:
+const COUNTER_MAX = 5
+# Time to wait before trying again, in ms:
+const RETRY_WAIT_MS = 200
+
+# How many times it's been tried unsuccessfully so far.
+dim counter
+dim actively_turning_wifi_on
+
+# Temp. variables:
+dim result
+
+
+event system_boot(major,minor,patch,build,bootloader,tcpip,hw)
+    # init vars:
+    counter = 0
+    actively_turning_wifi_on = 0
+end
+
+
+# Procedure called in any failure case:
+# NOTE: The weird name is because of a bug discovered in BGScript where the
+# first declared `handle_failure` would be called... even if it was in a
+# different `bgs` file and not exported. To be safe, all procedures should have
+# unique names, even if not exported.
+procedure wo__handle_failure()
+    if DEBUG = 1 then
+        call hercules_direct_message_ascii(27, "Handling Wifi-On Failure...")
+    end if
+    counter = counter + 1
+    # Radio failed to turn on for some reason...
+    if (counter < COUNTER_MAX) then
+        if DEBUG = 1 then
+            call hercules_compile_dm__new()
+            call hercules_compile_dm__append_message(20, "WOF awaiting handle:")
+            call hercules_compile_dm__append_hex_buffer(1, TIMER_HANDLE) # handle is only 1B
+            call hercules_compile_dm__send()
+        end if
+        call hardware_set_soft_timer(RETRY_WAIT_MS, TIMER_HANDLE, 1)
+    else
+        # failed too many times. something must be wrong. Reboot!
+        call HR_FATAL_WIFI_ON_MAX_TRIES() # Let Herc know before resetting
+        call system_reset(0)
+    end if
+end
+
+
+# Attempt to turn WiFi on:
+procedure turn_wifi_on()
+    actively_turning_wifi_on = 1
+
+    call sme_wifi_on()(result)
+    if result != 0 then
+        call wo__handle_failure()
+    end if
+end
+
+
+export procedure WIFI_ON()
+    counter = 0
+    call HR_DOING_TURNING_WIFI_ON()
+    call sme_set_operating_mode(1)  # Make sure radio is in station mode (not AP)
+    call turn_wifi_on()
+end
+
+
+event sme_wifi_is_on(res)
+	# If Wi-Fi is ON
+    if actively_turning_wifi_on = 1 then
+        if res = 0 then
+            counter = 0
+            actively_turning_wifi_on = 0
+        else
+            call wo__handle_failure()
+        end if
+    end if
+end
+
+
+event hardware_soft_timer(handle)
+    if handle = TIMER_HANDLE then
+        call turn_wifi_on()
+    end if
+end

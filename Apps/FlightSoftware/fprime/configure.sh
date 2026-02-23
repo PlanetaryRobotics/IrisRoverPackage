@@ -1,4 +1,5 @@
 #!/bin/sh
+sudo git config --global --add safe.directory $PWD/../../..
 CUBEROVER_PACKAGE_TOP_LEVEL=`git rev-parse --show-toplevel`
 cd $CUBEROVER_PACKAGE_TOP_LEVEL/Apps/FlightSoftware/fprime/mk/configs/compiler
 echo 'COMMON_DEFINES  := -DISF -DBUILD_$(BUILD)' > defines_common.mk

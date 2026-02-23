@@ -1,0 +1,8 @@
+Debug/
+.settings
+.launches
+/Release/
+*.orig
+*.rej
+fprime_build_full_output
+env/

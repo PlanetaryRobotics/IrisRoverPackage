@@ -9,6 +9,7 @@
 #define COMPACKET_HPP_
 
 #include <Fw/Types/Serializable.hpp>
+#include <Include/FswPacket.hpp>    // PrimaryFlightController/FlightMCU
 
 // Packet format:
 // |32-bit packet type|packet type-specific data|
@@ -19,13 +20,13 @@ namespace Fw {
         public:
 
             typedef enum {
-                FW_PACKET_COMMAND, // !< Command packet type - incoming
-                FW_PACKET_TELEM, // !< Telemetry packet type - outgoing
-                FW_PACKET_LOG, // !< Log type - outgoing
-                FW_PACKET_FILE, // !< File type - incoming and outgoing
-                FW_PACKET_PACKETIZED_TLM, // !< Packetized telemetry packet type
-                FW_PACKET_IDLE, // !< Idle packet
-                FW_PACKET_UNKNOWN = 0xFF // !< Unknown packet
+                FW_PACKET_COMMAND = COMMAND_MAGIC, // !< Command packet type - incoming
+                FW_PACKET_TELEM = TELEMETRY_MAGIC, // !< Telemetry packet type - outgoing
+                FW_PACKET_LOG = LOG_MAGIC, // !< Log type - outgoing
+                FW_PACKET_FILE = FILE_MAGIC, // !< File type - incoming and outgoing
+                FW_PACKET_PACKETIZED_TLM = PACKETIZED_TLM_MAGIC, // !< Packetized telemetry packet type
+                FW_PACKET_IDLE = IDLE_MAGIC, // !< Idle packet
+                FW_PACKET_UNKNOWN = UNKNOWN_MAGIC // !< Unknown packet
             } ComPacketType;
 
             ComPacket();

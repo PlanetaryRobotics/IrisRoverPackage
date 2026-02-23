@@ -1,0 +1,130 @@
+------------------------------------------------------------
+----------------------------- MAIN CHANGES
+------------------------------------------------------------
+                                                            
+--------------------------------
+------- main REMOVED
+--------------------------------
+
+------- MAIN.C
+#define DRIVE_ON_BOOT_OPEN_LOOP
+#define DRIVE_ON_BOOT_CM 15 /*bigger question for testing is how many degrees can we turn*/
+#define TICKS_PER_CM 158    /*approx based on math not measurements*/
+#define DRIVE_ON_BOOT_TICKS (DRIVE_ON_BOOT_CM * TICKS_PER_CM)
+// Technically, out of 1.0
+#define DRIVE_ON_BOOT_SPEED_PERCENT 0.7
+
+------- main()
+--- initController();
+
+// Emergency Reset-Mediated-Driving Implementation:
+#ifdef DRIVE_ON_BOOT
+    g_targetPosition = DRIVE_ON_BOOT_TICKS;
+    g_controlRegister = 32;
+#ifdef DRIVE_ON_BOOT_OPEN_LOOP
+    g_controlRegister |= DRIVE_OPEN_LOOP;
+    // Override open-loop torque for custom speed (DRIVE_ON_BOOT_SPEED_PERCENT):
+    g_controlRegister |= OPEN_LOOP_TORQUE_OVERRIDE;
+#endif
+
+------- driveOpenLoop(void)
+output = _IQ(DRIVE_ON_BOOT_SPEED_PERCENT); // division here didn't work and always gave 0. just replacing with a different pre-set figure. _IQ(g_maxSpeed / MAX_TARGET_SPEED); // apply user specified output
+    =>  float iqDefaultSpd = (float)mcRegStruct.mc_target_speed/100;
+        output = _IQ(iqDefaultSpd);
+
+------- MAIN.H
+--- // bits of control register (g_controlRegister)
+        // note 1   DRIVE_OPEN_LOOP
+        //      2   ???
+        //      4   STATE_MACHINE_DISABLE
+        //      8   STATE_MACHINE_RUN
+        //      16  OVERRIDE_FAULT_DETECTION
+        //      32  EXECUTE_COMMAND
+        //      64  OPEN_LOOP_TORQUE_OVERRIDE
+#define EXECUTE_COMMAND 32           // actually drive to command
+    =>  MC_CMD_EXECUTE_DRIVE 32
+
+// bits of status register (shares 1,2,4 with control register)
+#define CLEAR_DRIVER_FAULT 2 // second bit indicates request to try to clear fault in motor driver
+    =>  MC_CMD_CLEAR_FAULTS
+#define POSITION_CONVERGED 8
+    =>  MC_STATE_TARGET_REACHED 8
+#define CONTROLLER_ERROR 16 // indicates something has gone awry with position controller; will not converge
+    =>  MC_STATE_FAULT  128
+
+// bits of fault register
+#define DRIVER_FAULT 1            // for if there is a fault in the DRV8304 motor drivers
+        // note no references
+#define POSITION_NO_CHANGE 2      // for if position is not changing at all; could be dead hall sensors
+    =>  MC_FAULT_STALL 16
+#define DRIVING_WRONG_DIRECTION 4 // for if motor is driving in wrong direction
+    =>  MC_FAULT_BAD_CONFIG_VAL
+#define DRIVING_TIMEOUT 8         // for if motor does not converge in time defined by DRIVING_TIMEOUT_THRESHOLD
+    =>  MC_FAULT_STALL
+
+--------------------------------
+----- main MOVED
+--------------------------------
+#define MAX_TARGET_SPEED 100U     // used to initialize g_maxSpeed
+    => #define MAX_TARGET_SPEED 100 (in ICD_MotorControl.h)
+
+--------------------------------
+----- main ADDED
+--------------------------------
+
+
+
+------------------------------------------------------------
+----------------------------- I2C CHANGES
+------------------------------------------------------------
+
+--------------------------------
+----- i2c REMOVED
+--------------------------------
+
+------- I2C.H
+#define I2C_SLAVE_ADDRESS_BASE      0x48
+    =>  I2C_SLAVE_ADDRESS_BASE 0x48 (in ICD_MotorControl.h)
+
+
+--------------------------------
+----- i2c REPLACED / MOVED
+--------------------------------
+------- I2C.C
+--- void initializeI2cModule()
+    g_rxBufferIdx = 0;
+    g_txBufferIdx = 0;
+    g_slaveMode = RX_REG_ADDRESS_MODE;
+    g_readRegAddr = 0;
+
+    initializeCmdLength();
+---
+    g_i2cSlaveAddress = param.slaveAddress; // [DEBUG]
+
+==> McI2cAddr_t initializeI2cModule();
+==> void OG_initI2cLocalParams(McI2cAddr_t i2cAddr);
+
+
+--------------------------------
+----- i2c ADDED
+--------------------------------
+
+
+
+------------------------------------------------------------
+----------------------------- OTHER CHANGES
+------------------------------------------------------------
+
+--------------------------------
+----- [other] REMOVED
+--------------------------------
+
+--------------------------------
+----- [other] REPLACED / MOVED
+--------------------------------
+
+--------------------------------
+----- [other] ADDED
+--------------------------------
+
+

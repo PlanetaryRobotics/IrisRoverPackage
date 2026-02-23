@@ -128,6 +128,8 @@ namespace Svc {
                                     this->m_pingTrackerEntries[entry].cycleCount) {
                                 Fw::LogStringArg _arg = this->m_pingTrackerEntries[entry].entry.entryName;
                                 this->log_FATAL_HLTH_PING_LATE(_arg);
+                                //uint32_t fatal_bit_stroke = 1 << entry;
+                                //this->m_watchDogCode = m_watchDogCode | fatal_bit_stroke;
                             }
                         } // if at warning or fatal threshold
 

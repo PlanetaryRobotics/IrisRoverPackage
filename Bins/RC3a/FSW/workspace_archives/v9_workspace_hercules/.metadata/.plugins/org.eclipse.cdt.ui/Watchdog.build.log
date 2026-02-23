@@ -1,0 +1,1186 @@
+
+**** Build of configuration Debug_with_flag for project Watchdog ****
+
+/home/iris/ti/ccs910/ccs/utils/bin/gmake -k -j 8 all -O 
+ 
+Building file: "../src/comms/cmd_msgs.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/cmd_msgs.d_raw" --obj_directory="src/comms"  "../src/comms/cmd_msgs.c"
+Finished building: "../src/comms/cmd_msgs.c"
+ 
+Building file: "../src/comms/hercules_msgs.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/hercules_msgs.d_raw" --obj_directory="src/comms"  "../src/comms/hercules_msgs.c"
+Finished building: "../src/comms/hercules_msgs.c"
+ 
+Building file: "../src/comms/debug_comms.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/debug_comms.d_raw" --obj_directory="src/comms"  "../src/comms/debug_comms.c"
+"../src/comms/debug_comms.c", line 97: remark #1532-D: (ULP 5.3) Detected sprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+      sprintf(PRINT_BUFFER, "DEBUG");
+             ^
+ 
+"../src/comms/debug_comms.c", line 100: remark #1532-D: (ULP 5.3) Detected vsprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+      vsprintf(PRINT_BUFFER + 5, fmt, args);
+              ^
+ 
+"../src/comms/debug_comms.c", line 117: remark #1532-D: (ULP 5.3) Detected sprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+      sprintf(PRINT_BUFFER, "DEBUG");
+             ^
+ 
+"../src/comms/debug_comms.c", line 120: remark #1532-D: (ULP 5.3) Detected vsprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+      vsprintf(PRINT_BUFFER + 5, fmt, args);
+              ^
+ 
+"../src/comms/debug_comms.c", line 142: remark #1532-D: (ULP 5.3) Detected sprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+      length += sprintf(PRINT_BUFFER + length, "DEBUG");
+                       ^
+ 
+"../src/comms/debug_comms.c", line 143: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0; i < dataLen; ++i) {
+                                      ^
+ 
+"../src/comms/debug_comms.c", line 144: remark #1532-D: (ULP 5.3) Detected sprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+          length += sprintf(PRINT_BUFFER + length, fmtString, ((data[i] <= 0xF) ? "0" : ""), data[i]);
+                           ^
+ 
+"../src/comms/debug_comms.c", line 146: remark #1532-D: (ULP 5.3) Detected sprintf() operation(s). Recommend moving them to RAM during run time or not using as these are processing/power intensive
+      length += sprintf(PRINT_BUFFER + length, "\n");
+                       ^
+ 
+"../src/comms/debug_comms.c", line 143: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0; i < dataLen; ++i) {
+                                      ^
+ 
+"../src/comms/slip_encode.c", line 21: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (inIndex = 0; inIndex < inputLen; ++inIndex) {
+                                            ^
+ 
+"../src/comms/slip_encode.c", line 21: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (inIndex = 0; inIndex < inputLen; ++inIndex) {
+                                            ^
+ 
+Finished building: "../src/comms/debug_comms.c"
+ 
+Building file: "../src/comms/slip_encode.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/slip_encode.d_raw" --obj_directory="src/comms"  "../src/comms/slip_encode.c"
+Finished building: "../src/comms/slip_encode.c"
+ 
+Building file: "../src/comms/ip_udp.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/ip_udp.d_raw" --obj_directory="src/comms"  "../src/comms/ip_udp.c"
+"../src/comms/ip_udp.c", line 85: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      ph.dest = ip_dest;
+              ^
+ 
+"../src/comms/ip_udp.c", line 86: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      ph.zero = 0;
+              ^
+ 
+"../src/comms/ip_udp.c", line 87: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      ph.proto = 0x11;
+               ^
+ 
+"../src/comms/ip_udp.c", line 88: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      ph.udp_len = udp_packet_len;
+                 ^
+ 
+Finished building: "../src/comms/ip_udp.c"
+ 
+Building file: "../src/comms/hercules_mpsm.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/hercules_mpsm.d_raw" --obj_directory="src/comms"  "../src/comms/hercules_mpsm.c"
+"../src/comms/hercules_mpsm.c", line 205: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStateMachine.dataLength = 0;
+                                 ^
+ 
+"../src/comms/hercules_mpsm.c", line 271: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+              for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                                                                               ^
+ 
+"../src/comms/hercules_mpsm.c", line 271: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+              for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                                                                               ^
+ 
+"../src/comms/hercules_mpsm.c", line 271: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+              for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                                                                               ^
+ 
+"../src/comms/hercules_mpsm.c", line 271: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+              for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                                                                               ^
+ 
+"../src/comms/hercules_mpsm.c", line 271: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+              for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                                                                               ^
+ 
+"../src/comms/hercules_mpsm.c", line 271: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+              for (size_t i = 0; i < sizeof(theStateMachine.ringBufferMemory); ++i) {
+                                                                               ^
+ 
+"../src/comms/hercules_mpsm.c", line 383: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          theStateMachine.dataLength = 0;
+                                     ^
+ 
+Finished building: "../src/comms/hercules_mpsm.c"
+ 
+Building file: "../src/comms/slip_mpsm.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/slip_mpsm.d_raw" --obj_directory="src/comms"  "../src/comms/slip_mpsm.c"
+Finished building: "../src/comms/slip_mpsm.c"
+ 
+Building file: "../src/comms/hercules_comms.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/hercules_comms.d_raw" --obj_directory="src/comms"  "../src/comms/hercules_comms.c"
+"../src/comms/hercules_comms.c", line 172: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/hercules_comms.c", line 172: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/hercules_comms.c", line 172: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/hercules_comms.c", line 172: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/hercules_comms.c", line 359: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(1000);
+                        ^
+ 
+"../src/comms/hercules_comms.c", line 359: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(1000);
+                        ^
+ 
+"../src/comms/hercules_comms.c", line 359: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(1000);
+                        ^
+ 
+"../src/comms/hercules_comms.c", line 33: remark #1534-D: (ULP 7.1) Detected use of global variable "theState" within one function "HerculesComms__init". Recommend placing variable in the function locally
+  static HerculesComms__State theState = {
+                              ^
+ 
+Finished building: "../src/comms/hercules_comms.c"
+ 
+Building file: "../src/comms/wd_int_mpsm.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/wd_int_mpsm.d_raw" --obj_directory="src/comms"  "../src/comms/wd_int_mpsm.c"
+"../src/comms/wd_int_mpsm.c", line 28: remark #1534-D: (ULP 7.1) Detected use of global variable "theState" within one function "WdIntMpsm__processEdge". Recommend placing variable in the function locally
+  static WdIntMpsm__TheState theState = {
+                             ^
+ 
+"../src/comms/wd_int_mpsm.c", line 28: remark #1535-D: (ULP 8.1) variable "theState" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+  static WdIntMpsm__TheState theState = {
+                             ^
+ 
+Finished building: "../src/comms/wd_int_mpsm.c"
+ 
+Building file: "../src/comms/lander_comms.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/lander_comms.d_raw" --obj_directory="src/comms"  "../src/comms/lander_comms.c"
+"../src/comms/lander_comms.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/lander_comms.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/lander_comms.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/lander_comms.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t i = 0; i < numReceived; ++i) {
+                                              ^
+ 
+"../src/comms/lander_comms.c", line 319: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(1000);
+                        ^
+ 
+"../src/comms/lander_comms.c", line 319: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(1000);
+                        ^
+ 
+"../src/comms/lander_comms.c", line 319: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(1000);
+                        ^
+ 
+"../src/comms/lander_comms.c", line 359: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0; i < headerLen; ++i) {
+                                        ^
+ 
+"../src/comms/lander_comms.c", line 369: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0; i < dataLen; ++i) {
+                                      ^
+ 
+"../src/comms/lander_comms.c", line 359: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0; i < headerLen; ++i) {
+                                        ^
+ 
+"../src/comms/lander_comms.c", line 369: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0; i < dataLen; ++i) {
+                                      ^
+ 
+"../src/comms/lander_comms.c", line 34: remark #1534-D: (ULP 7.1) Detected use of global variable "theState" within one function "LanderComms__init". Recommend placing variable in the function locally
+  static LanderComms__State theState = {
+                            ^
+ 
+Finished building: "../src/comms/lander_comms.c"
+ 
+Building file: "../src/drivers/adc.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/drivers/adc.d_raw" --obj_directory="src/drivers"  "../src/drivers/adc.c"
+Finished building: "../src/drivers/adc.c"
+ 
+Building file: "../src/comms/ground_msgs.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/ground_msgs.d_raw" --obj_directory="src/comms"  "../src/comms/ground_msgs.c"
+"../src/comms/ground_msgs.c", line 213: remark #2553-D: (ULP 14.1) Array index (involving "i") of type "int". Recommend using "unsigned int"
+          *dstIntPtr = buffer64bit[i];
+                                  ^
+ 
+"../src/comms/ground_msgs.c", line 213: remark #2553-D: (ULP 14.1) Array index (involving "i") of type "int". Recommend using "unsigned int"
+          *dstIntPtr = buffer64bit[i];
+                                  ^
+ 
+Finished building: "../src/comms/ground_msgs.c"
+ 
+Building file: "../src/comms/i2c_sensors.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/i2c_sensors.d_raw" --obj_directory="src/comms"  "../src/comms/i2c_sensors.c"
+"../src/comms/i2c_sensors.c", line 511: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      internals.grsState = GRS__UNKNOWN;
+                         ^
+ 
+"../src/comms/i2c_sensors.c", line 512: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      internals.fgiState = FGI__UNKNOWN;
+                         ^
+ 
+"../src/comms/i2c_sensors.c", line 513: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      internals.rcState = RC__UNKNOWN;
+                        ^
+ 
+"../src/comms/i2c_sensors.c", line 514: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      internals.wlpState = WLP__UNKNOWN;
+                         ^
+ 
+"../src/comms/i2c_sensors.c", line 521: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.grsState = GRS__CHARGE_LSB;
+                             ^
+ 
+"../src/comms/i2c_sensors.c", line 533: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.fgiState = FGI__ACCUMULATED_CHARGE_MSB;
+                             ^
+ 
+"../src/comms/i2c_sensors.c", line 544: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.rcState = RC__READING;
+                            ^
+ 
+"../src/comms/i2c_sensors.c", line 545: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.controlRegisterReadValue = 0;
+                                             ^
+ 
+"../src/comms/i2c_sensors.c", line 556: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.wlpState = WLP__WRITING;
+                             ^
+ 
+"../src/comms/i2c_sensors.c", line 567: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.iieState = IIE__WRITE_PORT_0_CONFIG;
+                             ^
+ 
+"../src/comms/i2c_sensors.c", line 568: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.ioExpanderPort0DirectionValue = IO_EXPANDER_CONFIG_PORT_0_VALUE;
+                                                  ^
+ 
+"../src/comms/i2c_sensors.c", line 569: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.ioExpanderPort1DirectionValue = IO_EXPANDER_CONFIG_PORT_1_VALUE;
+                                                  ^
+ 
+"../src/comms/i2c_sensors.c", line 616: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.wieState = WIE__WRITE_PORT_0_VALUE;
+                             ^
+ 
+"../src/comms/i2c_sensors.c", line 617: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.ioExpanderPort0WriteValue = port0Value;
+                                              ^
+ 
+"../src/comms/i2c_sensors.c", line 618: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.ioExpanderPort1WriteValue = port1Value;
+                                              ^
+ 
+"../src/comms/i2c_sensors.c", line 629: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+          internals.rieState = RIE__READING;
+                             ^
+ 
+"../src/comms/i2c_sensors.c", line 759: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      internals.ioExpanderPort1DirectionValue = port1Value;
+                                              ^
+ 
+"../src/comms/i2c_sensors.c", line 134: remark #1534-D: (ULP 7.1) Detected use of global variable "FUEL_GAUGE_CONTROL_LOW_POWER" within one function "I2C_Sensors__lowPower". Recommend placing variable in the function locally
+  static const uint8_t FUEL_GAUGE_CONTROL_LOW_POWER = 0b00101001;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 141: remark #1534-D: (ULP 7.1) Detected use of global variable "FUEL_GAUGE_CONTROL_INIT" within one function "I2C_Sensors__writeControl". Recommend placing variable in the function locally
+  static const uint8_t FUEL_GAUGE_CONTROL_INIT = 0b10101000;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 142: remark #1534-D: (ULP 7.1) Detected use of global variable "FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT" within one function "I2C_Sensors__accumulatedChargeMsb". Recommend placing variable in the function locally
+  static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_MSB_INIT = 0xA0;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 143: remark #1534-D: (ULP 7.1) Detected use of global variable "FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT" within one function "I2C_Sensors__accumulatedChargeLsb". Recommend placing variable in the function locally
+  static const uint8_t FUEL_GAUGE_CHARGE_ACCUM_LSB_INIT = 0xD8;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 167: remark #1534-D: (ULP 7.1) Detected use of global variable "IO_EXPANDER_CONFIG_PORT_0_REG_ADDR" within one function "I2C_Sensors__ioExpanderInitPort0". Recommend placing variable in the function locally
+  static const uint8_t IO_EXPANDER_CONFIG_PORT_0_REG_ADDR = 8;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 169: remark #1534-D: (ULP 7.1) Detected use of global variable "IO_EXPANDER_CONFIG_PORT_1_REG_ADDR" within one function "I2C_Sensors__ioExpanderInitPort1". Recommend placing variable in the function locally
+  static const uint8_t IO_EXPANDER_CONFIG_PORT_1_REG_ADDR = 9;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 174: remark #1534-D: (ULP 7.1) Detected use of global variable "IO_EXPANDER_INPUT_PORT_1_REG_ADDR" within one function "I2C_Sensors__ioExpanderReadPort1". Recommend placing variable in the function locally
+  static const uint8_t IO_EXPANDER_INPUT_PORT_1_REG_ADDR = 1;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 179: remark #1534-D: (ULP 7.1) Detected use of global variable "IO_EXPANDER_OUTPUT_PORT_0_REG_ADDR" within one function "I2C_Sensors__ioExpanderWritePort0". Recommend placing variable in the function locally
+  static const uint8_t IO_EXPANDER_OUTPUT_PORT_0_REG_ADDR = 10;
+                       ^
+ 
+"../src/comms/i2c_sensors.c", line 180: remark #1534-D: (ULP 7.1) Detected use of global variable "IO_EXPANDER_OUTPUT_PORT_1_REG_ADDR" within one function "I2C_Sensors__ioExpanderWritePort1". Recommend placing variable in the function locally
+  static const uint8_t IO_EXPANDER_OUTPUT_PORT_1_REG_ADDR = 11;
+                       ^
+ 
+"../src/drivers/i2c.c", line 63: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.regAddr = reg_addr;
+                        ^
+ 
+"../src/drivers/i2c.c", line 64: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.type = I2C__TYPE__WRITE;
+                     ^
+ 
+"../src/drivers/i2c.c", line 65: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.state = I2C__TRANSACTION__WAIT_FOR_STOP;
+                      ^
+ 
+"../src/drivers/i2c.c", line 66: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.data = data;
+                     ^
+ 
+"../src/drivers/i2c.c", line 80: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.regAddr = reg_addr;
+                        ^
+ 
+"../src/drivers/i2c.c", line 81: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.type = I2C__TYPE__READ;
+                     ^
+ 
+"../src/drivers/i2c.c", line 82: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.state = I2C__TRANSACTION__WAIT_FOR_STOP;
+                      ^
+ 
+"../src/drivers/i2c.c", line 83: remark #1546-D: (ULP 15.1) Detected consecutive bitfield assigns. Recommend using bit mask instead
+      theStatus.data = 0;
+                     ^
+ 
+Finished building: "../src/comms/i2c_sensors.c"
+ 
+Building file: "../src/event/event_queue.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/event/event_queue.d_raw" --obj_directory="src/event"  "../src/event/event_queue.c"
+Finished building: "../src/event/event_queue.c"
+ 
+Building file: "../src/comms/watchdog_cmd_msgs.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/comms/watchdog_cmd_msgs.d_raw" --obj_directory="src/comms"  "../src/comms/watchdog_cmd_msgs.c"
+Finished building: "../src/comms/watchdog_cmd_msgs.c"
+ 
+Building file: "../src/drivers/i2c.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/drivers/i2c.d_raw" --obj_directory="src/drivers"  "../src/drivers/i2c.c"
+Finished building: "../src/drivers/i2c.c"
+ 
+Building file: "../src/drivers/blimp.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/drivers/blimp.d_raw" --obj_directory="src/drivers"  "../src/drivers/blimp.c"
+Finished building: "../src/drivers/blimp.c"
+ 
+Building file: "../src/stateMachine/RoverState.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverState.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverState.cpp"
+"../src/drivers/blimp.c", line 83: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+      __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
+                    ^
+ 
+"../src/drivers/blimp.c", line 85: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+      __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
+                    ^
+ 
+"../src/drivers/blimp.c", line 341: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+      __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
+                    ^
+ 
+"../src/drivers/blimp.c", line 343: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+      __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
+                    ^
+ 
+"../src/drivers/blimp.c", line 410: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+      __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
+                    ^
+ 
+"../src/drivers/blimp.c", line 412: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+      __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES);
+                    ^
+ 
+Finished building: "../src/stateMachine/RoverState.cpp"
+ 
+Building file: "../src/drivers/uart.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/drivers/uart.d_raw" --obj_directory="src/drivers"  "../src/drivers/uart.c"
+"../src/drivers/uart.c", line 313: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+              __delay_cycles(10000);
+                            ^
+ 
+"../src/drivers/uart.c", line 313: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+              __delay_cycles(10000);
+                            ^
+ 
+"../src/drivers/uart.c", line 313: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+              __delay_cycles(10000);
+                            ^
+ 
+"../src/drivers/uart.c", line 364: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0U; i < dataLen; ++i) {
+                                       ^
+ 
+"../src/drivers/uart.c", line 364: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0U; i < dataLen; ++i) {
+                                       ^
+ 
+"../src/drivers/uart.c", line 405: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0U; i < dataLen; ++i) {
+                                       ^
+ 
+"../src/drivers/uart.c", line 405: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      for (size_t i = 0U; i < dataLen; ++i) {
+                                       ^
+ 
+"../src/drivers/uart.c", line 702: remark #1538-D: (ULP 10.1) ISR USCI_A0_ISR calls function UART__interruptHandler. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+      if (UART__interruptHandler(&uart0State, FALSE)) {
+                                ^
+ 
+"../src/drivers/uart.c", line 702: remark #1538-D: (ULP 10.1) ISR USCI_A0_ISR calls function UART__interruptHandler. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+      if (UART__interruptHandler(&uart0State, FALSE)) {
+                                ^
+ 
+"../src/drivers/uart.c", line 719: remark #1538-D: (ULP 10.1) ISR USCI_A1_ISR calls function UART__interruptHandler. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+      if (UART__interruptHandler(&uart1State, TRUE)) {
+                                ^
+ 
+"../src/drivers/uart.c", line 719: remark #1538-D: (ULP 10.1) ISR USCI_A1_ISR calls function UART__interruptHandler. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+      if (UART__interruptHandler(&uart1State, TRUE)) {
+                                ^
+ 
+Finished building: "../src/drivers/uart.c"
+ 
+Building file: "../src/drivers/bsp.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/drivers/bsp.d_raw" --obj_directory="src/drivers"  "../src/drivers/bsp.c"
+Finished building: "../src/drivers/bsp.c"
+ 
+Building file: "../src/watchdog.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/watchdog.d_raw" --obj_directory="src"  "../src/watchdog.c"
+"../src/watchdog.c", line 367: remark #1538-D: (ULP 10.1) ISR port1_isr_handler calls function EventQueue__put. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+                  EventQueue__put(EVENT__TYPE__WD_INT_FALLING_EDGE);
+                                 ^
+ 
+"../src/watchdog.c", line 369: remark #1538-D: (ULP 10.1) ISR port1_isr_handler calls function enableWdIntRisingEdgeInterrupt. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+                  enableWdIntRisingEdgeInterrupt();
+                                                ^
+ 
+"../src/watchdog.c", line 371: remark #1538-D: (ULP 10.1) ISR port1_isr_handler calls function EventQueue__put. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+                  EventQueue__put(EVENT__TYPE__WD_INT_RISING_EDGE);
+                                 ^
+ 
+"../src/watchdog.c", line 373: remark #1538-D: (ULP 10.1) ISR port1_isr_handler calls function enableWdIntFallingEdgeInterrupt. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+                  enableWdIntFallingEdgeInterrupt();
+                                                 ^
+ 
+"../src/watchdog.c", line 422: remark #1538-D: (ULP 10.1) ISR Timer0_A1_ISR calls function EventQueue__put. Recommend moving function call away from ISR, or inlining the function, or using pragmas
+              EventQueue__put(EVENT__TYPE__TIMER_TICK);
+                             ^
+ 
+"../src/watchdog.c", line 28: remark #1534-D: (ULP 7.1) Detected use of global variable "lookingForWdIntFallingEdge" within one function "port1_isr_handler". Recommend placing variable in the function locally
+  static volatile BOOL lookingForWdIntFallingEdge = TRUE;
+                       ^
+ 
+"../src/watchdog.c", line 29: remark #1534-D: (ULP 7.1) Detected use of global variable "wdIntLastEdgeTime" within one function "port1_isr_handler". Recommend placing variable in the function locally
+  static volatile uint16_t wdIntLastEdgeTime = 0;
+                           ^
+ 
+Finished building: "../src/watchdog.c"
+ 
+Building file: "../src/stateMachine/RoverStateEnteringService.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateEnteringService.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateEnteringService.cpp"
+Finished building: "../src/stateMachine/RoverStateEnteringService.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateEnteringKeepAlive.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateEnteringKeepAlive.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateEnteringKeepAlive.cpp"
+Finished building: "../src/stateMachine/RoverStateEnteringKeepAlive.cpp"
+ 
+Building file: "../src/main.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/main.d_raw" --obj_directory="src"  "../src/main.cpp"
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 20: remark #1535-D: (ULP 8.1) variable "mask1" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask1 = 0x5555;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 22: remark #1535-D: (ULP 8.1) variable "mask2" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask2 = 0x3333;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 24: remark #1535-D: (ULP 8.1) variable "mask3" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask3 = 0x0f0f;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 56: remark #1535-D: (ULP 8.1) variable "mask1" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask1 = 0x55555555;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 58: remark #1535-D: (ULP 8.1) variable "mask2" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask2 = 0x33333333;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 60: remark #1535-D: (ULP 8.1) variable "mask3" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask3 = 0x0f0f0f0f;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 83: remark #1535-D: (ULP 8.1) variable "mask1" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask1 = 0x5555555555555555;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 85: remark #1535-D: (ULP 8.1) variable "mask2" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask2 = 0x3333333333333333;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 87: remark #1535-D: (ULP 8.1) variable "mask3" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask3 = 0x0f0f0f0f0f0f0f0f;
+            ^
+ 
+Finished building: "../src/main.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateEnteringStasis.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateEnteringStasis.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateEnteringStasis.cpp"
+Finished building: "../src/stateMachine/RoverStateEnteringStasis.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateInit.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateInit.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateInit.cpp"
+Finished building: "../src/stateMachine/RoverStateInit.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateKeepAlive.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateKeepAlive.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateKeepAlive.cpp"
+Finished building: "../src/stateMachine/RoverStateKeepAlive.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateEnteringMission.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateEnteringMission.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateEnteringMission.cpp"
+"../src/stateMachine/RoverStateKeepAlive.cpp", line 123: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(IRIS_BLIMP_DLATCH_PULSE_DURATION_CYCLES); // throw an extra delay in here to match testing procedure
+                        ^
+ 
+"../src/stateMachine/RoverStateKeepAlive.cpp", line 10: remark #1534-D: (ULP 7.1) Detected use of global variable "SEND_DETAILED_REPORTS_IN_SPIN_ONCE" within one function "iris::RoverStateKeepAlive::spinOnce". Recommend placing variable in the function locally
+  static const bool SEND_DETAILED_REPORTS_IN_SPIN_ONCE = true;
+                    ^
+ 
+"../src/stateMachine/RoverStateKeepAlive.cpp", line 11: remark #1534-D: (ULP 7.1) Detected use of global variable "CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS" within one function "iris::RoverStateKeepAlive::spinOnce". Recommend placing variable in the function locally
+  static const uint16_t CENTISECONDS_BETWEEN_DETAILED_REPORT_SENDS = 600;
+                        ^
+ 
+Finished building: "../src/stateMachine/RoverStateEnteringMission.cpp"
+ 
+Building file: "../src/utils/ring_buffer.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/utils/ring_buffer.d_raw" --obj_directory="src/utils"  "../src/utils/ring_buffer.c"
+Finished building: "../src/utils/ring_buffer.c"
+ 
+Building file: "../src/utils/time.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/utils/time.d_raw" --obj_directory="src/utils"  "../src/utils/time.c"
+Finished building: "../src/utils/time.c"
+ 
+Building file: "../src/stateMachine/RoverStateService.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateService.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateService.cpp"
+Finished building: "../src/stateMachine/RoverStateService.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateStasis.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateStasis.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateStasis.cpp"
+Finished building: "../src/stateMachine/RoverStateStasis.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateMission.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateMission.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateMission.cpp"
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 307: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER" within one function "iris::RoverStateMission::doGndCmdDeploy". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER = 0x0Au;
+                       ^
+ 
+Finished building: "../src/stateMachine/RoverStateMission.cpp"
+ 
+Building file: "../src/utils/serialization.c"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/utils/serialization.d_raw" --obj_directory="src/utils"  "../src/utils/serialization.c"
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1535-D: (ULP 8.1) variable "highestIndex" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 68: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1535-D: (ULP 8.1) variable "highestIndex" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 82: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1535-D: (ULP 8.1) variable "highestIndex" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 96: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1535-D: (ULP 8.1) variable "highestIndex" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 110: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      SERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 124: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 1, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 138: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 2, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 153: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 4, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #2553-D: (ULP 14.1) Array index (involving "srcIndex") of type "int16_t". Recommend using "unsigned int"
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+"../src/utils/serialization.c", line 167: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+      DESERIALIZE_INTEGER_HELPER(srcIntPtr, dstIntPtr, 8, endianness);
+      ^
+ 
+Finished building: "../src/utils/serialization.c"
+ 
+Building file: "../src/stateMachine/RoverStateManager.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateManager.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateManager.cpp"
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 20: remark #1535-D: (ULP 8.1) variable "mask1" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask1 = 0x5555;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 22: remark #1535-D: (ULP 8.1) variable "mask2" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask2 = 0x3333;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 24: remark #1535-D: (ULP 8.1) variable "mask3" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask3 = 0x0f0f;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 56: remark #1535-D: (ULP 8.1) variable "mask1" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask1 = 0x55555555;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 58: remark #1535-D: (ULP 8.1) variable "mask2" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask2 = 0x33333333;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 60: remark #1535-D: (ULP 8.1) variable "mask3" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask3 = 0x0f0f0f0f;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 83: remark #1535-D: (ULP 8.1) variable "mask1" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask1 = 0x5555555555555555;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 85: remark #1535-D: (ULP 8.1) variable "mask2" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask2 = 0x3333333333333333;
+            ^
+ 
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include/libcxx/support/ti/support.h", line 87: remark #1535-D: (ULP 8.1) variable "mask3" is used as a constant. Recommend declaring variable as either 'static const' or 'const'
+          T mask3 = 0x0f0f0f0f0f0f0f0f;
+            ^
+ 
+Finished building: "../src/stateMachine/RoverStateManager.cpp"
+ 
+Building file: "../src/stateMachine/RoverStateBase.cpp"
+Invoking: MSP430 Compiler
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --include_path="/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog" --include_path="/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include" --include_path="/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 --preproc_with_compile --preproc_dependency="src/stateMachine/RoverStateBase.d_raw" --obj_directory="src/stateMachine"  "../src/stateMachine/RoverStateBase.cpp"
+"../src/stateMachine/RoverStateBase.cpp", line 93: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(100000); // Should be at least 2 us (per blimp.h)
+                        ^
+ 
+"../src/stateMachine/RoverStateBase.cpp", line 95: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(10000);
+                        ^
+ 
+"../src/stateMachine/RoverStateBase.cpp", line 105: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(100000); // Should be at least 2 us (per blimp.h)
+                        ^
+ 
+"../src/stateMachine/RoverStateBase.cpp", line 107: remark #1527-D: (ULP 2.1) Detected SW delay loop using __delay_cycles. Recommend using a timer module instead
+          __delay_cycles(10000);
+                        ^
+ 
+"../src/stateMachine/RoverStateBase.cpp", line 159: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t j = 0; j < static_cast<size_t>(I2C_SENSORS__ACTIONS__COUNT); ++j) {
+                                                                                   ^
+ 
+"../src/stateMachine/RoverStateBase.cpp", line 159: remark #1544-D: (ULP 13.1) Detected loop counting up. Recommend loops count down as detecting zeros is easier
+          for (size_t j = 0; j < static_cast<size_t>(I2C_SENSORS__ACTIONS__COUNT); ++j) {
+                                                                                   ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 262: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_MODE_CHANGE_MAGIC_NUMBER = 0x77u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 267: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_DEPLOYMENT_MAGIC_NUMBER" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_DEPLOYMENT_MAGIC_NUMBER = 0x60u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 272: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_ONE" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_ONE = 0xF0u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 277: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_TWO" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_DANG_FORCE_BATT_STATE_MAGIC_NUMBER_TWO = 0x01u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 282: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_ONE" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_ONE = 0xC7u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 287: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_TWO" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_CLR_RST_MEM_MAGIC_NUMBER_TWO = 0x19u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 292: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__CONFIRM_REQ_DET_REPORT_MAGIC_NUMBER = 0x57u;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 297: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__SET_DEBUG_COMMS_STATE_MAGIC_NUMBER" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__SET_DEBUG_COMMS_STATE_MAGIC_NUMBER = 0xCCu;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 302: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__SET_VSAE_STATE_MAGIC_NUMBER" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__SET_VSAE_STATE_MAGIC_NUMBER = 0xBBu;
+                       ^
+ 
+"/home/iris/Desktop/Working_Folders/mschnur/Watchdog_MSP430/Apps/FlightSoftware/Watchdog/include/comms/watchdog_cmd_msgs.h", line 307: remark #1534-D: (ULP 7.1) Detected use of global variable "WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER" within one function "iris::RoverStateBase::performWatchdogCommand". Recommend placing variable in the function locally
+  static const uint8_t WD_CMD_MSGS__RESPONSE_MAGIC_NUMBER = 0x0Au;
+                       ^
+ 
+Finished building: "../src/stateMachine/RoverStateBase.cpp"
+ 
+Building target: "Watchdog.out"
+Invoking: MSP430 Linker
+"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/bin/cl430" -vmspx --data_model=restricted --use_hw_mpy=F5 --advice:power="all" --advice:hw_config="all" --define=__MSP430FR5994__ --define=ENABLE_DEBUG_ONLY_CODE --define=_MPU_ENABLE -g --c11 --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --emit_warnings_as_errors --verbose_diagnostics --silicon_errata=CPU21 --silicon_errata=CPU22 --silicon_errata=CPU40 -z -m"Watchdog.map" --heap_size=4 --stack_size=1492 --cinit_hold_wdt=on -i"/home/iris/ti/ccs910/ccs/ccs_base/msp430/include" -i"/home/iris/ti/ccs910/ccs/ccs_base/msp430/lib/5xx_6xx_FRxx" -i"/home/iris/ti/ccs910/ccs/ccs_base/msp430/lib/FR59xx" -i"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/lib" -i"/home/iris/ti/ccs910/ccs/tools/compiler/ti-cgt-msp430_18.12.2.LTS/include" --priority --reread_libs --define=_MPU_ENABLE --diag_wrap=off --display_error_number --warn_sections --xml_link_info="Watchdog_linkInfo.xml" --use_hw_mpy=F5 --rom_model -o "Watchdog.out" "./src/comms/cmd_msgs.obj" "./src/comms/debug_comms.obj" "./src/comms/ground_msgs.obj" "./src/comms/hercules_comms.obj" "./src/comms/hercules_mpsm.obj" "./src/comms/hercules_msgs.obj" "./src/comms/i2c_sensors.obj" "./src/comms/ip_udp.obj" "./src/comms/lander_comms.obj" "./src/comms/slip_encode.obj" "./src/comms/slip_mpsm.obj" "./src/comms/watchdog_cmd_msgs.obj" "./src/comms/wd_int_mpsm.obj" "./src/drivers/adc.obj" "./src/drivers/blimp.obj" "./src/drivers/bsp.obj" "./src/drivers/i2c.obj" "./src/drivers/uart.obj" "./src/event/event_queue.obj" "./src/main.obj" "./src/watchdog.obj" "./src/stateMachine/RoverState.obj" "./src/stateMachine/RoverStateBase.obj" "./src/stateMachine/RoverStateEnteringKeepAlive.obj" "./src/stateMachine/RoverStateEnteringMission.obj" "./src/stateMachine/RoverStateEnteringService.obj" "./src/stateMachine/RoverStateEnteringStasis.obj" "./src/stateMachine/RoverStateInit.obj" "./src/stateMachine/RoverStateKeepAlive.obj" "./src/stateMachine/RoverStateManager.obj" "./src/stateMachine/RoverStateMission.obj" "./src/stateMachine/RoverStateService.obj" "./src/stateMachine/RoverStateStasis.obj" "./src/utils/ring_buffer.obj" "./src/utils/serialization.obj" "./src/utils/time.obj" "../lnk_msp430fr5994.cmd"  -llibmpu_init.a -llibmath.a -llibc.a 
+<Linking>
+remark #10372-D: (ULP 4.1) Detected uninitialized Port A in this project. Recommend initializing all unused ports to eliminate wasted current consumption on unused pins.
+remark #10372-D: (ULP 4.1) Detected uninitialized Port B in this project. Recommend initializing all unused ports to eliminate wasted current consumption on unused pins.
+remark #10372-D: (ULP 4.1) Detected uninitialized Port C in this project. Recommend initializing all unused ports to eliminate wasted current consumption on unused pins.
+remark #10372-D: (ULP 4.1) Detected uninitialized Port D in this project. Recommend initializing all unused ports to eliminate wasted current consumption on unused pins.
+remark #10436-D: (ULP 6.3) Detected use of a device with a Low Energy Accelerator (LEA) but application does not appear to use LEA. Recommend offloading vector math and signal processing to LEA for improved performance.
+Finished building target: "Watchdog.out"
+ 
+
+**** Build Finished ****

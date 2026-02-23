@@ -1,0 +1,233 @@
+# A registry of all commands that Ground can send directly to the radio:
+#
+# Because these packets will invariably also get routed to Hercules (we can't
+# stop them), they must comply with the Iris Common Packet Header standard with
+# the following caveats:
+#   - A unique type magic will be used for all radio-only commands (0xD0:09:AD:10)
+#   - One and only one payload will be sent in the variable-length payload
+#   section in packets containing radio-only commands.
+#   - Sequence number will always be 0x00 (ignored by Hercules' seq_num counter)
+#   in packets containing Radio-only payloads.
+#   - To minimize computation on the radio (since it's not very efficient, both
+#   in terms of time or thermals), it will *NOT* perform the following checks
+#   that are common in other Iris data nodes:
+#       - Comparing VLP length against the post-header bytes in the packet.
+#       - Checking the checksum in the Iris Common Packet (since it already
+#       does that for the UDP checksum).
+#       - This data *SHOULD* still be computed and included correctly since
+#       Hercules could be checking these commands (even if it doesn't use them).
+#
+# Otherwise, the format is standard as follows (little endian byte-order used):
+#   Header:
+#   - [1B] Sequence Number
+#   - [2B] VLP Length (little-endian)
+#   - [1B] Byte Sum Complement Checksum of entire Iris Common Packet (incl. header) w/ checksum set to 0.
+#   Variable Length Payload (VLP): the following, repeated any number (>=1) of times:
+#   - [4B] Type Magic (indicating payload contents)
+#   - [nB] Serialized Payload Data (which may or may not incl. its own header, depending on its type)
+#
+# The standard for the Radio-Only Serialized Payload Data will be the following:
+#   - [1B] Command-ID
+#   - [nB] Command Data
+#
+# All commands are met with an acknowledgement: RADIO_GND_CMD_ACK().
+
+# Type Magic telling Iris Common Packet that this is a Radio-Only Command:
+const TYPE_MAGIC__RADIO_ONLY() = "\xD0\x09\xAD\x10"
+# Module ID used for Radio-Only Commands in the GSW:
+const MODULE_ID__RADIO_ONLY = $EF
+# Whether we executed the command:
+dim executed_command
+# Working variable used for argument length checks:
+dim arg_len
+
+
+##
+# Command IDs:
+##
+const CMD_ID__ECHO = $00
+const CMD_ID__RESET_RADIO = $BB # confirm is 'RESET'
+const CMD_ID__ENTER_STASIS = $E5 # confirm is 'STASIS'
+const CMD_ID__EXIT_STASIS = $5E # confirm is 'STASIS'
+const CMD_ID__WRITE_UART = $DB
+const CMD_ID__HERCULES_DM = $DD
+
+
+##
+# Command handlers:
+##
+
+# Echo the given bytes back over WiFi:
+procedure RADIO_CMD__ECHO(str_arg_len, cmd_data_len, cmd_data())
+    # Check that the length matches the remaining message length:
+    if str_arg_len > 0 && str_arg_len = (cmd_data_len-2) then
+        # Just echo back the input data in a bespoke Radio-Ground Report:
+        call RADIO_GND_ECHO(str_arg_len, cmd_data(2:str_arg_len))
+        executed_command = 1
+    end if
+end
+
+# Reset the Radio (command data must be 'RESET'):
+const RESET_RADIO_CONFIRM() = "RESET"
+procedure RADIO_CMD__RESET_RADIO(str_arg_len, cmd_data_len, cmd_data())
+    # Make sure the confirmation data is correct:
+    if str_arg_len = (cmd_data_len-2) && str_arg_len = 5 && memcmp(RESET_RADIO_CONFIRM(0), cmd_data(2), 5) = 1 then
+        # Send the DONE signal (because we won't be able to do it after the reset):
+        executed_command = 1
+        call RADIO_GND_CMD_DONE(CMD_ID__RESET_RADIO, cmd_data_len, cmd_data(0:cmd_data_len))
+        # Then reset the Radio:
+        call system_reset(0)
+    end if
+end
+
+# Enter stasis mode (command data must be 'STASIS'):
+const ENTER_STASIS_CONFIRM() = "STASIS"
+procedure RADIO_CMD__ENTER_STASIS(str_arg_len, cmd_data_len, cmd_data())
+    # Make sure the confirmation data is correct:
+    if str_arg_len = (cmd_data_len-2) && str_arg_len = 6 && memcmp(ENTER_STASIS_CONFIRM(0), cmd_data(2), 6) = 1 then
+        # Turn off Hercules BGAPI:
+        call endpoint_set_streaming(HERCULES_ENDPOINT, 1)
+        # Turn off Hercules UART:
+        call endpoint_disable(HERCULES_ENDPOINT)
+        executed_command = 1
+    end if
+end
+
+# Exit stasis mode (command data must be 'STASIS'):
+const EXIT_STASIS_CONFIRM() = "STASIS"
+const EXIT_STATIS_TIMER_HANDLE = $CE  # Handle for the single shot timer (must be unique)
+const EXIT_STASIS_RESET_DELAY_MS = 5000 # Delay, in ms, before resetting radio to exit stasis
+procedure RADIO_CMD__EXIT_STASIS(str_arg_len, cmd_data_len, cmd_data())
+    # Make sure the confirmation data is correct:
+    if str_arg_len = (cmd_data_len-2) && str_arg_len = 6 && memcmp(ENTER_STASIS_CONFIRM(0), cmd_data(2), 6) = 1 then
+        # Turn on Hercules BGAPI:
+        call endpoint_set_streaming(HERCULES_ENDPOINT, 0)
+        # "Turn on" Hercules UART (only way to re-enable it is to power-cycle the radio):
+        # Since this isn't the (possibly urgent) reset function, though, we can
+        # afford to wait first:
+        call hardware_set_soft_timer(EXIT_STASIS_RESET_DELAY_MS, EXIT_STATIS_TIMER_HANDLE, 1)
+        executed_command = 1
+    end if
+end
+    
+event hardware_soft_timer(handle)
+    if handle = EXIT_STATIS_TIMER_HANDLE then
+        # We've waited, now we reset to recover the Hercules UART:
+        call system_reset(0)
+    end if
+end
+
+# Write the given bytes to the Radio-Hercules UART line (directly)
+# Designed for diagnostics & repairs only.
+procedure RADIO_CMD__WRITE_UART(str_arg_len, cmd_data_len, cmd_data())
+    # Check that the length matches the remaining message length:
+    if str_arg_len > 0 && str_arg_len = (cmd_data_len-2) then
+        # Put the given bytes directly on the hercules comm line (**WITHOUT** using the hercules messaging protocol):
+        call endpoint_send(HERCULES_ENDPOINT, str_arg_len, cmd_data(2:str_arg_len))
+        executed_command = 1
+    end if
+end
+
+# Send the given bytes (ASCII only) as a Hercules ASCII Direct Message.
+# Designed for diagnostics & repairs only.
+procedure RADIO_CMD__HERCULES_DM(str_arg_len, cmd_data_len, cmd_data())
+    # Check that the length matches the remaining message length:
+    if str_arg_len > 0 && str_arg_len = (cmd_data_len-2) then
+        call hercules_direct_message_ascii(str_arg_len, cmd_data(2:str_arg_len))
+        executed_command = 1
+    end if
+end
+
+
+##
+# Processor functions:
+##
+
+# Check global `executed_command` to see if a commanded completed and send the appropriate response:
+procedure send_cmd_completion(cmd_id, cmd_data_len, cmd_data())
+    # Tell Earth whether we actually did anything:
+    if executed_command = 1 then
+        call RADIO_GND_CMD_DONE(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+    else
+        call RADIO_GND_CMD_BAD(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+    end if
+end
+
+procedure handle_command(cmd_id, cmd_data_len, cmd_data())
+    # Acknowledge that we got the command:
+    call RADIO_GND_CMD_ACK(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+
+    # Compute the length of a string argument (used only if the command
+    # actually takes a single F-Prime style string argument):
+    if cmd_data_len >= 2 then
+        # Commands use F-Prime string formatting so the first two bytes are the
+        # string length (in BIG endian).
+        arg_len = (cmd_data(0:1) << 8) + cmd_data(1:1)
+    else
+        arg_len = 0
+    end if
+
+    # Dispatch to the appropriate command handler:
+    executed_command = 0  # this gets modified by the actual procedures being called (if called) - have to do it this way b/c BGScript procedures don't have return values
+    if cmd_id = CMD_ID__ECHO then
+        call RADIO_CMD__ECHO(arg_len, cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+        return # Note: BGScript doesn't have if else if else if... so this if-return pattern is cleaner than N-nested ifs.
+    end if
+    if cmd_id = CMD_ID__RESET_RADIO then
+        call RADIO_CMD__RESET_RADIO(arg_len, cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+        return
+    end if
+    if cmd_id = CMD_ID__ENTER_STASIS then
+        call RADIO_CMD__ENTER_STASIS(arg_len, cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+        return
+    end if
+    if cmd_id = CMD_ID__EXIT_STASIS then
+        call RADIO_CMD__EXIT_STASIS(arg_len, cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+        return
+    end if
+    if cmd_id = CMD_ID__WRITE_UART then
+        call RADIO_CMD__WRITE_UART(arg_len, cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+        return
+    end if
+    if cmd_id = CMD_ID__HERCULES_DM then
+        call RADIO_CMD__HERCULES_DM(arg_len, cmd_data_len, cmd_data(0:cmd_data_len))
+        call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+        return
+    end if
+    
+    # If we get here, we did nothing... let Earth know:
+    call send_cmd_completion(cmd_id, cmd_data_len, cmd_data(0:cmd_data_len))
+end
+
+# Process the Iris Common Packet
+# (determine if it's a Radio-Only command and then hand it off to the correct handler):
+dim cdl # command data length working variable
+procedure handle_iris_common_packet(icp_len, icp_data())
+    # Check if the Type Magic is for us (a Radio-Only command):
+    # (just skip all the header info, we don't care about it since we just
+    # verified all the UDP information and are treating the entire VLP as one 
+    # payload)
+    # (VLP section starts at byte index 4 and VLP Type Magic is 4 bytes long):
+    if memcmp(icp_data(4), TYPE_MAGIC__RADIO_ONLY(0), 4) = 1 then
+        # It's a Radio-Only command!
+        if icp_data(9:1) = MODULE_ID__RADIO_ONLY then
+            # This came from the right module in the GSW!
+            # NOTE: Payload data starts at byte 8, of which the first byte is the command ID, second byte is the module ID, and the remaining bytes are the command data
+            cdl = icp_len - 10 # all the remaining data is for the command (-4 for ICP header, -4 for type magic, -1 for command ID, -1 for module ID)
+            call handle_command(icp_data(8:1), cdl, icp_data(10:cdl))
+        end if
+    end if
+end
+
+# Process incoming data:
+event tcpip_udp_data(endpoint, source_address, source_port, data_len, data_data)
+    if endpoint = udp_server_endpoint then
+        # We got a packet, handle it:
+        call handle_iris_common_packet(data_len, data_data(0:data_len))
+    end if
+end

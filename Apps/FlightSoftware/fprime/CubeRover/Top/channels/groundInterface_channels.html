@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>groundInterface:GroundInterface Component Dictionary</title>
+</head>
+<body>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 5px;
+}
+th {
+    text-align: left;
+}
+html {
+    font-family: Arial, sans-serif ;
+    font-size: 90% ;
+}
+</style>
+
+
+<h1><b>Telemetry Channels: groundInterface:GroundInterface</b></h1>
+<table>
+  <tr>
+     <th>Channel Name</th>
+     <th>ID</th>
+     <th>Type</th>
+     <th>Description</th>
+ </tr>
+
+ <tr>
+    <td>GI_UplinkSeqNum</td>
+    <td>2304 (0x900)</td>
+    <td>U8</td>
+    <td>Increment the uplink sequence number every packet</td>
+ </tr>
+ <tr>
+    <td>GI_DownlinkSeqNum</td>
+    <td>2305 (0x901)</td>
+    <td>U8</td>
+    <td>Update the downlink sequence number every packet</td>
+ </tr>
+ <tr>
+    <td>GI_PacketsReceived</td>
+    <td>2306 (0x902)</td>
+    <td>U32</td>
+    <td>Number of packets received from link to F'</td>
+ </tr>
+ <tr>
+    <td>GI_PacketsTransmitted</td>
+    <td>2307 (0x903)</td>
+    <td>U32</td>
+    <td>Number of packets transmitted from F' to link</td>
+ </tr>
+ <tr>
+    <td>GI_TlmItemsReceived</td>
+    <td>2308 (0x904)</td>
+    <td>U32</td>
+    <td>Number of telemetry items received and queued</td>
+ </tr>
+ <tr>
+    <td>GI_TlmItemsDownlinked</td>
+    <td>2309 (0x905)</td>
+    <td>U32</td>
+    <td>Number of telemetry items downlinked</td>
+ </tr>
+ <tr>
+    <td>GI_LogsReceived</td>
+    <td>2310 (0x906)</td>
+    <td>U32</td>
+    <td>Number of logs received and queued</td>
+ </tr>
+ <tr>
+    <td>GI_LogsDownlinked</td>
+    <td>2311 (0x907)</td>
+    <td>U32</td>
+    <td>Number of logs downlinked</td>
+ </tr>
+ <tr>
+    <td>GI_CmdsUplinked</td>
+    <td>2312 (0x908)</td>
+    <td>U32</td>
+    <td>Number of commands uplinked.</td>
+ </tr>
+ <tr>
+    <td>GI_CmdsSent</td>
+    <td>2313 (0x909)</td>
+    <td>U32</td>
+    <td>Commands sent to Command Dispatcher queue.</td>
+ </tr>
+ <tr>
+    <td>GI_UplinkPktErrs</td>
+    <td>2314 (0x90a)</td>
+    <td>U32</td>
+    <td>Number of uplinked packets with errors</td>
+ </tr>
+ <tr>
+    <td>GI_AppBytesReceived</td>
+    <td>2315 (0x90b)</td>
+    <td>U32</td>
+    <td>Number of bytes from packets from components not TlmChan, ComLogger received</td>
+ </tr>
+ <tr>
+    <td>GI_AppBytesDownlinked</td>
+    <td>2316 (0x90c)</td>
+    <td>U32</td>
+    <td>Number of bytes from packets from components not TlmChan, ComLogger downlinked</td>
+ </tr>
+</table>
+</body>
+</html>

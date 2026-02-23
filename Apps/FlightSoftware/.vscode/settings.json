@@ -1,0 +1,64 @@
+{
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "googletest.failed",
+                "settings": {
+                    "foreground": "#f00"
+                }
+            },
+            {
+                "scope": "googletest.passed",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            },
+            {
+                "scope": "googletest.run",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            }
+        ]
+    },
+    "cSpell.words": [
+        "Aptina",
+        "bitflip",
+        "bitflips",
+        "BUSBUSY",
+        "Centisecond",
+        "Centiseconds",
+        "CONSEQ",
+        "deser",
+        "DLATCH",
+        "downsampled",
+        "HDRM",
+        "heatshrink",
+        "HSER",
+        "IOEX",
+        "IPASBI",
+        "losslessly",
+        "OPSBI",
+        "REGE",
+        "ROVERSTATE",
+        "setpoints",
+        "Substate",
+        "telbuf",
+        "uninitalized",
+        "uninitialize",
+        "uninitializing",
+        "Unreset",
+        "WDFLAG",
+        "WDOPT"
+    ],
+    "files.associations": {
+        "__locale": "cpp",
+        "locale": "cpp",
+        "string": "cpp",
+        "concepts": "cpp",
+        "ios": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "cstddef": "c"
+    }
+}

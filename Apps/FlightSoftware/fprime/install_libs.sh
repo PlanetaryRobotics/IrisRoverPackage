@@ -1,8 +1,3 @@
 #!/bin/sh
-# **********************************************************************
-
-sudo updatedb
-locate $PWD/*tiR4-ti-cgt-arm-bin/*.a > tmp.txt
-mkdir -p Libs
-xargs -a tmp.txt cp -t Libs/
-rm -f tmp.txt
+mkdir -p ./Libs
+find . -path ./Libs -prune -o -print | grep -E "tiR4-ti-cgt-arm-bin/(.+)\.a$" | xargs cp -vft ./Libs/

@@ -15,5 +15,6 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_LIST_DIR}/CmdArgBuffer.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/CmdPacket.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/CmdString.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/IrisCmdByteString.cpp"
 )
 register_fprime_module()

@@ -1,5 +1,86 @@
-# Iris Ground Software Backend (GDS) v.3
-NOTE: All makefiles are designed to be run in an environment that supports `bash` or `zsh`.
+# Iris Ground Software Backend (GSW) v.3
+The Ground Data System (GDS) used by the Iris Lunar Rover during its mission and supporting Ground Software (GSW)
+
+The `IrisBackendv3` package is the core GDS. It is a standalone python package could theoretically be used for any mission. Outside of it are the following key support directories not part of that core:
+- **`config`**: Mission-specific tailoring of `IrisBackendv3`.
+  - NOTE: the `IrisBackendv3/codec/packet_classes` and `IrisBackendv3/data_standards/prebuilt.py` should eventually be migrated here as they are very Iris-specific
+- **`ipc_apps`**: Standalone applications used for interfacing with the rover or its data, connected to the GDS via IPC.
+- **`scripts`**: Utility scripts and notebooks used for Iris interfacing and checkout.
+- **`test-data`**: Artifacts used for automated testing of the GSW.
+
+## `IrisBackendv3`
+The `IrisBackendv3` is composed of multiple modules, which add layers of functionality. In approximate order of abstraction, they are:
+- **`logs`**: Core logging system used by all modules
+- **`config`**: Templates used for mission-specific configuration
+- **`data_standards`**: Defines data primitives used to communicate with the rover (`Packet`, `CommandPayload`, `TelemetryPayload`, `EventPayload`, etc) and a system for loading definitions (CT&E).
+  - Definitions from either the `FPrime 1` XML used by FSW, C Headers, or prebuilt definitions from `prebuilts.py`.
+  - Also includes a compressed `.dsc` file format for caching standards so they don't need to be rebuilt unless definitions change.
+- **`meta`**: Infrastructure for defining "metafields" in `config`: commands, telemetry, and events that aren't sent directly to/from the rover but are instead derived from or turned into rover communications.
+  - Basically command pre-processing and telemetry post-processing. Think: unit conversion, data smoothing, and sensor fusion).
+- **`codec`**: Encoding and decoding of commands, telemetry, events, and files into/out of packets using definitions from `data_standards`.
+  - Defines structure and contents of specific packets in `packet_classes`.
+  - Also used for coordinating in-flight programming of Radio via BGAPI.
+- **`transceiver`**: used for sending encoded packets to/from (uplink/downlink) the rover via various mediums (RS422, WiFi, YAMCS).
+- **`ipc`**: ZeroMQ-based Inter-Process Communication system used for routing mission data between processes and even across machines (or continents as it was used in mission).
+  - Most useful in situations like a mission control where only one machine is talking directly to the rover and others are interacting with that data or sending commands. 
+- **`storage`**: Used for logging, archiving, and replaying data into and out of IPC in various forms (transceiver logs, WireShark `pcap`, YAMCS archives, database structures).
+
+### Configuring with Environment Variables
+All of these modules are configurable via the `settings` object in their respective `settings.py` files. All of those settings can also be configured by CLI or environment variable by using that module's `_KEY_ADDR_BASE` followed by the key of the module.
+
+Example: setting the `IBv3_ipc__IP` env variable changes the `IP` setting in the `ipc` module. See `docker-compose.yml` for more usage examples.
+
+### IPC
+IPC is critical in allowing users to interact with the GDS and, security permitting, the rover without needing to spin up the entire stack.
+A general explainer of the GDS' custom ZeroMQ-based IPC (interprocess-communication) system can be found in `./resources/IrisBackendv3 - GDS IPC Intro.pdf`. NOTE: The setup instructions in that PDF are dated and are superceded by this README.
+
+A simplified example of the IPC's data routing scheme can be found below:
+
+![Iris GDS - Basic IPC Routing](./resources/IrisBackendv3_Basic_Routing.png)
+
+NOTE: This is a minimal setup and does not include all recommended services. A list of all available services can be found in `docker-compose.yml`. Additional useful software tools can be found in `makefile`.
+
+### IPC Networking
+To join a network set up by another machine, simply change `IP` in the IPC module by setting the `IBv3_ipc__IP` environment variable to the IP of the host machine. Just [make sure you're on the same `subnet`](https://www.networkfuntimes.com/a-complete-beginners-guide-to-subnetting/).
+
+All data in flight is hashed and signed HMAC with SHA256 encrypted using `IBv3_ipc__SESSION_KEY` as a key. It is recommended that you change this key for each network you set up and distribute that to all machines on the network.
+
+### Core IPC Apps
+The following are the most important IPC apps, that should be launched in every session on (at least) one machine via Docker:
+- **`proxies`**: Spools up IPC proxies for routing data between Iris GDS processes (simplifies port binding).
+- **`dl_processor`**: Processes all downlinked packets into payloads, including handling meta fields.
+- **`ul_processor`**: Processes all payloads to be uplinked into packets, including handling MetaCommands.
+
+Other core services that are useful but don't always need to be run:
+- **`standards`**: Builds the latest datastandards from source and caches them.
+- **`image-builder`**: Extracts image blocks from packets, builds images, and saves them. Handles corrupted or partial images.
+
+### IPC Transceivers
+In addition to the core routing services above, to get data into the system a transceiver process must be started. Ideally there should only be 1 per network:
+- **`xcvr-wifi`**: Brings up a WIFI transceiver for use over a lander-like network.
+- **`iris-yamcs`**: Connects uplink and downlink pipes to YAMCS using stored credentials.
+  - Credentials must be configured using `IBv3_xcvr__yamcs_username` and `IBv3_xcvr__yamcs_password`.
+
+NOTE: for a wired serial connection (RS422), Docker can be flaky so the SLIP transceiver is best run directly via `make xcvr-slip`.
+
+Alternatively, if commanding doesn't matter, an archive can be replayed. Here are some pre-configured methods, useful for system tests or mission sims:
+- **`pcap-data`**: Feeds data replayed from a pcap into the system.
+- **`pcap-data-image`**: Feeds data replayed from a pcap of an image into the system.
+- **`itvac-data`**: Feeds data replayed from an Archive of iTVAC telemetry from YAMCS into the system.
+- **`fm1-data`**: Feeds data replayed from an Archive of the FM1 mission from YAMCS into the system.
+- **`fm1-data-fast`** Feeds data replayed from an Archive of the FM1 mission from YAMCS into the system at a faster-than-realtime speed.
+
+### Useful IPC Apps
+The following are some useful IPC Apps for interacting with data:
+- **`message-printer`**: Prints all events & messages going through IPC.
+- **`telem-display`**: Low-level in-console telemetry display.
+- **`roll-credits`**: Prints all donor names & messages downlinked from the rover.
+- **`gui`**: Spawns a low-level development web GUI used for viewing and parsing the incoming data stream and sending commands.
+  - NOTE: This is `data_standards` aware, so all commands are sent with proper formatting.
+  - This also creates a `Redis` database for caching data. So this service can also be useful for storing data in Redis. NOTE: it is recommended that critical datastorage use InfluxDB via FLEUR.
+- **`fleur-mdap`**: Forwards telem and events to FLEUR backend for use in InfluxDB and Grafana.
+  - Requires the [`fleur-backend`](https://github.com/PlanetaryRobotics/fleur-backend) be cloned into `Apps/GroundSoftware/deps/fleur_backend`. Version used during mission is tagged [`iris-mission`](https://github.com/PlanetaryRobotics/fleur-backend/tree/iris-mission).
+
 
 # 0. Using Docker
 Post-RC12, the preferred (and greatly simplified) way to run the Iris GDS is to use docker, esp. for deployment. For development, it will likely be faster to set this up natively using **`Sections 1-`**.
@@ -97,6 +178,8 @@ NOTE: More work needs to be done to investigate this approach. With this mod in 
 
 # 1. Install OS-Level Dependencies
 OS-level dependency install and setup only needs to be done once per machine.
+
+NOTE: All makefiles are designed to be run in an environment that supports `bash` or `zsh`.
 
 ## 1.1. Automated Dependency Setup:
 Prototype automated setup processes exist in the `GroundSoftware/setup` directory. Pick the appropriate script for your platform, make the script executable with `chmod +x ./setup/script_name.sh`, then run it with `./setup/script_name.sh`. Select parts of the process can also be run individually from the `GroundSoftware/setup/parts` directory.

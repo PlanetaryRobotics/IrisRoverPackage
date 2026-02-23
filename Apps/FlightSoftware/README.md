@@ -8,11 +8,12 @@
 ## Primary Flight Controller (Hercules): `./PrimaryFlightController` and `./fprime`:
 - Uses TI CSS v9 on Ubuntu
 - TI project root directory is `./PrimaryFlightController/FlightMCU`
-    - This contains core application architecure, HAL, and FreeRTOS infrastructure
+    - This contains core application architecture, HAL, and FreeRTOS infrastructure
     - Project should be built and run from here.
 
 - FPrime components and source directory is `./fprime`
     - This contains all the applications and drivers that run on the FlightMCU.
+    - See [`Primer.md`](Primer.md) for details about this version of FPrime and how we use it.
     - Iris (nee `CubeRover`) FPrime components in `./fprime/CubeRover`
     - FPrime "`Ac`" components aren't built in the repo and exist only as FPrime XML.
         - Whenever loading this repo on a new machine (or making changes to FPrime XML), run:
